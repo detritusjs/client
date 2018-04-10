@@ -1,0 +1,24 @@
+{
+  "name": "detritus",
+  "version": "0.0.1",
+  "description": "A library to interact with Discord's API using Node JS.",
+  "main": "./lib/index.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cakedan/detritus.git"
+  },
+  "keywords": [
+    "discord"
+  ],
+  "author": "cakedan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cakedan/detritus/issues"
+  },
+  "homepage": "https://github.com/cakedan/detritus#readme"
+}
