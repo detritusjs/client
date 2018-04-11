@@ -1,6 +1,6 @@
 {
   "name": "detritus",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "A library to interact with Discord's API using Node JS.",
   "main": "./lib/index.js",
   "dependencies": {},
