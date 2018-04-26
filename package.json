@@ -1,9 +1,11 @@
 {
   "name": "detritus",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A library to interact with Discord's API using Node JS.",
   "main": "./lib/index.js",
-  "dependencies": {},
+  "dependencies": {
+    "detritus-rest": "^0.0.4"
+  },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
