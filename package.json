@@ -1,6 +1,6 @@
 {
   "name": "detritus-client",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "a nodejs library to interact with Discord's API, both Rest and Gateway.",
   "main": "./lib/index.js",
   "directories": {
@@ -27,6 +27,6 @@
   "homepage": "https://github.com/detritusjs/client#readme",
   "dependencies": {
     "detritus-client-rest": "^0.0.7",
-    "detritus-websocket": "^0.1.2"
+    "detritus-websocket": "^0.1.3"
   }
 }
