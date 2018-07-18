@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/detritusjs/client#readme",
   "dependencies": {
-    "detritus-client-rest": "^0.1.6",
+    "detritus-client-rest": "^0.1.9",
     "detritus-utils": "^0.0.5",
     "detritus-websocket": "^0.1.8"
   }
