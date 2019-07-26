@@ -15,6 +15,7 @@ const client = new Client(token);
       isNew,
     } = await client.voiceConnect(guildId, channelId, {receive: true});
     if (isNew) {
+      connection.setSpeaking({voice: true}); // lets discord send our ssrc to everyone everytime they join
       connection.sendAudioSilenceFrame(); // allows us to start receiving voice
       connection.on('packet', ({data, userId}) => {
         if (userId === targetId) {
