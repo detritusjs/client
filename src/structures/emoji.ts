@@ -1,4 +1,7 @@
-import { Endpoints } from 'detritus-client-rest';
+import {
+  Endpoints,
+  Types as Options,
+} from 'detritus-client-rest';
 
 import { BaseCollection } from '../collections/basecollection';
 import { Client as ShardClient } from '../client';
@@ -99,11 +102,11 @@ export class Emoji extends BaseStructure {
     return Endpoints.CDN.URL + Endpoints.CDN.EMOJI(this.id, format);
   }
 
-  async edit(...args: any[]) {
+  async edit(options: Options.EditGuildEmoji) {
     if (!this.id || this.guildId === null) {
       throw new Error('Cannot edit a standard Emoji.');
     }
-    return this.client.rest.editGuildEmoji(this.guildId, this.id, ...args);
+    return this.client.rest.editGuildEmoji(this.guildId, this.id, options);
   }
 
   async delete() {

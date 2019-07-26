@@ -431,8 +431,8 @@ export class Guild extends BaseStructure {
     return this.client.rest.fetchGuildMember(this.id, userId);
   }
 
-  async fetchMembers() {
-    return this.client.rest.fetchGuildMembers(this.id);
+  async fetchMembers(options: Options.FetchGuildMembers) {
+    return this.client.rest.fetchGuildMembers(this.id, options);
   }
 
   async fetchPremiumSubscriptions() {

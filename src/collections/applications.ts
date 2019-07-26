@@ -19,7 +19,7 @@ export class Applications extends BaseClientCollection<string, Application> {
     if (this.enabled) {
       this.clear();
       const applications = await this.client.rest.fetchApplications();
-      for (let application of applications) {
+      for (let [applicationId, application] of applications) {
         this.insert(application);
       }
     }

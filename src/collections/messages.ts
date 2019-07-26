@@ -119,10 +119,8 @@ export class Messages extends BaseClientCollection<string, MessageCache | Messag
   ): boolean {
     if (this.enabled) {
       if (messageId != null) {
-        if (cacheId == null) {
-          if (this.type === MessageCacheTypes.GLOBAL) {
-            cacheId = DEFAULT_MESSAGES_CACHE_KEY;
-          }
+        if (this.type === MessageCacheTypes.GLOBAL) {
+          cacheId = DEFAULT_MESSAGES_CACHE_KEY;
         }
         if (cacheId == null) {
           // search entire collection for it
@@ -184,10 +182,8 @@ export class Messages extends BaseClientCollection<string, MessageCache | Messag
   ): MessageCache | Message | undefined {
     if (this.enabled) {
       if (messageId != null) {
-        if (cacheId == null) {
-          if (this.type === MessageCacheTypes.GLOBAL) {
-            cacheId = DEFAULT_MESSAGES_CACHE_KEY;
-          }
+        if (this.type === MessageCacheTypes.GLOBAL) {
+          cacheId = DEFAULT_MESSAGES_CACHE_KEY;
         }
         if (cacheId == null) {
           // search entire collection for it
@@ -218,10 +214,8 @@ export class Messages extends BaseClientCollection<string, MessageCache | Messag
   ): boolean {
     if (this.enabled) {
       if (messageId != null) {
-        if (cacheId == null) {
-          if (this.type === MessageCacheTypes.GLOBAL) {
-            cacheId = DEFAULT_MESSAGES_CACHE_KEY;
-          }
+        if (this.type === MessageCacheTypes.GLOBAL) {
+          cacheId = DEFAULT_MESSAGES_CACHE_KEY;
         }
         if (cacheId == null) {
           // search entire collection for it

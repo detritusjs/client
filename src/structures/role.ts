@@ -1,3 +1,5 @@
+import { Types as Options } from 'detritus-client-rest';
+
 import { Client as ShardClient } from '../client';
 import { Snowflake } from '../utils';
 
@@ -52,8 +54,8 @@ export class Role extends BaseStructure {
     return this.client.rest.deleteGuildRole(this.guildId, this.id);
   }
 
-  edit() {
-    return this.client.rest.editGuildRole(this.guildId, this.id, ...arguments);
+  edit(options: Options.EditGuildRole) {
+    return this.client.rest.editGuildRole(this.guildId, this.id, options);
   }
 
   toString(): string {

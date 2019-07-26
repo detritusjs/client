@@ -1,3 +1,5 @@
+import { Types as Options } from 'detritus-client-rest';
+
 import { Client as ShardClient } from '../client';
 
 import {
@@ -52,8 +54,10 @@ export class Reaction extends BaseStructure {
     return this.client.rest.deleteReaction(this.channelId, this.messageId, this.emoji.endpointFormat, userId);
   }
 
-  fetchUsers() {
-    return this.client.rest.fetchReactions(this.channelId, this.messageId, this.emoji.endpointFormat);
+  fetchUsers(
+    options: Options.FetchReactions,
+  ) {
+    return this.client.rest.fetchReactions(this.channelId, this.messageId, this.emoji.endpointFormat, options);
   }
 
   mergeValue(key: string, value: any): void {
