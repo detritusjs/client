@@ -3,7 +3,7 @@ import {
   BaseClientCollectionOptions,
 } from './basecollection';
 
-import { VoiceConnection } from '../structures/voiceconnection';
+import { VoiceConnection } from '../media/voiceconnection';
 
 
 export interface VoiceConnectionsOptions extends BaseClientCollectionOptions {};

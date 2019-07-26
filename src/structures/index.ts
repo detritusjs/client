@@ -24,7 +24,6 @@ export * from './team';
 export * from './typing';
 export * from './user';
 export * from './voicecall';
-export * from './voiceconnection';
 export * from './voiceregion';
 export * from './voicestate';
 export * from './webhook';

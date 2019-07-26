@@ -353,8 +353,8 @@ export interface MessageReactionRemoveAll {
   message_id: string,
 }
 
-export interface MessageUpdate {
-  id: string,
+export interface MessageUpdate extends MessageCreate {
+  
 }
 
 export interface Oauth2TokenRevoke {

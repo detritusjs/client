@@ -143,6 +143,11 @@ export const ChannelTypes = Object.freeze({
 
 export const DISCORD_EPOCH = 1420070400000;
 
+export const DiscordOpusFormat = Object.freeze({
+  CHANNELS: 2,
+  SAMPLE_RATE: 48000,
+});
+
 export const Distributors = Object.freeze({
   BATTLENET: 'battlenet',
   DISCORD: 'discord',

@@ -52,10 +52,13 @@ import {
 } from './collections';
 
 import {
-  User,
-  UserMe,
   VoiceConnection,
   VoiceConnectionOptions,
+} from './media/voiceconnection';
+
+import {
+  User,
+  UserMe,
 } from './structures';
 
 
@@ -313,7 +316,7 @@ export class Client extends EventEmitter {
         };
         this.voiceConnections.insert(payload.connection);
 
-        if (options.wait) {
+        if (options.wait || options.wait === undefined) {
           return new Promise((resolve) => {
             payload.connection.once('ready', () => {
               resolve(payload);

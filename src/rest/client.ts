@@ -471,11 +471,6 @@ export class Client extends RestClient {
     return data;
   }
 
-  async fetchProfile(userId: string): Promise<Profile> {
-    const data = await super.fetchProfile.call(this, userId);
-    return new Profile(this.client, data);
-  }
-
   async fetchTeam(teamId: string): Promise<Team> {
     const data = await super.fetchTeam.call(this, teamId);
     return new Team(this.client, data);
@@ -493,6 +488,11 @@ export class Client extends RestClient {
   async fetchTeamMember(teamId: string, userId: string): Promise<TeamMember> {
     const data = await super.fetchTeamMember.call(this, teamId, userId);
     return new TeamMember(this.client, data);
+  }
+
+  async fetchUserProfile(userId: string): Promise<Profile> {
+    const data = await super.fetchUserProfile.call(this, userId);
+    return new Profile(this.client, data);
   }
 
   async fetchVoiceRegions(

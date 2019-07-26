@@ -14,6 +14,7 @@ import {
   ImageFormats,
   Permissions,
 } from '../constants';
+import { VoiceConnection } from '../media/voiceconnection';
 import {
   PermissionTools,
   Snowflake,
@@ -27,7 +28,6 @@ import { Guild } from './guild';
 import { Member } from './member';
 import { Overwrite } from './overwrite';
 import { User } from './user';
-import { VoiceConnection } from './voiceconnection';
 import { VoiceState } from './voicestate';
 
 

@@ -4,13 +4,13 @@ import {
 } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { VoiceStatesCache } from '../collections/voicestates';
+import { VoiceConnection } from '../media/voiceconnection';
 
 import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
 import { User } from './user';
-import { VoiceConnection } from './voiceconnection';
 import { VoiceState } from './voicestate';
 
 
