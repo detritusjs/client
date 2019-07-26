@@ -1,0 +1,258 @@
+import { Client as ShardClient } from '../client';
+import {
+  MessageCacheTypes,
+  MESSAGE_CACHE_TYPES,
+} from '../constants';
+import { Message } from '../structures';
+
+import {
+  BaseClientCollection,
+  BaseClientCollectionOptions,
+  BaseCollection,
+} from './basecollection';
+
+
+export const DEFAULT_MESSAGES_CACHE_KEY = '@me';
+
+export interface MessageCacheItem {
+  expire: null | ReturnType<typeof setTimeout>,
+  data: Message,
+}
+
+export interface MessageCache extends BaseCollection<string, MessageCacheItem> {};
+export interface MessagesOptions extends BaseClientCollectionOptions {
+  expire?: number,
+  limit?: number,
+  type?: string,
+};
+
+export class Messages extends BaseClientCollection<string, MessageCache | Message> {
+  expire: number = 10 * 60 * 1000; // auto expire messages after 10 minutes
+  limit: number = 1000;
+  type: string = MessageCacheTypes.CHANNEL;
+
+  constructor(client: ShardClient, options: MessagesOptions = {}) {
+    super(client, options);
+
+    Object.defineProperties(this, {
+      expire: {configurable: true, writable: false},
+      limit: {configurable: true, writable: false},
+      type: {configurable: true, writable: false},
+    });
+  }
+
+  setExpire(value: number): void {
+    Object.defineProperty(this, 'expire', {value});
+  }
+
+  setLimit(value: number): void {
+    Object.defineProperty(this, 'limit', {value});
+  }
+
+  setType(value: string): void {
+    if (!MESSAGE_CACHE_TYPES.includes(value)) {
+      throw new Error(`Invalid Cache Type, valid: ${JSON.stringify(MESSAGE_CACHE_TYPES)}`);
+    }
+    Object.defineProperty(this, 'type', {value});
+  }
+
+  get size(): number {
+    return this.reduce((size: number, cache: MessageCache) => {
+      return size + cache.size;
+    }, 0);
+  }
+
+  insert(message: Message): void {
+    if (!this.enabled) {
+      return;
+    }
+
+    let cache: MessageCache;
+    let cacheId = DEFAULT_MESSAGES_CACHE_KEY;
+    switch (this.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheId = message.channelId;
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        if (message.guildId === null) {
+          cacheId = message.channelId;
+        } else {
+          cacheId = message.guildId;
+        }
+      }; break;
+    }
+
+    if (this.has(null, cacheId)) {
+      cache = <MessageCache> super.get(cacheId);
+    } else {
+      cache = new BaseCollection();
+      super.set(cacheId, cache);
+    }
+
+    if (this.limit && this.limit <= cache.size) {
+      const value = <MessageCacheItem> cache.first();
+      if (value.expire !== null) {
+        clearTimeout(<number> <unknown> value.expire);
+        value.expire = null;
+      }
+      cache.delete(value.data.id);
+    }
+
+    let expire: null | ReturnType<typeof setTimeout> = null;
+    if (this.expire) {
+      expire = setTimeout(() => {
+        cache.delete(message.id);
+        if (!cache.size) {
+          super.delete(cacheId);
+        }
+      }, this.expire);
+    }
+    cache.set(message.id, {
+      data: message,
+      expire,
+    });
+  }
+
+  delete(
+    messageId?: null | string,
+    cacheId?: null | string,
+  ): boolean {
+    if (this.enabled) {
+      if (messageId != null) {
+        if (cacheId == null) {
+          if (this.type === MessageCacheTypes.GLOBAL) {
+            cacheId = DEFAULT_MESSAGES_CACHE_KEY;
+          }
+        }
+        if (cacheId == null) {
+          // search entire collection for it
+          for (let [key, value] of this) {
+            const cache = <MessageCache> value;
+            if (cache.has(messageId)) {
+              const item = <MessageCacheItem> cache.get(messageId);
+              if (item.expire !== null) {
+                clearTimeout(<number> <unknown> item.expire);
+                item.expire = null;
+              }
+              cache.delete(messageId);
+              if (!cache.size) {
+                super.delete(key);
+              }
+              return true;
+            }
+          }
+        } else {
+          // delete message from cache, if cache empty, delete from collection
+          if (super.has(cacheId)) {
+            const cache = <MessageCache> super.get(cacheId);
+            if (cache.has(messageId)) {
+              const item = <MessageCacheItem> cache.get(messageId);
+              if (item.expire !== null) {
+                clearTimeout(<number> <unknown> item.expire);
+                item.expire = null;
+              }
+              cache.delete(messageId);
+              if (!cache.size) {
+                super.delete(cacheId);
+              }
+              return true;
+            }
+          }
+          return false;
+        }
+      } else if (cacheId != null) {
+        // delete entire cache from collection
+        if (super.has(cacheId)) {
+          const cache = <MessageCache> super.get(cacheId);
+          for (let [key, value] of cache) {
+            if (value.expire !== null) {
+              clearTimeout(<number> <unknown> value.expire);
+              value.expire = null;
+            }
+            cache.delete(key);
+          }
+        }
+        return super.delete(cacheId);
+      }
+    }
+    return false;
+  }
+
+  get(
+    messageId?: null | string,
+    cacheId?: null | string,
+  ): MessageCache | Message | undefined {
+    if (this.enabled) {
+      if (messageId != null) {
+        if (cacheId == null) {
+          if (this.type === MessageCacheTypes.GLOBAL) {
+            cacheId = DEFAULT_MESSAGES_CACHE_KEY;
+          }
+        }
+        if (cacheId == null) {
+          // search entire collection for it
+          for (let [key, value] of this) {
+            const cache = <MessageCache> value;
+            if (cache.has(messageId)) {
+              return (<MessageCacheItem> cache.get(messageId)).data;
+            }
+          }
+        } else {
+          if (super.has(cacheId)) {
+            const cache = <MessageCache> super.get(cacheId);
+            if (cache.has(messageId)) {
+              const { data } = <MessageCacheItem> cache.get(messageId);
+              return data;
+            }
+          }
+        }
+      } else if (cacheId != null) {
+        return super.get(cacheId);
+      }
+    }
+  }
+
+  has(
+    messageId?: null | string,
+    cacheId?: null | string,
+  ): boolean {
+    if (this.enabled) {
+      if (messageId != null) {
+        if (cacheId == null) {
+          if (this.type === MessageCacheTypes.GLOBAL) {
+            cacheId = DEFAULT_MESSAGES_CACHE_KEY;
+          }
+        }
+        if (cacheId == null) {
+          // search entire collection for it
+          for (let [key, value] of this) {
+            const cache = <MessageCache> value;
+            if (cache.has(messageId)) {
+              return true;
+            }
+          }
+        } else {
+          if (super.has(cacheId)) {
+            const cache = <MessageCache> super.get(cacheId);
+            return cache.has(messageId);
+          }
+          return false;
+        }
+      } else if (cacheId != null) {
+        return super.has(cacheId);
+      }
+    }
+    return false;
+  }
+
+  clear(shardId?: number): void {
+    for (let [cacheId, cache] of this) {
+      this.delete(null, cacheId);
+    }
+    return super.clear();
+  }
+
+  toString(): string {
+    return `${this.size} Messages`;
+  }
+}

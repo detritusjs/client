@@ -1,19 +1,31 @@
 {
   "name": "detritus-client",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "a nodejs library to interact with Discord's API, both Rest and Gateway.",
-  "main": "./lib/index.js",
-  "directories": {
-    "lib": "lib"
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/**/*"
+  ],
+  "dependencies": {
+    "detritus-client-rest": "^0.3.15",
+    "detritus-client-socket": "^0.2.5"
   },
+  "devDependencies": {
+    "@types/node": "^12.0.10"
+  },
+  "peerDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/detritusjs/client.git"
   },
   "keywords": [
+    "typescript",
     "nodejs",
     "discord",
     "library",
@@ -24,10 +36,5 @@
   "bugs": {
     "url": "https://github.com/detritusjs/client/issues"
   },
-  "homepage": "https://github.com/detritusjs/client#readme",
-  "dependencies": {
-    "detritus-client-rest": "^0.2.0",
-    "detritus-utils": "^0.0.5",
-    "detritus-websocket": "^0.1.9"
-  }
+  "homepage": "https://github.com/detritusjs/client#readme"
 }
