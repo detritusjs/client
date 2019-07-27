@@ -141,11 +141,73 @@ export const ChannelTypes = Object.freeze({
   GUILD_LFG_LISTINGS: 7,
 });
 
+export const ClientEvents = normalize(Object.assign({
+  COMMAND_ERROR: null,
+  COMMAND_FAIL: null,
+  COMMAND_NONE: null,
+  COMMAND_RAN: null,
+  COMMAND_RATELIMIT: null,
+  GATEWAY_READY: null,
+  GATEWAY_RESUMED: null,
+  RAW_EVENT: null,
+  UNKNOWN: null,
+}, SocketConstants.GatewayDispatchEvents));
+
+export const CommandArgumentTypes = Object.freeze({
+  BOOL: 'bool',
+  NUMBER: 'number',
+  STRING: 'string',
+});
+
+export const CommandErrors = Object.freeze({
+
+});
+
+export const CommandRatelimitTypes = Object.freeze({
+  CHANNEL: 'channel',
+  GUILD: 'guild',
+  USER: 'user',
+});
+
+export const COMMAND_RATELIMIT_TYPES: Array<string> = Object.values(CommandRatelimitTypes);
+
 export const DISCORD_EPOCH = 1420070400000;
 
 export const DiscordOpusFormat = Object.freeze({
   CHANNELS: 2,
   SAMPLE_RATE: 48000,
+});
+
+export const DiscordRegexNames = normalize({
+  EMOJI: null,
+  MENTION_CHANNEL: null,
+  MENTION_ROLE: null,
+  MENTION_USER: null,
+  TEXT_BOLD: null,
+  TEXT_CODEBLOCK: null,
+  TEXT_CODESTRING: null,
+  TEXT_ITALICS: null,
+  TEXT_SNOWFLAKE: null,
+  TEXT_SPOILER: null,
+  TEXT_STRIKE: null,
+  TEXT_UNDERLINE: null,
+  TEXT_URL: null,
+});
+
+export const DiscordRegex = Object.freeze({
+  [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/,
+  [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/,
+  [DiscordRegexNames.MENTION_ROLE]: /<@&(\d+)>/,
+  [DiscordRegexNames.MENTION_USER]: /<@!?(\d+)>$/,
+  [DiscordRegexNames.TEXT_BOLD]: /\*\*([\s\S]+?)\*\*/,
+  [DiscordRegexNames.TEXT_CODEBLOCK]: /```(([a-z0-9-]+?)\n+)?\n*([^]+?)\n*```/i,
+  [DiscordRegexNames.TEXT_CODESTRING]: /`([\s\S]+?)`/,
+  [DiscordRegexNames.TEXT_ITALICS]: /_([\s\S]+?)_|\*([\s\S]+?)\*/,
+  [DiscordRegexNames.TEXT_SNOWFLAKE]: /(\d+)/,
+  [DiscordRegexNames.TEXT_SPOILER]: /\|\|([\s\S]+?)\|\|/,
+  [DiscordRegexNames.TEXT_STRIKE]: /~~([\s\S]+?)~~(?!_)/,
+  [DiscordRegexNames.TEXT_UNDERLINE]: /__([\s\S]+?)__/,
+  [DiscordRegexNames.TEXT_URL]: /((?:https?|steam):\/\/[^\s<]+[^<.,:;"'\]\s])/,
 });
 
 export const Distributors = Object.freeze({
@@ -169,13 +231,6 @@ export const DistributorNames = Object.freeze({
   [Distributors.TWITCH]: 'Twitch',
   [Distributors.UPLAY]: 'Uplay',
 });
-
-export const GatewayEvents = normalize(Object.assign({
-  GATEWAY_READY: null,
-  GATEWAY_RESUMED: null,
-  RAW_EVENT: null,
-  UNKNOWN: null,
-}, SocketConstants.GatewayDispatchEvents));
 
 export const GuildExplicitContentFilterTypes = Object.freeze({
   DISABLED: 0,
@@ -207,7 +262,7 @@ export const ImageFormats = Object.freeze({
   WEBP: 'webp',
 });
 
-export const IMAGE_FORMATS = Object.values(ImageFormats);
+export const IMAGE_FORMATS: Array<string> = Object.values(ImageFormats);
 
 export const InviteTargetUserTypes = Object.freeze({
   STREAM: 1,
@@ -235,7 +290,7 @@ export const MessageCacheTypes = Object.freeze({
   GUILD: 'guild',
 });
 
-export const MESSAGE_CACHE_TYPES = Object.values(MessageCacheTypes);
+export const MESSAGE_CACHE_TYPES: Array<string> = Object.values(MessageCacheTypes);
 
 export const MessageFlags = Object.freeze({
   CROSSPOSTED: 1 << 0,

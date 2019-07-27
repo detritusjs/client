@@ -88,10 +88,6 @@ export class BaseStructure {
     if (value !== undefined) {
       if (this._defaultKeys !== null && this._defaultKeys.includes(key)) {
         this._setFromSnake(key, value);
-      } else {
-        if (this.constructor.name !== 'Presence') {
-          console.log(this.constructor.name, 'unknown key', key, value);
-        }
       }
     }
   }

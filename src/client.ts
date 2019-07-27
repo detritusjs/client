@@ -6,7 +6,7 @@ import {
 import { Gateway } from 'detritus-client-socket';
 
 import {
-  GatewayEvents,
+  ClientEvents,
   ImageFormats,
   IMAGE_FORMATS,
 } from './constants';
@@ -276,7 +276,7 @@ export class Client extends EventEmitter {
     this.gateway.connect(url);
     return new Promise((resolve) => {
       if (wait) {
-        this.once(GatewayEvents.GATEWAY_READY, resolve);
+        this.once(ClientEvents.GATEWAY_READY, resolve);
       } else {
         resolve();
       }
@@ -299,6 +299,8 @@ export class Client extends EventEmitter {
     connection: VoiceConnection,
     isNew: boolean,
   } | null> {
+    options.selfDeaf = options.selfDeaf || options.deaf;
+    options.selfMute = options.selfMute || options.mute;
     const gateway = await this.gateway.voiceConnect(guildId, channelId, options);
     const serverId = <string> (guildId || channelId);
     if (gateway) {
@@ -344,6 +346,9 @@ export class Client extends EventEmitter {
 
 
 export interface VoiceConnectOptions extends VoiceConnectionOptions {
+  deaf?: boolean,
+  forceMode?: string,
+  mute?: boolean,
   receive?: boolean,
   selfDeaf?: boolean,
   selfMute?: boolean,

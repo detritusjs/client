@@ -523,6 +523,7 @@ export class Guild extends BaseStructure {
                 channel = <Channel> this.client.channels.get(raw.id);
                 channel.merge(raw);
               } else {
+                raw.guild_id = this.id;
                 channel = createChannelFromData(this.client, raw);
                 this.client.channels.insert(channel);
               }

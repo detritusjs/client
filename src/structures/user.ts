@@ -63,6 +63,10 @@ export class User extends BaseStructure {
     return Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DEFAULT(parseInt(this.discriminator) % 5);
   }
 
+  get isClientOwner(): boolean {
+    return this.client.isOwner(this.id);
+  }
+
   get isMe(): boolean {
     if (this.client.user !== null) {
       return this.id === this.client.user.id;
@@ -355,6 +359,10 @@ export class UserMixin extends BaseStructure {
 
   get id(): string {
     return this.user.id;
+  }
+
+  get isClientOwner(): boolean {
+    return this.user.isClientOwner;
   }
 
   get isMe(): boolean {

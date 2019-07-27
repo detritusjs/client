@@ -31,6 +31,11 @@ import { Role } from './role';
 import { User } from './user';
 
 
+export interface MessageReply extends Options.CreateMessage {
+  mention?: boolean,
+}
+
+
 const keys = [
   'activity',
   'application',
@@ -165,6 +170,13 @@ export class Message extends BaseStructure {
     return this.author.bot;
   }
 
+  get fromMe(): boolean {
+    if (this.client.user !== null) {
+      return this.author.id === this.client.user.id;
+    }
+    return false;
+  }
+
   get fromSystem(): boolean {
     return this.type !== MessageTypes.DEFAULT;
   }
@@ -238,6 +250,19 @@ export class Message extends BaseStructure {
 
   async removeMention() {
     return this.client.rest.removeMention(this.id);
+  }
+
+  async reply(options: MessageReply | string = '') {
+    if (typeof(options) === 'string') {
+      options = {content: options};
+    }
+    if (options.mention) {
+      options.content = [
+        this.author.mention,
+        options.content || null,
+      ].filter((v) => v).join(', ');
+    }
+    return this.client.rest.createMessage(this.channelId, options);
   }
 
   async suppressEmbeds(suppress: boolean = true) {

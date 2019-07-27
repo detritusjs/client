@@ -13,7 +13,7 @@ export function checkPermissions(
 
   switch (typeof(check)) {
     case 'number': {
-      return (permissions & check) == permissions;
+      return (permissions & check) === check;
     };
     case 'object': {
       if (Array.isArray(check)) {
