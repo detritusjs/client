@@ -893,6 +893,11 @@ export class ChannelGuildText extends ChannelGuildBase {
     this.merge(data);
   }
 
+  async publish(options: Options.CreateApplicationNews) {
+    options.channelId = this.id;
+    return this.client.rest.createApplicationNews(options);
+  }
+
   async turnIntoNewsChannel() {
     return this.edit({
       type: ChannelTypes.GUILD_NEWS,

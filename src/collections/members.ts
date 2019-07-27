@@ -22,9 +22,7 @@ export interface MembersOptions extends BaseClientCollectionOptions {
  * Members Collection
  * @category Collections
  */
-export class Members extends BaseClientCollection<string, MembersCache | Member> {
-  [Symbol.iterator]: () => IterableIterator<[string, MembersCache]>;
-
+export class Members extends BaseClientCollection<string, MembersCache, Member> {
   get size(): number {
     return this.reduce((size: number, cache: MembersCache) => size + cache.size, 0);
   }
@@ -57,6 +55,8 @@ export class Members extends BaseClientCollection<string, MembersCache | Member>
     return false;
   }
 
+  get(guildId: string): MembersCache | undefined;
+  get(guildId: string, userId: string): Member | undefined;
   get(guildId: string, userId?: string): Member | MembersCache | undefined {
     if (this.enabled && super.has(guildId)) {
       const cache = <MembersCache> super.get(guildId);
@@ -67,6 +67,8 @@ export class Members extends BaseClientCollection<string, MembersCache | Member>
     }
   }
 
+  has(guildId: string): boolean;
+  has(guildId: string, userId: string): boolean;
   has(guildId: string, userId?: string): boolean {
     if (this.enabled && super.has(guildId)) {
       if (userId) {

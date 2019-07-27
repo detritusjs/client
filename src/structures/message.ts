@@ -248,6 +248,12 @@ export class Message extends BaseStructure {
     return this.client.rest.addPinnedMessage(this.channelId, this.id);
   }
 
+  async publish(options: Options.CreateApplicationNews) {
+    options.channelId = this.channelId;
+    options.messageId = this.id;
+    return this.client.rest.createApplicationNews(options);
+  }
+
   async react(emoji: string) {
     return this.client.rest.createReaction(this.channelId, this.id, emoji);
   }

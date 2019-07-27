@@ -24,9 +24,11 @@ import { VoiceConnection } from './voiceconnection';
  */
 export class MediaHandler {
   connection: VoiceConnection;
+  opHandler: MediaGatewayOpHandler;
 
   constructor(connection: VoiceConnection) {
     this.connection = connection;
+    this.opHandler = new MediaGatewayOpHandler(this);
 
     this.gateway.on('packet', this.onPacket.bind(this));
     this.gateway.on('warn', this.connection.emit.bind(this.connection, 'warn'));
@@ -43,9 +45,9 @@ export class MediaHandler {
   }
 
   onPacket(packet: Types.MediaGatewayPacket): void {
-    const handler: Function | undefined = MediaHandlers[packet.op];
+    const handler = this.opHandler.getHandler(packet.op);
     if (handler) {
-      (<Function> handler).call(this, this, packet.d);
+      handler.call(this.opHandler, packet.d);
     }
   }
 
@@ -85,48 +87,73 @@ export class MediaHandler {
   }
 }
 
+
 /**
- * Voice Connection Handlers
+ * Media Gateway Op Code Handler Function
  * @category Handlers
  */
-export const MediaHandlers: {[key: number]: Function} = {
-  [MediaOpCodes.CLIENT_CONNECT]({client, connection}: MediaHandler, data: Types.ClientConnect) {
+export type MediaGatewayOpHandlerFunction = (data: any) => void;
+
+/**
+ * Media Gateway Op Code Handler
+ * @category Handlers
+ */
+export class MediaGatewayOpHandler {
+  handler: MediaHandler;
+
+  constructor(handler: MediaHandler) {
+    this.handler = handler;
+  }
+
+  get client() {
+    return this.handler.client;
+  }
+
+  get connection() {
+    return this.handler.connection;
+  }
+
+  getHandler(op: number): MediaGatewayOpHandlerFunction | undefined {
+    return (<any> this)[op];
+  }
+
+  [MediaOpCodes.CLIENT_CONNECT](data: Types.ClientConnect) {
     const userId = data['user_id'];
-    connection.emit('connect', {
+    this.connection.emit('connect', {
       audioSSRC: data['audio_ssrc'],
-      user: client.users.get(userId),
+      user: this.client.users.get(userId),
       userId,
       videoSSRC: data['video_ssrc'],
     });
-  },
+  }
 
-  [MediaOpCodes.CLIENT_DISCONNECT]({client, connection}: MediaHandler, data: Types.ClientDisconnect) {
+  [MediaOpCodes.CLIENT_DISCONNECT](data: Types.ClientDisconnect) {
     const userId = data['user_id'];
-    if (connection.opusDecoders.has(userId)) {
-      const opusDecoder = <Opus.AudioOpus> connection.opusDecoders.get(userId);
+    if (this.connection.opusDecoders.has(userId)) {
+      const opusDecoder = <Opus.AudioOpus> this.connection.opusDecoders.get(userId);
       opusDecoder.delete();
-      connection.opusDecoders.delete(userId);
+      this.connection.opusDecoders.delete(userId);
     }
-    connection.emit('disconnect', {
-      user: client.users.get(userId),
+    this.connection.emit('disconnect', {
+      user: this.client.users.get(userId),
       userId,
     });
-  },
+  }
 
-  [MediaOpCodes.SPEAKING]({client, connection}: MediaHandler, data: Types.Speaking) {
+  [MediaOpCodes.SPEAKING](data: Types.Speaking) {
     const priority = (data['speaking'] & MediaSpeakingFlags.PRIORITY) === MediaSpeakingFlags.PRIORITY;
     const soundshare = (data['speaking'] & MediaSpeakingFlags.SOUNDSHARE) === MediaSpeakingFlags.SOUNDSHARE;
     const voice = (data['speaking'] & MediaSpeakingFlags.VOICE) === MediaSpeakingFlags.VOICE;
 
     const userId = data['user_id'];
-    connection.emit('speaking', {
+    this.connection.emit('speaking', {
       isSpeaking: !!data['speaking'],
       priority,
       soundshare,
       voice,
       ssrc: data['ssrc'],
-      user: client.users.get(userId),
+      user: this.client.users.get(userId),
       userId,
     });
-  },
-};
+  }
+}

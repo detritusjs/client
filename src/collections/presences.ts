@@ -33,9 +33,7 @@ export interface PresencesOptions extends BaseClientCollectionOptions {
  * Presences Collection
  * @category Collections
  */
-export class Presences extends BaseClientCollection<string, PresencesCache | Presence> {
-  [Symbol.iterator]: () => IterableIterator<[string, PresencesCache]>;
-
+export class Presences extends BaseClientCollection<string, PresencesCache, Presence> {
   storeOffline: boolean;
 
   constructor(client: ShardClient, options: PresencesOptions = {}) {
@@ -104,10 +102,10 @@ export class Presences extends BaseClientCollection<string, PresencesCache | Pre
     return presence;
   }
 
-  delete(
-    cacheId?: null | string,
-    userId?: null | string,
-  ): boolean {
+  delete(cacheId: string): boolean;
+  delete(cacheId: string, userId: string): boolean;
+  delete(cacheId: null | undefined, userId: string): boolean;
+  delete(cacheId?: null | string, userId?: null | string): boolean {
     if (this.enabled) {
       if (cacheId != null) {
         if (super.has(cacheId)) {
@@ -136,10 +134,10 @@ export class Presences extends BaseClientCollection<string, PresencesCache | Pre
     return false;
   }
 
-  get(
-    cacheId?: null | string,
-    userId?: null | string,
-  ): PresencesCache | Presence | undefined {
+  get(cacheId: string): PresencesCache | undefined;
+  get(cacheId: string, userId: string): Presence | undefined;
+  get(cacheId: null | undefined, userId: string): Presence;
+  get(cacheId?: null | string, userId?: null | string): PresencesCache | Presence | undefined {
     if (this.enabled) {
       if (cacheId != null) {
         if (super.has(cacheId)) {
@@ -162,10 +160,10 @@ export class Presences extends BaseClientCollection<string, PresencesCache | Pre
     return undefined;
   }
 
-  has(
-    cacheId?: null | string,
-    userId?: null | string,
-  ): boolean {
+  has(cacheId: string): boolean;
+  has(cacheId: string, userId: string): boolean;
+  has(cacheId: null | undefined, userId: string): boolean;
+  has(cacheId?: null | string, userId?: null | string): boolean {
     if (this.enabled) {
       if (cacheId != null) {
         if (super.has(cacheId)) {

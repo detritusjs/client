@@ -22,9 +22,7 @@ export interface VoiceStatesOptions extends BaseClientCollectionOptions {
  * VoiceState Collection
  * @category Collections
  */
-export class VoiceStates extends BaseClientCollection<string, VoiceStatesCache | VoiceState> {
-  [Symbol.iterator]: () => IterableIterator<[string, VoiceStatesCache]>;
-
+export class VoiceStates extends BaseClientCollection<string, VoiceStatesCache, VoiceState> {
   get size(): number {
     return this.reduce((size: number, cache: VoiceStatesCache) => size + cache.size, 0);
   }
@@ -42,6 +40,8 @@ export class VoiceStates extends BaseClientCollection<string, VoiceStatesCache |
     }
   }
 
+  delete(serverId: string): boolean;
+  delete(serverId: string, userId: string): boolean;
   delete(serverId: string, userId?: string): boolean {
     if (this.enabled && super.has(serverId)) {
       if (userId) {
@@ -56,6 +56,8 @@ export class VoiceStates extends BaseClientCollection<string, VoiceStatesCache |
     return false;
   }
 
+  get(serverId: string): VoiceStatesCache | undefined;
+  get(serverId: string, userId: string): VoiceState | undefined;
   get(serverId: string, userId?: string): VoiceStatesCache | VoiceState | undefined {
     if (this.enabled && super.has(serverId)) {
       if (userId) {
@@ -65,6 +67,8 @@ export class VoiceStates extends BaseClientCollection<string, VoiceStatesCache |
     }
   }
 
+  has(serverId: string): boolean;
+  has(serverId: string, userId: string): boolean;
   has(serverId: string, userId?: string): boolean {
     if (this.enabled && super.has(serverId)) {
       if (userId) {

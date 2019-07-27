@@ -207,8 +207,15 @@ export class Guild extends BaseStructure {
     return Math.max(max, (<any> PremiumGuildLimits)[this.premiumTier].emoji);
   }
 
-  get members(): MembersCache | undefined {
-    return (<MembersCache | undefined> this.client.members.get(this.id));
+  get me(): Member | null {
+    if (this.client.user !== null) {
+      return (<Member | undefined> this.client.members.get(this.id, this.client.user.id)) || null;
+    }
+    return null;
+  }
+
+  get members(): MembersCache | null {
+    return this.client.members.get(this.id) || null;
   }
 
   get owner(): null | User {
@@ -216,7 +223,7 @@ export class Guild extends BaseStructure {
   }
 
   get presences(): null | PresencesCache {
-    return (<PresencesCache | undefined> this.client.presences.get(this.id)) || null;
+    return this.client.presences.get(this.id) || null;
   }
 
   get splashUrl(): null | string {
@@ -231,7 +238,7 @@ export class Guild extends BaseStructure {
   }
 
   get voiceStates(): null | VoiceStatesCache {
-    return (<undefined | VoiceStatesCache> this.client.voiceStates.get(this.id)) || null;
+    return this.client.voiceStates.get(this.id) || null;
   }
 
   can(
@@ -261,12 +268,11 @@ export class Guild extends BaseStructure {
     }
 
     if (member == undefined) {
-      if (this.client.user === null) {
+      const me = this.me;
+      if (me === null) {
         throw new Error('Provide a member object please');
       }
-      if (this.client.members.has(this.id, this.client.user.id)) {
-        member = <Member> this.client.members.get(this.id, this.client.user.id);
-      }
+      member = me;
     }
 
     if (member == undefined) {
@@ -628,7 +634,7 @@ export class Guild extends BaseStructure {
             }
             for (let raw of value) {
               if (this.client.voiceStates.has(this.id, raw.user_id)) {
-                (<VoiceState> this.client.voiceStates.get(this.id)).merge(raw);
+                (<VoiceState> this.client.voiceStates.get(this.id, raw.user_id)).merge(raw);
               } else {
                 raw.guild_id = this.id;
                 const voiceState = new VoiceState(this.client, raw);

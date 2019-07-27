@@ -60,10 +60,10 @@ export class RestClient extends Client {
 
   async createChannelInvite(
     channelId: string,
-    options: Options.CreateChannelInvite,
-  ): Promise<null> {
+    options: Options.CreateChannelInvite = {},
+  ): Promise<Invite> {
     const data = super.createChannelInvite.call(this, channelId, options);
-    return data;
+    return new Invite(this.client, data);
   }
 
   async editChannelOverwrite(
@@ -74,8 +74,15 @@ export class RestClient extends Client {
     return super.editChannelOverwrite.call(this, channelId, overwriteId, options);
   }
 
+  async createApplicationNews(
+    options: Options.CreateApplicationNews,
+  ): Promise<ApplicationNews> {
+    const data = await super.createApplicationNews.call(this, options);
+    return new ApplicationNews(this.client, data);
+  }
+
   async createDm(
-    options: Options.CreateDm,
+    options: Options.CreateDm = {},
   ): Promise<ChannelDM> {
     const data = await super.createDm.call(this, options);
     let channel: ChannelDM;
@@ -141,7 +148,7 @@ export class RestClient extends Client {
 
   async createGuildRole(
     guildId: string,
-    options: Options.CreateGuildRole,
+    options: Options.CreateGuildRole = {},
   ): Promise<Role> {
     const data = await super.createGuildRole.call(this, guildId, options);
     data.guild_id = guildId;
@@ -154,7 +161,7 @@ export class RestClient extends Client {
 
   async createMessage(
     channelId: string,
-    options: Options.CreateMessage,
+    options: Options.CreateMessage = {},
   ): Promise<any> {
     const data = await super.createMessage.call(this, channelId, options);
     if (this.client.channels.has(data.channel_id)) {
@@ -197,7 +204,7 @@ export class RestClient extends Client {
   /* Issue with merging data with these edited objects is that the gateway event wont have differences then */
   async editChannel(
     channelId: string,
-    options: Options.EditChannel,
+    options: Options.EditChannel = {},
   ): Promise<Channel> {
     const data = await super.editChannel.call(this, channelId, options);
     let channel: Channel;
@@ -213,7 +220,7 @@ export class RestClient extends Client {
 
   async editGuild(
     guildId: string,
-    options: Options.EditGuild,
+    options: Options.EditGuild = {},
   ): Promise<Guild> {
     const data = await super.editGuild.call(this, guildId, options);
     let guild: Guild;
@@ -229,7 +236,7 @@ export class RestClient extends Client {
   async editGuildEmoji(
     guildId: string,
     emojiId: string,
-    options: Options.EditGuildEmoji,
+    options: Options.EditGuildEmoji = {},
   ): Promise<Emoji> {
     const data = await super.editGuildEmoji.call(this, guildId, emojiId, options);
     let emoji: Emoji;
@@ -246,7 +253,7 @@ export class RestClient extends Client {
   async editGuildRole(
     guildId: string,
     roleId: string,
-    options: Options.EditGuildRole,
+    options: Options.EditGuildRole = {},
   ): Promise<Role> {
     const data = await super.editGuildRole.call(this, guildId, roleId, options);
     let role: Role;
@@ -294,7 +301,7 @@ export class RestClient extends Client {
   }
 
   async editMe(
-    options: Options.EditMe,
+    options: Options.EditMe = {},
   ): Promise<UserMe> {
     const data = await super.editMe.call(this, options);
     let user: UserMe;
@@ -310,7 +317,7 @@ export class RestClient extends Client {
   async editMessage(
     channelId: string,
     messageId: string,
-    options: Options.EditMessage,
+    options: Options.EditMessage = {},
   ): Promise<Message> {
     const data = await super.editMessage.call(this, channelId, messageId, options);
     let message: Message;
@@ -332,13 +339,13 @@ export class RestClient extends Client {
     return super.editTeam.call(this, teamId, options);
   }
 
-  async editUser(options: Options.EditMe) {
+  async editUser(options: Options.EditMe = {}) {
     return this.editMe(options);
   }
 
   async editWebhook(
     webhookId: string,
-    options: Options.EditWebhook,
+    options: Options.EditWebhook = {},
   ): Promise<Webhook> {
     const data = await super.editWebhook.call(this, webhookId, options);
     return new Webhook(this.client, data);
@@ -347,7 +354,7 @@ export class RestClient extends Client {
   async editWebhookToken(
     webhookId: string,
     token: string,
-    options: Options.EditWebhook,
+    options: Options.EditWebhook = {},
   ): Promise<Webhook> {
     const data = await super.editWebhookToken.call(this, webhookId, token, options);
     return new Webhook(this.client, data);
@@ -440,7 +447,7 @@ export class RestClient extends Client {
 
   async fetchGiftCode(
     code: string,
-    options: Options.FetchGiftCode,
+    options: Options.FetchGiftCode = {},
   ): Promise<Gift> {
     const data = await super.fetchGiftCode.call(this, code, options);
     return new Gift(this.client, data);
@@ -476,7 +483,7 @@ export class RestClient extends Client {
 
   async fetchGuildAuditLogs(
     guildId: string,
-    options: Options.FetchGuildAuditLogs,
+    options: Options.FetchGuildAuditLogs = {},
   ): Promise<BaseCollection<string, AuditLog>> {
     const data = await super.fetchGuildAuditLogs.call(this, guildId, options);
     const collection = new BaseCollection<string, AuditLog>();
@@ -625,7 +632,7 @@ export class RestClient extends Client {
 
   async fetchGuildMembers(
     guildId: string,
-    options: Options.FetchGuildMembers,
+    options: Options.FetchGuildMembers = {},
   ): Promise<BaseCollection<string, Member>> {
     const data = await super.fetchGuildMembers.call(this, guildId, options);
 
@@ -691,7 +698,7 @@ export class RestClient extends Client {
 
   async fetchInvite(
     code: string,
-    options: Options.FetchInvite
+    options: Options.FetchInvite = {},
   ): Promise<Invite> {
     const data = await super.fetchInvite.call(this, code, options);
     return new Invite(this.client, data);
@@ -729,7 +736,7 @@ export class RestClient extends Client {
 
   async fetchMessages(
     channelId: string,
-    options: Options.FetchMessages,
+    options: Options.FetchMessages = {},
   ): Promise<BaseCollection<string, Message>> {
     const data = await super.fetchMessages.call(this, channelId, options);
 

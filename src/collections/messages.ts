@@ -36,9 +36,7 @@ export interface MessagesOptions extends BaseClientCollectionOptions {
  * Messages Collection
  * @category Collections
  */
-export class Messages extends BaseClientCollection<string, MessageCache | Message> {
-  [Symbol.iterator]: () => IterableIterator<[string, MessageCache]>;
-
+export class Messages extends BaseClientCollection<string, MessageCache, Message> {
   expire: number = 10 * 60 * 1000; // auto expire messages after 10 minutes
   limit: number = 1000;
   type: string = MessageCacheTypes.CHANNEL;
@@ -125,6 +123,9 @@ export class Messages extends BaseClientCollection<string, MessageCache | Messag
     });
   }
 
+  delete(messageId: string): boolean;
+  delete(messageId: string, cacheId: string): boolean;
+  delete(messageId: null | undefined, cacheId: string): boolean;
   delete(
     messageId?: null | string,
     cacheId?: null | string,
@@ -188,6 +189,9 @@ export class Messages extends BaseClientCollection<string, MessageCache | Messag
     return false;
   }
 
+  get(messageId: string): Message | undefined;
+  get(messageId: string, cacheId: string): Message | undefined;
+  get(messageId: null | undefined, cacheId: string): MessageCache | undefined;
   get(
     messageId?: null | string,
     cacheId?: null | string,
@@ -220,6 +224,9 @@ export class Messages extends BaseClientCollection<string, MessageCache | Messag
     }
   }
 
+  has(messageId: string): boolean;
+  has(messageId: string, cacheId: string): boolean;
+  has(messageId: null | undefined, cacheId: string): boolean;
   has(
     messageId?: null | string,
     cacheId?: null | string,

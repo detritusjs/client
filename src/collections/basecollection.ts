@@ -2,10 +2,26 @@ import { ShardClient } from '../client';
 
 
 /**
- * Basic Collection, the most basic
+ * Basic Collection Map, the most basic
  * @category Collections
  */
-export class BaseCollection<K, V> extends Map<K, V > {
+export class BaseCollectionMap<K, V, X = V> extends Map<K, V | X> {
+  [Symbol.iterator]: () => IterableIterator<[K, V]>;
+  entries!: () => IterableIterator<[K, V]>;
+  forEach!: (
+    callbackfn: (value: V, key: K, map: BaseCollectionMap<K, V>) => void,
+    thisArg?: any,
+  ) => void;
+  set!: (key: K, value: V) => this;
+  values!: () => IterableIterator<V>;
+}
+
+
+/**
+ * Basic Collection, used for all the collections
+ * @category Collections
+ */
+export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
   defaultKey: null | string;
 
   constructor(
@@ -118,7 +134,7 @@ export interface BaseClientCollectionOptions {
  * Basic Client Collection, the ShardClient instance is attached to this
  * @category Collections
  */
-export class BaseClientCollection<K, V> extends BaseCollection<K, V> {
+export class BaseClientCollection<K, V, X = V> extends BaseCollection<K, V, X> {
   client: ShardClient;
   enabled: boolean;
 
