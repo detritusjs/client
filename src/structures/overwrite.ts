@@ -20,6 +20,10 @@ const keys = [
   'type',
 ];
 
+/**
+ * Channel Overwrite Structure, used in [ChannelGuildBase] Structures
+ * @category Structure
+ */
 export class Overwrite extends BaseStructure {
   _defaultKeys = keys;
   allow: number = 0;

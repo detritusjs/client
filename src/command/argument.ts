@@ -1,8 +1,10 @@
-import {
-  CommandArgumentTypes,
-} from '../constants';
+import { CommandArgumentTypes } from '../constants';
 
 
+/**
+ * Command Argument Options
+ * @category Command Options
+ */
 export interface ArgumentOptions {
   aliases?: Array<string>,
   default?: any,
@@ -11,6 +13,10 @@ export interface ArgumentOptions {
   type?: string,
 }
 
+/**
+ * Command Argument
+ * @category Command
+ */
 export class Argument {
   aliases: Array<string>;
   default: any;

@@ -14,6 +14,12 @@ const keys: ReadonlyArray<string> = [
   'user',
 ];
 
+/**
+ * Relationship Structure
+ * Used to describe a relationship with a user
+ * (only non-bots)
+ * @category Structure
+ */
 export class Relationship extends BaseStructure {
   _defaultKeys = keys;
   id: string = '';

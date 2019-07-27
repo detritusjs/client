@@ -32,6 +32,10 @@ const keys: ReadonlyArray<string> = [
 const ignoreKeys = ['member'];
 
 
+/**
+ * Voice State Structure
+ * @category Structure
+ */
 export class VoiceState extends BaseStructure {
   _defaultKeys = keys;
   _ignoreKeys = ignoreKeys;

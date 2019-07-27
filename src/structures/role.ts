@@ -21,6 +21,10 @@ const keys: ReadonlyArray<string> = [
   'position',
 ];
 
+/**
+ * Guild Role Structure, used in [Guild]
+ * @category Structure
+ */
 export class Role extends BaseStructure {
   _defaultKeys = keys;
   color: number = 0;

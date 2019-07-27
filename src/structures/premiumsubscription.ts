@@ -16,6 +16,11 @@ const keys = [
   'user_id',
 ];
 
+/**
+ * Premium Subscription Structure, details a user's nitro boost on the server
+ * ATM, only non-bots will ever see these
+ * @category Structure
+ */
 export class PremiumSubscription extends BaseStructure {
   _defaultKeys = keys;
   ended: boolean = false;

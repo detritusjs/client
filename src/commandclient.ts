@@ -31,6 +31,11 @@ export interface CommandClientOptions extends ClientOptions {
   prefixSpace?: boolean,
 }
 
+
+/**
+ * Command Client, hooks onto the ShardClient to provide easier command handling
+ * @category Clients
+ */
 export class CommandClient extends EventEmitter {
   readonly _clientListeners: {[key: string]: Function | null} = {};
   activateOnEdits: boolean = false;

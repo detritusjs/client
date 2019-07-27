@@ -22,6 +22,11 @@ const keys = [
 
 const skipKeys = ['guild_id'];
 
+/**
+ * Channel Typing Structure
+ * used to tell you when someone starts typing in a channel
+ * @category Structure
+ */
 export class Typing extends BaseStructure {
   _defaultKeys = keys;
   _expiring: null | ReturnType<typeof setTimeout> = null;

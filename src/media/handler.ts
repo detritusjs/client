@@ -17,7 +17,12 @@ import { Opus } from './encoders';
 import * as Types from './types';
 import { VoiceConnection } from './voiceconnection';
 
-export class Handler {
+
+/**
+ * Voice Connection Handler
+ * @category Handler
+ */
+export class MediaHandler {
   connection: VoiceConnection;
 
   constructor(connection: VoiceConnection) {
@@ -38,7 +43,7 @@ export class Handler {
   }
 
   onPacket(packet: Types.MediaGatewayPacket): void {
-    const handler: Function | undefined = Handlers[packet.op];
+    const handler: Function | undefined = MediaHandlers[packet.op];
     if (handler) {
       (<Function> handler).call(this, this, packet.d);
     }
@@ -80,8 +85,12 @@ export class Handler {
   }
 }
 
-export const Handlers: {[key: number]: Function} = {
-  [MediaOpCodes.CLIENT_CONNECT]({client, connection}: Handler, data: Types.ClientConnect) {
+/**
+ * Voice Connection Handlers
+ * @category Handlers
+ */
+export const MediaHandlers: {[key: number]: Function} = {
+  [MediaOpCodes.CLIENT_CONNECT]({client, connection}: MediaHandler, data: Types.ClientConnect) {
     const userId = data['user_id'];
     connection.emit('connect', {
       audioSSRC: data['audio_ssrc'],
@@ -91,7 +100,7 @@ export const Handlers: {[key: number]: Function} = {
     });
   },
 
-  [MediaOpCodes.CLIENT_DISCONNECT]({client, connection}: Handler, data: Types.ClientDisconnect) {
+  [MediaOpCodes.CLIENT_DISCONNECT]({client, connection}: MediaHandler, data: Types.ClientDisconnect) {
     const userId = data['user_id'];
     if (connection.opusDecoders.has(userId)) {
       const opusDecoder = <Opus.AudioOpus> connection.opusDecoders.get(userId);
@@ -104,7 +113,7 @@ export const Handlers: {[key: number]: Function} = {
     });
   },
 
-  [MediaOpCodes.SPEAKING]({client, connection}: Handler, data: Types.Speaking) {
+  [MediaOpCodes.SPEAKING]({client, connection}: MediaHandler, data: Types.Speaking) {
     const priority = (data['speaking'] & MediaSpeakingFlags.PRIORITY) === MediaSpeakingFlags.PRIORITY;
     const soundshare = (data['speaking'] & MediaSpeakingFlags.SOUNDSHARE) === MediaSpeakingFlags.SOUNDSHARE;
     const voice = (data['speaking'] & MediaSpeakingFlags.VOICE) === MediaSpeakingFlags.VOICE;

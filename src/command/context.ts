@@ -7,6 +7,10 @@ import {
 } from '../structures';
 
 
+/**
+ * Command Context
+ * @category Command
+ */
 export class Context {
   readonly client: ShardClient;
   readonly commandClient: CommandClient;

@@ -27,6 +27,10 @@ const keys = [
   'url',
 ];
 
+/**
+ * Application News Structure
+ * @category Structure
+ */
 export class ApplicationNews extends BaseStructure {
   _defaultKeys = keys;
   applicationId: string = '';

@@ -14,6 +14,11 @@ const keys = [
   'thumbnail',
 ];
 
+/**
+ * Store Listing Structure
+ * Used for Store Channels ([ChannelGuildStore])
+ * @category Structure
+ */
 export class StoreListing extends BaseStructure {
   _defaultKeys = keys;
 
@@ -51,6 +56,10 @@ const keysStoreListingThumbnail = [
   'width',
 ];
 
+/**
+ * Store Listing Thumbnail Structure, used in [StoreListing]
+ * @category Structure
+ */
 export class StoreListingThumbnail extends BaseStructure {
   _defaultKeys = keysStoreListingThumbnail;
   readonly storeListing: StoreListing;
@@ -89,6 +98,10 @@ const keysSku = [
 
 const skipKeysSku = ['application'];
 
+/**
+ * Sku Structure, used in [Gift] and [StoreListing]
+ * @category Structure
+ */
 export class Sku extends BaseStructure {
   _defaultKeys = keysSku;
 

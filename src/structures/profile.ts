@@ -18,6 +18,11 @@ const keys = [
   'user',
 ];
 
+/**
+ * User Profile Structure
+ * only non-bots will ever see these
+ * @category Structure
+ */
 export class Profile extends BaseStructure {
   _defaultKeys = keys;
 

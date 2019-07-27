@@ -28,6 +28,10 @@ const keys: ReadonlyArray<string> = [
   'username',
 ];
 
+/**
+ * Basic User Structure
+ * @category Structure
+ */
 export class User extends BaseStructure {
   _defaultKeys = keys;
   avatar: string | null = null;
@@ -175,6 +179,11 @@ const keysWithToken: ReadonlyArray<string> = [
   ...keys,
 ];
 
+/**
+ * User with Token Structure
+ * e.g. when you edit your user
+ * @category Structure
+ */
 export class UserWithToken extends User {
   _defaultKeys = keysWithToken;
   token: string = '';
@@ -194,6 +203,11 @@ const keysWithFlags: ReadonlyArray<string> = [
   ...keys,
 ];
 
+/**
+ * User with Flags Structure
+ * used to describe someone's badges, you get them from me/profile/team owner
+ * @category Structure
+ */
 export class UserWithFlags extends User {
   _defaultKeys = keysWithFlags;
   flags: number = 0;
@@ -268,6 +282,11 @@ const keysExtended: ReadonlyArray<string> = [
   ...keysWithFlags,
 ];
 
+/**
+ * User Extended Structure
+ * received from /users/@me calls with an oauth2 token with correct permissions
+ * @category Structure
+ */
 export class UserExtended extends UserWithFlags {
   _defaultKeys = keysExtended;
   email: string | null = null;
@@ -312,6 +331,11 @@ const keysMe: ReadonlyArray<string> = [
   ...keysExtended,
 ];
 
+/**
+ * User Me Structure
+ * the current user, it has all their details
+ * @category Structure
+ */
 export class UserMe extends UserExtended {
   _defaultKeys = keysMe;
   phone: string = '';
@@ -326,6 +350,11 @@ export class UserMe extends UserExtended {
 }
 
 
+/**
+ * User Mixin Structure
+ * Used to extend to receive all of [User]'s properties
+ * @category Structure
+ */
 export class UserMixin extends BaseStructure {
   user!: User;
 

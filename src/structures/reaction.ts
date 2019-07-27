@@ -21,6 +21,11 @@ const keys = [
   'me',
 ];
 
+/**
+ * Reaction Structure, used in [Message]
+ * we don't store the userIds since we only get them on reaction adds
+ * @category Structure
+ */
 export class Reaction extends BaseStructure {
   _defaultKeys = keys;
   channelId: string = '';

@@ -69,6 +69,10 @@ const skipKeys = [
   'webhook_id',
 ];
 
+/**
+ * Channel Message Structure
+ * @category Structure
+ */
 export class Message extends BaseStructure {
   _defaultKeys = keys;
   _content = '';
@@ -461,6 +465,10 @@ const keysMessageActivity = [
   'type',
 ];
 
+/**
+ * Channel Message Activity Structure, used for inviting people to listen/join
+ * @category Structure
+ */
 export class MessageActivity extends BaseStructure {
   _defaultKeys = keysMessageActivity;
   message: Message;
@@ -484,6 +492,11 @@ const keysMessageCall = [
   'participants',
 ];
 
+/**
+ * Channel Message Call Structure, used to define the call properties in the DM it's from
+ * Used to format the content
+ * @category Structure
+ */
 export class MessageCall extends BaseStructure {
   _defaultKeys = keysMessageCall;
   message: Message;
@@ -586,6 +599,5 @@ export function messageContentFormat(
       content = content.replace(/:premiumTier:/g, (<any> PremiumGuildTierNames)[premiumTier]);
     }; break;
   }
-
   return <string> content;
 }

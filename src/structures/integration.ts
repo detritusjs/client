@@ -23,6 +23,10 @@ const keys = [
   'user',
 ];
 
+/**
+ * Guild Integration Structure
+ * @category Structure
+ */
 export class Integration extends BaseStructure {
   _defaultKeys = keys;
   account!: IntegrationAccount;
@@ -82,6 +86,10 @@ const keysIntegrationAccount = [
   'name',
 ];
 
+/**
+ * Guild Integration Account Structure, used in [[Integration]]
+ * @category Structure
+ */
 export class IntegrationAccount extends BaseStructure {
   _defaultKeys = keysIntegrationAccount;
   integration: Integration;

@@ -27,6 +27,10 @@ const keys = [
   'user',
 ];
 
+/**
+ * Webhook Structure
+ * @category Structure
+ */
 export class Webhook extends BaseStructure {
   _defaultKeys = keys;
 

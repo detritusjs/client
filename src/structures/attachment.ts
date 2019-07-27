@@ -97,6 +97,10 @@ const keys = [
   'width',
 ];
 
+/**
+ * Attachment Structure, used for [Message] objects
+ * @category Structure
+ */
 export class Attachment extends BaseStructure {
   _defaultKeys = keys;
   message: Message;

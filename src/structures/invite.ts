@@ -35,6 +35,10 @@ const keys = [
   'uses',
 ];
 
+/**
+ * Instant Invite Structure
+ * @category Structure
+ */
 export class Invite extends BaseStructure {
   _defaultKeys = keys;
   approximateMemberCount: number = 0;

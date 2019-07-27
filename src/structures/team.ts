@@ -24,6 +24,11 @@ const keysTeam = [
   'payout_account_status',
 ];
 
+/**
+ * Team Structure
+ * an application's team
+ * @category Structure
+ */
 export class Team extends BaseStructure {
   _defaultKeys = keysTeam;
   icon: null | string = null;
@@ -120,6 +125,11 @@ const keysTeamMember = [
   'user',
 ];
 
+/**
+ * Team Member Structure
+ * an application's team member
+ * @category Structure
+ */
 export class TeamMember extends BaseStructure {
   _defaultKeys = keysTeamMember;
   membershipState: number = TeamMembershipStates.BASE;

@@ -56,7 +56,10 @@ const keys: ReadonlyArray<string> = [
   'youtube_trailer_video_id',
 ];
 
-
+/**
+ * Application Structure, used for channels, guilds, presences, etc..
+ * @category Structure
+ */
 export class Application extends BaseStructure {
   _defaultKeys = keys;
   aliases: Array<string> | null = null;

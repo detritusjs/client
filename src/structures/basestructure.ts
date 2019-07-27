@@ -6,9 +6,17 @@ export interface BaseStructureData {
   [key: string]: any,
 }
 
+/**
+ * The most basic Structure class, everything extends this
+ * @category Structure
+ */
 export class BaseStructure {
+  /** @ignore */
   readonly _defaultKeys: ReadonlyArray<string> | null = null;
+
+  /** @ignore */
   readonly _ignoreKeys: ReadonlyArray<string> | null = null;
+
   readonly client: ShardClient;
 
   constructor(client: ShardClient) {

@@ -7,15 +7,24 @@ import {
 } from '../structures';
 
 
+/**
+ * @category Rest Response
+ */
 export interface fetchGuildBan {
   reason: null | string,
   user: User,
 }
 
+/**
+ * @category Rest Response
+ */
 export interface fetchGuildBans extends BaseCollection<string, fetchGuildBan> {
 
 }
 
+/**
+ * @category Rest Response
+ */
 export interface fetchOauth2Application {
   bot?: UserWithToken,
   botPublic: boolean,
@@ -32,20 +41,17 @@ export interface fetchOauth2Application {
   secret?: string,
   storeApplicationState?: number,
   summary: string,
-  team?: null | Team,
+  team?: null | {
+    icon: null | string,
+    id: string,
+    members: Array<{
+      membershipState: number,
+      permissions: Array<string>,
+      teamId: string,
+      user: User,
+    }>,
+    name: string,
+    ownerUserId: string,
+  },
   verifyKey: string,
-}
-
-
-export interface Team {
-  icon: null | string,
-  id: string,
-  members: Array<{
-    membershipState: number,
-    permissions: Array<string>,
-    teamId: string,
-    user: User,
-  }>,
-  name: string,
-  ownerUserId: string,
 }

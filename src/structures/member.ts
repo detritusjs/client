@@ -32,6 +32,10 @@ const keys: ReadonlyArray<string> = [
 const ignoreKeys: ReadonlyArray<string> = ['roles', 'joined_at', 'user'];
 
 
+/**
+ * Guild Member Structure
+ * @category Structure
+ */
 export class Member extends UserMixin {
   _defaultKeys = keys;
   _ignoreKeys = ignoreKeys;

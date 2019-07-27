@@ -27,6 +27,10 @@ const keys = [
   'video',
 ];
 
+/**
+ * Embed Structure, used for [Message] Structures
+ * @category Structure
+ */
 export class Embed extends BaseStructure {
   _defaultKeys = keys;
   author: EmbedAuthor | null = null;
@@ -133,6 +137,10 @@ const keysEmbedAuthor = [
   'url',
 ];
 
+/**
+ * Embed Author Structure, used for [Embed] Structures
+ * @category Structure
+ */
 export class EmbedAuthor extends BaseStructure {
   _defaultKeys = keysEmbedAuthor;
   iconUrl: null | string = null;
@@ -153,6 +161,10 @@ const keysEmbedField = [
   'value',
 ];
 
+/**
+ * Embed Field Structure, used for [Embed] Structures
+ * @category Structure
+ */
 export class EmbedField extends BaseStructure {
   _defaultKeys = keysEmbedField;
   inline: boolean = false;
@@ -172,6 +184,10 @@ const keysEmbedFooter = [
   'text',
 ];
 
+/**
+ * Embed Footer Structure, used for [ApplicationNews] and [Embed] Structures
+ * @category Structure
+ */
 export class EmbedFooter extends BaseStructure {
   _defaultKeys = keysEmbedFooter;
   iconUrl: null | string = null;
@@ -192,6 +208,10 @@ const keysEmbedImage = [
   'width',
 ];
 
+/**
+ * Embed Image Structure, used for [Embed] Structures
+ * @category Structure
+ */
 export class EmbedImage extends BaseStructure {
   _defaultKeys = keysEmbedImage;
   height: number = 0;
@@ -211,6 +231,10 @@ const keysEmbedProvider = [
   'url',
 ];
 
+/**
+ * Embed Provider Structure, used for [Embed] Structures
+ * @category Structure
+ */
 export class EmbedProvider extends BaseStructure {
   _defaultKeys = keysEmbedProvider;
   name: null | string = null;
@@ -223,11 +247,19 @@ export class EmbedProvider extends BaseStructure {
 }
 
 
+/**
+ * Embed Thumbnail Structure, used for [ApplicationNews] and [Embed] Structures
+ * @category Structure
+ */
 export class EmbedThumbnail extends EmbedImage {
 
 }
 
 
+/**
+ * Embed Video Structure, used for [Embed] Structures
+ * @category Structure
+ */
 export class EmbedVideo extends EmbedImage {
 
 }

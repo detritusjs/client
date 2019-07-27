@@ -6,8 +6,15 @@ import {
 } from './argument';
 
 
+/**
+ * @category Command
+ */
 export type ParsedArgs = {[key: string]: any};
 
+/**
+ * Command Argument
+ * @category Command
+ */
 export class ArgumentParser {
   args: Array<Argument> = [];
   defaults: ParsedArgs = {};

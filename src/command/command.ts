@@ -10,10 +10,26 @@ import { ArgumentParser, ParsedArgs } from './argumentparser';
 import { Context } from './context';
 
 
+/**
+ * @category Command
+ */
 export type CommandCallback = (context: Context, args: ParsedArgs) => void;
+
+/**
+ * @category Command
+ */
 export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => void;
+
+/**
+ * @category Command
+ */
 export type CommandCallbackRatelimit = (context: Context, remaining: number) => void;
 
+
+/**
+ * Command Options
+ * @category Command Options
+ */
 export interface CommandOptions {
   aliases?: Array<string>,
   args?: Array<ArgumentOptions>,
@@ -34,12 +50,21 @@ export interface CommandOptions {
   onSuccess?: CommandCallback,
 }
 
+/**
+ * Command Ratelimit Options
+ * @category Command Options
+ */
 export interface CommandRatelimitOptions {
   duration?: number,
   limit?: number,
   type?: string,
 }
 
+
+/**
+ * Command itself
+ * @category Command
+ */
 export class Command {
   client: ShardClient;
   commandClient: CommandClient;
@@ -115,12 +140,20 @@ export class Command {
 }
 
 
+/**
+ * Command Ratelimit Item
+ * @category Command
+ */
 export interface CommandRatelimitItem {
   start: number;
   timeout: ReturnType<typeof setTimeout>;
   usages: number;
 }
 
+/**
+ * Command Ratelimit Options and Cache
+ * @category Command
+ */
 export class CommandRatelimit {
   readonly command: Command;
   readonly cache = new Map<string, CommandRatelimitItem>();

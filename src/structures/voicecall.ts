@@ -14,6 +14,12 @@ import { User } from './user';
 import { VoiceState } from './voicestate';
 
 
+/**
+ * VoiceCall Structure
+ * a DM Channel's call
+ * (non-bots only)
+ * @category Structure
+ */
 export class VoiceCall extends BaseStructure {
   readonly ringing = new BaseCollection<string, null | User>();
 

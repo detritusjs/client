@@ -37,18 +37,23 @@ import {
 import * as Types from './types';
 
 
-export interface HandlerOptions {
+export interface GatewayHandlerOptions {
   emitRawEvent?: boolean,
   disabledEvents?: Array<string>,
   loadAllMembers?: boolean,
 }
 
-export interface HandlerPayload {
+export interface GatewayHandlerPayload {
   data: any,
   name: string,
 }
 
-export class Handler {
+
+/**
+ * Gateway Handler
+ * @category Handler
+ */
+export class GatewayHandler {
   client: ShardClient;
   emitRawEvent: boolean;
   disabledEvents: Set<string>;
@@ -57,7 +62,7 @@ export class Handler {
 
   constructor(
     client: ShardClient,
-    options: HandlerOptions = {},
+    options: GatewayHandlerOptions = {},
   ) {
     this.client = client;
     this.client.gateway.on('packet', this.onPacket.bind(this));
@@ -79,7 +84,7 @@ export class Handler {
       return;
     }
 
-    const payload: HandlerPayload = {name: packet.t, data: packet.d};
+    const payload: GatewayHandlerPayload = {name: packet.t, data: packet.d};
     if (this.emitRawEvent) {
       this.client.emit(ClientEvents.RAW_EVENT, payload);
     }
@@ -96,7 +101,7 @@ export class Handler {
 }
 
 export const Handlers: {[key: string]: Function} = {
-  async [GatewayDispatchEvents.READY](handler: Handler, data: Types.Ready) {
+  async [GatewayDispatchEvents.READY](handler: GatewayHandler, data: Types.Ready) {
     const { client, gateway } = handler;
     client.reset();
 
@@ -197,28 +202,28 @@ export const Handlers: {[key: string]: Function} = {
     }
   },
 
-  [GatewayDispatchEvents.RESUMED]({client}: Handler, data: Types.Resumed) {
+  [GatewayDispatchEvents.RESUMED]({client}: GatewayHandler, data: Types.Resumed) {
     client.gateway.discordTrace = data['_trace'];;
     client.emit(ClientEvents.GATEWAY_RESUMED, {raw: data});
   },
 
-  [GatewayDispatchEvents.ACTIVITY_JOIN_INVITE]({client}: Handler, data: Types.ActivityJoinInvite) {
+  [GatewayDispatchEvents.ACTIVITY_JOIN_INVITE]({client}: GatewayHandler, data: Types.ActivityJoinInvite) {
 
   },
 
-  [GatewayDispatchEvents.ACTIVITY_JOIN_REQUEST]({client}: Handler, data: Types.ActivityJoinRequest) {
+  [GatewayDispatchEvents.ACTIVITY_JOIN_REQUEST]({client}: GatewayHandler, data: Types.ActivityJoinRequest) {
 
   },
 
-  [GatewayDispatchEvents.ACTIVITY_START]({client}: Handler, data: Types.ActivityStart) {
+  [GatewayDispatchEvents.ACTIVITY_START]({client}: GatewayHandler, data: Types.ActivityStart) {
 
   },
 
-  [GatewayDispatchEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK]({client}: Handler, data: Types.BraintreePopupBridgeCallback) {
+  [GatewayDispatchEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK]({client}: GatewayHandler, data: Types.BraintreePopupBridgeCallback) {
 
   },
 
-  [GatewayDispatchEvents.CALL_CREATE]({client}: Handler, data: Types.CallCreate) {
+  [GatewayDispatchEvents.CALL_CREATE]({client}: GatewayHandler, data: Types.CallCreate) {
     let call: VoiceCall;
     if (client.voiceCalls.has(data['channel_id'])) {
       call = <VoiceCall> client.voiceCalls.get(data['channel_id']);
@@ -230,7 +235,7 @@ export const Handlers: {[key: string]: Function} = {
     client.emit(ClientEvents.CALL_CREATE, {call});
   },
 
-  [GatewayDispatchEvents.CALL_DELETE]({client}: Handler, data: Types.CallDelete) {
+  [GatewayDispatchEvents.CALL_DELETE]({client}: GatewayHandler, data: Types.CallDelete) {
     if (client.voiceCalls.has(data['channel_id'])) {
       const call = <VoiceCall> client.voiceCalls.get(data['channel_id']);
       call.kill();
@@ -238,7 +243,7 @@ export const Handlers: {[key: string]: Function} = {
     client.emit(ClientEvents.CALL_DELETE, {channelId: data['channel_id']});
   },
 
-  [GatewayDispatchEvents.CALL_UPDATE]({client}: Handler, data: Types.CallUpdate) {
+  [GatewayDispatchEvents.CALL_UPDATE]({client}: GatewayHandler, data: Types.CallUpdate) {
     let call: VoiceCall;
     let differences: any = null;
     if (client.voiceCalls.has(data['channel_id'])) {
@@ -254,7 +259,7 @@ export const Handlers: {[key: string]: Function} = {
     client.emit(ClientEvents.CALL_UPDATE, {call, differences});
   },
 
-  [GatewayDispatchEvents.CHANNEL_CREATE]({client}: Handler, data: Types.ChannelCreate) {
+  [GatewayDispatchEvents.CHANNEL_CREATE]({client}: GatewayHandler, data: Types.ChannelCreate) {
     let channel: Channel;
     if (client.channels.has(data['id'])) {
       channel = <Channel> client.channels.get(data['id']);
@@ -266,7 +271,7 @@ export const Handlers: {[key: string]: Function} = {
     client.emit(ClientEvents.CHANNEL_CREATE, {channel});
   },
 
-  [GatewayDispatchEvents.CHANNEL_DELETE]({client}: Handler, data: Types.ChannelDelete) {
+  [GatewayDispatchEvents.CHANNEL_DELETE]({client}: GatewayHandler, data: Types.ChannelDelete) {
     let channel: Channel;
     if (client.channels.has(data['id'])) {
       channel = <Channel> client.channels.get(data['id']);
@@ -277,11 +282,11 @@ export const Handlers: {[key: string]: Function} = {
     client.emit(ClientEvents.CHANNEL_DELETE, {channel});
   },
 
-  [GatewayDispatchEvents.CHANNEL_PINS_ACK]({client}: Handler, data: Types.ChannelPinsAck) {
+  [GatewayDispatchEvents.CHANNEL_PINS_ACK]({client}: GatewayHandler, data: Types.ChannelPinsAck) {
 
   },
 
-  [GatewayDispatchEvents.CHANNEL_PINS_UPDATE]({client}: Handler, data: Types.ChannelPinsUpdate) {
+  [GatewayDispatchEvents.CHANNEL_PINS_UPDATE]({client}: GatewayHandler, data: Types.ChannelPinsUpdate) {
     let channel: Channel | null = null;
     if (client.channels.has(data['channel_id'])) {
       channel = <Channel> client.channels.get(data['channel_id']);
@@ -297,7 +302,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.CHANNEL_UPDATE]({client}: Handler, data: Types.ChannelUpdate) {
+  [GatewayDispatchEvents.CHANNEL_UPDATE]({client}: GatewayHandler, data: Types.ChannelUpdate) {
     let channel: Channel;
     let differences: any = null;
     if (client.channels.has(data['id'])) {
@@ -313,7 +318,7 @@ export const Handlers: {[key: string]: Function} = {
     client.emit(ClientEvents.CHANNEL_UPDATE, {channel, differences});
   },
 
-  [GatewayDispatchEvents.CHANNEL_RECIPIENT_ADD]({client}: Handler, data: Types.ChannelRecipientAdd) {
+  [GatewayDispatchEvents.CHANNEL_RECIPIENT_ADD]({client}: GatewayHandler, data: Types.ChannelRecipientAdd) {
     let channel: ChannelDM | null = null;
     const channelId = data['channel_id'];
     const nick = data['nick'];
@@ -346,7 +351,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.CHANNEL_RECIPIENT_REMOVE]({client}: Handler, data: Types.ChannelRecipientRemove) {
+  [GatewayDispatchEvents.CHANNEL_RECIPIENT_REMOVE]({client}: GatewayHandler, data: Types.ChannelRecipientRemove) {
     let channel: ChannelDM | null = null;
     const channelId = data['channel_id'];
     const nick = data['nick'];
@@ -373,19 +378,19 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.ENTITLEMENT_CREATE]({client}: Handler, data: Types.EntitlementCreate) {
+  [GatewayDispatchEvents.ENTITLEMENT_CREATE]({client}: GatewayHandler, data: Types.EntitlementCreate) {
 
   },
 
-  [GatewayDispatchEvents.ENTITLEMENT_DELETE]({client}: Handler, data: Types.EntitlementDelete) {
+  [GatewayDispatchEvents.ENTITLEMENT_DELETE]({client}: GatewayHandler, data: Types.EntitlementDelete) {
 
   },
 
-  [GatewayDispatchEvents.ENTITLEMENT_UPDATE]({client}: Handler, data: Types.EntitlementUpdate) {
+  [GatewayDispatchEvents.ENTITLEMENT_UPDATE]({client}: GatewayHandler, data: Types.EntitlementUpdate) {
 
   },
 
-  [GatewayDispatchEvents.FRIEND_SUGGESTION_CREATE]({client}: Handler, data: Types.FriendSuggestionCreate) {
+  [GatewayDispatchEvents.FRIEND_SUGGESTION_CREATE]({client}: GatewayHandler, data: Types.FriendSuggestionCreate) {
     client.emit(ClientEvents.FRIEND_SUGGESTION_CREATE, {
       reasons: data.reasons.map((reason: any) => {
         return {name: reason['name'], platformType: reason['platform_type']};
@@ -394,20 +399,20 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.FRIEND_SUGGESTION_DELETE]({client}: Handler, data: Types.FriendSuggestionDelete) {
+  [GatewayDispatchEvents.FRIEND_SUGGESTION_DELETE]({client}: GatewayHandler, data: Types.FriendSuggestionDelete) {
     client.emit(ClientEvents.FRIEND_SUGGESTION_DELETE, {
       suggestedUserId: data['suggested_user_id'],
     });
   },
 
-  [GatewayDispatchEvents.GIFT_CODE_UPDATE]({client}: Handler, data: Types.GiftCodeUpdate) {
+  [GatewayDispatchEvents.GIFT_CODE_UPDATE]({client}: GatewayHandler, data: Types.GiftCodeUpdate) {
     client.emit(ClientEvents.GIFT_CODE_UPDATE, {
       code: data['code'],
       uses: data['uses'],
     });
   },
 
-  [GatewayDispatchEvents.GUILD_BAN_ADD]({client}: Handler, data: Types.GuildBanAdd) {
+  [GatewayDispatchEvents.GUILD_BAN_ADD]({client}: GatewayHandler, data: Types.GuildBanAdd) {
     const guild = client.users.get(data['guild_id']);
     const guildId = data['guild_id'];
     let user: User;
@@ -426,7 +431,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_BAN_REMOVE]({client}: Handler, data: Types.GuildBanRemove) {
+  [GatewayDispatchEvents.GUILD_BAN_REMOVE]({client}: GatewayHandler, data: Types.GuildBanRemove) {
     const guild = client.users.get(data['guild_id']);
     const guildId = data['guild_id'];
     let user: User;
@@ -445,7 +450,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_CREATE](handler: Handler, data: Types.GuildCreate) {
+  [GatewayDispatchEvents.GUILD_CREATE](handler: GatewayHandler, data: Types.GuildCreate) {
     const { client, gateway } = handler;
 
     let fromUnavailable = false;
@@ -480,7 +485,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_DELETE]({client}: Handler, data: Types.GuildDelete) {
+  [GatewayDispatchEvents.GUILD_DELETE]({client}: GatewayHandler, data: Types.GuildDelete) {
     let guild: Guild | null = null;
     const guildId = data['id'];
     const isUnavailable = !!data['unavailable'];
@@ -511,7 +516,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_EMOJIS_UPDATE]({client}: Handler, data: Types.GuildEmojisUpdate) {
+  [GatewayDispatchEvents.GUILD_EMOJIS_UPDATE]({client}: GatewayHandler, data: Types.GuildEmojisUpdate) {
     let emojis: BaseCollection<string, Emoji>;
     let emojisOld: BaseCollection<string, Emoji> | null = null;
     let guild: null | Guild = null;
@@ -557,13 +562,13 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_INTEGRATIONS_UPDATE]({client}: Handler, data: Types.GuildIntegrationsUpdate) {
+  [GatewayDispatchEvents.GUILD_INTEGRATIONS_UPDATE]({client}: GatewayHandler, data: Types.GuildIntegrationsUpdate) {
     client.emit(ClientEvents.GUILD_INTEGRATIONS_UPDATE, {
       guildId: data['guild_id'],
     });
   },
 
-  [GatewayDispatchEvents.GUILD_MEMBER_ADD]({client}: Handler, data: Types.GuildMemberAdd) {
+  [GatewayDispatchEvents.GUILD_MEMBER_ADD]({client}: GatewayHandler, data: Types.GuildMemberAdd) {
     const guildId = data['guild_id'];
     let member: Member;
 
@@ -588,13 +593,13 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_MEMBER_LIST_UPDATE]({client}: Handler, data: Types.GuildMemberListUpdate) {
+  [GatewayDispatchEvents.GUILD_MEMBER_LIST_UPDATE]({client}: GatewayHandler, data: Types.GuildMemberListUpdate) {
     client.emit(ClientEvents.GUILD_MEMBER_LIST_UPDATE, {
       raw: data,
     });
   },
 
-  [GatewayDispatchEvents.GUILD_MEMBER_REMOVE]({client}: Handler, data: Types.GuildMemberRemove) {
+  [GatewayDispatchEvents.GUILD_MEMBER_REMOVE]({client}: GatewayHandler, data: Types.GuildMemberRemove) {
     const guildId = data['guild_id'];
     let user: User;
 
@@ -622,7 +627,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_MEMBER_UPDATE]({client}: Handler, data: Types.GuildMemberUpdate) {
+  [GatewayDispatchEvents.GUILD_MEMBER_UPDATE]({client}: GatewayHandler, data: Types.GuildMemberUpdate) {
     let differences: any = null;
     const guildId = data['guild_id'];
     let member: Member;
@@ -645,7 +650,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK]({client}: Handler, data: Types.GuildMembersChunk) {
+  [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK]({client}: GatewayHandler, data: Types.GuildMembersChunk) {
     const amounts: {
       members?: number,
       notFound?: number,
@@ -699,7 +704,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_ROLE_CREATE]({client}: Handler, data: Types.GuildRoleCreate) {
+  [GatewayDispatchEvents.GUILD_ROLE_CREATE]({client}: GatewayHandler, data: Types.GuildRoleCreate) {
     let guild: Guild | null = null;
     const guildId = data['guild_id'];
     let role: Role;
@@ -725,7 +730,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_ROLE_DELETE]({client}: Handler, data: Types.GuildRoleDelete) {
+  [GatewayDispatchEvents.GUILD_ROLE_DELETE]({client}: GatewayHandler, data: Types.GuildRoleDelete) {
     let guild: null | Guild = null;
     const guildId = data['guild_id'];
     let role: null | Role = null;
@@ -747,7 +752,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_ROLE_UPDATE]({client}: Handler, data: Types.GuildRoleUpdate) {
+  [GatewayDispatchEvents.GUILD_ROLE_UPDATE]({client}: GatewayHandler, data: Types.GuildRoleUpdate) {
     let differences: any = null;
     let guild: null | Guild = null;
     const guildId = data['guild_id'];
@@ -779,7 +784,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.GUILD_UPDATE]({client}: Handler, data: Types.GuildUpdate) {
+  [GatewayDispatchEvents.GUILD_UPDATE]({client}: GatewayHandler, data: Types.GuildUpdate) {
     let differences: any = null;
     let guild: Guild;
 
@@ -800,51 +805,51 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.LIBRARY_APPLICATION_UPDATE]({client}: Handler, data: Types.LibraryApplicationUpdate) {
+  [GatewayDispatchEvents.LIBRARY_APPLICATION_UPDATE]({client}: GatewayHandler, data: Types.LibraryApplicationUpdate) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_CREATE]({client}: Handler, data: Types.LobbyCreate) {
+  [GatewayDispatchEvents.LOBBY_CREATE]({client}: GatewayHandler, data: Types.LobbyCreate) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_DELETE]({client}: Handler, data: Types.LobbyDelete) {
+  [GatewayDispatchEvents.LOBBY_DELETE]({client}: GatewayHandler, data: Types.LobbyDelete) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_UPDATE]({client}: Handler, data: Types.LobbyUpdate) {
+  [GatewayDispatchEvents.LOBBY_UPDATE]({client}: GatewayHandler, data: Types.LobbyUpdate) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_MEMBER_CONNECT]({client}: Handler, data: Types.LobbyMemberConnect) {
+  [GatewayDispatchEvents.LOBBY_MEMBER_CONNECT]({client}: GatewayHandler, data: Types.LobbyMemberConnect) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_MEMBER_DISCONNECT]({client}: Handler, data: Types.LobbyMemberDisconnect) {
+  [GatewayDispatchEvents.LOBBY_MEMBER_DISCONNECT]({client}: GatewayHandler, data: Types.LobbyMemberDisconnect) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_MEMBER_UPDATE]({client}: Handler, data: Types.LobbyMemberUpdate) {
+  [GatewayDispatchEvents.LOBBY_MEMBER_UPDATE]({client}: GatewayHandler, data: Types.LobbyMemberUpdate) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_MESSAGE]({client}: Handler, data: Types.LobbyMessage) {
+  [GatewayDispatchEvents.LOBBY_MESSAGE]({client}: GatewayHandler, data: Types.LobbyMessage) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_VOICE_SERVER_UPDATE]({client}: Handler, data: Types.LobbyVoiceServerUpdate) {
+  [GatewayDispatchEvents.LOBBY_VOICE_SERVER_UPDATE]({client}: GatewayHandler, data: Types.LobbyVoiceServerUpdate) {
 
   },
 
-  [GatewayDispatchEvents.LOBBY_VOICE_STATE_UPDATE]({client}: Handler, data: Types.LobbyVoiceStateUpdate) {
+  [GatewayDispatchEvents.LOBBY_VOICE_STATE_UPDATE]({client}: GatewayHandler, data: Types.LobbyVoiceStateUpdate) {
 
   },
 
-  [GatewayDispatchEvents.MESSAGE_ACK]({client}: Handler, data: Types.MessageAck) {
+  [GatewayDispatchEvents.MESSAGE_ACK]({client}: GatewayHandler, data: Types.MessageAck) {
 
   },
 
-  [GatewayDispatchEvents.MESSAGE_CREATE]({client}: Handler, data: Types.MessageCreate) {
+  [GatewayDispatchEvents.MESSAGE_CREATE]({client}: GatewayHandler, data: Types.MessageCreate) {
     let message: Message;
 
     if (client.messages.has(data['id'])) {
@@ -865,7 +870,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.MESSAGE_DELETE]({client}: Handler, data: Types.MessageDelete) {
+  [GatewayDispatchEvents.MESSAGE_DELETE]({client}: GatewayHandler, data: Types.MessageDelete) {
     let message: Message | null = null;
 
     if (client.messages.has(data['id'])) {
@@ -879,7 +884,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.MESSAGE_DELETE_BULK]({client}: Handler, data: Types.MessageDeleteBulk) {
+  [GatewayDispatchEvents.MESSAGE_DELETE_BULK]({client}: GatewayHandler, data: Types.MessageDeleteBulk) {
     const amount = data['ids'].length;
     let channel: Channel | null = null;
     const channelId = data['channel_id'];
@@ -914,7 +919,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.MESSAGE_REACTION_ADD]({client}: Handler, data: Types.MessageReactionAdd) {
+  [GatewayDispatchEvents.MESSAGE_REACTION_ADD]({client}: GatewayHandler, data: Types.MessageReactionAdd) {
     let channel: Channel | null = null;
     const channelId = data['channel_id'];
     let guild: Guild | null = null;
@@ -971,7 +976,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE]({client}: Handler, data: Types.MessageReactionRemove) {
+  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE]({client}: GatewayHandler, data: Types.MessageReactionRemove) {
     let channel: Channel | null = null;
     const channelId = data['channel_id'];
     let guild: Guild | null = null;
@@ -1028,7 +1033,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE_ALL]({client}: Handler, data: Types.MessageReactionRemoveAll) {
+  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE_ALL]({client}: GatewayHandler, data: Types.MessageReactionRemoveAll) {
     let channel: Channel | null = null;
     const channelId = data['channel_id'];
     let guild: Guild | null = null;
@@ -1059,7 +1064,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.MESSAGE_UPDATE]({client}: Handler, data: Types.MessageUpdate) {
+  [GatewayDispatchEvents.MESSAGE_UPDATE]({client}: GatewayHandler, data: Types.MessageUpdate) {
     let differences: any;
     let message: Message;
 
@@ -1080,11 +1085,11 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.OAUTH2_TOKEN_REVOKE]({client}: Handler, data: Types.Oauth2TokenRevoke) {
+  [GatewayDispatchEvents.OAUTH2_TOKEN_REVOKE]({client}: GatewayHandler, data: Types.Oauth2TokenRevoke) {
 
   },
 
-  [GatewayDispatchEvents.PRESENCE_UPDATE]({client}: Handler, data: Types.PresenceUpdate) {
+  [GatewayDispatchEvents.PRESENCE_UPDATE]({client}: GatewayHandler, data: Types.PresenceUpdate) {
     let differences: any = null;
     let isGuildPresence = !!data['guild_id'];
     let member: Member | null = null;
@@ -1124,7 +1129,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.PRESENCES_REPLACE]({client}: Handler, data: Types.PresencesReplace) {
+  [GatewayDispatchEvents.PRESENCES_REPLACE]({client}: GatewayHandler, data: Types.PresencesReplace) {
     const presences = new BaseCollection<string, Presence>();
 
     if (data['presences'] != null) {
@@ -1140,11 +1145,11 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.RECENT_MENTION_DELETE]({client}: Handler, data: Types.RecentMentionDelete) {
+  [GatewayDispatchEvents.RECENT_MENTION_DELETE]({client}: GatewayHandler, data: Types.RecentMentionDelete) {
 
   },
 
-  [GatewayDispatchEvents.RELATIONSHIP_ADD]({client}: Handler, data: Types.RelationshipAdd) {
+  [GatewayDispatchEvents.RELATIONSHIP_ADD]({client}: GatewayHandler, data: Types.RelationshipAdd) {
     let differences: any;
     let relationship: Relationship;
 
@@ -1165,7 +1170,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.RELATIONSHIP_REMOVE]({client}: Handler, data: Types.RelationshipRemove) {
+  [GatewayDispatchEvents.RELATIONSHIP_REMOVE]({client}: GatewayHandler, data: Types.RelationshipRemove) {
     let relationship: Relationship;
 
     if (client.relationships.has(data['id'])) {
@@ -1182,11 +1187,11 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.SESSIONS_UPDATE]({client}: Handler, data: Types.SessionsUpdate) {
+  [GatewayDispatchEvents.SESSIONS_UPDATE]({client}: GatewayHandler, data: Types.SessionsUpdate) {
 
   },
 
-  [GatewayDispatchEvents.STREAM_CREATE]({client}: Handler, data: Types.StreamCreate) {
+  [GatewayDispatchEvents.STREAM_CREATE]({client}: GatewayHandler, data: Types.StreamCreate) {
     client.emit(ClientEvents.STREAM_CREATE, {
       paused: data['paused'],
       region: data['region'],
@@ -1196,7 +1201,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.STREAM_DELETE]({client}: Handler, data: Types.StreamDelete) {
+  [GatewayDispatchEvents.STREAM_DELETE]({client}: GatewayHandler, data: Types.StreamDelete) {
     client.emit(ClientEvents.STREAM_DELETE, {
       reason: data['reason'],
       streamKey: data['stream_key'],
@@ -1204,7 +1209,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.STREAM_SERVER_UPDATE]({client}: Handler, data: Types.StreamServerUpdate) {
+  [GatewayDispatchEvents.STREAM_SERVER_UPDATE]({client}: GatewayHandler, data: Types.StreamServerUpdate) {
     client.emit(ClientEvents.STREAM_SERVER_UPDATE, {
       endpoint: data['endpoint'],
       streamKey: data['stream_key'],
@@ -1212,7 +1217,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.STREAM_UPDATE]({client}: Handler, data: Types.StreamUpdate) {
+  [GatewayDispatchEvents.STREAM_UPDATE]({client}: GatewayHandler, data: Types.StreamUpdate) {
     client.emit(ClientEvents.STREAM_UPDATE, {
       paused: data['paused'],
       region: data['region'],
@@ -1221,7 +1226,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.TYPING_START]({client}: Handler, data: Types.TypingStart) {
+  [GatewayDispatchEvents.TYPING_START]({client}: GatewayHandler, data: Types.TypingStart) {
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
     let typing: Typing;
@@ -1243,23 +1248,23 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.USER_ACHIEVEMENT_UPDATE]({client}: Handler, data: Types.UserAchievementUpdate) {
+  [GatewayDispatchEvents.USER_ACHIEVEMENT_UPDATE]({client}: GatewayHandler, data: Types.UserAchievementUpdate) {
 
   },
 
-  [GatewayDispatchEvents.USER_CONNECTIONS_UPDATE]({client}: Handler, data: Types.UserConnectionsUpdate) {
+  [GatewayDispatchEvents.USER_CONNECTIONS_UPDATE]({client}: GatewayHandler, data: Types.UserConnectionsUpdate) {
     // maybe fetch from rest api when this happens to keep cache up to date?
   },
 
-  [GatewayDispatchEvents.USER_FEED_SETTINGS_UPDATE]({client}: Handler, data: Types.UserFeedSettingsUpdate) {
+  [GatewayDispatchEvents.USER_FEED_SETTINGS_UPDATE]({client}: GatewayHandler, data: Types.UserFeedSettingsUpdate) {
 
   },
 
-  [GatewayDispatchEvents.USER_GUILD_SETTINGS_UPDATE]({client}: Handler, data: Types.UserGuildSettingsUpdate) {
+  [GatewayDispatchEvents.USER_GUILD_SETTINGS_UPDATE]({client}: GatewayHandler, data: Types.UserGuildSettingsUpdate) {
 
   },
 
-  [GatewayDispatchEvents.USER_NOTE_UPDATE]({client}: Handler, data: Types.UserNoteUpdate) {
+  [GatewayDispatchEvents.USER_NOTE_UPDATE]({client}: GatewayHandler, data: Types.UserNoteUpdate) {
     let user: null | User = null;
     if (client.users.has(data.id)) {
       user = <User> client.users.get(data.id);
@@ -1273,23 +1278,23 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.USER_PAYMENT_SOURCES_UPDATE]({client}: Handler, data: Types.UserPaymentSourcesUpdate) {
+  [GatewayDispatchEvents.USER_PAYMENT_SOURCES_UPDATE]({client}: GatewayHandler, data: Types.UserPaymentSourcesUpdate) {
     // maybe fetch from rest api when this happens to keep cache up to date?
   },
 
-  [GatewayDispatchEvents.USER_PAYMENTS_UPDATE]({client}: Handler, data: Types.UserPaymentsUpdate) {
+  [GatewayDispatchEvents.USER_PAYMENTS_UPDATE]({client}: GatewayHandler, data: Types.UserPaymentsUpdate) {
     // maybe fetch from rest api when this happens to keep cache up to date?
   },
 
-  [GatewayDispatchEvents.USER_REQUIRED_ACTION_UPDATE]({client}: Handler, data: Types.UserRequiredActionUpdate) {
+  [GatewayDispatchEvents.USER_REQUIRED_ACTION_UPDATE]({client}: GatewayHandler, data: Types.UserRequiredActionUpdate) {
 
   },
 
-  [GatewayDispatchEvents.USER_SETTINGS_UPDATE]({client}: Handler, data: Types.UserSettingsUpdate) {
+  [GatewayDispatchEvents.USER_SETTINGS_UPDATE]({client}: GatewayHandler, data: Types.UserSettingsUpdate) {
     
   },
 
-  [GatewayDispatchEvents.USER_UPDATE]({client}: Handler, data: Types.UserUpdate) {
+  [GatewayDispatchEvents.USER_UPDATE]({client}: GatewayHandler, data: Types.UserUpdate) {
     // this updates client.user, us
     let differences: any = null;
     let user: UserMe;
@@ -1308,7 +1313,7 @@ export const Handlers: {[key: string]: Function} = {
     client.emit(ClientEvents.USER_UPDATE, {differences, user});
   },
 
-  [GatewayDispatchEvents.VOICE_SERVER_UPDATE]({client}: Handler, data: Types.VoiceServerUpdate) {
+  [GatewayDispatchEvents.VOICE_SERVER_UPDATE]({client}: GatewayHandler, data: Types.VoiceServerUpdate) {
     client.emit(ClientEvents.VOICE_SERVER_UPDATE, {
       channelId: data['channel_id'],
       endpoint: data['endpoint'],
@@ -1317,7 +1322,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.VOICE_STATE_UPDATE]({client}: Handler, data: Types.VoiceStateUpdate) {
+  [GatewayDispatchEvents.VOICE_STATE_UPDATE]({client}: GatewayHandler, data: Types.VoiceStateUpdate) {
     let differences: any = null;
     let leftChannel = false;
     let voiceState: VoiceState;
@@ -1344,7 +1349,7 @@ export const Handlers: {[key: string]: Function} = {
     });
   },
 
-  [GatewayDispatchEvents.WEBHOOKS_UPDATE]({client}: Handler, data: Types.WebhooksUpdate) {
+  [GatewayDispatchEvents.WEBHOOKS_UPDATE]({client}: GatewayHandler, data: Types.WebhooksUpdate) {
     client.emit(ClientEvents.WEBHOOKS_UPDATE, {
       channelId: data['channel_id'],
       guildId: data['guild_id'],

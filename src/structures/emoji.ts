@@ -31,6 +31,10 @@ const keys: ReadonlyArray<string> = [
 
 const ignoreKeys: ReadonlyArray<string> = ['roles', 'user'];
 
+/**
+ * Emoji Structure
+ * @category Structure
+ */
 export class Emoji extends BaseStructure {
   _defaultKeys = keys;
   _ignoreKeys = ignoreKeys;

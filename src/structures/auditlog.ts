@@ -34,6 +34,10 @@ const keys = [
   'user_id',
 ];
 
+/**
+ * Guild Audit Log
+ * @category Structure
+ */
 export class AuditLog extends BaseStructure {
   _defaultKeys = keys;
   actionType: number = -1;
@@ -86,6 +90,10 @@ const keysAuditLogChange = [
   'old_value',
 ];
 
+/**
+ * Guild Audit Log Change, used in [[AuditLog]]
+ * @category Structure
+ */
 export class AuditLogChange extends BaseStructure {
   _defaultKeys = keysAuditLogChange;
   key: string = '';
@@ -110,6 +118,10 @@ const keysAuditLogOptions = [
   'type',
 ];
 
+/**
+ * Guild Audit Log Options, used in [[AuditLog]]
+ * @category Structure
+ */
 export class AuditLogOptions extends BaseStructure {
   _defaultKeys = keysAuditLogOptions;
   readonly log: AuditLog;

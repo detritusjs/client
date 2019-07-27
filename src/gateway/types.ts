@@ -1,3 +1,7 @@
+/**
+ * Generic Gateway Packet
+ * @category Gateway Packet
+ */
 export interface GatewayPacket {
   d: any,
   op: number,
@@ -6,27 +10,42 @@ export interface GatewayPacket {
 }
 
 
+/**
+ * @category Gateway Packet
+ */
 export interface ActivityJoinInvite {
   secret: string,
   user_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ActivityJoinRequest {
   // maybe more
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ActivityStart {
   activity: any,
   user_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface BraintreePopupBridgeCallback {
   path: string,
   query: any,
   state: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface CallCreate {
   channel_id: string,
   message_id: string,
@@ -35,11 +54,17 @@ export interface CallCreate {
   voice_states?: Array<VoiceState>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface CallDelete {
   channel_id: string,
   unavailable: boolean,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface CallUpdate {
   channel_id: string,
   message_id: string,
@@ -47,97 +72,160 @@ export interface CallUpdate {
   ringing: Array<string>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ChannelCreate extends Channel {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ChannelDelete extends Channel  {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ChannelPinsAck {
   channel_id: string,
   timestamp: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ChannelPinsUpdate {
   channel_id: string,
   guild_id?: string,
   last_pin_timestamp: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ChannelUpdate extends Channel  {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ChannelRecipientAdd {
   channel_id: string,
   nick?: string,
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ChannelRecipientRemove extends ChannelRecipientAdd {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface EntitlementCreate extends Entitlement {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface EntitlementDelete extends Entitlement {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface EntitlementUpdate extends Entitlement {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface FriendSuggestionCreate extends FriendSuggestion {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface FriendSuggestionDelete {
   suggested_user_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GiftCodeUpdate {
   code: string,
   uses: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildBanAdd {
   guild_id: string,
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildBanRemove {
   guild_id: string,
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildCreate extends Guild {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildDelete {
   id: string,
   unavailable?: boolean,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildEmojisUpdate {
   guild_id: string,
   emojis: Array<Emoji>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildIntegrationsUpdate {
   guild_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildMemberAdd {
   guild_id: string,
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildMemberListUpdate {
   groups: Array<{
     count: number,
@@ -155,11 +243,17 @@ export interface GuildMemberListUpdate {
   }>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildMemberRemove {
   guild_id: string,
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildMemberUpdate {
   guild_id: string,
   nick: null | string,
@@ -168,6 +262,9 @@ export interface GuildMemberUpdate {
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildMembersChunk {
   guild_id: string,
   members: Array<Member>,
@@ -175,25 +272,40 @@ export interface GuildMembersChunk {
   not_found?: Array<string>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildRoleCreate {
   guild_id: string,
   role: Role,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildRoleDelete {
   guild_id: string,
   role_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildRoleUpdate {
   guild_id: string,
   role: Role,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildUpdate extends Guild {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LibraryApplicationUpdate {
   application: Application,
   branch?: {
@@ -214,20 +326,32 @@ export interface LibraryApplicationUpdate {
   sku_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyCreate {
   id: string,
   voice_states: Array<VoiceState>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyDelete {
   id: string,
   reason: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyUpdate extends LobbyCreate {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyMemberConnect {
   lobby_id: string,
   member: {
@@ -236,6 +360,9 @@ export interface LobbyMemberConnect {
   },
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyMemberDisconnect {
   lobby_id: string,
   member: {
@@ -244,6 +371,9 @@ export interface LobbyMemberDisconnect {
   },
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyMemberUpdate {
   lobby_id: string,
   member: {
@@ -252,27 +382,42 @@ export interface LobbyMemberUpdate {
   },
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyMessage {
   data: string,
   lobby_id: string,
   sender_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyVoiceServerUpdate {
   endpoint: string,
   lobby_id: string,
   token: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface LobbyVoiceStateUpdate extends VoiceState {
   lobby_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageAck {
   channel_id: string,
   message_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageCreate {
   activity?: {
     cover_image?: string,
@@ -323,18 +468,27 @@ export interface MessageCreate {
   webhook_id?: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageDelete {
   channel_id: string,
   guild_id?: string,
   id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageDeleteBulk {
   channel_id: string,
   guild_id?: string,
   ids: Array<string>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageReactionAdd {
   channel_id: string,
   emoji: EmojiPartial,
@@ -343,34 +497,55 @@ export interface MessageReactionAdd {
   user_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageReactionRemove extends MessageReactionAdd {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageReactionRemoveAll {
   channel_id: string,
   guild_id?: string,
   message_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageUpdate extends MessageCreate {
   
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Oauth2TokenRevoke {
   access_token: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface PresenceUpdate extends Presence {
   nick?: string,
   premium_since?: null | string,
   roles?: Array<Role>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface PresencesReplace {
   presences?: Array<Presence>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Ready {
   _trace: Array<string>,
   analytics_token?: string,
@@ -424,27 +599,45 @@ export interface Ready {
   v: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface RecentMentionDelete {
   message_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface RelationshipAdd extends Relationship {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface RelationshipRemove {
   id: string,
   type: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Resumed {
   _trace: Array<string>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface SessionsUpdate extends Array<Session> {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface StreamCreate {
   paused: boolean,
   region: string,
@@ -453,18 +646,27 @@ export interface StreamCreate {
   viewer_ids: Array<string>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface StreamDelete {
   reason: string,
   stream_key: string,
   unavailable: boolean,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface StreamServerUpdate {
   endpoint: string,
   stream_key: string,
   token: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface StreamUpdate {
   paused: boolean,
   region: string,
@@ -472,6 +674,9 @@ export interface StreamUpdate {
   viewer_ids: Array<string>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface TypingStart {
   channel_id: string,
   guild_id?: string,
@@ -480,6 +685,9 @@ export interface TypingStart {
   user_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserAchievementUpdate {
   application_id: string,
   achievement: {
@@ -489,47 +697,80 @@ export interface UserAchievementUpdate {
   percent_complete: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserConnectionsUpdate {
   // null
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserFeedSettingsUpdate extends UserFeedSettings {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserGuildSettingsUpdate extends UserGuildSettings {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserNoteUpdate {
   id: string,
   note: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserPaymentSourcesUpdate {
   // null
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserPaymentsUpdate {
   // null
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserRequiredActionUpdate {
   required_action: null | string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserSettingsUpdate extends UserSettings {
 
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserSubscriptionsUpdate {
   // null
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserUpdate extends UserMe {
   // Current User Update
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface VoiceServerUpdate {
   channel_id: string,
   endpoint: string,
@@ -537,16 +778,25 @@ export interface VoiceServerUpdate {
   token: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface VoiceStateUpdate extends VoiceState {
   member?: Member,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface WebhooksUpdate {
   channel_id: string,
   guild_id: string,
 }
 
 
+/**
+ * @category Gateway Packet
+ */
 export interface Application {
   bot_public: boolean,
   bot_require_code_grant: boolean,
@@ -569,6 +819,9 @@ export interface Application {
   verify_key: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Channel {
   bitrate?: number,
   guild_id?: string,
@@ -589,6 +842,9 @@ export interface Channel {
   user_limit?: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ChannelOverwrite {
   allow: number,
   deny: number,
@@ -596,6 +852,9 @@ export interface ChannelOverwrite {
   type: 'member' | 'role',
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface ConnectedAccount {
   friend_sync: boolean,
   id: string,
@@ -608,12 +867,18 @@ export interface ConnectedAccount {
   visibility: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface EmojiPartial {
   animated: boolean,
   id: null | string,
   name: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Emoji extends EmojiPartial {
   available: boolean,
   managed: boolean,
@@ -621,6 +886,9 @@ export interface Emoji extends EmojiPartial {
   roles: Array<string>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Entitlement {
   application_id: string,
   branches: Array<string>,
@@ -630,6 +898,9 @@ export interface Entitlement {
   user_id: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface FriendSuggestion {
   reasons: Array<{
     name: string,
@@ -638,6 +909,9 @@ export interface FriendSuggestion {
   suggested_user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Guild {
   afk_channel_id: null | string,
   afk_timeout: number,
@@ -673,6 +947,9 @@ export interface Guild {
   widget_enabled: boolean,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface GuildMemberListUpdateItem {
   group?: {
     count: number,
@@ -681,6 +958,9 @@ export interface GuildMemberListUpdateItem {
   member?: Member,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Member {
   deaf: boolean,
   joined_at: string,
@@ -692,6 +972,9 @@ export interface Member {
   user?: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageAttachment {
   filename: string,
   height: number,
@@ -702,6 +985,9 @@ export interface MessageAttachment {
   width: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface MessageEmbed {
   author?: {
     icon_url?: string,
@@ -749,6 +1035,9 @@ export interface MessageEmbed {
   },
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Presence {
   activities: Array<PresenceActivity>,
   client_status: {
@@ -763,6 +1052,9 @@ export interface Presence {
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface PresenceActivity {
   application_id?: string,
   assets?: {
@@ -798,12 +1090,18 @@ export interface PresenceActivity {
   url?: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Relationship {
   id: string,
   type: number,
   user: User,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Role {
   color: number,
   guild_id?: string,
@@ -816,6 +1114,9 @@ export interface Role {
   position: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface Session {
   active?: boolean,
   activities: Array<PresenceActivity>,
@@ -830,6 +1131,9 @@ export interface Session {
   status: string,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface User {
   discriminator: string,
   id: string,
@@ -837,6 +1141,9 @@ export interface User {
   bot: boolean,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserMe extends User {
   email: null | string,
   flags: number,
@@ -847,6 +1154,9 @@ export interface UserMe extends User {
   verified: boolean,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserFeedSettings {
   autosubscribed_users: Array<string>,
   subscribed_games: Array<string>,
@@ -855,6 +1165,9 @@ export interface UserFeedSettings {
   unsubscribed_users: Array<string>,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserGuildSettings {
   channel_overrides?: {
     [key: string]: {
@@ -870,6 +1183,9 @@ export interface UserGuildSettings {
   suppress_everyone: boolean,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface UserSettings {
   afk_timeout: number,
   animate_emojis: boolean,
@@ -899,6 +1215,9 @@ export interface UserSettings {
   timezone_offset: number,
 }
 
+/**
+ * @category Gateway Packet
+ */
 export interface VoiceState {
   channel_id: string,
   deaf: boolean,

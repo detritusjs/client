@@ -18,6 +18,11 @@ const keys = [
   'visibility',
 ];
 
+/**
+ * Connected Account
+ * If from a user profile, it'll be partial
+ * @category Structure
+ */
 export class ConnectedAccount extends BaseStructure {
   _defaultKeys = keys;
 

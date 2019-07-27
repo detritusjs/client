@@ -103,6 +103,10 @@ const ignoreKeys = [
 
 const skipKeys = ['roles', 'members'];
 
+/**
+ * Guild Structure
+ * @category Structure
+ */
 export class Guild extends BaseStructure {
   _defaultKeys = keys;
   _ignoreKeys = ignoreKeys;

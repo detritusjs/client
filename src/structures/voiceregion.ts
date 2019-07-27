@@ -15,6 +15,10 @@ const keys = [
   'vip',
 ];
 
+/**
+ * Voice Region Structure
+ * @category Structure
+ */
 export class VoiceRegion extends BaseStructure {
   _defaultKeys = keys;
   custom: boolean = false;

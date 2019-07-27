@@ -50,6 +50,10 @@ const keys = [
 
 const skipKeys = ['activities'];
 
+/**
+ * Presence Structure, used to detail a user's presence in a guild (or general if you have them added (non-bots only))
+ * @category Structure
+ */
 export class Presence extends BaseStructure {
   _defaultKeys = keys;
   activities = new BaseCollection<number | string, PresenceActivity>();
@@ -189,6 +193,10 @@ const keysPresenceActivity = [
   'url',
 ];
 
+/**
+ * Presence Activity Structure, used in [Presence]
+ * @category Structure
+ */
 export class PresenceActivity extends BaseStructure {
   _defaultKeys = keysPresenceActivity;
   presence: Presence;
@@ -387,6 +395,10 @@ const keysPresenceActivityAssets = [
   'small_text',
 ];
 
+/**
+ * Presence Activity Assets Structure, used in [PresenceActivity]
+ * @category Structure
+ */
 export class PresenceActivityAssets extends BaseStructure {
   _defaultKeys = keysPresenceActivityAssets;
   activity: PresenceActivity;
@@ -492,6 +504,11 @@ const keysPresenceActivityParty = [
   'size',
 ];
 
+/**
+ * Presence Activity Party Structure, used in [PresenceActivity]
+ * describe's the user's current party (listening party, game party, etc..)
+ * @category Structure
+ */
 export class PresenceActivityParty extends BaseStructure {
   _defaultKeys = keysPresenceActivityParty;
   activity: PresenceActivity;
@@ -555,6 +572,11 @@ const keysPresenceActivitySecrets = [
   'spectate',
 ];
 
+/**
+ * Presence Activity Secrets Structure
+ * used to join someone's game
+ * @category Structure
+ */
 export class PresenceActivitySecrets extends BaseStructure {
   _defaultKeys = keysPresenceActivitySecrets;
   activity: PresenceActivity;
@@ -577,6 +599,11 @@ const keysPresenceActivityTimestamps = [
   'start',
 ];
 
+/**
+ * Presence Activity Timestamp Structure
+ * used to describe when they started doing an activity and if they ended it or not
+ * @category Structure
+ */
 export class PresenceActivityTimestamps extends BaseStructure {
   _defaultKeys = keysPresenceActivityTimestamps;
   activity: PresenceActivity;
@@ -615,6 +642,11 @@ const keysPresenceClientStatus = [
   'web',
 ];
 
+/**
+ * Presence Client Status Structure, used in [Presence]
+ * used to describe if a person is on desktop, mobile, web, etc..
+ * @category Structure
+ */
 export class PresenceClientStatus extends BaseStructure {
   _defaultKeys = keysPresenceClientStatus;
   presence: Presence;

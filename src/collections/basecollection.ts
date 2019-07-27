@@ -1,16 +1,11 @@
 import { ShardClient } from '../client';
 
 
-class Collection<K, V, X = V> extends Map<K, V | X> {
-  
-}
-
-
 /**
  * Basic Collection, the most basic
  * @category Collections
  */
-export class BaseCollection<K, V> extends Collection<K, V> {
+export class BaseCollection<K, V> extends Map<K, V > {
   defaultKey: null | string;
 
   constructor(

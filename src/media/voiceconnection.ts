@@ -24,15 +24,23 @@ import {
 } from '../structures';
 
 import { Opus } from './encoders';
-import { Handler } from './handler';
+import { MediaHandler } from './handler';
 
 
+/**
+ * Voice Connection .decode() Settings
+ * @category Media Options
+ */
 export interface DecodeSettings {
   format?: string,
   frameDuration?: number,
   type?: string,
 }
 
+/**
+ * Voice Connection Opus Options
+ * @category Media Opus
+ */
 export interface OpusOptions extends Opus.AudioOpusOptions {
   application?: number,
   channels?: number,
@@ -41,6 +49,10 @@ export interface OpusOptions extends Opus.AudioOpusOptions {
   use?: null | string,
 }
 
+/**
+ * Voice Connection Opus Decoder Settings
+ * @category Media Options
+ */
 export interface OpusDecoderSettings {
   application: number,
   channels: number,
@@ -48,10 +60,18 @@ export interface OpusDecoderSettings {
   use?: null | string,
 }
 
+/**
+ * Voice Connection .sendAudio() Settings
+ * @category Media Options
+ */
 export interface SendAudioSettings {
   isOpus?: boolean,
 }
 
+/**
+ * Voice Connection Options
+ * @category Media Options
+ */
 export interface VoiceConnectionOptions {
   decodeAudio?: boolean,
   opusDecoder?: boolean | OpusOptions,
@@ -66,6 +86,11 @@ const OpusProperties = [
   'use',
 ];
 
+
+/**
+ * Voice Connection
+ * @category Media
+ */
 export class VoiceConnection extends EventEmitter {
   client: ShardClient;
   decodeAudio: boolean;
@@ -73,7 +98,7 @@ export class VoiceConnection extends EventEmitter {
     audio: AudioFormat,
   };
   gateway: Media.Socket;
-  handler: Handler;
+  handler: MediaHandler;
   opusDecoder: null | OpusDecoderSettings;
   opusDecoders: BaseCollection<string, Opus.AudioOpus>;
   opusEncoder: null | Opus.AudioOpus;
@@ -87,7 +112,7 @@ export class VoiceConnection extends EventEmitter {
 
     this.client = client;
     this.gateway = gateway;
-    this.handler = new Handler(this);
+    this.handler = new MediaHandler(this);
 
     this.decodeAudio = !!options.decodeAudio;
     this.opusDecoder = null;

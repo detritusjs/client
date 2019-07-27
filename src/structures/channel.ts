@@ -76,6 +76,10 @@ const keys: ReadonlyArray<string> = [
   'type',
 ];
 
+/**
+ * Basic Channel Structure
+ * @category Structure
+ */
 export class ChannelBase extends BaseStructure {
   _defaultKeys = keys;
   readonly nicks = new BaseCollection<string, string>();
@@ -407,6 +411,10 @@ const keysDm: ReadonlyArray<string> = [
   ...keys,
 ];
 
+/**
+ * Single DM Channel
+ * @category Structure
+ */
 export class ChannelDM extends ChannelBase {
   _defaultKeys = keysDm;
   lastMessageId: null | string = null;
@@ -536,6 +544,10 @@ const keysGroupDm: ReadonlyArray<string> = [
   ...keysDm,
 ];
 
+/**
+ * Group DM Channel
+ * @category Structure
+ */
 export class ChannelDMGroup extends ChannelDM {
   _defaultKeys = keysGroupDm;
   applicationId: null | string = null;
@@ -592,6 +604,10 @@ const keysChannelGuildBase: ReadonlyArray<string> = [
   ...keys,
 ];
 
+/**
+ * Basic Guild Channel
+ * @category Structure
+ */
 export class ChannelGuildBase extends ChannelBase {
   _defaultKeys = keysChannelGuildBase;
   readonly permissionOverwrites = new BaseCollection<string, Overwrite>();
@@ -833,6 +849,10 @@ const keysChannelGuildCategory: ReadonlyArray<string> = [
   ...keysChannelGuildBase,
 ];
 
+/**
+ * Guild Category Channel
+ * @category Structure
+ */
 export class ChannelGuildCategory extends ChannelGuildBase {
   _defaultKeys = keysChannelGuildCategory;
   bitrate: number = 0;
@@ -857,6 +877,11 @@ const keysChannelGuildText: ReadonlyArray<string> = [
   ...keysChannelGuildBase,
 ];
 
+/**
+ * Guild Text Channel, it can also be a news channel.
+ * Not sure about the upcoming LFG group, it might not extend this
+ * @category Structure
+ */
 export class ChannelGuildText extends ChannelGuildBase {
   _defaultKeys = keysChannelGuildText;
   lastMessageId: null | string = null;
@@ -922,6 +947,10 @@ const keysChannelGuildVoice: ReadonlyArray<string> = [
   ...keysChannelGuildBase,
 ];
 
+/**
+ * Guild Voice Channel
+ * @category Structure
+ */
 export class ChannelGuildVoice extends ChannelGuildBase {
   _defaultKeys = keysChannelGuildVoice;
   bitrate: number = 64000;
@@ -963,6 +992,10 @@ export class ChannelGuildVoice extends ChannelGuildBase {
 }
 
 
+/**
+ * Guild Store Channel
+ * @category Structure
+ */
 export class ChannelGuildStore extends ChannelGuildBase {
   async fetchStoreListing() {
     return this.client.rest.fetchChannelStoreListing(this.id);

@@ -12,8 +12,8 @@ import {
 } from './constants';
 import EventEmitter from './eventemitter';
 import {
-  Handler as GatewayHandler,
-  HandlerOptions as GatewayHandlerOptions,
+  GatewayHandler,
+  GatewayHandlerOptions,
 } from './gateway/handler';
 import { RestClient } from './rest';
 

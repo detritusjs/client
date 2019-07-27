@@ -29,6 +29,10 @@ const keys = [
 
 const skipKeys = ['subscription_plan'];
 
+/**
+ * Discord Nitro Gift Structure
+ * @category Structure
+ */
 export class Gift extends BaseStructure {
   _defaultKeys = keys;
 
@@ -113,6 +117,10 @@ const keysSubscriptionPlan = [
   'tax_inclusive',
 ];
 
+/**
+ * Subscription Plan, used in [[Gift]]
+ * @category Structure
+ */
 export class SubscriptionPlan extends BaseStructure {
   _defaultKeys = keysSubscriptionPlan;
   currency: string = 'usd';
