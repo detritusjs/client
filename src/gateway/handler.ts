@@ -534,7 +534,7 @@ export const Handlers: {[key: string]: Function} = {
         return emoji.guildId === guildId;
       }));
       for (let [id, emoji] of emojisOld) {
-        if (!data['emojis'].some((e: Types.Emoji) => e.id === id)) {
+        if (!data['emojis'].some((e) => e.id === id)) {
           client.emojis.delete(id);
         }
       }
@@ -662,7 +662,7 @@ export const Handlers: {[key: string]: Function} = {
       amounts.members = data['members'].length;
       if (client.members.enabled) {
         for (let value of data['members']) {
-          const user = <Types.User> value.user;
+          const user = <Types.RawUser> value.user;
           if (client.members.has(guildId, user.id)) {
             (<Member> client.members.get(guildId, user.id)).merge(value);
           } else {
@@ -673,7 +673,7 @@ export const Handlers: {[key: string]: Function} = {
         }
       } else if (client.users.enabled) {
         for (let value of data['members']) {
-          const user = <Types.User> value.user;
+          const user = <Types.RawUser> value.user;
           if (client.users.has(user.id)) {
             (<User> client.users.get(user.id)).merge(user);
           } else {

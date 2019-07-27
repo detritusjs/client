@@ -23,7 +23,7 @@ export interface ActivityJoinInvite {
  */
 export interface ActivityJoinRequest {
   // maybe more
-  user: User,
+  user: RawUser,
 }
 
 /**
@@ -51,7 +51,7 @@ export interface CallCreate {
   message_id: string,
   region: string,
   ringing: Array<string>,
-  voice_states?: Array<VoiceState>,
+  voice_states?: Array<RawVoiceState>,
 }
 
 /**
@@ -75,14 +75,14 @@ export interface CallUpdate {
 /**
  * @category Gateway Packet
  */
-export interface ChannelCreate extends Channel {
+export interface ChannelCreate extends RawChannel {
 
 }
 
 /**
  * @category Gateway Packet
  */
-export interface ChannelDelete extends Channel  {
+export interface ChannelDelete extends RawChannel  {
 
 }
 
@@ -106,7 +106,7 @@ export interface ChannelPinsUpdate {
 /**
  * @category Gateway Packet
  */
-export interface ChannelUpdate extends Channel  {
+export interface ChannelUpdate extends RawChannel  {
 
 }
 
@@ -116,7 +116,7 @@ export interface ChannelUpdate extends Channel  {
 export interface ChannelRecipientAdd {
   channel_id: string,
   nick?: string,
-  user: User,
+  user: RawUser,
 }
 
 /**
@@ -129,28 +129,28 @@ export interface ChannelRecipientRemove extends ChannelRecipientAdd {
 /**
  * @category Gateway Packet
  */
-export interface EntitlementCreate extends Entitlement {
+export interface EntitlementCreate extends RawEntitlement {
 
 }
 
 /**
  * @category Gateway Packet
  */
-export interface EntitlementDelete extends Entitlement {
+export interface EntitlementDelete extends RawEntitlement {
 
 }
 
 /**
  * @category Gateway Packet
  */
-export interface EntitlementUpdate extends Entitlement {
+export interface EntitlementUpdate extends RawEntitlement {
 
 }
 
 /**
  * @category Gateway Packet
  */
-export interface FriendSuggestionCreate extends FriendSuggestion {
+export interface FriendSuggestionCreate extends RawFriendSuggestion {
 
 }
 
@@ -174,7 +174,7 @@ export interface GiftCodeUpdate {
  */
 export interface GuildBanAdd {
   guild_id: string,
-  user: User,
+  user: RawUser,
 }
 
 /**
@@ -182,13 +182,13 @@ export interface GuildBanAdd {
  */
 export interface GuildBanRemove {
   guild_id: string,
-  user: User,
+  user: RawUser,
 }
 
 /**
  * @category Gateway Packet
  */
-export interface GuildCreate extends Guild {
+export interface GuildCreate extends RawGuild {
 
 }
 
@@ -205,7 +205,7 @@ export interface GuildDelete {
  */
 export interface GuildEmojisUpdate {
   guild_id: string,
-  emojis: Array<Emoji>,
+  emojis: Array<RawEmoji>,
 }
 
 /**
@@ -220,7 +220,7 @@ export interface GuildIntegrationsUpdate {
  */
 export interface GuildMemberAdd {
   guild_id: string,
-  user: User,
+  user: RawUser,
 }
 
 /**
@@ -237,8 +237,8 @@ export interface GuildMemberListUpdate {
   ops: Array<{
     op: 'DELETE' | 'INSERT' | 'SYNC' | 'UPDATE',
     index?: number,
-    items?: Array<GuildMemberListUpdateItem>
-    item?: GuildMemberListUpdateItem,
+    items?: Array<RawGuildMemberListUpdateItem>
+    item?: RawGuildMemberListUpdateItem,
     range?: Array<[number, number]>,
   }>,
 }
@@ -248,7 +248,7 @@ export interface GuildMemberListUpdate {
  */
 export interface GuildMemberRemove {
   guild_id: string,
-  user: User,
+  user: RawUser,
 }
 
 /**
@@ -259,7 +259,7 @@ export interface GuildMemberUpdate {
   nick: null | string,
   premium_since: null | string,
   roles: Array<string>,
-  user: User,
+  user: RawUser,
 }
 
 /**
@@ -267,8 +267,8 @@ export interface GuildMemberUpdate {
  */
 export interface GuildMembersChunk {
   guild_id: string,
-  members: Array<Member>,
-  presences?: Array<Presence>,
+  members: Array<RawMember>,
+  presences?: Array<RawPresence>,
   not_found?: Array<string>,
 }
 
@@ -277,7 +277,7 @@ export interface GuildMembersChunk {
  */
 export interface GuildRoleCreate {
   guild_id: string,
-  role: Role,
+  role: RawRole,
 }
 
 /**
@@ -293,13 +293,13 @@ export interface GuildRoleDelete {
  */
 export interface GuildRoleUpdate {
   guild_id: string,
-  role: Role,
+  role: RawRole,
 }
 
 /**
  * @category Gateway Packet
  */
-export interface GuildUpdate extends Guild {
+export interface GuildUpdate extends RawGuild {
 
 }
 
@@ -307,14 +307,14 @@ export interface GuildUpdate extends Guild {
  * @category Gateway Packet
  */
 export interface LibraryApplicationUpdate {
-  application: Application,
+  application: RawApplication,
   branch?: {
     id: string,
     name: string,
   },
   branch_id: string,
   created_at: string,
-  entitlements?: Array<Entitlement>,
+  entitlements?: Array<RawEntitlement>,
   flags: number,
   sku: {
     id: string,
@@ -331,7 +331,7 @@ export interface LibraryApplicationUpdate {
  */
 export interface LobbyCreate {
   id: string,
-  voice_states: Array<VoiceState>,
+  voice_states: Array<RawVoiceState>,
 }
 
 /**
@@ -356,7 +356,7 @@ export interface LobbyMemberConnect {
   lobby_id: string,
   member: {
     metdata: any,
-    user: User,
+    user: RawUser,
   },
 }
 
@@ -367,7 +367,7 @@ export interface LobbyMemberDisconnect {
   lobby_id: string,
   member: {
     metdata: any,
-    user: User,
+    user: RawUser,
   },
 }
 
@@ -378,7 +378,7 @@ export interface LobbyMemberUpdate {
   lobby_id: string,
   member: {
     metdata: any,
-    user: User,
+    user: RawUser,
   },
 }
 
@@ -403,7 +403,7 @@ export interface LobbyVoiceServerUpdate {
 /**
  * @category Gateway Packet
  */
-export interface LobbyVoiceStateUpdate extends VoiceState {
+export interface LobbyVoiceStateUpdate extends RawVoiceState {
   lobby_id: string,
 }
 
@@ -433,8 +433,8 @@ export interface MessageCreate {
     name: string,
     primary_sku_id: string,
   },
-  attachments?: Array<MessageAttachment>,
-  author: User,
+  attachments?: Array<RawMessageAttachment>,
+  author: RawUser,
   call?: {
     ended_timestamp: null | string,
     participiants: Array<string>,
@@ -442,17 +442,17 @@ export interface MessageCreate {
   channel_id: string,
   content: string,
   edited_timestamp?: string,
-  embeds?: Array<MessageEmbed>,
+  embeds?: Array<RawMessageEmbed>,
   guild_id?: string,
   id: string,
-  member?: Member,
+  member?: RawMember,
   mention_everyone: boolean,
   mention_roles: Array<string>,
   mentions: Array<{
     bot: boolean,
     discriminator: string,
     id: string,
-    member?: Member,
+    member?: RawMember,
     username: string,
   }>,
   message_reference?: {
@@ -491,7 +491,7 @@ export interface MessageDeleteBulk {
  */
 export interface MessageReactionAdd {
   channel_id: string,
-  emoji: EmojiPartial,
+  emoji: RawEmojiPartial,
   guild_id?: string,
   message_id: string,
   user_id: string,
@@ -530,17 +530,17 @@ export interface Oauth2TokenRevoke {
 /**
  * @category Gateway Packet
  */
-export interface PresenceUpdate extends Presence {
+export interface PresenceUpdate extends RawPresence {
   nick?: string,
   premium_since?: null | string,
-  roles?: Array<Role>,
+  roles?: Array<string>,
 }
 
 /**
  * @category Gateway Packet
  */
 export interface PresencesReplace {
-  presences?: Array<Presence>,
+  presences?: Array<RawPresence>,
 }
 
 /**
@@ -549,7 +549,7 @@ export interface PresencesReplace {
 export interface Ready {
   _trace: Array<string>,
   analytics_token?: string,
-  connected_accounts?: Array<ConnectedAccount>,
+  connected_accounts?: Array<RawConnectedAccount>,
   consents?: {
     personalization?: {
       consented: boolean,
@@ -573,29 +573,29 @@ export interface Ready {
     Array<number>,
     Array<number>,
   ]>,
-  guilds: Array<Guild>,
+  guilds: Array<RawGuild>,
   notes?: {[key: string]: string},
-  presences?: Array<Presence>,
-  private_channels: Array<Channel>,
+  presences?: Array<RawPresence>,
+  private_channels: Array<RawChannel>,
   read_state?: Array<{
     id: string,
     last_message_id: string,
     last_pin_timestamp: string,
     mention_count: number,
   }>,
-  relationships?: Array<Relationship>,
+  relationships?: Array<RawRelationship>,
   required_action?: string,
   session_id: string,
-  sessions?: Array<Session>,
+  sessions?: Array<RawSession>,
   shard?: Array<[number, number]>,
   tutorial?: {
     indicators_confirmed: Array<any>,
     indicators_suppressed: boolean,
   },
-  user: UserMe,
-  user_feed_settings?: UserFeedSettings,
-  user_guild_settings?: Array<UserGuildSettings>,
-  user_settings?: UserSettings,
+  user: RawUserMe,
+  user_feed_settings?: RawUserFeedSettings,
+  user_guild_settings?: Array<RawUserGuildSettings>,
+  user_settings?: RawUserSettings,
   v: number,
 }
 
@@ -609,7 +609,7 @@ export interface RecentMentionDelete {
 /**
  * @category Gateway Packet
  */
-export interface RelationshipAdd extends Relationship {
+export interface RelationshipAdd extends RawRelationship {
 
 }
 
@@ -631,7 +631,7 @@ export interface Resumed {
 /**
  * @category Gateway Packet
  */
-export interface SessionsUpdate extends Array<Session> {
+export interface SessionsUpdate extends Array<RawSession> {
 
 }
 
@@ -680,7 +680,7 @@ export interface StreamUpdate {
 export interface TypingStart {
   channel_id: string,
   guild_id?: string,
-  member?: Member,
+  member?: RawMember,
   timestamp: number,
   user_id: string,
 }
@@ -707,14 +707,14 @@ export interface UserConnectionsUpdate {
 /**
  * @category Gateway Packet
  */
-export interface UserFeedSettingsUpdate extends UserFeedSettings {
+export interface UserFeedSettingsUpdate extends RawUserFeedSettings {
 
 }
 
 /**
  * @category Gateway Packet
  */
-export interface UserGuildSettingsUpdate extends UserGuildSettings {
+export interface UserGuildSettingsUpdate extends RawUserGuildSettings {
 
 }
 
@@ -750,7 +750,7 @@ export interface UserRequiredActionUpdate {
 /**
  * @category Gateway Packet
  */
-export interface UserSettingsUpdate extends UserSettings {
+export interface UserSettingsUpdate extends RawUserSettings {
 
 }
 
@@ -764,7 +764,7 @@ export interface UserSubscriptionsUpdate {
 /**
  * @category Gateway Packet
  */
-export interface UserUpdate extends UserMe {
+export interface UserUpdate extends RawUserMe {
   // Current User Update
 }
 
@@ -781,8 +781,8 @@ export interface VoiceServerUpdate {
 /**
  * @category Gateway Packet
  */
-export interface VoiceStateUpdate extends VoiceState {
-  member?: Member,
+export interface VoiceStateUpdate extends RawVoiceState {
+  member?: RawMember,
 }
 
 /**
@@ -797,7 +797,7 @@ export interface WebhooksUpdate {
 /**
  * @category Gateway Packet
  */
-export interface Application {
+export interface RawApplication {
   bot_public: boolean,
   bot_require_code_grant: boolean,
   description: null | string,
@@ -822,7 +822,7 @@ export interface Application {
 /**
  * @category Gateway Packet
  */
-export interface Channel {
+export interface RawChannel {
   bitrate?: number,
   guild_id?: string,
   id: string,
@@ -833,10 +833,10 @@ export interface Channel {
   nsfw?: boolean,
   owner_id?: string,
   parent_id?: string,
-  permission_overwrites?: Array<ChannelOverwrite>,
+  permission_overwrites?: Array<RawChannelOverwrite>,
   position?: number,
   rate_limit_per_user?: number,
-  recipients?: Array<User>,
+  recipients?: Array<RawUser>,
   topic?: string,
   type: number,
   user_limit?: number,
@@ -845,7 +845,7 @@ export interface Channel {
 /**
  * @category Gateway Packet
  */
-export interface ChannelOverwrite {
+export interface RawChannelOverwrite {
   allow: number,
   deny: number,
   id: string,
@@ -855,7 +855,7 @@ export interface ChannelOverwrite {
 /**
  * @category Gateway Packet
  */
-export interface ConnectedAccount {
+export interface RawConnectedAccount {
   friend_sync: boolean,
   id: string,
   integrations?: Array<any>,
@@ -870,7 +870,7 @@ export interface ConnectedAccount {
 /**
  * @category Gateway Packet
  */
-export interface EmojiPartial {
+export interface RawEmojiPartial {
   animated: boolean,
   id: null | string,
   name: string,
@@ -879,7 +879,7 @@ export interface EmojiPartial {
 /**
  * @category Gateway Packet
  */
-export interface Emoji extends EmojiPartial {
+export interface RawEmoji extends RawEmojiPartial {
   available: boolean,
   managed: boolean,
   required_colons: boolean,
@@ -889,7 +889,7 @@ export interface Emoji extends EmojiPartial {
 /**
  * @category Gateway Packet
  */
-export interface Entitlement {
+export interface RawEntitlement {
   application_id: string,
   branches: Array<string>,
   id: string,
@@ -901,18 +901,18 @@ export interface Entitlement {
 /**
  * @category Gateway Packet
  */
-export interface FriendSuggestion {
+export interface RawFriendSuggestion {
   reasons: Array<{
     name: string,
     platform_type: string,
   }>,
-  suggested_user: User,
+  suggested_user: RawUser,
 }
 
 /**
  * @category Gateway Packet
  */
-export interface Guild {
+export interface RawGuild {
   afk_channel_id: null | string,
   afk_timeout: number,
   application_id: null | string,
@@ -920,7 +920,7 @@ export interface Guild {
   default_message_notifications: number,
   embed_channel_id: null | string,
   embed_enabled: boolean,
-  emojis: Array<Emoji>,
+  emojis: Array<RawEmoji>,
   explicit_content_filter: number,
   features: Array<string>,
   guild_id: string,
@@ -935,14 +935,14 @@ export interface Guild {
   premium_subscription_count: number,
   premium_tier: number,
   region: string,
-  roles: Array<Role>,
+  roles: Array<RawRole>,
   splash: null | string,
   system_channel_flags: number,
   system_channel_id: null | string,
   unavailable: boolean,
   vanity_url_code: null | string,
   verification_level: number,
-  voice_states?: Array<VoiceState>,
+  voice_states?: Array<RawVoiceState>,
   widget_channel_id: null | number,
   widget_enabled: boolean,
 }
@@ -950,32 +950,32 @@ export interface Guild {
 /**
  * @category Gateway Packet
  */
-export interface GuildMemberListUpdateItem {
+export interface RawGuildMemberListUpdateItem {
   group?: {
     count: number,
     id: string,
   },
-  member?: Member,
+  member?: RawMember,
 }
 
 /**
  * @category Gateway Packet
  */
-export interface Member {
+export interface RawMember {
   deaf: boolean,
   joined_at: string,
   mute: boolean,
   nick: null | string,
   premium_since: null | string,
-  presence?: Presence, // Guild Member List Update has this
+  presence?: RawPresence, // Guild Member List Update has this
   roles: Array<string>,
-  user?: User,
+  user?: RawUser,
 }
 
 /**
  * @category Gateway Packet
  */
-export interface MessageAttachment {
+export interface RawMessageAttachment {
   filename: string,
   height: number,
   id: string,
@@ -988,7 +988,7 @@ export interface MessageAttachment {
 /**
  * @category Gateway Packet
  */
-export interface MessageEmbed {
+export interface RawMessageEmbed {
   author?: {
     icon_url?: string,
     name?: string,
@@ -1038,24 +1038,24 @@ export interface MessageEmbed {
 /**
  * @category Gateway Packet
  */
-export interface Presence {
-  activities: Array<PresenceActivity>,
+export interface RawPresence {
+  activities: Array<RawPresenceActivity>,
   client_status: {
     desktop?: string,
     mobile?: string,
     web?: string,
   },
-  game: PresenceActivity,
+  game: RawPresenceActivity,
   guild_id?: string,
   last_modified: number,
   status: string,
-  user: User,
+  user: RawUser,
 }
 
 /**
  * @category Gateway Packet
  */
-export interface PresenceActivity {
+export interface RawPresenceActivity {
   application_id?: string,
   assets?: {
     large_image?: string,
@@ -1093,16 +1093,16 @@ export interface PresenceActivity {
 /**
  * @category Gateway Packet
  */
-export interface Relationship {
+export interface RawRelationship {
   id: string,
   type: number,
-  user: User,
+  user: RawUser,
 }
 
 /**
  * @category Gateway Packet
  */
-export interface Role {
+export interface RawRole {
   color: number,
   guild_id?: string,
   hoist: boolean,
@@ -1117,15 +1117,15 @@ export interface Role {
 /**
  * @category Gateway Packet
  */
-export interface Session {
+export interface RawSession {
   active?: boolean,
-  activities: Array<PresenceActivity>,
+  activities: Array<RawPresenceActivity>,
   client_info: {
     client: string,
     os: string,
     version: number,
   },
-  game: null | PresenceActivity,
+  game: null | RawPresenceActivity,
   last_modified?: string,
   session_id: string,
   status: string,
@@ -1134,7 +1134,7 @@ export interface Session {
 /**
  * @category Gateway Packet
  */
-export interface User {
+export interface RawUser {
   discriminator: string,
   id: string,
   name: string,
@@ -1144,7 +1144,7 @@ export interface User {
 /**
  * @category Gateway Packet
  */
-export interface UserMe extends User {
+export interface RawUserMe extends RawUser {
   email: null | string,
   flags: number,
   locale: null | string,
@@ -1157,7 +1157,7 @@ export interface UserMe extends User {
 /**
  * @category Gateway Packet
  */
-export interface UserFeedSettings {
+export interface RawUserFeedSettings {
   autosubscribed_users: Array<string>,
   subscribed_games: Array<string>,
   subscribed_users: Array<string>,
@@ -1168,7 +1168,7 @@ export interface UserFeedSettings {
 /**
  * @category Gateway Packet
  */
-export interface UserGuildSettings {
+export interface RawUserGuildSettings {
   channel_overrides?: {
     [key: string]: {
       channel_id: string,
@@ -1186,7 +1186,7 @@ export interface UserGuildSettings {
 /**
  * @category Gateway Packet
  */
-export interface UserSettings {
+export interface RawUserSettings {
   afk_timeout: number,
   animate_emojis: boolean,
   convert_emoticons: boolean,
@@ -1218,7 +1218,7 @@ export interface UserSettings {
 /**
  * @category Gateway Packet
  */
-export interface VoiceState {
+export interface RawVoiceState {
   channel_id: string,
   deaf: boolean,
   guild_id?: string,

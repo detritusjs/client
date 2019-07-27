@@ -14,7 +14,7 @@ import {
   Permissions,
   PremiumGuildLimits,
 } from '../constants';
-import { Emoji as EmojiRaw } from '../gateway/types';
+import { RawEmoji } from '../gateway/types';
 import {
   getAcronym,
   PermissionTools,
@@ -537,7 +537,7 @@ export class Guild extends BaseStructure {
         case 'emojis': {
           if (this.client.emojis.enabled) {
             for (let [id, emoji] of this.emojis) {
-              if (!value.some((e: EmojiRaw) => e.id === id)) {
+              if (!value.some((e: RawEmoji) => e.id === id)) {
                 this.client.emojis.delete(id);
               }
             }
