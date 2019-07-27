@@ -6,9 +6,22 @@ import {
 
 import { Member } from '../structures';
 
-export interface MembersCache extends BaseCollection<string, Member> {};
-export interface MembersOptions extends BaseClientCollectionOptions {};
 
+export interface MembersCache extends BaseCollection<string, Member> {
+
+};
+
+/**
+ * @category Collection Options
+ */
+export interface MembersOptions extends BaseClientCollectionOptions {
+
+};
+
+/**
+ * Members Collection
+ * @category Collections
+ */
 export class Members extends BaseClientCollection<string, MembersCache | Member> {
   [Symbol.iterator]: () => IterableIterator<[string, MembersCache]>;
 

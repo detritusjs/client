@@ -11,7 +11,7 @@ const {
   MediaSpeakingFlags,
 } = SocketConstants;
 
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 
 import { Opus } from './encoders';
 import * as Types from './types';

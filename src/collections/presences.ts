@@ -5,7 +5,7 @@ const {
 } = SocketConstants;
 
 
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { Presence as PresenceRaw } from '../gateway/types';
 import { Presence } from '../structures';
 
@@ -18,13 +18,24 @@ import {
 
 export const DEFAULT_PRESENCE_CACHE_KEY = '@me';
 
-export interface PresencesCache extends BaseCollection<string, Presence> {}
+export interface PresencesCache extends BaseCollection<string, Presence> {
+  
+}
+
+/**
+ * @category Collection Options
+ */
 export interface PresencesOptions extends BaseClientCollectionOptions {
   storeOffline?: boolean,
 };
 
+/**
+ * Presences Collection
+ * @category Collections
+ */
 export class Presences extends BaseClientCollection<string, PresencesCache | Presence> {
   [Symbol.iterator]: () => IterableIterator<[string, PresencesCache]>;
+
   storeOffline: boolean;
 
   constructor(client: ShardClient, options: PresencesOptions = {}) {

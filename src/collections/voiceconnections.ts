@@ -6,8 +6,15 @@ import {
 import { VoiceConnection } from '../media/voiceconnection';
 
 
-export interface VoiceConnectionsOptions extends BaseClientCollectionOptions {};
+export interface VoiceConnectionsOptions extends BaseClientCollectionOptions {
+  
+};
 
+
+/**
+ * VoiceConnections Collection
+ * @category Collections
+ */
 export class VoiceConnections extends BaseClientCollection<string, VoiceConnection> {
   insert(connection: VoiceConnection): void {
     if (this.enabled) {

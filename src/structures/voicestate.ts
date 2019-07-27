@@ -1,7 +1,7 @@
 import { Types as Options } from 'detritus-client-rest';
 
 import {
-  Client as ShardClient,
+  ShardClient,
   VoiceConnectOptions,
 } from '../client';
 

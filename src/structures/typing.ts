@@ -1,4 +1,4 @@
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { TYPING_TIMEOUT } from '../constants';
 
 import {

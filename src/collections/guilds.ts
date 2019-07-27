@@ -6,8 +6,17 @@ import {
 import { Guild } from '../structures';
 
 
-export interface GuildsOptions extends BaseClientCollectionOptions {};
+/**
+ * @category Collection Options
+ */
+export interface GuildsOptions extends BaseClientCollectionOptions {
+  
+};
 
+/**
+ * Guilds Collection
+ * @category Collections
+ */
 export class Guilds extends BaseClientCollection<string, Guild> {
   insert(guild: Guild): void {
     if (this.enabled) {

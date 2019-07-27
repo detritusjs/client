@@ -1,10 +1,15 @@
-import { Client as ClientShard } from '../client';
+import { ShardClient } from '../client';
 
 
 class Collection<K, V, X = V> extends Map<K, V | X> {
+  
 }
 
 
+/**
+ * Basic Collection, the most basic
+ * @category Collections
+ */
 export class BaseCollection<K, V> extends Collection<K, V> {
   defaultKey: null | string;
 
@@ -114,12 +119,16 @@ export interface BaseClientCollectionOptions {
   enabled?: boolean,
 }
 
+/**
+ * Basic Client Collection, the ShardClient instance is attached to this
+ * @category Collections
+ */
 export class BaseClientCollection<K, V> extends BaseCollection<K, V> {
-  client: ClientShard;
+  client: ShardClient;
   enabled: boolean;
 
   constructor(
-    client: ClientShard,
+    client: ShardClient,
     options: BaseClientCollectionOptions = {},
   ) {
     super();

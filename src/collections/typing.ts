@@ -7,10 +7,24 @@ import {
 import { Typing } from '../structures';
 
 
-export interface TypingCache extends BaseCollection<string, Typing> {};
-export interface TypingOptions extends BaseClientCollectionOptions {};
+export interface TypingCache extends BaseCollection<string, Typing> {
+  
+};
 
+/**
+ * @category Collection Options
+ */
+export interface TypingOptions extends BaseClientCollectionOptions {
+
+};
+
+/**
+ * Typing Collection, a collection of users currently typing
+ * @category Collections
+ */
 export class TypingCollection extends BaseClientCollection<string, TypingCache | Typing> {
+  [Symbol.iterator]: () => IterableIterator<[string, TypingCache]>;
+
   insert(typing: Typing): void {
     if (this.enabled) {
       let cache: TypingCache;

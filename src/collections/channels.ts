@@ -6,8 +6,17 @@ import {
 import { Channel } from '../structures/channel';
 
 
-export interface ChannelsOptions extends BaseClientCollectionOptions {};
+/**
+ * @category Collection Options
+ */
+export interface ChannelsOptions extends BaseClientCollectionOptions {
+  
+};
 
+/**
+ * Channels Collection
+ * @category Collections
+ */
 export class Channels extends BaseClientCollection<string, Channel> {
   insert(channel: Channel): void {
     if (this.enabled) {

@@ -6,8 +6,19 @@ import {
 import { VoiceCall } from '../structures/voicecall';
 
 
-export interface VoiceCallsOptions extends BaseClientCollectionOptions {};
+/**
+ * @category Collection Options
+ */
+export interface VoiceCallsOptions extends BaseClientCollectionOptions {
 
+};
+
+
+/**
+ * VoiceCalls Collection, DM VoiceCalls
+ * (Bots cannot fill this)
+ * @category Collections
+ */
 export class VoiceCalls extends BaseClientCollection<string, VoiceCall> {
   defaultKey = 'channelId';
 

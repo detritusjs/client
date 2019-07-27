@@ -9,7 +9,7 @@ const {
 } = SocketConstants;
 
 
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { DiscordOpusFormat } from '../constants';
 import EventEmitter from '../eventemitter';

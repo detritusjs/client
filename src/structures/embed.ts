@@ -1,5 +1,5 @@
 import { BaseCollection } from '../collections/basecollection';
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import {
   MessageEmbedTypes,
 } from '../constants';

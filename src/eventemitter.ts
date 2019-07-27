@@ -6,8 +6,19 @@ try {
 
 
 export default class EventEmitter extends Emitter {
+  /**
+   * @ignore
+   */
   _events: any;
+
+  /**
+   * @ignore
+   */
   _eventsCount!: number;
+
+  /**
+   * @ignore
+   */
   _maxListeners!: any;
 
   addListener!: (name: string | symbol, listener: Function) => void;

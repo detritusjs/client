@@ -4,7 +4,7 @@ import {
 } from 'detritus-client-rest';
 
 import { BaseCollection } from '../collections/basecollection';
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { ImageFormats } from '../constants';
 import { Snowflake } from '../utils';
 

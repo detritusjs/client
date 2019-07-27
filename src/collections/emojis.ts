@@ -6,8 +6,17 @@ import {
 import { Emoji } from '../structures/emoji';
 
 
-export interface EmojisOptions extends BaseClientCollectionOptions {};
+/**
+ * @category Collection Options
+ */
+export interface EmojisOptions extends BaseClientCollectionOptions {
+  
+};
 
+/**
+ * Emojis Collection
+ * @category Collections
+ */
 export class Emojis extends BaseClientCollection<string, Emoji> {
   insert(emoji: Emoji): void {
     if (this.enabled) {

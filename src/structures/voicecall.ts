@@ -1,5 +1,5 @@
 import {
-  Client as ShardClient,
+  ShardClient,
   VoiceConnectOptions,
 } from '../client';
 import { BaseCollection } from '../collections/basecollection';

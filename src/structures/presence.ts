@@ -8,7 +8,7 @@ const {
 } = SocketConstants;
 
 
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { DEFAULT_PRESENCE_CACHE_KEY } from '../collections/presences';
 import {

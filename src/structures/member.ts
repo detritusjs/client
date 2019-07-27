@@ -1,4 +1,4 @@
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { Permissions } from '../constants';
 import { PermissionTools } from '../utils';

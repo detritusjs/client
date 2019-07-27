@@ -4,8 +4,18 @@ import {
 } from './basecollection';
 
 
-export interface NotesOptions extends BaseClientCollectionOptions {};
+/**
+ * @category Collection Options
+ */
+export interface NotesOptions extends BaseClientCollectionOptions {
+  
+};
 
+/**
+ * Notes Collection
+ * (Bots cannot fill this)
+ * @category Collections
+ */
 export class Notes extends BaseClientCollection<string, string> {
   insert(userId: string, note: string): void {
     if (this.enabled) {

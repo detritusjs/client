@@ -3,7 +3,7 @@ import {
   Types as Options,
 } from 'detritus-client-rest';
 
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import {
   MessageTypes,

@@ -12,7 +12,8 @@
     "detritus-client-socket": "^0.2.6"
   },
   "devDependencies": {
-    "@types/node": "^12.0.10"
+    "@types/node": "^12.0.10",
+    "typedoc": "^0.15.0"
   },
   "peerDependencies": {
     "node-opus": "^0.3.2",

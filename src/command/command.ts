@@ -1,4 +1,4 @@
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { CommandClient } from '../commandclient';
 import { 
   CommandRatelimitTypes,

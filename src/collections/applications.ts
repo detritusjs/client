@@ -8,6 +8,10 @@ import { Application } from '../structures/application';
 
 export interface ApplicationsOptions extends BaseClientCollectionOptions {};
 
+/**
+ * Applications Collection
+ * @category Collections
+ */
 export class Applications extends BaseClientCollection<string, Application> {
   insert(application: Application): void {
     if (this.enabled) {

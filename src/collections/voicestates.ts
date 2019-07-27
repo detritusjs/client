@@ -6,10 +6,25 @@ import {
 
 import { VoiceState } from '../structures/voicestate';
 
-export interface VoiceStatesCache extends BaseCollection<string, VoiceState> {};
-export interface VoiceStatesOptions extends BaseClientCollectionOptions {};
 
+export interface VoiceStatesCache extends BaseCollection<string, VoiceState> {
+
+};
+
+/**
+ * @category Collection Options
+ */
+export interface VoiceStatesOptions extends BaseClientCollectionOptions {
+
+};
+
+/**
+ * VoiceState Collection
+ * @category Collections
+ */
 export class VoiceStates extends BaseClientCollection<string, VoiceStatesCache | VoiceState> {
+  [Symbol.iterator]: () => IterableIterator<[string, VoiceStatesCache]>;
+
   get size(): number {
     return this.reduce((size: number, cache: VoiceStatesCache) => size + cache.size, 0);
   }

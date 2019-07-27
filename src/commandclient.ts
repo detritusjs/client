@@ -1,5 +1,5 @@
 import {
-  Client as ShardClient,
+  ShardClient,
   ClientOptions,
   ClientRunOptions,
 } from './client';

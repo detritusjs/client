@@ -1,10 +1,10 @@
 import {
-  Client as RestClient,
+  Client,
   ClientOptions,
   Types as Options,
 } from 'detritus-client-rest';
 
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { anyToCamelCase } from '../utils';
 
 import { BaseCollection } from '../collections/basecollection';
@@ -41,7 +41,7 @@ import {
 import * as Types from './types';
 
 
-export class Client extends RestClient {
+export class RestClient extends Client {
   readonly client: ShardClient;
 
   constructor(

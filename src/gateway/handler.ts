@@ -6,7 +6,7 @@ const {
   GatewayOpCodes,
 } = SocketConstants;
 
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { ClientEvents } from '../constants';
 import { GatewayHTTPError } from '../errors';

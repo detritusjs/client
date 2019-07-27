@@ -1,4 +1,4 @@
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import {
   MessageCacheTypes,
   MESSAGE_CACHE_TYPES,
@@ -19,14 +19,26 @@ export interface MessageCacheItem {
   data: Message,
 }
 
-export interface MessageCache extends BaseCollection<string, MessageCacheItem> {};
+export interface MessageCache extends BaseCollection<string, MessageCacheItem> {
+  
+};
+
+/**
+ * @category Collection Options
+ */
 export interface MessagesOptions extends BaseClientCollectionOptions {
   expire?: number,
   limit?: number,
   type?: string,
 };
 
+/**
+ * Messages Collection
+ * @category Collections
+ */
 export class Messages extends BaseClientCollection<string, MessageCache | Message> {
+  [Symbol.iterator]: () => IterableIterator<[string, MessageCache]>;
+
   expire: number = 10 * 60 * 1000; // auto expire messages after 10 minutes
   limit: number = 1000;
   type: string = MessageCacheTypes.CHANNEL;

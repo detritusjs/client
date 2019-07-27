@@ -1,11 +1,11 @@
-const { Client } = require('../lib');
+const { ShardClient } = require('../lib');
 
 const guildId = '';
 const channelId = '';
 const targetId = '';
 
 const token = '';
-const client = new Client(token);
+const client = new ShardClient(token);
 
 (async () => {
   try {

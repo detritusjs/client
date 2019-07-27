@@ -15,7 +15,7 @@ import {
   Handler as GatewayHandler,
   HandlerOptions as GatewayHandlerOptions,
 } from './gateway/handler';
-import { Client as RestClient } from './rest';
+import { RestClient } from './rest';
 
 import { BaseCollection } from './collections/basecollection';
 import {
@@ -113,21 +113,47 @@ export interface ClientRunOptions {
   wait?: boolean,
 }
 
-const defaults = {
-  imageFormat: ImageFormats.PNG,
-  isBot: true,
-};
+/**
+ * Shard Client, represents one gateway connection
+ * @category Clients
+ */
+export class ShardClient extends EventEmitter {
+  /**
+   * @ignore
+   */
+  _isBot: boolean = true;
 
-export class Client extends EventEmitter {
-  _isBot: boolean = defaults.isBot;
+  /**
+   * @ignore
+   */
   cluster: null = null;
-  imageFormat: string = defaults.imageFormat;
+
+  /** Default Image Format to use for any url getters*/
+  imageFormat: string = ImageFormats.PNG;
+
+  /** `detritus-client-socket`'s Gateway Socket */
   gateway: Gateway.Socket;
+
+  /** Our Dispatch Handler */
   gatewayHandler: GatewayHandler;
+
+  /**
+   * If this is a bot, this will be filled with it's application owner or all of the application's team owners
+   * If this is a user, this will only include the user object
+   * Only fills once we receive the Ready payload
+   */
   owners = new BaseCollection<string, User>();
+
+  /** If the client is ran or not */
   ran: boolean = false;
+
+  /** `detritus-client-rest`'s Rest Client, but wrapped over */
   rest: RestClient;
+
+  /** our token */
   token: string;
+
+  /** Us, only fills once we received the Ready payload from the gateway */
   user: null | UserMe = null;
 
   readonly applications: Applications;
@@ -152,7 +178,7 @@ export class Client extends EventEmitter {
   ) {
     super();
 
-    options = Object.assign({}, defaults, options);
+    options = Object.assign({}, options);
     if (options.cache === undefined) {
       options.cache = {};
     }
@@ -166,13 +192,17 @@ export class Client extends EventEmitter {
       authType: (options.isBot) ? RestConstants.AuthTypes.BOT : RestConstants.AuthTypes.USER,
     }, options.rest), this);
 
-    options.imageFormat = (<string> options.imageFormat).toLowerCase();
-    if (!IMAGE_FORMATS.includes(options.imageFormat)) {
-      throw new Error(`Image format must be one of ${JSON.stringify(IMAGE_FORMATS)}`);
+    if (options.isBot !== undefined) {
+      this._isBot = !!options.isBot;
     }
-  
-    this._isBot = !!options.isBot;
-    this.imageFormat = options.imageFormat;
+    if (options.imageFormat !== undefined) {
+      options.imageFormat = (<string> options.imageFormat).toLowerCase();
+      if (!IMAGE_FORMATS.includes(options.imageFormat)) {
+        throw new Error(`Image format must be one of ${JSON.stringify(IMAGE_FORMATS)}`);
+      }
+      this.imageFormat = options.imageFormat;
+    }
+
     this.token = token;
 
     Object.defineProperties(this, {
@@ -262,7 +292,7 @@ export class Client extends EventEmitter {
 
   async run(
     options: ClientRunOptions = {},
-  ): Promise<Client> {
+  ): Promise<ShardClient> {
     const fetchApplications = options.applications || options.applications === undefined;
     const wait = options.wait || options.wait === undefined;
 
@@ -291,6 +321,14 @@ export class Client extends EventEmitter {
     });
   }
 
+  /**
+   * 
+   * @param guildId Guild Id you want to connect to, if a user and wanting to connect to a Dm Channel, keep this blank
+   * @param channelId Channel Id you want to connect to or move to
+   * @param options Options to pass into the `detritus-client-socket`'s gateway's voiceConnect
+   * @returns Returns a promise that resolves into a Voice Connection object and an isNew variable.
+   *          isNew is used to see if the connection was reused (e.g. changing channels) so you can put listeners on or not
+   */
   async voiceConnect(
     guildId?: null | string,
     channelId?: null | string,

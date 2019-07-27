@@ -1,4 +1,4 @@
-import { Client as ShardClient } from '../client';
+import { ShardClient } from '../client';
 import { OverwriteTypes } from '../constants';
 import { PermissionTools } from '../utils';
 
