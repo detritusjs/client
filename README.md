@@ -28,7 +28,7 @@ directory.
 
 ### Command Client Sample
 
-```ts
+```js
 const { CommandClient } = require('detritus-client');
 
 // Note: it is not advised to hard-code your bot token directly into the bot source.
@@ -37,7 +37,7 @@ const { CommandClient } = require('detritus-client');
 // part of your version control system, or an environment variable.
 const token = '';
 const client = new CommandClient(token, {
-  prefix: '..'
+  prefix: '..',
 });
 
 // Simple ping/pong command
@@ -47,7 +47,7 @@ client.add({
   run: (context, args) => {
     // Commands should return a promise to ensure that errors are handled
     return context.reply('pong!');
-  }
+  },
 });
 
 // Command demonstrating command pipelines
@@ -59,7 +59,7 @@ client.add({
   run: async (context) => {
     // Commands may also run asynchronously.
     await context.reply('You are the owner of the bot!');
-  }
+  },
 });
 
 // Spawn the client in an async context
@@ -70,6 +70,60 @@ client.add({
   await client.run();
   // client has received the READY payload, do stuff now
   console.log(`Client has loaded on shard ${client.shardId}`);
+})();
+```
+
+### Shard Client Sample
+
+```js
+const { ShardClient } = require('detritus-client');
+
+// Note: it is not advised to hard-code your bot token directly into the bot source.
+//
+// Tokens should be considered secrets and stored in a configuration file that is not
+// part of your version control system, or an environment variable.
+const token = '';
+const client = new ShardClient(token, {
+  gateway: {
+    // This will tell Discord to fill our cache if any of our guilds are larger than the large threshold (250)
+    loadAllMembers: true,
+  },
+});
+
+// listen to our client's eventemitter
+client.on('GUILD_CREATE', async ({fromUnavailable, guild}) => {
+  if (fromUnavailable) {
+    console.log(`Guild ${guild.name} has just came back from being unavailable`);
+  } else {
+    console.log(`Joined Guild ${guild.name}, bringing us up to ${client.guilds.length} guilds.`);
+  }
+});
+
+// listen to our client's eventemitter
+client.on('MESSAGE_CREATE', async ({message}) => {
+  if (message.content === '!ping') {
+    const reply = await message.reply('pong!, deleting message in 5 seconds...');
+    setTimeout(async () => {
+      await reply.delete();
+    }, 5000);
+  }
+});
+
+(async () => {
+  await client.run();
+  console.log('Successfully connected to Discord!');
+  console.log(`Currently have ${client.guilds.length} guilds in cache.`);
+  // set our presence, we can pass this into the client's options too under `gateway.presence`
+  client.gateway.setPresence({
+    activity: {
+      // What comes after our activity type, x.
+      name: 'with Detritus',
+      // Type 0 sets our message to `Playing x`
+      type: 0,
+    },
+    // do-not-disturb us
+    status: 'dnd',
+  });
 })();
 ```
 
