@@ -4,7 +4,7 @@ import {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.1.3',
+  VERSION: '0.1.4',
 });
 
 function normalize(object: {[key: string]: any}) {
