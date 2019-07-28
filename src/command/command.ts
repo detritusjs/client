@@ -13,18 +13,22 @@ import { Context } from './context';
 /**
  * @category Command
  */
-export type CommandCallback = (context: Context, args: ParsedArgs) => void;
+export type CommandCallback = (context: Context, args: ParsedArgs) => Promise<any> | any;
 
 /**
  * @category Command
  */
-export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => void;
+export type CommandCallbackBefore = (context: Context, args: ParsedArgs) => Promise<boolean> | boolean;
 
 /**
  * @category Command
  */
-export type CommandCallbackRatelimit = (context: Context, remaining: number) => void;
+export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => Promise<any> | any;
 
+/**
+ * @category Command
+ */
+export type CommandCallbackRatelimit = (context: Context, remaining: number) => Promise<any> | any;
 
 /**
  * Command Options
@@ -41,7 +45,7 @@ export interface CommandOptions {
   ratelimit?: boolean | CommandRatelimitOptions | null,
   responseOptional?: boolean,
 
-  onBefore?: CommandCallback,
+  onBefore?: CommandCallbackBefore,
   onCancel?: CommandCallback,
   onError?: CommandCallbackError,
   run?: CommandCallback,
@@ -79,7 +83,7 @@ export class Command {
   ratelimit: CommandRatelimit | null = null;
   responseOptional: boolean = false;
 
-  onBefore?: CommandCallback;
+  onBefore?: CommandCallbackBefore;
   onCancel?: CommandCallback;
   onError?: CommandCallbackError;
   run?: CommandCallback;
