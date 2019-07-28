@@ -758,9 +758,9 @@ export namespace GatewayRawEvents {
     },
     game: RawPresenceActivity,
     guild_id?: string,
-    last_modified: number,
+    last_modified?: number,
     status: string,
-    user: RawUser,
+    user: RawUserPartial,
   }
 
   export interface RawPresenceActivity {
@@ -830,10 +830,17 @@ export namespace GatewayRawEvents {
     status: string,
   }
 
+  export interface RawUserPartial {
+    discriminator?: string,
+    id: string,
+    username?: string,
+    bot?: boolean,
+  }
+
   export interface RawUser {
     discriminator: string,
     id: string,
-    name: string,
+    username: string,
     bot: boolean,
   }
 

@@ -111,6 +111,14 @@ export namespace GatewayClientEvents {
     suggestedUserId: string,
   }
 
+  export interface GatewayReady {
+    raw: GatewayRawEvents.Ready,
+  }
+
+  export interface GatewayResumed {
+    raw: GatewayRawEvents.Resumed,
+  }
+
   export interface GiftCodeUpdate {
     code: string,
     uses: number,
@@ -126,14 +134,6 @@ export namespace GatewayClientEvents {
     guild: Guild | undefined,
     guildId: string,
     user: User,
-  }
-
-  export interface GatewayReady {
-    raw: GatewayRawEvents.Ready,
-  }
-
-  export interface GatewayResumed {
-    raw: GatewayRawEvents.Resumed,
   }
 
   export interface GuildCreate {
