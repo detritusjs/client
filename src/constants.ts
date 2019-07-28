@@ -169,7 +169,7 @@ export const CommandRatelimitTypes = Object.freeze({
   USER: 'user',
 });
 
-export const COMMAND_RATELIMIT_TYPES: Array<string> = Object.values(CommandRatelimitTypes);
+export const COMMAND_RATELIMIT_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(CommandRatelimitTypes));
 
 export const DISCORD_EPOCH = 1420070400000;
 
@@ -262,7 +262,7 @@ export const ImageFormats = Object.freeze({
   WEBP: 'webp',
 });
 
-export const IMAGE_FORMATS: Array<string> = Object.values(ImageFormats);
+export const IMAGE_FORMATS: ReadonlyArray<string> = Object.freeze(Object.values(ImageFormats));
 
 export const InviteTargetUserTypes = Object.freeze({
   STREAM: 1,
@@ -290,7 +290,7 @@ export const MessageCacheTypes = Object.freeze({
   GUILD: 'guild',
 });
 
-export const MESSAGE_CACHE_TYPES: Array<string> = Object.values(MessageCacheTypes);
+export const MESSAGE_CACHE_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(MessageCacheTypes));
 
 export const MessageFlags = Object.freeze({
   CROSSPOSTED: 1 << 0,
@@ -483,26 +483,26 @@ export const PremiumGuildSubscriptionsRequired = Object.freeze({
 });
 
 export const PremiumGuildLimits = Object.freeze({
-  [PremiumGuildTiers.NONE]: {
+  [PremiumGuildTiers.NONE]: Object.freeze({
     attachment: MAX_ATTACHMENT_SIZE,
     bitrate: MAX_BITRATE,
     emoji: MAX_EMOJI_SLOTS,
-  },
-  [PremiumGuildTiers.TIER_1]: {
+  }),
+  [PremiumGuildTiers.TIER_1]: Object.freeze({
     attachment: MAX_ATTACHMENT_SIZE,
     bitrate: 128000,
     emoji: 100,
-  },
-  [PremiumGuildTiers.TIER_2]: {
+  }),
+  [PremiumGuildTiers.TIER_2]: Object.freeze({
     attachment: MAX_ATTACHMENT_SIZE_PREMIUM,
     bitrate: 256000,
     emoji: 150,
-  },
-  [PremiumGuildTiers.TIER_3]: {
+  }),
+  [PremiumGuildTiers.TIER_3]: Object.freeze({
     attachment: MAX_ATTACHMENT_SIZE_PREMIUM * 2,
     bitrate: 384000,
     emoji: 250,
-  },
+  }),
 });
 
 export const PremiumTypes = Object.freeze({

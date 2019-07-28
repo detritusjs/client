@@ -15,6 +15,7 @@ import {
   GatewayHandler,
   GatewayHandlerOptions,
 } from './gateway/handler';
+import { GatewayClientEvents } from './gateway/clientevents';
 import { RestClient } from './rest';
 
 import { BaseCollection } from './collections/basecollection';
@@ -110,6 +111,19 @@ export interface ClientOptions {
 export interface ClientRunOptions {
   applications?: boolean,
   url?: string,
+  wait?: boolean,
+}
+
+export interface VoiceConnectOptions extends VoiceConnectionOptions {
+  deaf?: boolean,
+  forceMode?: string,
+  mute?: boolean,
+  receive?: boolean,
+  selfDeaf?: boolean,
+  selfMute?: boolean,
+  selfVideo?: boolean,
+  timeout?: number,
+  video?: boolean,
   wait?: boolean,
 }
 
@@ -380,18 +394,11 @@ export class ShardClient extends EventEmitter {
   toString(): string {
     return `Detritus Client (Shard ${this.shardId})`;
   }
-}
 
-
-export interface VoiceConnectOptions extends VoiceConnectionOptions {
-  deaf?: boolean,
-  forceMode?: string,
-  mute?: boolean,
-  receive?: boolean,
-  selfDeaf?: boolean,
-  selfMute?: boolean,
-  selfVideo?: boolean,
-  timeout?: number,
-  video?: boolean,
-  wait?: boolean,
+  on(event: string, listener: Function): this;
+  on(event: 'MESSAGE_CREATE', listener: (payload: GatewayClientEvents.MessageCreate) => any): this;
+  on(event: string, listener: Function): this {
+    super.on(event, listener);
+    return this;
+  }
 }

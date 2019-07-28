@@ -6,7 +6,7 @@ const {
 
 
 import { ShardClient } from '../client';
-import { RawPresence } from '../gateway/types';
+import { GatewayRawEvents } from '../gateway/rawevents';
 import { Presence } from '../structures';
 
 import {
@@ -53,7 +53,7 @@ export class Presences extends BaseClientCollection<string, PresencesCache, Pres
     return this.reduce((size: number, cache: PresencesCache) => size + cache.size, 0);
   }
 
-  add(value: RawPresence): Presence {
+  add(value: GatewayRawEvents.RawPresence): Presence {
     let presence: Presence;
 
     const cacheId = value['guild_id'] || DEFAULT_PRESENCE_CACHE_KEY;

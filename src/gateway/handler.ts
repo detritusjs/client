@@ -34,7 +34,7 @@ import {
   VoiceState,
 } from '../structures';
 
-import * as Types from './types';
+import { GatewayRawEvents } from './rawevents';
 
 
 export interface GatewayHandlerOptions {
@@ -81,7 +81,7 @@ export class GatewayHandler {
     return this.loadAllMembers && this.client.gateway.guildSubscriptions;
   }
 
-  onPacket(packet: Types.GatewayPacket): void {
+  onPacket(packet: GatewayRawEvents.GatewayPacket): void {
     if (packet.op !== GatewayOpCodes.DISPATCH) {
       return;
     }
@@ -130,7 +130,7 @@ export class GatewayDispatchHandler {
   }
 
   /* Dispatch Events */
-  async [GatewayDispatchEvents.READY](data: Types.Ready) {
+  async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
     this.client.reset();
 
     if (this.client.user === null) {
@@ -141,7 +141,8 @@ export class GatewayDispatchHandler {
     this.client.users.insert(this.client.user); // since we reset the cache
 
     Object.defineProperty(this.client, '_isBot', {value: data['user']['bot']});
-    this.client.rest.setAuthType((this.client.isBot) ? RestConstants.AuthTypes.BOT : RestConstants.AuthTypes.USER);
+    const authType = (this.client.isBot) ? RestConstants.AuthTypes.BOT : RestConstants.AuthTypes.USER;
+    this.client.rest.setAuthType(authType);
 
     if (this.client.channels.enabled) {
       if (data['private_channels']) {
@@ -230,28 +231,28 @@ export class GatewayDispatchHandler {
     }
   }
 
-  [GatewayDispatchEvents.RESUMED](data: Types.Resumed) {
+  [GatewayDispatchEvents.RESUMED](data: GatewayRawEvents.Resumed) {
     this.client.gateway.discordTrace = data['_trace'];
     this.client.emit(ClientEvents.GATEWAY_RESUMED, {raw: data});
   }
 
-  [GatewayDispatchEvents.ACTIVITY_JOIN_INVITE](data: Types.ActivityJoinInvite) {
+  [GatewayDispatchEvents.ACTIVITY_JOIN_INVITE](data: GatewayRawEvents.ActivityJoinInvite) {
 
   }
 
-  [GatewayDispatchEvents.ACTIVITY_JOIN_REQUEST](data: Types.ActivityJoinRequest) {
+  [GatewayDispatchEvents.ACTIVITY_JOIN_REQUEST](data: GatewayRawEvents.ActivityJoinRequest) {
 
   }
 
-  [GatewayDispatchEvents.ACTIVITY_START](data: Types.ActivityStart) {
+  [GatewayDispatchEvents.ACTIVITY_START](data: GatewayRawEvents.ActivityStart) {
 
   }
 
-  [GatewayDispatchEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK](data: Types.BraintreePopupBridgeCallback) {
+  [GatewayDispatchEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK](data: GatewayRawEvents.BraintreePopupBridgeCallback) {
 
   }
 
-  [GatewayDispatchEvents.CALL_CREATE](data: Types.CallCreate) {
+  [GatewayDispatchEvents.CALL_CREATE](data: GatewayRawEvents.CallCreate) {
     let call: VoiceCall;
     if (this.client.voiceCalls.has(data['channel_id'])) {
       call = <VoiceCall> this.client.voiceCalls.get(data['channel_id']);
@@ -263,7 +264,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.CALL_CREATE, {call});
   }
 
-  [GatewayDispatchEvents.CALL_DELETE](data: Types.CallDelete) {
+  [GatewayDispatchEvents.CALL_DELETE](data: GatewayRawEvents.CallDelete) {
     if (this.client.voiceCalls.has(data['channel_id'])) {
       const call = <VoiceCall> this.client.voiceCalls.get(data['channel_id']);
       call.kill();
@@ -271,7 +272,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.CALL_DELETE, {channelId: data['channel_id']});
   }
 
-  [GatewayDispatchEvents.CALL_UPDATE](data: Types.CallUpdate) {
+  [GatewayDispatchEvents.CALL_UPDATE](data: GatewayRawEvents.CallUpdate) {
     let call: VoiceCall;
     let differences: any = null;
     if (this.client.voiceCalls.has(data['channel_id'])) {
@@ -287,7 +288,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.CALL_UPDATE, {call, differences});
   }
 
-  [GatewayDispatchEvents.CHANNEL_CREATE](data: Types.ChannelCreate) {
+  [GatewayDispatchEvents.CHANNEL_CREATE](data: GatewayRawEvents.ChannelCreate) {
     let channel: Channel;
     if (this.client.channels.has(data['id'])) {
       channel = <Channel> this.client.channels.get(data['id']);
@@ -299,7 +300,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.CHANNEL_CREATE, {channel});
   }
 
-  [GatewayDispatchEvents.CHANNEL_DELETE](data: Types.ChannelDelete) {
+  [GatewayDispatchEvents.CHANNEL_DELETE](data: GatewayRawEvents.ChannelDelete) {
     let channel: Channel;
     if (this.client.channels.has(data['id'])) {
       channel = <Channel> this.client.channels.get(data['id']);
@@ -310,11 +311,11 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.CHANNEL_DELETE, {channel});
   }
 
-  [GatewayDispatchEvents.CHANNEL_PINS_ACK](data: Types.ChannelPinsAck) {
+  [GatewayDispatchEvents.CHANNEL_PINS_ACK](data: GatewayRawEvents.ChannelPinsAck) {
 
   }
 
-  [GatewayDispatchEvents.CHANNEL_PINS_UPDATE](data: Types.ChannelPinsUpdate) {
+  [GatewayDispatchEvents.CHANNEL_PINS_UPDATE](data: GatewayRawEvents.ChannelPinsUpdate) {
     let channel: Channel | null = null;
     if (this.client.channels.has(data['channel_id'])) {
       channel = <Channel> this.client.channels.get(data['channel_id']);
@@ -322,7 +323,7 @@ export class GatewayDispatchHandler {
         last_pin_timestamp: data['last_pin_timestamp'],
       });
     }
-    this.client.emit(ClientEvents.CHANNEL_DELETE, {
+    this.client.emit(ClientEvents.CHANNEL_PINS_UPDATE, {
       channel,
       channelId: data['channel_id'],
       guildId: data['guild_id'],
@@ -330,7 +331,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.CHANNEL_UPDATE](data: Types.ChannelUpdate) {
+  [GatewayDispatchEvents.CHANNEL_UPDATE](data: GatewayRawEvents.ChannelUpdate) {
     let channel: Channel;
     let differences: any = null;
     if (this.client.channels.has(data['id'])) {
@@ -346,7 +347,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.CHANNEL_UPDATE, {channel, differences});
   }
 
-  [GatewayDispatchEvents.CHANNEL_RECIPIENT_ADD](data: Types.ChannelRecipientAdd) {
+  [GatewayDispatchEvents.CHANNEL_RECIPIENT_ADD](data: GatewayRawEvents.ChannelRecipientAdd) {
     let channel: ChannelDM | null = null;
     const channelId = data['channel_id'];
     const nick = data['nick'];
@@ -379,7 +380,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.CHANNEL_RECIPIENT_REMOVE](data: Types.ChannelRecipientRemove) {
+  [GatewayDispatchEvents.CHANNEL_RECIPIENT_REMOVE](data: GatewayRawEvents.ChannelRecipientRemove) {
     let channel: ChannelDM | null = null;
     const channelId = data['channel_id'];
     const nick = data['nick'];
@@ -406,19 +407,19 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.ENTITLEMENT_CREATE](data: Types.EntitlementCreate) {
+  [GatewayDispatchEvents.ENTITLEMENT_CREATE](data: GatewayRawEvents.EntitlementCreate) {
 
   }
 
-  [GatewayDispatchEvents.ENTITLEMENT_DELETE](data: Types.EntitlementDelete) {
+  [GatewayDispatchEvents.ENTITLEMENT_DELETE](data: GatewayRawEvents.EntitlementDelete) {
 
   }
 
-  [GatewayDispatchEvents.ENTITLEMENT_UPDATE](data: Types.EntitlementUpdate) {
+  [GatewayDispatchEvents.ENTITLEMENT_UPDATE](data: GatewayRawEvents.EntitlementUpdate) {
 
   }
 
-  [GatewayDispatchEvents.FRIEND_SUGGESTION_CREATE](data: Types.FriendSuggestionCreate) {
+  [GatewayDispatchEvents.FRIEND_SUGGESTION_CREATE](data: GatewayRawEvents.FriendSuggestionCreate) {
     this.client.emit(ClientEvents.FRIEND_SUGGESTION_CREATE, {
       reasons: data.reasons.map((reason: any) => {
         return {name: reason['name'], platformType: reason['platform_type']};
@@ -427,21 +428,21 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.FRIEND_SUGGESTION_DELETE](data: Types.FriendSuggestionDelete) {
+  [GatewayDispatchEvents.FRIEND_SUGGESTION_DELETE](data: GatewayRawEvents.FriendSuggestionDelete) {
     this.client.emit(ClientEvents.FRIEND_SUGGESTION_DELETE, {
       suggestedUserId: data['suggested_user_id'],
     });
   }
 
-  [GatewayDispatchEvents.GIFT_CODE_UPDATE](data: Types.GiftCodeUpdate) {
+  [GatewayDispatchEvents.GIFT_CODE_UPDATE](data: GatewayRawEvents.GiftCodeUpdate) {
     this.client.emit(ClientEvents.GIFT_CODE_UPDATE, {
       code: data['code'],
       uses: data['uses'],
     });
   }
 
-  [GatewayDispatchEvents.GUILD_BAN_ADD](data: Types.GuildBanAdd) {
-    const guild = this.client.users.get(data['guild_id']);
+  [GatewayDispatchEvents.GUILD_BAN_ADD](data: GatewayRawEvents.GuildBanAdd) {
+    const guild = this.client.guilds.get(data['guild_id']);
     const guildId = data['guild_id'];
     let user: User;
 
@@ -459,8 +460,8 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_BAN_REMOVE](data: Types.GuildBanRemove) {
-    const guild = this.client.users.get(data['guild_id']);
+  [GatewayDispatchEvents.GUILD_BAN_REMOVE](data: GatewayRawEvents.GuildBanRemove) {
+    const guild = this.client.guilds.get(data['guild_id']);
     const guildId = data['guild_id'];
     let user: User;
 
@@ -478,7 +479,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_CREATE](data: Types.GuildCreate) {
+  [GatewayDispatchEvents.GUILD_CREATE](data: GatewayRawEvents.GuildCreate) {
     let fromUnavailable = false;
     let guild: Guild;
 
@@ -495,7 +496,7 @@ export class GatewayDispatchHandler {
     }
 
     if (this.handler.memberChunksLeft.has(guild.id)) {
-      if (this.handler.loadAllMembers) {
+      if (this.handler.shouldLoadAllMembers) {
         if (this.client.gateway.largeThreshold < guild.memberCount) {
           this.client.gateway.requestGuildMembers(guild.id, {
             limit: 0,
@@ -513,7 +514,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_DELETE](data: Types.GuildDelete) {
+  [GatewayDispatchEvents.GUILD_DELETE](data: GatewayRawEvents.GuildDelete) {
     let guild: Guild | null = null;
     const guildId = data['id'];
     const isUnavailable = !!data['unavailable'];
@@ -544,10 +545,10 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_EMOJIS_UPDATE](data: Types.GuildEmojisUpdate) {
+  [GatewayDispatchEvents.GUILD_EMOJIS_UPDATE](data: GatewayRawEvents.GuildEmojisUpdate) {
     let emojis: BaseCollection<string, Emoji>;
     let emojisOld: BaseCollection<string, Emoji> | null = null;
-    let guild: null | Guild = null;
+    let guild: Guild | null = null;
     const guildId = data['guild_id'];
 
     if (this.client.guilds.has(guildId)) {
@@ -590,13 +591,13 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_INTEGRATIONS_UPDATE](data: Types.GuildIntegrationsUpdate) {
+  [GatewayDispatchEvents.GUILD_INTEGRATIONS_UPDATE](data: GatewayRawEvents.GuildIntegrationsUpdate) {
     this.client.emit(ClientEvents.GUILD_INTEGRATIONS_UPDATE, {
       guildId: data['guild_id'],
     });
   }
 
-  [GatewayDispatchEvents.GUILD_MEMBER_ADD](data: Types.GuildMemberAdd) {
+  [GatewayDispatchEvents.GUILD_MEMBER_ADD](data: GatewayRawEvents.GuildMemberAdd) {
     const guildId = data['guild_id'];
     let member: Member;
 
@@ -621,13 +622,13 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_MEMBER_LIST_UPDATE](data: Types.GuildMemberListUpdate) {
+  [GatewayDispatchEvents.GUILD_MEMBER_LIST_UPDATE](data: GatewayRawEvents.GuildMemberListUpdate) {
     this.client.emit(ClientEvents.GUILD_MEMBER_LIST_UPDATE, {
       raw: data,
     });
   }
 
-  [GatewayDispatchEvents.GUILD_MEMBER_REMOVE](data: Types.GuildMemberRemove) {
+  [GatewayDispatchEvents.GUILD_MEMBER_REMOVE](data: GatewayRawEvents.GuildMemberRemove) {
     const guildId = data['guild_id'];
     let user: User;
 
@@ -655,7 +656,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_MEMBER_UPDATE](data: Types.GuildMemberUpdate) {
+  [GatewayDispatchEvents.GUILD_MEMBER_UPDATE](data: GatewayRawEvents.GuildMemberUpdate) {
     let differences: any = null;
     const guildId = data['guild_id'];
     let member: Member;
@@ -678,7 +679,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK](data: Types.GuildMembersChunk) {
+  [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK](data: GatewayRawEvents.GuildMembersChunk) {
     const amounts: {
       members?: number,
       notFound?: number,
@@ -690,7 +691,7 @@ export class GatewayDispatchHandler {
       amounts.members = data['members'].length;
       if (this.client.members.enabled) {
         for (let value of data['members']) {
-          const user = <Types.RawUser> value.user;
+          const user = <GatewayRawEvents.RawUser> value.user;
           if (this.client.members.has(guildId, user.id)) {
             (<Member> this.client.members.get(guildId, user.id)).merge(value);
           } else {
@@ -701,7 +702,7 @@ export class GatewayDispatchHandler {
         }
       } else if (this.client.users.enabled) {
         for (let value of data['members']) {
-          const user = <Types.RawUser> value.user;
+          const user = <GatewayRawEvents.RawUser> value.user;
           if (this.client.users.has(user.id)) {
             (<User> this.client.users.get(user.id)).merge(user);
           } else {
@@ -732,7 +733,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_ROLE_CREATE](data: Types.GuildRoleCreate) {
+  [GatewayDispatchEvents.GUILD_ROLE_CREATE](data: GatewayRawEvents.GuildRoleCreate) {
     let guild: Guild | null = null;
     const guildId = data['guild_id'];
     let role: Role;
@@ -758,8 +759,8 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_ROLE_DELETE](data: Types.GuildRoleDelete) {
-    let guild: null | Guild = null;
+  [GatewayDispatchEvents.GUILD_ROLE_DELETE](data: GatewayRawEvents.GuildRoleDelete) {
+    let guild: Guild | null = null;
     const guildId = data['guild_id'];
     let role: null | Role = null;
     const roleId = data['role_id'];
@@ -780,9 +781,9 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_ROLE_UPDATE](data: Types.GuildRoleUpdate) {
+  [GatewayDispatchEvents.GUILD_ROLE_UPDATE](data: GatewayRawEvents.GuildRoleUpdate) {
     let differences: any = null;
-    let guild: null | Guild = null;
+    let guild: Guild | null = null;
     const guildId = data['guild_id'];
     let role: Role;
 
@@ -812,7 +813,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.GUILD_UPDATE](data: Types.GuildUpdate) {
+  [GatewayDispatchEvents.GUILD_UPDATE](data: GatewayRawEvents.GuildUpdate) {
     let differences: any = null;
     let guild: Guild;
 
@@ -833,51 +834,51 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.LIBRARY_APPLICATION_UPDATE](data: Types.LibraryApplicationUpdate) {
+  [GatewayDispatchEvents.LIBRARY_APPLICATION_UPDATE](data: GatewayRawEvents.LibraryApplicationUpdate) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_CREATE](data: Types.LobbyCreate) {
+  [GatewayDispatchEvents.LOBBY_CREATE](data: GatewayRawEvents.LobbyCreate) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_DELETE](data: Types.LobbyDelete) {
+  [GatewayDispatchEvents.LOBBY_DELETE](data: GatewayRawEvents.LobbyDelete) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_UPDATE](data: Types.LobbyUpdate) {
+  [GatewayDispatchEvents.LOBBY_UPDATE](data: GatewayRawEvents.LobbyUpdate) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_MEMBER_CONNECT](data: Types.LobbyMemberConnect) {
+  [GatewayDispatchEvents.LOBBY_MEMBER_CONNECT](data: GatewayRawEvents.LobbyMemberConnect) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_MEMBER_DISCONNECT](data: Types.LobbyMemberDisconnect) {
+  [GatewayDispatchEvents.LOBBY_MEMBER_DISCONNECT](data: GatewayRawEvents.LobbyMemberDisconnect) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_MEMBER_UPDATE](data: Types.LobbyMemberUpdate) {
+  [GatewayDispatchEvents.LOBBY_MEMBER_UPDATE](data: GatewayRawEvents.LobbyMemberUpdate) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_MESSAGE](data: Types.LobbyMessage) {
+  [GatewayDispatchEvents.LOBBY_MESSAGE](data: GatewayRawEvents.LobbyMessage) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_VOICE_SERVER_UPDATE](data: Types.LobbyVoiceServerUpdate) {
+  [GatewayDispatchEvents.LOBBY_VOICE_SERVER_UPDATE](data: GatewayRawEvents.LobbyVoiceServerUpdate) {
 
   }
 
-  [GatewayDispatchEvents.LOBBY_VOICE_STATE_UPDATE](data: Types.LobbyVoiceStateUpdate) {
+  [GatewayDispatchEvents.LOBBY_VOICE_STATE_UPDATE](data: GatewayRawEvents.LobbyVoiceStateUpdate) {
 
   }
 
-  [GatewayDispatchEvents.MESSAGE_ACK](data: Types.MessageAck) {
+  [GatewayDispatchEvents.MESSAGE_ACK](data: GatewayRawEvents.MessageAck) {
 
   }
 
-  [GatewayDispatchEvents.MESSAGE_CREATE](data: Types.MessageCreate) {
+  [GatewayDispatchEvents.MESSAGE_CREATE](data: GatewayRawEvents.MessageCreate) {
     let message: Message;
 
     if (this.client.messages.has(data['id'])) {
@@ -898,7 +899,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.MESSAGE_DELETE](data: Types.MessageDelete) {
+  [GatewayDispatchEvents.MESSAGE_DELETE](data: GatewayRawEvents.MessageDelete) {
     let message: Message | null = null;
 
     if (this.client.messages.has(data['id'])) {
@@ -912,7 +913,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.MESSAGE_DELETE_BULK](data: Types.MessageDeleteBulk) {
+  [GatewayDispatchEvents.MESSAGE_DELETE_BULK](data: GatewayRawEvents.MessageDeleteBulk) {
     const amount = data['ids'].length;
     let channel: Channel | null = null;
     const channelId = data['channel_id'];
@@ -947,7 +948,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.MESSAGE_REACTION_ADD](data: Types.MessageReactionAdd) {
+  [GatewayDispatchEvents.MESSAGE_REACTION_ADD](data: GatewayRawEvents.MessageReactionAdd) {
     let channel: Channel | null = null;
     const channelId = data['channel_id'];
     let guild: Guild | null = null;
@@ -1004,7 +1005,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE](data: Types.MessageReactionRemove) {
+  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE](data: GatewayRawEvents.MessageReactionRemove) {
     let channel: Channel | null = null;
     const channelId = data['channel_id'];
     let guild: Guild | null = null;
@@ -1061,7 +1062,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE_ALL](data: Types.MessageReactionRemoveAll) {
+  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE_ALL](data: GatewayRawEvents.MessageReactionRemoveAll) {
     let channel: Channel | null = null;
     const channelId = data['channel_id'];
     let guild: Guild | null = null;
@@ -1092,8 +1093,8 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.MESSAGE_UPDATE](data: Types.MessageUpdate) {
-    let differences: any;
+  [GatewayDispatchEvents.MESSAGE_UPDATE](data: GatewayRawEvents.MessageUpdate) {
+    let differences: any = null;
     let message: Message;
 
     if (this.client.messages.has(data['id'])) {
@@ -1113,11 +1114,11 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.OAUTH2_TOKEN_REVOKE](data: Types.Oauth2TokenRevoke) {
+  [GatewayDispatchEvents.OAUTH2_TOKEN_REVOKE](data: GatewayRawEvents.Oauth2TokenRevoke) {
 
   }
 
-  [GatewayDispatchEvents.PRESENCE_UPDATE](data: Types.PresenceUpdate) {
+  [GatewayDispatchEvents.PRESENCE_UPDATE](data: GatewayRawEvents.PresenceUpdate) {
     let differences: any = null;
     let isGuildPresence = !!data['guild_id'];
     let member: Member | null = null;
@@ -1157,7 +1158,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.PRESENCES_REPLACE](data: Types.PresencesReplace) {
+  [GatewayDispatchEvents.PRESENCES_REPLACE](data: GatewayRawEvents.PresencesReplace) {
     const presences = new BaseCollection<string, Presence>();
 
     if (data['presences'] != null) {
@@ -1173,12 +1174,12 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.RECENT_MENTION_DELETE](data: Types.RecentMentionDelete) {
+  [GatewayDispatchEvents.RECENT_MENTION_DELETE](data: GatewayRawEvents.RecentMentionDelete) {
 
   }
 
-  [GatewayDispatchEvents.RELATIONSHIP_ADD](data: Types.RelationshipAdd) {
-    let differences: any;
+  [GatewayDispatchEvents.RELATIONSHIP_ADD](data: GatewayRawEvents.RelationshipAdd) {
+    let differences: any = null;
     let relationship: Relationship;
 
     if (this.client.relationships.has(data['id'])) {
@@ -1198,7 +1199,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.RELATIONSHIP_REMOVE](data: Types.RelationshipRemove) {
+  [GatewayDispatchEvents.RELATIONSHIP_REMOVE](data: GatewayRawEvents.RelationshipRemove) {
     let relationship: Relationship;
 
     if (this.client.relationships.has(data['id'])) {
@@ -1215,11 +1216,11 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.SESSIONS_UPDATE](data: Types.SessionsUpdate) {
+  [GatewayDispatchEvents.SESSIONS_UPDATE](data: GatewayRawEvents.SessionsUpdate) {
 
   }
 
-  [GatewayDispatchEvents.STREAM_CREATE](data: Types.StreamCreate) {
+  [GatewayDispatchEvents.STREAM_CREATE](data: GatewayRawEvents.StreamCreate) {
     this.client.emit(ClientEvents.STREAM_CREATE, {
       paused: data['paused'],
       region: data['region'],
@@ -1229,7 +1230,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.STREAM_DELETE](data: Types.StreamDelete) {
+  [GatewayDispatchEvents.STREAM_DELETE](data: GatewayRawEvents.StreamDelete) {
     this.client.emit(ClientEvents.STREAM_DELETE, {
       reason: data['reason'],
       streamKey: data['stream_key'],
@@ -1237,7 +1238,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.STREAM_SERVER_UPDATE](data: Types.StreamServerUpdate) {
+  [GatewayDispatchEvents.STREAM_SERVER_UPDATE](data: GatewayRawEvents.StreamServerUpdate) {
     this.client.emit(ClientEvents.STREAM_SERVER_UPDATE, {
       endpoint: data['endpoint'],
       streamKey: data['stream_key'],
@@ -1245,7 +1246,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.STREAM_UPDATE](data: Types.StreamUpdate) {
+  [GatewayDispatchEvents.STREAM_UPDATE](data: GatewayRawEvents.StreamUpdate) {
     this.client.emit(ClientEvents.STREAM_UPDATE, {
       paused: data['paused'],
       region: data['region'],
@@ -1254,7 +1255,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.TYPING_START](data: Types.TypingStart) {
+  [GatewayDispatchEvents.TYPING_START](data: GatewayRawEvents.TypingStart) {
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
     let typing: Typing;
@@ -1276,23 +1277,23 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.USER_ACHIEVEMENT_UPDATE](data: Types.UserAchievementUpdate) {
+  [GatewayDispatchEvents.USER_ACHIEVEMENT_UPDATE](data: GatewayRawEvents.UserAchievementUpdate) {
 
   }
 
-  [GatewayDispatchEvents.USER_CONNECTIONS_UPDATE](data: Types.UserConnectionsUpdate) {
+  [GatewayDispatchEvents.USER_CONNECTIONS_UPDATE](data: GatewayRawEvents.UserConnectionsUpdate) {
     // maybe fetch from rest api when this happens to keep cache up to date?
   }
 
-  [GatewayDispatchEvents.USER_FEED_SETTINGS_UPDATE](data: Types.UserFeedSettingsUpdate) {
+  [GatewayDispatchEvents.USER_FEED_SETTINGS_UPDATE](data: GatewayRawEvents.UserFeedSettingsUpdate) {
 
   }
 
-  [GatewayDispatchEvents.USER_GUILD_SETTINGS_UPDATE](data: Types.UserGuildSettingsUpdate) {
+  [GatewayDispatchEvents.USER_GUILD_SETTINGS_UPDATE](data: GatewayRawEvents.UserGuildSettingsUpdate) {
 
   }
 
-  [GatewayDispatchEvents.USER_NOTE_UPDATE](data: Types.UserNoteUpdate) {
+  [GatewayDispatchEvents.USER_NOTE_UPDATE](data: GatewayRawEvents.UserNoteUpdate) {
     let user: null | User = null;
     if (this.client.users.has(data.id)) {
       user = <User> this.client.users.get(data.id);
@@ -1306,23 +1307,23 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.USER_PAYMENT_SOURCES_UPDATE](data: Types.UserPaymentSourcesUpdate) {
+  [GatewayDispatchEvents.USER_PAYMENT_SOURCES_UPDATE](data: GatewayRawEvents.UserPaymentSourcesUpdate) {
     // maybe fetch from rest api when this happens to keep cache up to date?
   }
 
-  [GatewayDispatchEvents.USER_PAYMENTS_UPDATE](data: Types.UserPaymentsUpdate) {
+  [GatewayDispatchEvents.USER_PAYMENTS_UPDATE](data: GatewayRawEvents.UserPaymentsUpdate) {
     // maybe fetch from rest api when this happens to keep cache up to date?
   }
 
-  [GatewayDispatchEvents.USER_REQUIRED_ACTION_UPDATE](data: Types.UserRequiredActionUpdate) {
+  [GatewayDispatchEvents.USER_REQUIRED_ACTION_UPDATE](data: GatewayRawEvents.UserRequiredActionUpdate) {
 
   }
 
-  [GatewayDispatchEvents.USER_SETTINGS_UPDATE](data: Types.UserSettingsUpdate) {
+  [GatewayDispatchEvents.USER_SETTINGS_UPDATE](data: GatewayRawEvents.UserSettingsUpdate) {
     
   }
 
-  [GatewayDispatchEvents.USER_UPDATE](data: Types.UserUpdate) {
+  [GatewayDispatchEvents.USER_UPDATE](data: GatewayRawEvents.UserUpdate) {
     // this updates this.client.user, us
     let differences: any = null;
     let user: UserMe;
@@ -1341,7 +1342,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.USER_UPDATE, {differences, user});
   }
 
-  [GatewayDispatchEvents.VOICE_SERVER_UPDATE](data: Types.VoiceServerUpdate) {
+  [GatewayDispatchEvents.VOICE_SERVER_UPDATE](data: GatewayRawEvents.VoiceServerUpdate) {
     this.client.emit(ClientEvents.VOICE_SERVER_UPDATE, {
       channelId: data['channel_id'],
       endpoint: data['endpoint'],
@@ -1350,7 +1351,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.VOICE_STATE_UPDATE](data: Types.VoiceStateUpdate) {
+  [GatewayDispatchEvents.VOICE_STATE_UPDATE](data: GatewayRawEvents.VoiceStateUpdate) {
     let differences: any = null;
     let leftChannel = false;
     let voiceState: VoiceState;
@@ -1377,7 +1378,7 @@ export class GatewayDispatchHandler {
     });
   }
 
-  [GatewayDispatchEvents.WEBHOOKS_UPDATE](data: Types.WebhooksUpdate) {
+  [GatewayDispatchEvents.WEBHOOKS_UPDATE](data: GatewayRawEvents.WebhooksUpdate) {
     this.client.emit(ClientEvents.WEBHOOKS_UPDATE, {
       channelId: data['channel_id'],
       guildId: data['guild_id'],
