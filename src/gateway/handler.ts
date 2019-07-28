@@ -133,12 +133,15 @@ export class GatewayDispatchHandler {
   async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
     this.client.reset();
 
-    if (this.client.user === null) {
-      this.client.user = new UserMe(this.client, data['user']);
+    let me: UserMe;
+    if (this.client.user == null) {
+      me = new UserMe(this.client, data['user']);
+      this.client.user = me;
     } else {
-      this.client.user.merge(data['user']);
+      me = this.client.user;
+      me.merge(data['user']);
     }
-    this.client.users.insert(this.client.user); // since we reset the cache
+    this.client.users.insert(me); // since we reset the cache
 
     Object.defineProperty(this.client, '_isBot', {value: data['user']['bot']});
     const authType = (this.client.isBot) ? RestConstants.AuthTypes.BOT : RestConstants.AuthTypes.USER;
@@ -227,7 +230,7 @@ export class GatewayDispatchHandler {
         this.client.emit('warn', new GatewayHTTPError('Failed to fetch OAuth2 Application Information', error));
       }
     } else {
-      this.client.owners.set(this.client.user.id, this.client.user);
+      this.client.owners.set(me.id, me);
     }
   }
 
@@ -1328,7 +1331,7 @@ export class GatewayDispatchHandler {
     let differences: any = null;
     let user: UserMe;
 
-    if (this.client.user) {
+    if (this.client.user != null) {
       user = this.client.user;
       if (this.client.hasEventListener(ClientEvents.USER_UPDATE)) {
         differences = user.differences(data);

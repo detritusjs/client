@@ -64,6 +64,7 @@ const keys = [
 const skipKeys = [
   'author',
   'guild_id',
+  'id',
   'mentions',
   'type',
   'webhook_id',
@@ -112,7 +113,7 @@ export class Message extends BaseStructure {
   }
 
   get canDelete(): boolean {
-    if (this.client.user !== null && this.author.id === this.client.user.id) {
+    if (this.fromMe) {
       return true;
     }
     const channel = this.channel;
@@ -175,10 +176,7 @@ export class Message extends BaseStructure {
   }
 
   get fromMe(): boolean {
-    if (this.client.user !== null) {
-      return this.author.id === this.client.user.id;
-    }
-    return false;
+    return this.author.isMe;
   }
 
   get fromSystem(): boolean {
@@ -309,21 +307,10 @@ export class Message extends BaseStructure {
   }
 
   merge(data: BaseStructureData): void {
-    // system messages and member object rely on these
-    if (data.author !== undefined) {
-      this.mergeValue('author', data.author);
-    }
-    if (data.guild_id !== undefined) {
-      this.mergeValue('guild_id', data.guild_id);
-    }
-    if (data.mentions && data.mentions.length) {
-      this.mergeValue('mentions', data.mentions);
-    }
-    if (data.type !== undefined) {
-      this.mergeValue('type', data.type);
-    }
-    if (data.webhook_id) {
-      this.mergeValue('webhook_id', data.webhook_id);
+    for (let key of skipKeys) {
+      if (data[key] !== undefined) {
+        this.mergeValue(key, data[key]);
+      }
     }
     return super.merge.call(this, data, skipKeys);
   }

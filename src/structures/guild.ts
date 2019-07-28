@@ -101,7 +101,7 @@ const ignoreKeys = [
   'voice_states',
 ];
 
-const skipKeys = ['roles', 'members'];
+const skipKeys = ['id', 'roles', 'members'];
 
 /**
  * Guild Structure
@@ -510,14 +510,10 @@ export class Guild extends BaseStructure {
   }
 
   merge(data: BaseStructureData): void {
-    if (data.roles) {
-      // Emojis require this before they're initialized
-      // Members require this before they're initialized
-      this.mergeValue('roles', data.roles);
-    }
-    if (data.members) {
-      // Voice States require this before they're initialized
-      this.mergeValue('members', data.members);
+    for (let key in skipKeys) {
+      if (data[key] !== undefined) {
+        this.mergeValue(key, data[key]);
+      }
     }
     super.merge.call(this, data, skipKeys);
   }

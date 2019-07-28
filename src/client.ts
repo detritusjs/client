@@ -246,7 +246,7 @@ export class ShardClient extends EventEmitter {
   }
 
   get isBot(): boolean {
-    if (this.user === null) {
+    if (this.user == null) {
       return this._isBot;
     }
     return this.user.bot;

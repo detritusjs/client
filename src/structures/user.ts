@@ -72,7 +72,7 @@ export class User extends BaseStructure {
   }
 
   get isMe(): boolean {
-    if (this.client.user !== null) {
+    if (this.client.user != null) {
       return this.id === this.client.user.id;
     }
     return false
