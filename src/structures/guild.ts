@@ -575,11 +575,20 @@ export class Guild extends BaseStructure {
             }
             for (let raw of value) {
               if (this.client.members.enabled) {
+                let member: Member;
                 if (this.client.members.has(this.id, raw.user.id)) {
-                  (<Member> this.client.members.get(this.id, raw.user.id)).merge(raw);
+                  member = <Member> this.client.members.get(this.id, raw.user.id);
+                  member.merge(raw);
                 } else {
                   raw.guild_id = this.id;
-                  this.client.members.insert(new Member(this.client, raw));
+                  member = new Member(this.client, raw);
+                  this.client.members.insert(member);
+                }
+                // now fill in the roles since they'll be null if we received this from READY (full guild object) or GUILD_CREATE so guild wasn't in cache
+                for (let [roleId, role] of member.roles) {
+                  if (role === null) {
+                    member.roles.set(roleId, this.roles.get(roleId) || null);
+                  }
                 }
               } else {
                 if (this.client.users.has(raw.user.id)) {

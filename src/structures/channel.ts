@@ -33,10 +33,10 @@ import { VoiceState } from './voicestate';
 
 export type Channel = (
   ChannelBase |
-  ChannelGuildText |
   ChannelDM |
   ChannelGuildVoice |
   ChannelDMGroup |
+  ChannelGuildBase |
   ChannelGuildCategory |
   ChannelGuildText |
   ChannelGuildStore
@@ -320,6 +320,10 @@ export class ChannelBase extends BaseStructure {
     return null;
   }
 
+  async addPinnedMessage(messageId: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async addRecipient(...args: any[]): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
@@ -340,16 +344,56 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  async createReaction(messageId: string, emoji: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async createWebhook(options: Options.CreateWebhook): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async delete() {
     return this.client.rest.deleteChannel(this.id);
   }
 
-  async edit(options: Options.EditChannel) {
-    return this.client.rest.editChannel(this.id, options);
+  async deleteMessage(messageId: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async deleteOverwrite(overwriteId: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async deletePin(messageId: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async deleteReaction(messageId: string, emoji: string, userId: string = '@me'): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async deleteReactions(messageId: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async edit(options: Options.EditChannel): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async editMessage(messageId: string, options: Options.EditMessage = {}): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async editOverwrite(overwriteId: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
   }
 
   async fetchCallStatus(): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async fetchInvites() {
+    return this.client.rest.fetchChannelInvites(this.id);
   }
 
   async fetchMessage(...args: any[]): Promise<any> {
@@ -360,15 +404,19 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async join(...args: any[]): Promise<any> {
+  async fetchPins(): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async fetchInvites() {
-    return this.client.rest.fetchChannelInvites(this.id);
+  async fetchReactions(messageId: string, emoji: string, options: Options.FetchReactions = {}): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
   }
 
-  async fetchPins(): Promise<any> {
+  async fetchWebhooks(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async join(...args: any[]): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -389,6 +437,10 @@ export class ChannelBase extends BaseStructure {
   }
 
   async triggerTyping(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async unack(): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -446,6 +498,10 @@ export class ChannelDM extends ChannelBase {
     return null;
   }
 
+  async addPinnedMessage(messageId: string) {
+    return this.client.rest.addPinnedMessage(this.id, messageId);
+  }
+
   async bulkDelete(messageIds: Array<string>) {
     return this.client.rest.bulkDeleteMessages(this.id, messageIds);
   }
@@ -454,8 +510,36 @@ export class ChannelDM extends ChannelBase {
     return this.delete();
   }
 
-  async createMessage(options: Options.CreateMessage) {
+  async createMessage(options: Options.CreateMessage | string) {
     return this.client.rest.createMessage(this.id, options);
+  }
+
+  async createReaction(messageId: string, emoji: string) {
+    return this.client.rest.createReaction(this.id, messageId, emoji);
+  }
+
+  async deleteMessage(messageId: string) {
+    return this.client.rest.deleteMessage(this.id, messageId);
+  }
+
+  async deleteOverwrite(overwriteId: string) {
+    return this.client.rest.deleteChannelOverwrite(this.id, overwriteId);
+  }
+
+  async deletePin(messageId: string) {
+    return this.client.rest.deletePinnedMessage(this.id, messageId);
+  }
+
+  async deleteReaction(messageId: string, emoji: string, userId: string = '@me') {
+    return this.client.rest.deleteReaction(this.id, messageId, userId);
+  }
+
+  async deleteReactions(messageId: string) {
+    return this.client.rest.deleteReactions(this.id, messageId);
+  }
+
+  async editMessage(messageId: string, options: Options.EditMessage = {}) {
+    return this.client.rest.editMessage(this.id, messageId, options);
   }
 
   async fetchCallStatus() {
@@ -472,6 +556,10 @@ export class ChannelDM extends ChannelBase {
 
   async fetchPins() {
     return this.client.rest.fetchPinnedMessages(this.id);
+  }
+
+  async fetchReactions(messageId: string, emoji: string, options: Options.FetchReactions = {}) {
+    return this.client.rest.fetchReactions(this.id, messageId, emoji, options);
   }
 
   async join(options: CallOptions) {
@@ -498,6 +586,10 @@ export class ChannelDM extends ChannelBase {
 
   async triggerTyping() {
     return this.client.rest.triggerTyping(this.id);
+  }
+
+  async unack() {
+    return this.client.rest.unAckChannel(this.id);
   }
 
   mergeValue(key: string, value: any): void {
@@ -584,11 +676,11 @@ export class ChannelDMGroup extends ChannelDM {
     return this.ownerId === userId;
   }
 
-  addRecipient(userId: string) {
+  async addRecipient(userId: string) {
     return this.client.rest.addRecipient(this.id, userId);
   }
 
-  removeRecipient(userId: string) {
+  async removeRecipient(userId: string) {
     return this.client.rest.removeRecipient(this.id, userId);
   }
 }
@@ -806,6 +898,14 @@ export class ChannelGuildBase extends ChannelBase {
     return PermissionTools.checkPermissions(total, permissions);
   }
 
+  async deleteOverwrite(overwriteId: string) {
+    return this.client.rest.deleteChannelOverwrite(this.id, overwriteId);
+  }
+
+  async editOverwrite(overwriteId: string, options: Options.EditChannelOverwrite = {}) {
+    return this.client.rest.editChannelOverwrite(this.id, overwriteId, options);
+  }
+
   difference(key: string, value: any): [boolean, any] {
     let differences: any;
     switch (key) {
@@ -893,9 +993,77 @@ export class ChannelGuildText extends ChannelGuildBase {
     this.merge(data);
   }
 
+  async addPinnedMessage(messageId: string) {
+    return this.client.rest.addPinnedMessage(this.id, messageId);
+  }
+
+  async bulkDelete(messageIds: Array<string>) {
+    return this.client.rest.bulkDeleteMessages(this.id, messageIds);
+  }
+
+  async createMessage(options: Options.CreateMessage | string) {
+    return this.client.rest.createMessage(this.id, options);
+  }
+
+  async createReaction(messageId: string, emoji: string) {
+    return this.client.rest.createReaction(this.id, messageId, emoji);
+  }
+
+  async createWebhook(options: Options.CreateWebhook) {
+    return this.client.rest.createWebhook(this.id, options);
+  }
+
+  async deleteMessage(messageId: string) {
+    return this.client.rest.deleteMessage(this.id, messageId);
+  }
+
+  async deletePin(messageId: string) {
+    return this.client.rest.deletePinnedMessage(this.id, messageId);
+  }
+
+  async deleteReaction(messageId: string, emoji: string, userId: string = '@me') {
+    return this.client.rest.deleteReaction(this.id, messageId, userId);
+  }
+
+  async deleteReactions(messageId: string) {
+    return this.client.rest.deleteReactions(this.id, messageId);
+  }
+
+  async editMessage(messageId: string, options: Options.EditMessage = {}) {
+    return this.client.rest.editMessage(this.id, messageId, options);
+  }
+
+  async fetchMessage(messageId: string) {
+    return this.client.rest.fetchMessage(this.id, messageId);
+  }
+
+  async fetchMessages(options: Options.FetchMessages) {
+    return this.client.rest.fetchMessages(this.id, options);
+  }
+
+  async fetchPins() {
+    return this.client.rest.fetchPinnedMessages(this.id);
+  }
+
+  async fetchReactions(messageId: string, emoji: string, options: Options.FetchReactions = {}) {
+    return this.client.rest.fetchReactions(this.id, messageId, emoji, options);
+  }
+
+  async fetchWebhooks() {
+    return this.client.rest.fetchChannelWebhooks(this.id);
+  }
+
   async publish(options: Options.CreateApplicationNews) {
     options.channelId = this.id;
     return this.client.rest.createApplicationNews(options);
+  }
+
+  async search(options: Options.SearchOptions, retry?: boolean) {
+    return this.client.rest.searchChannel(this.id, options, retry);
+  }
+
+  async triggerTyping() {
+    return this.client.rest.triggerTyping(this.id);
   }
 
   async turnIntoNewsChannel() {
@@ -908,6 +1076,10 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.edit({
       type: ChannelTypes.GUILD_TEXT,
     });
+  }
+
+  async unack() {
+    return this.client.rest.unAckChannel(this.id);
   }
 
   difference(key: string, value: any): [boolean, any] {

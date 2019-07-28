@@ -106,14 +106,14 @@ export class Webhook extends BaseStructure {
     return Endpoints.CDN.URL + Endpoints.CDN.AVATAR(this.id, hash, format);
   }
 
-  createMessage(
+  async createMessage(
     options: Options.ExecuteWebhook,
     compatibleType?: string,
   ) {
     return this.execute(options, compatibleType);
   }
 
-  delete() {
+  async delete() {
     if (this.token !== null) {
       return this.client.rest.deleteWebhookToken(this.id, this.token);
     }

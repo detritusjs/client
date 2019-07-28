@@ -161,7 +161,7 @@ export class RestClient extends Client {
 
   async createMessage(
     channelId: string,
-    options: Options.CreateMessage = {},
+    options: Options.CreateMessage | string = {},
   ): Promise<any> {
     const data = await super.createMessage.call(this, channelId, options);
     if (this.client.channels.has(data.channel_id)) {
