@@ -7,7 +7,7 @@ import {
 import { Application } from './application';
 
 
-const keys = [
+const keysStore: ReadonlyArray<string> = [
   'id',
   'sku',
   'summary',
@@ -20,7 +20,7 @@ const keys = [
  * @category Structure
  */
 export class StoreListing extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysStore;
 
   id: string = '';
   sku!: Sku;
@@ -48,7 +48,7 @@ export class StoreListing extends BaseStructure {
 }
 
 
-const keysStoreListingThumbnail = [
+const keysStoreListingThumbnail: ReadonlyArray<string> = [
   'height',
   'id',
   'mime_type',
@@ -61,7 +61,7 @@ const keysStoreListingThumbnail = [
  * @category Structure
  */
 export class StoreListingThumbnail extends BaseStructure {
-  _defaultKeys = keysStoreListingThumbnail;
+  readonly _keys = keysStoreListingThumbnail;
   readonly storeListing: StoreListing;
 
   height: number = 0;
@@ -96,14 +96,17 @@ const keysSku = [
   'type',
 ];
 
-const skipKeysSku = ['application'];
+const keysMergeSku: ReadonlyArray<string> = [
+  'application_id',
+  'application',
+];
 
 /**
  * Sku Structure, used in [Gift] and [StoreListing]
  * @category Structure
  */
 export class Sku extends BaseStructure {
-  _defaultKeys = keysSku;
+  readonly _keys = keysSku;
 
   accessType: number = 0;
   application: Application | null = null;
@@ -123,13 +126,6 @@ export class Sku extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
-  }
-
-  merge(data: BaseStructureData): void {
-    if ('application' in data) {
-      this.mergeValue('application', data.application);
-    }
-    return super.merge.call(this, data, skipKeysSku);
   }
 
   mergeValue(key: string, value: any): void {

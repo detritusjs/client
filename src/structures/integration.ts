@@ -8,7 +8,7 @@ import {
 import { User } from './user';
 
 
-const keys = [
+const keysIntegration: ReadonlyArray<string> = [
   'account',
   'enabled',
   'expire_behavior',
@@ -28,7 +28,8 @@ const keys = [
  * @category Structure
  */
 export class Integration extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysIntegration;
+
   account!: IntegrationAccount;
   enabled: boolean = false;
   expireBehavior: number = 0;
@@ -81,7 +82,7 @@ export class Integration extends BaseStructure {
 }
 
 
-const keysIntegrationAccount = [
+const keysIntegrationAccount: ReadonlyArray<string> = [
   'id',
   'name',
 ];
@@ -91,7 +92,7 @@ const keysIntegrationAccount = [
  * @category Structure
  */
 export class IntegrationAccount extends BaseStructure {
-  _defaultKeys = keysIntegrationAccount;
+  readonly _keys = keysIntegrationAccount;
   integration: Integration;
 
   id: string = '';

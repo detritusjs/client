@@ -87,7 +87,7 @@ export const MimeClassTypes: Array<{
 ];
 
 
-const keys = [
+const keysAttachment: ReadonlyArray<string> = [
   'filename',
   'height',
   'id',
@@ -102,7 +102,7 @@ const keys = [
  * @category Structure
  */
 export class Attachment extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysAttachment;
   message: Message;
 
   filename: string = '';

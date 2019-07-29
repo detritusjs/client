@@ -20,7 +20,7 @@ import { ChannelDM } from './channel';
 import { Presence } from './presence';
 
 
-const keys: ReadonlyArray<string> = [
+const keysUser: ReadonlyArray<string> = [
   'avatar',
   'bot',
   'discriminator',
@@ -33,7 +33,7 @@ const keys: ReadonlyArray<string> = [
  * @category Structure
  */
 export class User extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysUser;
   avatar: string | null = null;
   bot: boolean = false;
   discriminator: string = '0000';
@@ -174,9 +174,9 @@ export class User extends BaseStructure {
 }
 
 
-const keysWithToken: ReadonlyArray<string> = [
+const keysUserWithToken: ReadonlyArray<string> = [
   'token',
-  ...keys,
+  ...keysUser,
 ];
 
 /**
@@ -185,7 +185,7 @@ const keysWithToken: ReadonlyArray<string> = [
  * @category Structure
  */
 export class UserWithToken extends User {
-  _defaultKeys = keysWithToken;
+  readonly _keys = keysUserWithToken;
   token: string = '';
 
   constructor(
@@ -198,9 +198,9 @@ export class UserWithToken extends User {
 }
 
 
-const keysWithFlags: ReadonlyArray<string> = [
+const keysUserWithFlags: ReadonlyArray<string> = [
   'flags',
-  ...keys,
+  ...keysUser,
 ];
 
 /**
@@ -209,7 +209,7 @@ const keysWithFlags: ReadonlyArray<string> = [
  * @category Structure
  */
 export class UserWithFlags extends User {
-  _defaultKeys = keysWithFlags;
+  readonly _keys = keysUserWithFlags;
   flags: number = 0;
 
   constructor(
@@ -273,13 +273,13 @@ export class UserWithFlags extends User {
 }
 
 
-const keysExtended: ReadonlyArray<string> = [
+const keysUserExtended: ReadonlyArray<string> = [
   'email',
   'locale',
   'mfa_enabled',
   'premium_type',
   'verified',
-  ...keysWithFlags,
+  ...keysUserWithFlags,
 ];
 
 /**
@@ -288,7 +288,7 @@ const keysExtended: ReadonlyArray<string> = [
  * @category Structure
  */
 export class UserExtended extends UserWithFlags {
-  _defaultKeys = keysExtended;
+  readonly _keys = keysUserExtended;
   email: string | null = null;
   flags: number = 0;
   locale: string | null = null;
@@ -326,9 +326,9 @@ export class UserExtended extends UserWithFlags {
 }
 
 
-const keysMe: ReadonlyArray<string> = [
+const keysUserMe: ReadonlyArray<string> = [
   'phone',
-  ...keysExtended,
+  ...keysUserExtended,
 ];
 
 /**
@@ -337,7 +337,7 @@ const keysMe: ReadonlyArray<string> = [
  * @category Structure
  */
 export class UserMe extends UserExtended {
-  _defaultKeys = keysMe;
+  readonly _keys = keysUserMe;
   phone: string = '';
 
   constructor(

@@ -18,7 +18,7 @@ import { Guild } from './guild';
 import { User } from './user';
 
 
-const keys = [
+const keysInvite: ReadonlyArray<string> = [
   'approximate_member_count',
   'approximate_presence_count',
   'channel',
@@ -40,7 +40,8 @@ const keys = [
  * @category Structure
  */
 export class Invite extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysInvite;
+
   approximateMemberCount: number = 0;
   approximatePresenceCount: number = 0;
   channel: Channel | null = null;

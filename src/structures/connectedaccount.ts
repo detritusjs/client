@@ -6,7 +6,7 @@ import {
 } from './basestructure';
 
 
-const keys = [
+const keysConnectedAccount = [
   'friend_sync',
   'id',
   'integrations',
@@ -24,7 +24,7 @@ const keys = [
  * @category Structure
  */
 export class ConnectedAccount extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysConnectedAccount;
 
   friendSync?: boolean;
   id: string = '';

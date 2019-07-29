@@ -9,7 +9,7 @@ import {
 } from './basestructure';
 
 
-const keys: ReadonlyArray<string> = [
+const keysRole: ReadonlyArray<string> = [
   'color',
   'guild_id',
   'hoist',
@@ -26,7 +26,8 @@ const keys: ReadonlyArray<string> = [
  * @category Structure
  */
 export class Role extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysRole;
+
   color: number = 0;
   guildId: string = '';
   hoist: boolean = false;

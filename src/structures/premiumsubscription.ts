@@ -9,7 +9,7 @@ import { Guild } from './guild';
 import { User } from './user';
 
 
-const keys = [
+const keysPremiumSubscription: ReadonlyArray<string> = [
   'ended',
   'guild_id',
   'id',
@@ -22,7 +22,8 @@ const keys = [
  * @category Structure
  */
 export class PremiumSubscription extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysPremiumSubscription;
+
   ended: boolean = false;
   guildId: string = '';
   id: string = '';

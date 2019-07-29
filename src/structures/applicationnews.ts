@@ -12,7 +12,8 @@ import {
   EmbedThumbnail,
 } from './embed';
 
-const keys = [
+
+const keysApplicationNews: ReadonlyArray<string> = [
   'application_id',
   'category',
   'description',
@@ -32,7 +33,7 @@ const keys = [
  * @category Structure
  */
 export class ApplicationNews extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysApplicationNews;
   applicationId: string = '';
   category: null = null;
   description: string = '';

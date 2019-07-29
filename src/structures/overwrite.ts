@@ -11,7 +11,7 @@ import { Guild } from './guild';
 import { Role } from './role';
 
 
-const keys = [
+const keysOverwrite: ReadonlyArray<string> = [
   'allow',
   'channel_id',
   'deny',
@@ -25,7 +25,8 @@ const keys = [
  * @category Structure
  */
 export class Overwrite extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysOverwrite;
+
   allow: number = 0;
   channelId: string = '';
   deny: number = 0;

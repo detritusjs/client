@@ -8,7 +8,7 @@ import {
 import { User } from './user';
 
 
-const keys: ReadonlyArray<string> = [
+const keysRelationship: ReadonlyArray<string> = [
   'id',
   'type',
   'user',
@@ -21,7 +21,8 @@ const keys: ReadonlyArray<string> = [
  * @category Structure
  */
 export class Relationship extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysRelationship;
+
   id: string = '';
   type: number = RelationshipTypes.NONE;
 

@@ -16,7 +16,7 @@ import { Guild } from './guild';
 import { User } from './user';
 
 
-const keys = [
+const keysWebhook: ReadonlyArray<string> = [
   'avatar',
   'channel_id',
   'discriminator',
@@ -32,7 +32,7 @@ const keys = [
  * @category Structure
  */
 export class Webhook extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysWebhook;
 
   avatar: null | string = null;
   channelId: string = '';

@@ -11,7 +11,7 @@ import { Member } from './member';
 import { User } from './user';
 
 
-const keys = [
+const keysTyping: ReadonlyArray<string> = [
   'channel_id',
   'guild_id',
   'member',
@@ -20,7 +20,9 @@ const keys = [
   'user_id',
 ];
 
-const skipKeys = ['guild_id'];
+const keysMergeTyping: ReadonlyArray<string> = [
+  'guild_id',
+];
 
 /**
  * Channel Typing Structure
@@ -28,7 +30,7 @@ const skipKeys = ['guild_id'];
  * @category Structure
  */
 export class Typing extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysTyping;
   _expiring: null | ReturnType<typeof setTimeout> = null;
 
   channelId: string = '';
@@ -65,13 +67,6 @@ export class Typing extends BaseStructure {
 
   get user(): undefined | User {
     return this.client.users.get(this.userId);
-  }
-
-  merge(data: BaseStructureData): void {
-    if (data.guild_id !== undefined) {
-      this.mergeValue('guild_id', data.guild_id);
-    }
-    super.merge.call(this, data, skipKeys);
   }
 
   mergeValue(key: string, value: any): void {

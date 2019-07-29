@@ -32,7 +32,7 @@ export interface ApplicationThirdPartySku {
   sku: string,
 }
 
-const keys: ReadonlyArray<string> = [
+const keysApplication: ReadonlyArray<string> = [
   'aliases',
   'application_id',
   'bot_public',
@@ -61,7 +61,7 @@ const keys: ReadonlyArray<string> = [
  * @category Structure
  */
 export class Application extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysApplication;
   aliases: Array<string> | null = null;
   applicationId: null | string = null;
   botPublic: boolean = false;
@@ -86,7 +86,7 @@ export class Application extends BaseStructure {
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
-    this.initialize(data);
+    this.merge(data);
   }
 
   get createdAt(): Date {

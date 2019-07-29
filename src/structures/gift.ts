@@ -13,7 +13,7 @@ import { StoreListing } from './store';
 import { User } from './user';
 
 
-const keys = [
+const keysGift: ReadonlyArray<string> = [
   'application_id',
   'code',
   'expires_at',
@@ -27,14 +27,17 @@ const keys = [
   'uses',
 ];
 
-const skipKeys = ['subscription_plan'];
+const keysMergeGift: ReadonlyArray<string> = [
+  'subscription_plan',
+];
 
 /**
  * Discord Nitro Gift Structure
  * @category Structure
  */
 export class Gift extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysGift;
+  readonly _keysMerge = keysMergeGift;
 
   applicationId: string = '';
   code: string = '';
@@ -67,13 +70,6 @@ export class Gift extends BaseStructure {
 
   redeem(options: Options.RedeemGiftCode) {
     return this.client.rest.redeemGiftCode(this.code, options);
-  }
-
-  merge(data: BaseStructureData): void {
-    if ('subscription_plan' in data) {
-      this.mergeValue('subscription_plan', data.subscription_plan);
-    }
-    return super.merge.call(this, data, skipKeys);
   }
 
   mergeValue(key: string, value: any): void {
@@ -122,7 +118,8 @@ const keysSubscriptionPlan = [
  * @category Structure
  */
 export class SubscriptionPlan extends BaseStructure {
-  _defaultKeys = keysSubscriptionPlan;
+  readonly _keys = keysSubscriptionPlan;
+
   currency: string = 'usd';
   id: string = '';
   interval: number = 0;

@@ -21,7 +21,7 @@ import { User } from './user';
 import { Webhook } from './webhook';
 
 
-const keys = [
+const keysAuditLog: ReadonlyArray<string> = [
   'action_type',
   'changes',
   'id',
@@ -39,7 +39,7 @@ const keys = [
  * @category Structure
  */
 export class AuditLog extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysAuditLog;
   actionType: number = -1;
   changes = new BaseCollection<string, any>();
   id: string = '';
@@ -72,7 +72,7 @@ export class AuditLog extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case 'changes': {
-
+          value = new AuditLogChange(this, value);
         }; return;
         case 'options': {
           value = new AuditLogOptions(this, value);
@@ -84,7 +84,7 @@ export class AuditLog extends BaseStructure {
 }
 
 
-const keysAuditLogChange = [
+const keysAuditLogChange: ReadonlyArray<string> = [
   'key',
   'new_value',
   'old_value',
@@ -95,19 +95,23 @@ const keysAuditLogChange = [
  * @category Structure
  */
 export class AuditLogChange extends BaseStructure {
-  _defaultKeys = keysAuditLogChange;
+  readonly _keys = keysAuditLogChange;
+  readonly log: AuditLog;
+
   key: string = '';
   newValue: any;
   oldValue: any;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(log: AuditLog, data: BaseStructureData) {
+    super(log.client);
+    this.log = log;
     this.merge(data);
+    Object.defineProperty(this, 'log', {enumerable: false, writable: false});
   }
 }
 
 
-const keysAuditLogOptions = [
+const keysAuditLogOptions: ReadonlyArray<string> = [
   'channel',
   'channel_id',
   'count',
@@ -123,7 +127,7 @@ const keysAuditLogOptions = [
  * @category Structure
  */
 export class AuditLogOptions extends BaseStructure {
-  _defaultKeys = keysAuditLogOptions;
+  readonly _keys = keysAuditLogOptions;
   readonly log: AuditLog;
 
   channel?: ChannelBase;

@@ -12,10 +12,9 @@ export interface BaseStructureData {
  */
 export class BaseStructure {
   /** @ignore */
-  readonly _defaultKeys: ReadonlyArray<string> | null = null;
-
+  readonly _keys: ReadonlyArray<string> | null = null;
   /** @ignore */
-  readonly _ignoreKeys: ReadonlyArray<string> | null = null;
+  readonly _keysMerge: ReadonlyArray<string> | null = null;
 
   readonly client: ShardClient;
 
@@ -23,20 +22,9 @@ export class BaseStructure {
     this.client = client;
 
     Object.defineProperties(this, {
-      _defaultKeys: {enumerable: false},
-      _ignoreKeys: {enumerable: false},
+      _keys: {enumerable: false},
       client: {enumerable: false, writable: false},
     });
-  }
-
-  initialize(data: BaseStructureData): void {
-    if (this._defaultKeys !== null) {
-      for (let key of this._defaultKeys) {
-        if (this._ignoreKeys === null || !this._ignoreKeys.includes(key)) {
-          this.mergeValue(key, data[key]);
-        }
-      }
-    }
   }
 
   get shardId(): number {
@@ -78,9 +66,14 @@ export class BaseStructure {
     return null;
   }
 
-  merge(data: BaseStructureData, skip?: Array<string>): void {
+  merge(data: BaseStructureData): void {
+    if (this._keysMerge !== null) {
+      for (let key of this._keysMerge) {
+        this.mergeValue(key, data[key]);
+      }
+    }
     for (let key in data) {
-      if (skip !== undefined && skip.includes(key)) {
+      if (this._keysMerge !== null && this._keysMerge.includes(key)) {
         continue;
       }
       let value = data[key];
@@ -94,7 +87,7 @@ export class BaseStructure {
 
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
-      if (this._defaultKeys !== null && this._defaultKeys.includes(key)) {
+      if (this._keys !== null && this._keys.includes(key)) {
         this._setFromSnake(key, value);
       }
     }
@@ -102,8 +95,8 @@ export class BaseStructure {
 
   toJSON(): object {
     const obj: BaseStructureData = {};
-    if (this._defaultKeys !== null) {
-      for (let key of this._defaultKeys) {
+    if (this._keys !== null) {
+      for (let key of this._keys) {
         obj[key] = this._getFromSnake(key);
       }
     }

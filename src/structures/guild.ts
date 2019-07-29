@@ -47,7 +47,7 @@ import { VoiceState } from './voicestate';
 export const DEFAULT_MAX_PRESENCES = 5000;
 
 
-const keys = [
+const keysGuild: ReadonlyArray<string> = [
   'afk_channel_id',
   'afk_timeout',
   'application_id',
@@ -89,27 +89,19 @@ const keys = [
   'widget_enabled',
 ];
 
-const ignoreKeys = [
-  'channels',
-  'emojis',
-  'joined_at',
-  'max_presences',
-  'members',
-  'presences',
-  'premium_subscription_count',
+const keysMergeGuild: ReadonlyArray<string> = [
+  'id',
   'roles',
-  'voice_states',
+  'members',
 ];
-
-const skipKeys = ['id', 'roles', 'members'];
 
 /**
  * Guild Structure
  * @category Structure
  */
 export class Guild extends BaseStructure {
-  _defaultKeys = keys;
-  _ignoreKeys = ignoreKeys;
+  readonly _keys = keysGuild;
+  readonly _keysMerge = keysMergeGuild;
   readonly roles = new BaseCollection<string, null | Role>();
 
   afkChannelId: null | string = null;
@@ -507,15 +499,6 @@ export class Guild extends BaseStructure {
 
   async syncIntegration(integrationId: string) {
     return this.client.rest.syncGuildIntegration(this.id, integrationId);
-  }
-
-  merge(data: BaseStructureData): void {
-    for (let key of skipKeys) {
-      if (data[key] !== undefined) {
-        this.mergeValue(key, data[key]);
-      }
-    }
-    super.merge.call(this, data, skipKeys);
   }
 
   mergeValue(key: string, value: any): void {

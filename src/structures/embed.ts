@@ -10,7 +10,7 @@ import {
 } from './basestructure';
 
 
-const keys = [
+const keysEmbed: ReadonlyArray<string> = [
   'author',
   'color',
   'description',
@@ -32,7 +32,7 @@ const keys = [
  * @category Structure
  */
 export class Embed extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysEmbed;
   author: EmbedAuthor | null = null;
   color: number = 0;
   description: null | string = null;
@@ -130,7 +130,7 @@ export class Embed extends BaseStructure {
 }
 
 
-const keysEmbedAuthor = [
+const keysEmbedAuthor: ReadonlyArray<string> = [
   'icon_url',
   'name',
   'proxy_icon_url',
@@ -142,7 +142,8 @@ const keysEmbedAuthor = [
  * @category Structure
  */
 export class EmbedAuthor extends BaseStructure {
-  _defaultKeys = keysEmbedAuthor;
+  readonly _keys = keysEmbedAuthor;
+
   iconUrl: null | string = null;
   name:  null | string = null;
   proxyIconUrl: null | string = null;
@@ -155,7 +156,7 @@ export class EmbedAuthor extends BaseStructure {
 }
 
 
-const keysEmbedField = [
+const keysEmbedField: ReadonlyArray<string> = [
   'inline',
   'name',
   'value',
@@ -166,7 +167,8 @@ const keysEmbedField = [
  * @category Structure
  */
 export class EmbedField extends BaseStructure {
-  _defaultKeys = keysEmbedField;
+  readonly _keys = keysEmbedField;
+
   inline: boolean = false;
   name: string = '';
   value: string = '';
@@ -178,7 +180,7 @@ export class EmbedField extends BaseStructure {
 }
 
 
-const keysEmbedFooter = [
+const keysEmbedFooter: ReadonlyArray<string> = [
   'icon_url',
   'proxy_icon_url',
   'text',
@@ -189,7 +191,8 @@ const keysEmbedFooter = [
  * @category Structure
  */
 export class EmbedFooter extends BaseStructure {
-  _defaultKeys = keysEmbedFooter;
+  readonly _keys = keysEmbedFooter;
+
   iconUrl: null | string = null;
   proxyIconUrl: null | string = null;
   text: string = '';
@@ -213,7 +216,8 @@ const keysEmbedImage = [
  * @category Structure
  */
 export class EmbedImage extends BaseStructure {
-  _defaultKeys = keysEmbedImage;
+  readonly _keys: ReadonlyArray<string> = keysEmbedImage;
+
   height: number = 0;
   proxyUrl: null | string = null;
   url: string = '';
@@ -226,7 +230,7 @@ export class EmbedImage extends BaseStructure {
 }
 
 
-const keysEmbedProvider = [
+const keysEmbedProvider: ReadonlyArray<string> = [
   'name',
   'url',
 ];
@@ -236,7 +240,8 @@ const keysEmbedProvider = [
  * @category Structure
  */
 export class EmbedProvider extends BaseStructure {
-  _defaultKeys = keysEmbedProvider;
+  readonly _keys = keysEmbedProvider;
+
   name: null | string = null;
   url: null | string = null;
 

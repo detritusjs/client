@@ -14,7 +14,7 @@ import { Guild } from './guild';
 import { Member } from './member';
 
 
-const keys: ReadonlyArray<string> = [
+const keysVoiceState: ReadonlyArray<string> = [
   'channel_id',
   'deaf',
   'guild_id',
@@ -29,16 +29,18 @@ const keys: ReadonlyArray<string> = [
   'user_id',
 ];
 
-const ignoreKeys = ['member'];
-
+const keysMergeVoiceState: ReadonlyArray<string> = [
+  'guild_id',
+];
 
 /**
  * Voice State Structure
  * @category Structure
  */
 export class VoiceState extends BaseStructure {
-  _defaultKeys = keys;
-  _ignoreKeys = ignoreKeys;
+  readonly _keys = keysVoiceState;
+  readonly _keysMerge = keysMergeVoiceState;
+
   channelId: null | string = null;
   deaf: boolean = false;
   guildId: null | string = null;
@@ -109,14 +111,6 @@ export class VoiceState extends BaseStructure {
       return [true, differences];
     }
     return [false, null];
-  }
-
-  merge(data: BaseStructureData) {
-    if (data.guild_id) {
-      // member needs the guild id before merging
-      this.mergeValue('guild_id', data.guild_id);
-    }
-    return super.merge.call(this, data);
   }
 
   mergeValue(key: string, value: any): void {

@@ -70,7 +70,8 @@ export function createChannelFromData(client: ShardClient, data: any): Channel {
   return new Class(client, data);
 }
 
-const keys: ReadonlyArray<string> = [
+
+const keysChannelBase: ReadonlyArray<string> = [
   'id',
   'name',
   'type',
@@ -81,7 +82,7 @@ const keys: ReadonlyArray<string> = [
  * @category Structure
  */
 export class ChannelBase extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysChannelBase;
   readonly nicks = new BaseCollection<string, string>();
   readonly permissionOverwrites = new BaseCollection<string, Overwrite>();
   readonly recipients = new BaseCollection<string, User>();
@@ -455,12 +456,12 @@ export interface CallOptions extends VoiceConnectOptions {
   verify?: boolean,
 }
 
-const keysDm: ReadonlyArray<string> = [
+const keysChannelDm: ReadonlyArray<string> = [
   'last_message_id',
   'last_pin_timestamp',
   'nicks',
   'recipients',
-  ...keys,
+  ...keysChannelBase,
 ];
 
 /**
@@ -468,7 +469,7 @@ const keysDm: ReadonlyArray<string> = [
  * @category Structure
  */
 export class ChannelDM extends ChannelBase {
-  _defaultKeys = keysDm;
+  readonly _keys = keysChannelDm;
   lastMessageId: null | string = null;
   lastPinTimestamp: null | Date = null;
 
@@ -628,12 +629,12 @@ export class ChannelDM extends ChannelBase {
 }
 
 
-const keysGroupDm: ReadonlyArray<string> = [
+const keysChannelDmGroup: ReadonlyArray<string> = [
   'application_id',
   'icon',
   'name',
   'owner_id',
-  ...keysDm,
+  ...keysChannelDm,
 ];
 
 /**
@@ -641,7 +642,7 @@ const keysGroupDm: ReadonlyArray<string> = [
  * @category Structure
  */
 export class ChannelDMGroup extends ChannelDM {
-  _defaultKeys = keysGroupDm;
+  readonly _keys = keysChannelDmGroup;
   applicationId: null | string = null;
   icon: null | string = null;
   name: string = '';
@@ -693,7 +694,12 @@ const keysChannelGuildBase: ReadonlyArray<string> = [
   'permission_overwrites',
   'position',
   'rate_limit_per_user',
-  ...keys,
+  ...keysChannelBase,
+];
+
+const keysMergeChannelGuildBase: ReadonlyArray<string> = [
+  'id',
+  'guild_id',
 ];
 
 /**
@@ -701,7 +707,8 @@ const keysChannelGuildBase: ReadonlyArray<string> = [
  * @category Structure
  */
 export class ChannelGuildBase extends ChannelBase {
-  _defaultKeys = keysChannelGuildBase;
+  readonly _keys = keysChannelGuildBase;
+  readonly _keysMerge: ReadonlyArray<string> | null = keysMergeChannelGuildBase;
   readonly permissionOverwrites = new BaseCollection<string, Overwrite>();
 
   guildId: string = '';
@@ -954,7 +961,7 @@ const keysChannelGuildCategory: ReadonlyArray<string> = [
  * @category Structure
  */
 export class ChannelGuildCategory extends ChannelGuildBase {
-  _defaultKeys = keysChannelGuildCategory;
+  readonly _keys = keysChannelGuildCategory;
   bitrate: number = 0;
   userLimit: number = 0;
 
@@ -983,7 +990,7 @@ const keysChannelGuildText: ReadonlyArray<string> = [
  * @category Structure
  */
 export class ChannelGuildText extends ChannelGuildBase {
-  _defaultKeys = keysChannelGuildText;
+  readonly _keys = keysChannelGuildText;
   lastMessageId: null | string = null;
   lastPinTimestamp: null | Date = null;
   topic: null | string = null;
@@ -1129,7 +1136,7 @@ const keysChannelGuildVoice: ReadonlyArray<string> = [
  * @category Structure
  */
 export class ChannelGuildVoice extends ChannelGuildBase {
-  _defaultKeys = keysChannelGuildVoice;
+  readonly _keys = keysChannelGuildVoice;
   bitrate: number = 64000;
   userLimit: number = 0;
 

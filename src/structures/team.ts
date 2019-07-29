@@ -15,7 +15,7 @@ import {
 import { User } from './user';
 
 
-const keysTeam = [
+const keysTeam: ReadonlyArray<string> = [
   'icon',
   'id',
   'members',
@@ -30,7 +30,7 @@ const keysTeam = [
  * @category Structure
  */
 export class Team extends BaseStructure {
-  _defaultKeys = keysTeam;
+  readonly _keys = keysTeam;
   icon: null | string = null;
   id: string = '';
   members = new BaseCollection<string, TeamMember>();
@@ -118,7 +118,7 @@ export class Team extends BaseStructure {
 }
 
 
-const keysTeamMember = [
+const keysTeamMember: ReadonlyArray<string> = [
   'membership_state',
   'permissions',
   'team_id',
@@ -131,7 +131,7 @@ const keysTeamMember = [
  * @category Structure
  */
 export class TeamMember extends BaseStructure {
-  _defaultKeys = keysTeamMember;
+  readonly _keys = keysTeamMember;
   membershipState: number = TeamMembershipStates.BASE;
   permissions!: Array<string>;
   teamId: string = '';

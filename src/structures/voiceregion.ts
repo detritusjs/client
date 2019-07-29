@@ -6,7 +6,7 @@ import {
 } from './basestructure';
 
 
-const keys = [
+const keysVoiceRegion: ReadonlyArray<string> = [
   'custom',
   'deprecated',
   'id',
@@ -20,7 +20,7 @@ const keys = [
  * @category Structure
  */
 export class VoiceRegion extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysVoiceRegion;
   custom: boolean = false;
   deprecated: boolean = false;
   id: string = '';

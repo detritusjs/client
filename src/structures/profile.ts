@@ -10,7 +10,7 @@ import { Guild } from './guild';
 import { User } from './user';
 
 
-const keys = [
+const keysProfile: ReadonlyArray<string> = [
   'connected_accounts',
   'mutual_guilds',
   'premium_guild_since',
@@ -24,7 +24,7 @@ const keys = [
  * @category Structure
  */
 export class Profile extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysProfile;
 
   connectedAccounts = new BaseCollection<string, ConnectedAccount>();
   mutualGuilds = new BaseCollection<string, Guild | null>();

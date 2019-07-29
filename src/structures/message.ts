@@ -36,7 +36,7 @@ export interface MessageReply extends Options.CreateMessage {
 }
 
 
-const keys = [
+const keysMessage: ReadonlyArray<string> = [
   'activity',
   'application',
   'attachments',
@@ -61,7 +61,7 @@ const keys = [
   'webhook_id',
 ];
 
-const skipKeys = [
+const keysMergeMessage: ReadonlyArray<string> = [
   'author',
   'guild_id',
   'id',
@@ -75,7 +75,8 @@ const skipKeys = [
  * @category Structure
  */
 export class Message extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysMessage;
+  readonly _keysMerge = keysMergeMessage;
   _content = '';
 
   activity: MessageActivity | null = null;
@@ -306,15 +307,6 @@ export class Message extends BaseStructure {
     return [false, null];
   }
 
-  merge(data: BaseStructureData): void {
-    for (let key of skipKeys) {
-      if (data[key] !== undefined) {
-        this.mergeValue(key, data[key]);
-      }
-    }
-    return super.merge.call(this, data, skipKeys);
-  }
-
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
@@ -453,7 +445,7 @@ export class Message extends BaseStructure {
 }
 
 
-const keysMessageActivity = [
+const keysMessageActivity: ReadonlyArray<string> = [
   'party_id',
   'type',
 ];
@@ -463,7 +455,7 @@ const keysMessageActivity = [
  * @category Structure
  */
 export class MessageActivity extends BaseStructure {
-  _defaultKeys = keysMessageActivity;
+  readonly _keys = keysMessageActivity;
   message: Message;
 
   coverImage: null | string = null;
@@ -480,7 +472,7 @@ export class MessageActivity extends BaseStructure {
 }
 
 
-const keysMessageCall = [
+const keysMessageCall: ReadonlyArray<string> = [
   'ended_timestamp',
   'participants',
 ];
@@ -491,7 +483,7 @@ const keysMessageCall = [
  * @category Structure
  */
 export class MessageCall extends BaseStructure {
-  _defaultKeys = keysMessageCall;
+  readonly _keys = keysMessageCall;
   message: Message;
 
   endedTimestamp: Date | null = null;

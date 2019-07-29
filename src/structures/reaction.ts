@@ -12,7 +12,7 @@ import { Guild } from './guild';
 import { Message } from './message';
 
 
-const keys = [
+const keysReaction: ReadonlyArray<string> = [
   'channel_id',
   'count',
   'emoji',
@@ -27,7 +27,8 @@ const keys = [
  * @category Structure
  */
 export class Reaction extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysReaction;
+
   channelId: string = '';
   count: number = 0;
   emoji!: Emoji;

@@ -17,7 +17,7 @@ import { User, UserMixin } from './user';
 import { VoiceState } from './voicestate';
 
 
-const keys: ReadonlyArray<string> = [
+const keysMember: ReadonlyArray<string> = [
   'deaf',
   'guild_id',
   'hoisted_role',
@@ -29,16 +29,17 @@ const keys: ReadonlyArray<string> = [
   'user',
 ];
 
-const ignoreKeys: ReadonlyArray<string> = ['roles', 'joined_at', 'user'];
-
+const keysMergeMember: ReadonlyArray<string> = [
+  'guild_id',
+];
 
 /**
  * Guild Member Structure
  * @category Structure
  */
 export class Member extends UserMixin {
-  _defaultKeys = keys;
-  _ignoreKeys = ignoreKeys;
+  readonly _keys = keysMember;
+  readonly _keysMerge = keysMergeMember;
   readonly roles = new BaseCollection<string, null | Role>();
 
   deaf: boolean = false;
@@ -82,7 +83,7 @@ export class Member extends UserMixin {
   get permissions(): number {
     return this.roles.reduce((total: number, role: Role) => {
       if (role !== null) {
-        return total + role.permissions;
+        return total | role.permissions;
       }
       return total;
     }, Permissions.NONE);
@@ -214,11 +215,11 @@ export class Member extends UserMixin {
 
           const guild = this.guild;
           this.roles.set(this.guildId, (guild) ? guild.defaultRole : null);
-          for (let id of value) {
-            if (guild !== null && guild.roles.has(id)) {
-              this.roles.set(id, <Role> guild.roles.get(id));
+          for (let roleId of value) {
+            if (guild !== null && guild.roles.has(roleId)) {
+              this.roles.set(roleId, <Role> guild.roles.get(roleId));
             } else {
-              this.roles.set(id, null);
+              this.roles.set(roleId, null);
             }
           }
         }; return;

@@ -17,7 +17,7 @@ import { Role } from './role';
 import { User } from './user';
 
 
-const keys: ReadonlyArray<string> = [
+const keysEmoji: ReadonlyArray<string> = [
   'animated',
   'available',
   'guild_id',
@@ -29,15 +29,17 @@ const keys: ReadonlyArray<string> = [
   'user',
 ];
 
-const ignoreKeys: ReadonlyArray<string> = ['roles', 'user'];
+const keysMergeEmoji: ReadonlyArray<string> = [
+  'guild_id',
+];
 
 /**
  * Emoji Structure
  * @category Structure
  */
 export class Emoji extends BaseStructure {
-  _defaultKeys = keys;
-  _ignoreKeys = ignoreKeys;
+  readonly _keys = keysEmoji;
+  readonly _keysMerge = keysMergeEmoji;
   readonly roles = new BaseCollection<string, null | Role>();
 
   animated: boolean = false;

@@ -38,7 +38,7 @@ export const ImageSizes = Object.freeze({
 });
 
 
-const keys = [
+const keysPresence: ReadonlyArray<string> = [
   'activities',
   'client_status',
   'game',
@@ -48,14 +48,18 @@ const keys = [
   'user',
 ];
 
-const skipKeys = ['activities'];
+const keysMergePresence: ReadonlyArray<string> = [
+  'activities',
+];
 
 /**
  * Presence Structure, used to detail a user's presence in a guild (or general if you have them added (non-bots only))
  * @category Structure
  */
 export class Presence extends BaseStructure {
-  _defaultKeys = keys;
+  readonly _keys = keysPresence;
+  readonly _keysMerge = keysMergePresence;
+
   activities = new BaseCollection<number | string, PresenceActivity>();
   clientStatus?: PresenceClientStatus;
   game: null | PresenceActivity = null;
@@ -108,14 +112,6 @@ export class Presence extends BaseStructure {
       return [true, differences];
     }
     return [false, null];
-  }
-
-  merge(data: BaseStructureData): void {
-    if (data.activities !== undefined) {
-      // merge this first since game might include an id
-      this.mergeValue('activities', data.activities);
-    }
-    return super.merge.call(this, data, skipKeys);
   }
 
   mergeValue(key: string, value: any): void {
@@ -172,7 +168,7 @@ export class Presence extends BaseStructure {
 }
 
 
-const keysPresenceActivity = [
+const keysPresenceActivity: ReadonlyArray<string> = [
   'application_id',
   'assets',
   'created_at',
@@ -198,7 +194,7 @@ const keysPresenceActivity = [
  * @category Structure
  */
 export class PresenceActivity extends BaseStructure {
-  _defaultKeys = keysPresenceActivity;
+  readonly _keys = keysPresenceActivity;
   presence: Presence;
 
   applicationId?: string;
@@ -388,7 +384,7 @@ export class PresenceActivity extends BaseStructure {
 }
 
 
-const keysPresenceActivityAssets = [
+const keysPresenceActivityAssets: ReadonlyArray<string> = [
   'large_image',
   'large_text',
   'small_image',
@@ -400,7 +396,7 @@ const keysPresenceActivityAssets = [
  * @category Structure
  */
 export class PresenceActivityAssets extends BaseStructure {
-  _defaultKeys = keysPresenceActivityAssets;
+  readonly _keys = keysPresenceActivityAssets;
   activity: PresenceActivity;
 
   largeImage?: string;
@@ -499,7 +495,7 @@ export class PresenceActivityAssets extends BaseStructure {
 }
 
 
-const keysPresenceActivityParty = [
+const keysPresenceActivityParty: ReadonlyArray<string> = [
   'id',
   'size',
 ];
@@ -510,7 +506,7 @@ const keysPresenceActivityParty = [
  * @category Structure
  */
 export class PresenceActivityParty extends BaseStructure {
-  _defaultKeys = keysPresenceActivityParty;
+  readonly _keys = keysPresenceActivityParty;
   activity: PresenceActivity;
 
   id?: string;
@@ -566,7 +562,7 @@ export class PresenceActivityParty extends BaseStructure {
 }
 
 
-const keysPresenceActivitySecrets = [
+const keysPresenceActivitySecrets: ReadonlyArray<string> = [
   'join',
   'match',
   'spectate',
@@ -578,7 +574,7 @@ const keysPresenceActivitySecrets = [
  * @category Structure
  */
 export class PresenceActivitySecrets extends BaseStructure {
-  _defaultKeys = keysPresenceActivitySecrets;
+  readonly _keys = keysPresenceActivitySecrets;
   activity: PresenceActivity;
 
   join?: string;
@@ -594,7 +590,7 @@ export class PresenceActivitySecrets extends BaseStructure {
 }
 
 
-const keysPresenceActivityTimestamps = [
+const keysPresenceActivityTimestamps: ReadonlyArray<string> = [
   'end',
   'start',
 ];
@@ -605,7 +601,7 @@ const keysPresenceActivityTimestamps = [
  * @category Structure
  */
 export class PresenceActivityTimestamps extends BaseStructure {
-  _defaultKeys = keysPresenceActivityTimestamps;
+  readonly _keys = keysPresenceActivityTimestamps;
   activity: PresenceActivity;
 
   end?: number;
@@ -636,7 +632,7 @@ export class PresenceActivityTimestamps extends BaseStructure {
 }
 
 
-const keysPresenceClientStatus = [
+const keysPresenceClientStatus: ReadonlyArray<string> = [
   'desktop',
   'mobile',
   'web',
@@ -648,7 +644,7 @@ const keysPresenceClientStatus = [
  * @category Structure
  */
 export class PresenceClientStatus extends BaseStructure {
-  _defaultKeys = keysPresenceClientStatus;
+  readonly _keys = keysPresenceClientStatus;
   presence: Presence;
 
   desktop?: string;
