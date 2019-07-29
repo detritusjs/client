@@ -4,7 +4,7 @@ import {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.1.9',
+  VERSION: '0.2.0',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -152,6 +152,14 @@ export const ClientEvents = normalize(Object.assign({
   RAW_EVENT: null,
   UNKNOWN: null,
 }, SocketConstants.GatewayDispatchEvents));
+
+export const ClusterIPCOpCodes = Object.freeze({
+  READY: 0,
+  DISCONNECT: 1,
+  RECONNECTING: 2,
+  RESPAWN_ALL: 3,
+  EVAL: 4,
+});
 
 export const CommandArgumentTypes = Object.freeze({
   BOOL: 'bool',

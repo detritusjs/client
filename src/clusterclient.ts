@@ -8,8 +8,10 @@ import {
   ShardClientOptions,
   ShardClientRunOptions,
 } from './client';
+import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import EventEmitter from './eventemitter';
+import { sleep } from './utils';
 
 
 export type ShardsCollection = BaseCollection<number, ShardClient>;
@@ -27,6 +29,7 @@ export interface ClusterClientRunOptions extends ShardClientRunOptions {
 export class ClusterClient extends EventEmitter {
   readonly token: string;
 
+  manager: ClusterProcessChild | null = null;
   ran: boolean = false;
   rest: DetritusRestClient;
   shardCount: number = 0;
@@ -40,19 +43,30 @@ export class ClusterClient extends EventEmitter {
     options: ClusterClientOptions = {},
   ) {
     super();
+    options = Object.assign({}, options);
+
+    if (process.env.CLUSTER_MANAGER === 'true') {
+      token = <string> process.env.CLUSTER_TOKEN;
+      options.shardCount = +(<string> process.env.CLUSTER_SHARD_COUNT);
+      options.shards = [
+        +(<string> process.env.CLUSTER_SHARD_START),
+        +(<string> process.env.CLUSTER_SHARD_END),
+      ];
+    }
+
     if (!token) {
       throw new Error('Token is required for this library to work.');
     }
     this.token = token;
 
-    this.shardCount = options.shardCount || this.shardCount;
+    this.shardCount = +(options.shardCount || this.shardCount);
     if (Array.isArray(options.shards)) {
       if (options.shards.length !== 2) {
         throw new Error('Shards need to be in the format of [shardStart, shardEnd]');
       }
       const [shardStart, shardEnd] = options.shards;
-      this.shardEnd = shardEnd;
-      this.shardStart = shardStart;
+      this.shardEnd = +shardEnd;
+      this.shardStart = +shardStart;
     }
 
     Object.assign(this.shardOptions, options);
@@ -65,7 +79,12 @@ export class ClusterClient extends EventEmitter {
 
     this.shardOptions.pass = Object.assign({}, this.shardOptions.pass, {cluster: this});
 
+    if (process.env.CLUSTER_MANAGER === 'true') {
+      this.manager = new ClusterProcessChild(this);
+    }
+
     Object.defineProperties(this, {
+      manager: {configurable: false, writable: false},
       ran: {configurable: true, writable: false},
       rest: {enumerable: false, writable: false},
       shardCount: {writable: false},
@@ -89,6 +108,11 @@ export class ClusterClient extends EventEmitter {
     Object.defineProperty(this, 'shardStart', {value});
   }
 
+  /** @hidden */
+  _eval(code: string): any {
+    return eval(code);
+  }
+
   kill(): void {
     if (this.ran) {
       for (let [shardId, shard] of this.shards) {
@@ -102,9 +126,11 @@ export class ClusterClient extends EventEmitter {
   }
 
   hookedEmit(shard: ShardClient, name: string, event: any): boolean {
-    if (this.hasEventListener(name)) {
-      const clusterEvent = Object.assign({}, event, {shard});
-      this.emit(name, clusterEvent);
+    if (name !== 'ready') {
+      if (this.hasEventListener(name)) {
+        const clusterEvent = Object.assign({}, event, {shard});
+        this.emit(name, clusterEvent);
+      }
     }
     return super.emit.call(shard, name, event);
   }
@@ -115,7 +141,9 @@ export class ClusterClient extends EventEmitter {
     if (this.ran) {
       return this;
     }
-    options = Object.assign({}, options);
+    options = Object.assign({
+      url: process.env.GATEWAY_URL,
+    }, options);
 
     let delay: number;
     if (options.delay === undefined) {
@@ -138,7 +166,6 @@ export class ClusterClient extends EventEmitter {
       this.setShardEnd(shardCount - 1);
     }
 
-    const promises = [];
     for (let shardId = this.shardStart; shardId <= this.shardEnd; shardId++) {
       const shardOptions = Object.assign({}, this.shardOptions);
       shardOptions.gateway = Object.assign({}, shardOptions.gateway, {shardCount, shardId});
@@ -148,21 +175,11 @@ export class ClusterClient extends EventEmitter {
         emit: {value: this.hookedEmit.bind(this, shard)},
       });
       this.shards.set(shardId, shard);
-
-      const promise = new Promise((resolve, reject) => {
-        const runDelay = delay * (shardId - this.shardStart);
-        setTimeout(async () => {
-          try {
-            resolve(await shard.run(options));
-          } catch(error) {
-            reject(error);
-          }
-        }, runDelay);
-      });
-      promises.push(promise);
+      await shard.run(options);
+      await sleep(delay);
     }
-    await Promise.all(promises);
     Object.defineProperty(this, 'ran', {value: true});
+    this.emit('ready');
     return this;
   }
 }

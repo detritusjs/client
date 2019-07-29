@@ -133,6 +133,16 @@ export function rgbToInt(r: number, g: number, b: number): number {
   return ((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff);
 }
 
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    if (ms) {
+      setTimeout(resolve, ms);
+    } else {
+      resolve();
+    }
+  });
+}
+
 export function toCamelCase(value: string): string {
   if (!value.includes('_')) {
     return value;

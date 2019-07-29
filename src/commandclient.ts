@@ -67,6 +67,11 @@ export class CommandClient extends EventEmitter {
     super();
     options = Object.assign({}, options);
 
+    if (process.env.CLUSTER_MANAGER === 'true') {
+      token = <string> process.env.CLUSTER_TOKEN;
+      options.useClusterClient = true;
+    }
+
     let client: ClusterClient | ShardClient;
     if (typeof(token) === 'string') {
       if (options.useClusterClient) {
@@ -204,7 +209,7 @@ export class CommandClient extends EventEmitter {
     if (!isAbsolute) {
       if (require.main) {
         // require.main.path exists but typescript doesn't let us use it..
-        directory = path.dirname(require.main.filename) + directory;
+        directory = path.join(path.dirname(require.main.filename), directory);
       }
     }
     const files: Array<string> = await new Promise((resolve, reject) => {

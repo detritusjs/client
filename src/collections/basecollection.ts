@@ -79,7 +79,7 @@ export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
     return map;
   }
 
-  find(func: Function): undefined | V {
+  find(func: (v: V, k?: K) => boolean): undefined | V {
     for (let [key, value] of this) {
       if (func(value, key)) {
         return value;
@@ -91,7 +91,7 @@ export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
     return this.values().next().value;
   }
 
-  map(func: Function): Array<any> {
+  map(func: (v: V, k?: K) => any): Array<any> {
     const map: Array<V> = [];
     for (let [key, value] of this) {
       map.push(func(value, key));
@@ -103,7 +103,7 @@ export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
     return this.toArray().reduce(cb, initialValue);
   }
 
-  some(func: Function): boolean {
+  some(func: (v: V, k?: K) => boolean): boolean {
     for (let [key, value] of this) {
       if (func(value, key)) {
         return true;

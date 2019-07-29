@@ -193,6 +193,10 @@ export class ShardClient extends EventEmitter {
     options: ShardClientOptions = {},
   ) {
     super();
+    if (!token) {
+      throw new Error('Token is required for this library to work.');
+    }
+    this.token = token;
 
     options = Object.assign({}, options);
     if (options.cache === undefined) {
@@ -218,8 +222,6 @@ export class ShardClient extends EventEmitter {
       }
       this.imageFormat = options.imageFormat;
     }
-
-    this.token = token;
 
     Object.defineProperties(this, {
       _isBot: {configurable: true, enumerable: false, writable: false},

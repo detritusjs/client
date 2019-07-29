@@ -1,0 +1,187 @@
+import { ChildProcess, fork } from 'child_process';
+
+import { ClusterManager } from '../clustermanager';
+import { BaseCollection } from '../collections/basecollection';
+import { ClusterIPCOpCodes } from '../constants';
+import { ClusterIPCError } from '../errors';
+import EventEmitter from '../eventemitter';
+import { Snowflake } from '../utils';
+
+import { ClusterIPCTypes } from './ipctypes';
+
+
+export interface ClusterProcessOptions {
+  env: {[key: string]: string | undefined},
+  shardCount: number,
+  shardEnd: number,
+  shardStart: number,
+}
+
+export class ClusterProcess extends EventEmitter {
+  _evalsWaiting = new BaseCollection<string, Promise<any>>();
+
+  env: {[key: string]: string | undefined} = {};
+  manager: ClusterManager;
+  process: ChildProcess | null = null;
+
+  constructor(
+    manager: ClusterManager,
+    options: ClusterProcessOptions,
+  ) {
+    super();
+    this.manager = manager;
+
+    Object.assign(this.env, process.env, options.env, {
+      CLUSTER_SHARD_COUNT: String(options.shardCount),
+      CLUSTER_SHARD_END: String(options.shardEnd),
+      CLUSTER_SHARD_START: String(options.shardStart),
+    });
+
+    Object.defineProperties(this, {
+      manager: {enumerable: false, writable: false},
+    });
+  }
+
+  get file(): string {
+    return this.manager.file;
+  }
+
+  async onMessage(
+    message: ClusterIPCTypes.IPCMessage | any,
+  ): Promise<void> {
+    // our child has sent us something
+    if (message && typeof(message) === 'object') {
+      try {
+        switch (message.op) {
+          case ClusterIPCOpCodes.READY: {
+            this.emit('ready');
+          }; return;
+          case ClusterIPCOpCodes.DISCONNECT: {
+            this.emit('disconnect');
+          }; return;
+          case ClusterIPCOpCodes.RECONNECTING: {
+            this.emit('reconnecting');
+          }; return;
+          case ClusterIPCOpCodes.RESPAWN_ALL: {
+            
+          }; return;
+          case ClusterIPCOpCodes.EVAL: {
+            if (message.request) {
+              const data: ClusterIPCTypes.Eval = message.data;
+              try {
+                const results = await this.manager.broadcastEval(data.code, data.nonce);
+                await this.sendIPC(ClusterIPCOpCodes.EVAL, {
+                  ...data,
+                  results,
+                });
+              } catch(error) {
+                await this.sendIPC(ClusterIPCOpCodes.EVAL, {
+                  ...data,
+                  error: {
+                    message: error.message,
+                    name: error.name,
+                    stack: error.stack,
+                  },
+                });
+              }
+            }
+          }; return;
+        }
+      } catch(error) {
+        this.emit('warn', error);
+      }
+    }
+    this.emit('message', message);
+  }
+
+  async onExit(code: number, signal: string): Promise<void> {
+    this.emit('killed');
+    Object.defineProperty(this, 'ran', {value: false});
+    this.process = null;
+
+    if (this.manager.respawn) {
+      try {
+        await this.spawn();
+      } catch(error) {
+        this.emit('warn', error);
+      }
+    }
+  }
+
+  async eval(code: Function | string, nonce: string): Promise<any> {
+    if (this.process === null) {
+      throw new Error('Cannot eval without a child!');
+    }
+    if (this._evalsWaiting.has(nonce)) {
+      return <Promise<any>> this._evalsWaiting.get(nonce);
+    }
+    // incase the process dies
+    const child = this.process;
+    const promise = new Promise(async (resolve, reject) => {
+      const listener = (
+        message: ClusterIPCTypes.IPCMessage | any,
+      ) => {
+        if (message && typeof(message) === 'object') {
+          switch (message.op) {
+            case ClusterIPCOpCodes.EVAL: {
+              const data: ClusterIPCTypes.Eval = message.data;
+              if (data.nonce === nonce) {
+                child.removeListener('message', listener);
+                this._evalsWaiting.delete(nonce);
+                if (data.error) {
+                  reject(new ClusterIPCError(data.error));
+                } else {
+                  resolve(data.results);
+                }
+              }
+            }; break;
+          }
+        }
+      };
+      child.addListener('message', listener);
+
+      if (typeof(code) === 'function') {
+        code = `(${String(code)})(this)`;
+      }
+      try {
+        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
+      } catch(error) {
+        child.removeListener('message', listener);
+        reject(error);
+      }
+    });
+    this._evalsWaiting.set(nonce, promise);
+    return promise;
+  }
+
+  async send(message: any): Promise<void> {
+    if (this.process != null) {
+      const child = this.process;
+      await new Promise((resolve, reject) => {
+        child.send(message, (error: any) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      });
+    }
+  }
+
+  async sendIPC(op: number, data: any = null, request: boolean = false): Promise<void> {
+    return this.send({op, data, request});
+  }
+
+  async run(): Promise<ChildProcess> {
+    if (this.process) {
+      return this.process;
+    }
+    this.process = fork(this.file, [], {
+      env: this.env,
+    });
+    this.process.on('message', this.onMessage.bind(this));
+    this.process.on('exit', this.onExit.bind(this));
+    return this.process;
+  }
+}
