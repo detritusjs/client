@@ -5,6 +5,7 @@ import {
 } from 'detritus-client-rest';
 import { Gateway } from 'detritus-client-socket';
 
+import { ClusterClient } from './clusterclient';
 import {
   ClientEvents,
   ImageFormats,
@@ -67,7 +68,7 @@ interface GatewayOptions extends Gateway.SocketOptions, GatewayHandlerOptions {
 
 }
 
-export interface ClientOptions {
+export interface ShardClientOptions {
   cache?: {
     applications?: ApplicationsOptions,
     channels?: ChannelsOptions,
@@ -90,6 +91,7 @@ export interface ClientOptions {
   isBot?: boolean,
   rest?: RestOptions,
   pass?: {
+    cluster?: ClusterClient,
     applications?: Applications,
     channels?: Channels,
     emojis?: Emojis,
@@ -108,7 +110,7 @@ export interface ClientOptions {
   },
 }
 
-export interface ClientRunOptions {
+export interface ShardClientRunOptions {
   applications?: boolean,
   url?: string,
   wait?: boolean,
@@ -140,7 +142,7 @@ export class ShardClient extends EventEmitter {
   /**
    * @ignore
    */
-  cluster: null = null;
+  cluster: ClusterClient | null = null;
 
   /** Default Image Format to use for any url getters*/
   imageFormat: string = ImageFormats.PNG;
@@ -188,7 +190,7 @@ export class ShardClient extends EventEmitter {
 
   constructor(
     token: string,
-    options: ClientOptions = {},
+    options: ShardClientOptions = {},
   ) {
     super();
 
@@ -199,7 +201,7 @@ export class ShardClient extends EventEmitter {
     if (options.pass === undefined) {
       options.pass = {};
     }
-    this.cluster = null;
+    this.cluster = options.pass.cluster || this.cluster;
     this.gateway = new Gateway.Socket(token, options.gateway);
     this.gatewayHandler = new GatewayHandler(this, options.gateway);
     this.rest = new RestClient(token, Object.assign({
@@ -305,7 +307,7 @@ export class ShardClient extends EventEmitter {
   }
 
   async run(
-    options: ClientRunOptions = {},
+    options: ShardClientRunOptions = {},
   ): Promise<ShardClient> {
     const fetchApplications = options.applications || options.applications === undefined;
     const wait = options.wait || options.wait === undefined;
@@ -314,7 +316,8 @@ export class ShardClient extends EventEmitter {
     if (options.url) {
       url = <string> options.url;
     } else {
-      url = <string> (await this.rest.fetchGateway()).url;
+      const data = await this.rest.fetchGateway();
+      url = data.url;
     }
 
     this.gateway.connect(url);

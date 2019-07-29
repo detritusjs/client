@@ -9,3 +9,4 @@ export {
 };
 export * from './client';
 export * from './commandclient';
+export * from './clusterclient';

@@ -35,13 +35,15 @@ export type CommandCallbackRatelimit = (context: Context, remaining: number) => 
  * @category Command Options
  */
 export interface CommandOptions {
+  _class?: any,
+  _file?: string,
   aliases?: Array<string>,
   args?: Array<ArgumentOptions>,
   disableDm?: boolean,
   disableDmReply?: boolean,
   extras?: {[key: string]: any},
   label?: string,
-  name: string,
+  name?: string,
   ratelimit?: boolean | CommandRatelimitOptions | null,
   responseOptional?: boolean,
 
@@ -70,8 +72,8 @@ export interface CommandRatelimitOptions {
  * @category Command
  */
 export class Command {
-  client: ShardClient;
-  commandClient: CommandClient;
+  readonly _file?: string;
+  readonly commandClient: CommandClient;
 
   aliases: Array<string>;
   args: ArgumentParser;
@@ -95,22 +97,27 @@ export class Command {
     commandClient: CommandClient,
     options: CommandOptions,
   ) {
-    this.client = commandClient.client;
     this.commandClient = commandClient;
 
+    const name = options.name || this.name;
     this.aliases = (options.aliases || []).map((alias) => alias.toLowerCase());
     this.args = new ArgumentParser(options.args);
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
     this.extras = Object.assign({}, options.extras);
-    this.label = (options.label || options.name).toLowerCase();
-    this.name = options.name.toLowerCase();
+    this.label = (options.label || name).toLowerCase();
+    this.name = name.toLowerCase();
     this.responseOptional = !!options.responseOptional;
+
+    if (options._file) {
+      this._file = options._file;
+    }
 
     if (options.ratelimit != null) {
       this.ratelimit = new CommandRatelimit(this, options.ratelimit);
     }
     Object.defineProperties(this, {
+      _file: {configurable: true, writable: false},
       client: {enumerable: false, writable: false},
       commandClient: {enumerable: false, writable: false},
       ratelimit: {enumerable: false, writable: false},

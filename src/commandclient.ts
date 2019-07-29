@@ -1,9 +1,13 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
+import { ShardClient } from './client';
 import {
-  ShardClient,
-  ClientOptions,
-  ClientRunOptions,
-} from './client';
-import { ClientEvents, CommandRatelimitTypes } from './constants';
+  ClusterClient,
+  ClusterClientOptions,
+  ClusterClientRunOptions,
+} from './clusterclient';
+import { ClientEvents, CommandRatelimitTypes, PremiumGuildSubscriptionsRequired } from './constants';
 import EventEmitter from './eventemitter';
 
 import { ParsedArgs } from './command/argumentparser';
@@ -21,7 +25,7 @@ import {
 } from './structures';
 
 
-export interface CommandClientOptions extends ClientOptions {
+export interface CommandClientOptions extends ClusterClientOptions {
   activateOnEdits?: boolean,
   ignoreMe?: boolean,
   maxEditDuration?: number,
@@ -29,6 +33,11 @@ export interface CommandClientOptions extends ClientOptions {
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
+  useClusterClient?: boolean,
+}
+
+export interface CommandClientRunOptions extends ClusterClientRunOptions {
+
 }
 
 
@@ -39,7 +48,7 @@ export interface CommandClientOptions extends ClientOptions {
 export class CommandClient extends EventEmitter {
   readonly _clientListeners: {[key: string]: Function | null} = {};
   activateOnEdits: boolean = false;
-  client: ShardClient;
+  client: ClusterClient | ShardClient;
   commands: Array<Command>;
   ignoreMe: boolean = true;
   maxEditDuration: number = 0;
@@ -58,14 +67,18 @@ export class CommandClient extends EventEmitter {
     super();
     options = Object.assign({}, options);
 
-    let client: ShardClient;
+    let client: ClusterClient | ShardClient;
     if (typeof(token) === 'string') {
-      client = new ShardClient(token, options);
+      if (options.useClusterClient) {
+        client = new ClusterClient(token, options);
+      } else {
+        client = new ShardClient(token, options);
+      }
     } else {
       client = token;
     }
 
-    if (!client || !(client instanceof ShardClient)) {
+    if (!client || !(client instanceof ClusterClient || client instanceof ShardClient)) {
       throw new Error('Token has to be a string or an instance of a client');
     }
     this.client = client;
@@ -141,44 +154,112 @@ export class CommandClient extends EventEmitter {
 
   /* Generic Command Function */
   add(
-    options: CommandOptions | string,
+    options: Command | CommandOptions | string,
     run?: CommandCallback,
   ): CommandClient {
-    if (typeof(options) === 'string') {
-      options = {name: options, run};
+    let command: Command;
+    if (options instanceof Command) {
+      command = options;
     } else {
-      if (run !== undefined) {
-        options.run = run;
+      if (typeof(options) === 'string') {
+        options = {name: options, run};
+      } else {
+        if (run !== undefined) {
+          options.run = run;
+        }
+      }
+      if (options._class === undefined) {
+        command = new Command(this, options);
+      } else {
+        command = new options._class(this, options);
       }
     }
 
-    const command = new Command(this, options);
-    if (typeof(options.run) !== 'function') {
+    if (typeof(command.run) !== 'function') {
       throw new Error('Command needs a run function');
     }
+
+    if (this.commands.some((c) => c.check(command.name))) {
+      throw new Error(`Alias/name ${command.name} already exists.`);
+    }
+    for (let alias of command.aliases) {
+      if (this.commands.some((c) => c.check(alias))) {
+        throw new Error(`Alias/name ${alias} already exists.`);
+      }
+    }
+
     this.commands.push(command);
     this.setListeners();
     return this;
   }
 
-  addMultiple(commands: Array<CommandOptions> = []) {
+  addMultiple(commands: Array<CommandOptions> = []): CommandClient {
     for (let command of commands) {
       this.add(command);
     }
+    return this;
+  }
+
+  async addMultipleIn(directory: string, isAbsolute?: boolean): Promise<CommandClient> {
+    if (!isAbsolute) {
+      if (require.main) {
+        // require.main.path exists but typescript doesn't let us use it..
+        directory = path.dirname(require.main.filename) + directory;
+      }
+    }
+    const files: Array<string> = await new Promise((resolve, reject) => {
+      fs.readdir(directory, (error: any, files: Array<string>) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(files);
+        }
+      });
+    });
+    for (let file of files) {
+      const filepath = path.resolve(directory, file);
+      const importedCommand = require(filepath);
+      if (typeof(importedCommand) === 'function') {
+        this.add({_file: filepath, _class: importedCommand});
+      } else if (importedCommand instanceof Command) {
+        Object.defineProperty(importedCommand, '_file', {value: filepath});
+        this.add(importedCommand);
+      } else if (typeof(importedCommand) === 'object') {
+        this.add({_file: filepath, ...importedCommand});
+      }
+    }
+    return this;
   }
 
   addMentionPrefixes(): void {
-    let user: User;
-    if (this.client.user !== null) {
-      user = <User> this.client.user;
-    } else {
-      return;
+    let user: null | User = null;
+    if (this.client instanceof ClusterClient) {
+      for (let [shardId, shard] of this.client.shards) {
+        if (shard.user != null) {
+          user = <User> shard.user;
+          break;
+        }
+      }
+    } else if (this.client instanceof ShardClient) {
+      if (this.client.user != null) {
+        user = <User> this.client.user;
+      }
     }
-    this.prefixes.mention.add(user.mention);
-    this.prefixes.mention.add(`<@!${user.id}>`);
+    if (user !== null) {
+      this.prefixes.mention.add(user.mention);
+      this.prefixes.mention.add(`<@!${user.id}>`);
+    }
   }
 
   clear(): void {
+    for (let command of this.commands) {
+      if (command._file) {
+        const requirePath = require.resolve(command._file);
+        if (requirePath) {
+          delete require.cache[requirePath];
+        }
+      }
+    }
     this.commands.length = 0;
     this.resetListeners();
   }
@@ -260,15 +341,15 @@ export class CommandClient extends EventEmitter {
   }
 
   async run(
-    options: ClientRunOptions = {},
-  ): Promise<ShardClient> {
+    options: CommandClientRunOptions = {},
+  ): Promise<ClusterClient | ShardClient> {
     if (this.ran) {
       return this.client;
     }
-    const client = await this.client.run(options);
+    await this.client.run(options);
     Object.defineProperty(this, 'ran', {value: true});
     this.addMentionPrefixes();
-    return client;
+    return this.client;
   }
 
   /* Handler */

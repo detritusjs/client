@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { ClusterClient } from '../clusterclient';
 import { CommandClient } from '../commandclient';
 
 import {
@@ -31,6 +32,11 @@ export class Context {
   }
 
   /* Generic Client Properties */
+
+  get cluster(): ClusterClient | null {
+    return this.client.cluster;
+  }
+
   get owners() {
     return this.client.owners;
   }
