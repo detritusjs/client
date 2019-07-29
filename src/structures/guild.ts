@@ -510,7 +510,7 @@ export class Guild extends BaseStructure {
   }
 
   merge(data: BaseStructureData): void {
-    for (let key in skipKeys) {
+    for (let key of skipKeys) {
       if (data[key] !== undefined) {
         this.mergeValue(key, data[key]);
       }
