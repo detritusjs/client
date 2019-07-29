@@ -312,7 +312,9 @@ export namespace GatewayClientEvents {
 
   export interface MessageUpdate {
     differences: any | null,
-    message: Message,
+    isEmbedUpdate: boolean,
+    message: Message | null,
+    raw: GatewayRawEvents.MessageUpdate,
   }
 
   export interface Oauth2TokenRevoke {

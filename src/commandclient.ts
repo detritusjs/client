@@ -362,7 +362,7 @@ export class CommandClient extends EventEmitter {
     name: string,
     {differences, message}: any,
   ): Promise<void> {
-    if (this.ignoreMe && message.fromMe) {
+    if (!message || (this.ignoreMe && message.fromMe)) {
       return;
     }
     if (name === ClientEvents.MESSAGE_UPDATE) {

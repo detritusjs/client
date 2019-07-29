@@ -1098,7 +1098,12 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.MESSAGE_UPDATE](data: GatewayRawEvents.MessageUpdate) {
     let differences: any = null;
-    let message: Message;
+    let isEmbedUpdate: boolean = false;
+    let message: Message | null = null;
+
+    if (!data['author']) {
+      isEmbedUpdate = true;
+    }
 
     if (this.client.messages.has(data['id'])) {
       message = <Message> this.client.messages.get(data['id']);
@@ -1107,13 +1112,18 @@ export class GatewayDispatchHandler {
       }
       message.merge(data);
     } else {
-      message = new Message(this.client, data);
-      this.client.messages.insert(message);
+      if (data['author']) {
+        // else it's an embed update and we dont have it in cache
+        message = new Message(this.client, data);
+        this.client.messages.insert(message);
+      }
     }
 
     this.client.emit(ClientEvents.MESSAGE_UPDATE, {
       differences,
+      isEmbedUpdate,
       message,
+      raw: data,
     });
   }
 
