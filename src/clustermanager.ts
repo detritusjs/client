@@ -123,13 +123,18 @@ export class ClusterManager extends EventEmitter {
       });
       this.processes.set(clusterId++, clusterProcess);
       await clusterProcess.run();
-      await sleep(delay * (shardEnd - shardStart));
+      if (shardEnd < this.shardEnd) {
+        await sleep(delay * (shardEnd - shardStart));
+      }
     }
     Object.defineProperty(this, 'ran', {value: true});
     return this;
   }
 
-  async broadcast(message: any) {
+  async broadcast(
+    message: any,
+    shard?: number,
+  ): Promise<Array<any>> {
     const promises = this.processes.map((clusterProcess) => {
       return clusterProcess.send(message);
     });
@@ -138,11 +143,15 @@ export class ClusterManager extends EventEmitter {
 
   async broadcastEval(
     code: Function | string,
+    shard?: number,
     nonce: string = Snowflake.generate().id,
-  ) {
+  ): Promise<Array<any>> {
     const promises = this.processes.map((clusterProcess) => {
-      return clusterProcess.eval(code, nonce);
+      return clusterProcess.eval(code, nonce, shard);
     });
-    return Promise.all(promises);
+    const results = await Promise.all(promises);
+    return results.filter((result: any) => {
+      return result !== undefined;
+    });
   }
 }

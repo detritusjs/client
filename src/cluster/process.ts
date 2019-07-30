@@ -17,6 +17,11 @@ export interface ClusterProcessOptions {
   shardStart: number,
 }
 
+export interface ClusterProcessRunOptions {
+  timeout?: number,
+  wait?: boolean,
+}
+
 export class ClusterProcess extends EventEmitter {
   _evalsWaiting = new BaseCollection<string, Promise<any>>();
 
@@ -69,7 +74,11 @@ export class ClusterProcess extends EventEmitter {
             if (message.request) {
               const data: ClusterIPCTypes.Eval = message.data;
               try {
-                const results = await this.manager.broadcastEval(data.code, data.nonce);
+                const results = await this.manager.broadcastEval(
+                  data.code,
+                  message.shard,
+                  data.nonce,
+                );
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
                   ...data,
                   results,
@@ -108,7 +117,11 @@ export class ClusterProcess extends EventEmitter {
     }
   }
 
-  async eval(code: Function | string, nonce: string): Promise<any> {
+  async eval(
+    code: Function | string,
+    nonce: string,
+    shard?: number,
+  ): Promise<any> {
     if (this.process === null) {
       throw new Error('Cannot eval without a child!');
     }
@@ -128,10 +141,14 @@ export class ClusterProcess extends EventEmitter {
               if (data.nonce === nonce) {
                 child.removeListener('message', listener);
                 this._evalsWaiting.delete(nonce);
-                if (data.error) {
-                  reject(new ClusterIPCError(data.error));
+                if (data.ignored) {
+                  resolve();
                 } else {
-                  resolve(data.results);
+                  if (data.error) {
+                    reject(new ClusterIPCError(data.error));
+                  } else {
+                    resolve(data.result);
+                  }
                 }
               }
             }; break;
@@ -144,7 +161,10 @@ export class ClusterProcess extends EventEmitter {
         code = `(${String(code)})(this)`;
       }
       try {
-        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
+        await this.sendIPC(ClusterIPCOpCodes.EVAL, {
+          code,
+          nonce,
+        }, true, shard);
       } catch(error) {
         child.removeListener('message', listener);
         reject(error);
@@ -169,19 +189,50 @@ export class ClusterProcess extends EventEmitter {
     }
   }
 
-  async sendIPC(op: number, data: any = null, request: boolean = false): Promise<void> {
-    return this.send({op, data, request});
+  async sendIPC(
+    op: number,
+    data: any = null,
+    request: boolean = false,
+    shard?: number,
+  ): Promise<void> {
+    return this.send({op, data, request, shard});
   }
 
-  async run(): Promise<ChildProcess> {
+  async run(
+    options: ClusterProcessRunOptions = {},
+  ): Promise<ChildProcess> {
     if (this.process) {
       return this.process;
     }
-    this.process = fork(this.file, [], {
+    const process = fork(this.file, [], {
       env: this.env,
     });
+    this.process = process;
     this.process.on('message', this.onMessage.bind(this));
     this.process.on('exit', this.onExit.bind(this));
-    return this.process;
+
+    if (options.wait || options.wait === undefined) {
+      return new Promise((resolve, reject) => {
+        let timeout: any = null;
+        if (options.timeout) {
+          timeout = setTimeout(() => {
+            if (this.process === process) {
+              this.process.kill();
+              this.process = null;
+            }
+            reject(new Error('Cluster Child took too long to ready up'));
+            timeout = null;
+          }, options.timeout);
+        }
+        this.once('ready', () => {
+          if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+          }
+          resolve(process);
+        });
+      });
+    }
+    return process;
   }
 }

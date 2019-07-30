@@ -3,6 +3,7 @@ export namespace ClusterIPCTypes {
     op: number,
     data: any,
     request: boolean,
+    shard?: number,
   }
 
   export interface Eval {
@@ -12,7 +13,9 @@ export namespace ClusterIPCTypes {
       stack: string,
     },
     code: string,
+    ignored?: boolean,
     nonce: string,
-    results: Array<any>,
+    result?: any,
+    results?: Array<any>,
   }
 }

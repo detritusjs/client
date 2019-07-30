@@ -683,56 +683,74 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK](data: GatewayRawEvents.GuildMembersChunk) {
-    const amounts: {
-      members?: number,
-      notFound?: number,
-      presences?: number,
-    } = {};
     const guildId = data['guild_id'];
+    let members: BaseCollection<string, Member> | null = null;
+    let notFound: Array<string> | null = null;
+    let presences: BaseCollection<string, Presence> | null = null;
+
+    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBERS_CHUNK);
 
     if (data['members'] !== undefined) {
-      amounts.members = data['members'].length;
-      if (this.client.members.enabled) {
+      if (this.client.members.enabled || isListening) {
+        members = new BaseCollection<string, Member>();
         for (let value of data['members']) {
-          const user = <GatewayRawEvents.RawUser> value.user;
-          if (this.client.members.has(guildId, user.id)) {
-            (<Member> this.client.members.get(guildId, user.id)).merge(value);
+          let rawUser = <GatewayRawEvents.RawUser> value.user;
+          let member: Member;
+          if (this.client.members.has(guildId, rawUser.id)) {
+            member = <Member> this.client.members.get(guildId, rawUser.id);
+            member.merge(value);
           } else {
-            const member = new Member(this.client, value);
-            member.guildId = guildId;
+            member = new Member(this.client, Object.assign(value, {guild_id: guildId}));
             this.client.members.insert(member);
+          }
+
+          if (isListening) {
+            members.set(member.id, member);
           }
         }
       } else if (this.client.users.enabled) {
         for (let value of data['members']) {
-          const user = <GatewayRawEvents.RawUser> value.user;
-          if (this.client.users.has(user.id)) {
-            (<User> this.client.users.get(user.id)).merge(user);
+          let raw = <GatewayRawEvents.RawUser> value.user;
+          let user: User;
+          if (this.client.users.has(raw.id)) {
+            user = <User> this.client.users.get(raw.id);
+            user.merge(raw);
           } else {
-            this.client.users.insert(new User(this.client, user));
+            user = new User(this.client, raw);
+            this.client.users.insert(user);
           }
         }
       }
     }
 
     if (data['not_found'] !== undefined) {
-      amounts.notFound = data['not_found'].length;
+      // user ids
+      notFound = data['not_found'];
     }
 
     if (data['presences'] !== undefined) {
-      amounts.presences = data['presences'].length;
-      if (this.client.presences.enabled) {
+      presences = new BaseCollection<string, Presence>();
+      if (this.client.presences.enabled || isListening) {
         for (let value of data['presences']) {
           value.guild_id = guildId;
-          this.client.presences.add(value);
+          let presence: Presence;
+          if (this.client.presences.enabled) {
+            presence = <Presence> this.client.presences.add(value);
+          } else {
+            presence = new Presence(this.client, value);
+          }
+          if (isListening) {
+            presences.set(presence.user.id, presence);
+          }
         }
       }
     }
 
     this.client.emit(ClientEvents.GUILD_MEMBERS_CHUNK, {
-      amounts,
       guildId,
-      raw: data,
+      members,
+      notFound,
+      presences,
     });
   }
 

@@ -1,18 +1,21 @@
 import { ClusterClient } from '../clusterclient';
 import { ClusterIPCOpCodes } from '../constants';
 import { ClusterIPCError } from '../errors';
+import EventEmitter from '../eventemitter';
 import { Snowflake } from '../utils';
 
 import { ClusterIPCTypes } from './ipctypes';
 
 
-export class ClusterProcessChild {
+export class ClusterProcessChild extends EventEmitter {
   cluster: ClusterClient;
 
   constructor(cluster: ClusterClient) {
+    super();
     this.cluster = cluster;
 
     process.on('message', this.onMessage.bind(this));
+    process.on('message', this.emit.bind(this, 'ipc'));
     this.cluster.on('ready', () => this.sendIPC(ClusterIPCOpCodes.READY));
   }
 
@@ -24,22 +27,30 @@ export class ClusterProcessChild {
       switch (message.op) {
         case ClusterIPCOpCodes.EVAL: {
           if (message.request) {
+            // we received a request to eval from the parent
             const data: ClusterIPCTypes.Eval = message.data;
-            try {
-              const result = await Promise.resolve(this.cluster._eval(data.code));
+            if (message.shard != null && !this.cluster.shards.has(message.shard)) {
               await this.sendIPC(ClusterIPCOpCodes.EVAL, {
                 ...data,
-                results: result,
+                ignored: true,
               });
-            } catch(error) {
-              await this.sendIPC(ClusterIPCOpCodes.EVAL, {
-                ...data,
-                error: {
-                  message: error.message,
-                  name: error.name,
-                  stack: error.stack,
-                },
-              });
+            } else {
+              try {
+                const result = await Promise.resolve(this.cluster._eval(data.code));
+                await this.sendIPC(ClusterIPCOpCodes.EVAL, {
+                  ...data,
+                  result,
+                });
+              } catch(error) {
+                await this.sendIPC(ClusterIPCOpCodes.EVAL, {
+                  ...data,
+                  error: {
+                    message: error.message,
+                    name: error.name,
+                    stack: error.stack,
+                  },
+                });
+              }
             }
           }
         }; return;
@@ -62,11 +73,19 @@ export class ClusterProcessChild {
     });
   }
 
-  async sendIPC(op: number, data: any = null, request: boolean = false): Promise<void> {
-    return this.send({op, data, request});
+  async sendIPC(
+    op: number,
+    data: any = null,
+    request: boolean = false,
+    shard?: number,
+  ): Promise<void> {
+    return this.send({op, data, request, shard});
   }
 
-  async broadcastEval(code: Function | string): Promise<any> {
+  async broadcastEval(
+    code: Function | string,
+    shard?: number,
+  ): Promise<any> {
     const parent = <any> process;
     const nonce = Snowflake.generate().id;
     return new Promise(async (resolve, reject) => {
@@ -98,7 +117,10 @@ export class ClusterProcessChild {
         code = `(${String(code)})(this)`;
       }
       try {
-        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
+        await this.sendIPC(ClusterIPCOpCodes.EVAL, {
+          code,
+          nonce,
+        }, true, shard);
       } catch(error) {
         parent.removeListener('message', listener);
         reject(error);

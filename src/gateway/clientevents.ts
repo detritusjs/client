@@ -179,13 +179,10 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildMembersChunk {
-    amounts: {
-      members?: number,
-      notFound?: number,
-      presences?: number,
-    },
     guildId: string,
-    raw: GatewayRawEvents.GuildMembersChunk,
+    members: BaseCollection<string, Member> | null,
+    notFound: Array<string> | null,
+    presences: BaseCollection<string, Presence> | null,
   }
 
   export interface GuildRoleCreate {

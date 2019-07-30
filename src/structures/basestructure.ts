@@ -23,6 +23,7 @@ export class BaseStructure {
 
     Object.defineProperties(this, {
       _keys: {enumerable: false},
+      _keysMerge: {enumerable: false},
       client: {enumerable: false, writable: false},
     });
   }

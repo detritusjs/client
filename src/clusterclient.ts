@@ -125,6 +125,10 @@ export class ClusterClient extends EventEmitter {
     }
   }
 
+  hookedHasEventListener(shard: ShardClient, name: string): boolean {
+    return super.hasEventListener(name) || super.hasEventListener.call(shard, name);
+  }
+
   hookedEmit(shard: ShardClient, name: string, event: any): boolean {
     if (name !== 'ready') {
       if (this.hasEventListener(name)) {
@@ -172,11 +176,14 @@ export class ClusterClient extends EventEmitter {
 
       const shard = new ShardClient(this.token, shardOptions);
       Object.defineProperties(shard, {
+        hasEventListener: {value: this.hookedHasEventListener.bind(this, shard)},
         emit: {value: this.hookedEmit.bind(this, shard)},
       });
       this.shards.set(shardId, shard);
       await shard.run(options);
-      await sleep(delay);
+      if (shardId < this.shardEnd) {
+        await sleep(delay);
+      }
     }
     Object.defineProperty(this, 'ran', {value: true});
     this.emit('ready');
