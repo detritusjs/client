@@ -162,7 +162,7 @@ export class RestClient extends Client {
   async createMessage(
     channelId: string,
     options: Options.CreateMessage | string = {},
-  ): Promise<any> {
+  ): Promise<Message> {
     const data = await super.createMessage.call(this, channelId, options);
     if (this.client.channels.has(data.channel_id)) {
       const channel = <Channel> this.client.channels.get(data.channel_id);
@@ -172,7 +172,7 @@ export class RestClient extends Client {
     }
     const message = new Message(this.client, data);
     this.client.messages.insert(message);
-    return data;
+    return message;
   }
 
   async createWebhook(

@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
+import { ClusterProcessChild } from '../cluster/processchild';
 import { CommandClient } from '../commandclient';
 
 import {
@@ -35,6 +36,10 @@ export class Context {
 
   get cluster(): ClusterClient | null {
     return this.client.cluster;
+  }
+
+  get manager(): ClusterProcessChild | null {
+    return (this.cluster) ? this.cluster.manager : null;
   }
 
   get owners() {

@@ -10,6 +10,7 @@ import {
 } from './client';
 import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
+import { CommandClient } from './commandclient';
 import EventEmitter from './eventemitter';
 import { sleep } from './utils';
 
@@ -29,9 +30,11 @@ export interface ClusterClientRunOptions extends ShardClientRunOptions {
 export class ClusterClient extends EventEmitter {
   readonly token: string;
 
-  manager: ClusterProcessChild | null = null;
+  readonly commandClient: CommandClient | null = null;
+  readonly manager: ClusterProcessChild | null = null;
+  readonly rest: DetritusRestClient;
+
   ran: boolean = false;
-  rest: DetritusRestClient;
   shardCount: number = 0;
   shardEnd: number = -1;
   shardStart: number = 0;
@@ -77,13 +80,19 @@ export class ClusterClient extends EventEmitter {
     this.rest = new DetritusRestClient(token, this.shardOptions.rest);
     this.shardOptions.rest.globalBucket = this.rest.globalBucket;
 
-    this.shardOptions.pass = Object.assign({}, this.shardOptions.pass, {cluster: this});
+    this.shardOptions.pass = Object.assign({}, this.shardOptions.pass);
+    this.shardOptions.pass.cluster = this;
+
+    if (this.shardOptions.pass.commandClient !== undefined) {
+      this.commandClient = this.shardOptions.pass.commandClient;
+    }
 
     if (process.env.CLUSTER_MANAGER === 'true') {
       this.manager = new ClusterProcessChild(this);
     }
 
     Object.defineProperties(this, {
+      commandClient: {configurable: true, enumerable: false, writable: false},
       manager: {configurable: false, writable: false},
       ran: {configurable: true, writable: false},
       rest: {enumerable: false, writable: false},
@@ -173,6 +182,10 @@ export class ClusterClient extends EventEmitter {
     for (let shardId = this.shardStart; shardId <= this.shardEnd; shardId++) {
       const shardOptions = Object.assign({}, this.shardOptions);
       shardOptions.gateway = Object.assign({}, shardOptions.gateway, {shardCount, shardId});
+      if (this.commandClient) {
+        shardOptions.pass = Object.assign({}, shardOptions.pass);
+        shardOptions.pass.commandClient = this.commandClient;
+      }
 
       const shard = new ShardClient(this.token, shardOptions);
       Object.defineProperties(shard, {

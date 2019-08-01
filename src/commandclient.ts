@@ -7,7 +7,7 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
-import { ClientEvents, CommandRatelimitTypes, PremiumGuildSubscriptionsRequired } from './constants';
+import { ClientEvents, CommandRatelimitTypes } from './constants';
 import EventEmitter from './eventemitter';
 
 import { ParsedArgs } from './command/argumentparser';
@@ -87,6 +87,7 @@ export class CommandClient extends EventEmitter {
       throw new Error('Token has to be a string or an instance of a client');
     }
     this.client = client;
+    Object.defineProperty(this.client, 'commandClient', {value: this});
 
     this.activateOnEdits = !!options.activateOnEdits || this.activateOnEdits;
     this.commands = [];
@@ -222,15 +223,21 @@ export class CommandClient extends EventEmitter {
       });
     });
     for (let file of files) {
+      if (!file.endsWith('.js')) {
+        continue;
+      }
       const filepath = path.resolve(directory, file);
-      const importedCommand = require(filepath);
+      let importedCommand: any = require(filepath);
       if (typeof(importedCommand) === 'function') {
         this.add({_file: filepath, _class: importedCommand});
       } else if (importedCommand instanceof Command) {
         Object.defineProperty(importedCommand, '_file', {value: filepath});
         this.add(importedCommand);
       } else if (typeof(importedCommand) === 'object') {
-        this.add({_file: filepath, ...importedCommand});
+        if ('default' in importedCommand) {
+          importedCommand = importedCommand.default;
+        }
+        this.add({...importedCommand, _file: filepath});
       }
     }
     return this;

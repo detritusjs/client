@@ -691,6 +691,7 @@ export class GatewayDispatchHandler {
     const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBERS_CHUNK);
 
     if (data['members'] !== undefined) {
+      // we won't be in the chunk anyways, right?
       if (this.client.members.enabled || isListening) {
         members = new BaseCollection<string, Member>();
         for (let value of data['members']) {

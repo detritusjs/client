@@ -28,7 +28,7 @@ export class Members extends BaseClientCollection<string, MembersCache, Member> 
   }
 
   insert(member: Member): void {
-    if (this.enabled) {
+    if (this.enabled || member.isMe) {
       let cache: MembersCache;
       if (super.has(member.guildId)) {
         cache = <MembersCache> super.get(member.guildId);
@@ -41,7 +41,7 @@ export class Members extends BaseClientCollection<string, MembersCache, Member> 
   }
 
   delete(guildId: string, userId?: string): boolean {
-    if (this.enabled && super.has(guildId)) {
+    if (super.has(guildId)) {
       if (userId !== undefined) {
         const cache = <MembersCache> super.get(guildId);
         cache.delete(userId);
@@ -58,7 +58,7 @@ export class Members extends BaseClientCollection<string, MembersCache, Member> 
   get(guildId: string): MembersCache | undefined;
   get(guildId: string, userId: string): Member | undefined;
   get(guildId: string, userId?: string): Member | MembersCache | undefined {
-    if (this.enabled && super.has(guildId)) {
+    if (super.has(guildId)) {
       const cache = <MembersCache> super.get(guildId);
       if (userId) {
         return cache.get(userId);
@@ -70,7 +70,7 @@ export class Members extends BaseClientCollection<string, MembersCache, Member> 
   has(guildId: string): boolean;
   has(guildId: string, userId: string): boolean;
   has(guildId: string, userId?: string): boolean {
-    if (this.enabled && super.has(guildId)) {
+    if (super.has(guildId)) {
       if (userId) {
         return (<MembersCache> super.get(guildId)).has(userId);
       }

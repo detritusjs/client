@@ -5,7 +5,9 @@ import {
 } from 'detritus-client-rest';
 import { Gateway } from 'detritus-client-socket';
 
+
 import { ClusterClient } from './clusterclient';
+import { CommandClient } from './commandclient';
 import {
   ClientEvents,
   ImageFormats,
@@ -92,6 +94,7 @@ export interface ShardClientOptions {
   rest?: RestOptions,
   pass?: {
     cluster?: ClusterClient,
+    commandClient?: CommandClient,
     applications?: Applications,
     channels?: Channels,
     emojis?: Emojis,
@@ -139,10 +142,8 @@ export class ShardClient extends EventEmitter {
    */
   _isBot: boolean = true;
 
-  /**
-   * @ignore
-   */
   cluster: ClusterClient | null = null;
+  commandClient: CommandClient | null = null;
 
   /** Default Image Format to use for any url getters*/
   imageFormat: string = ImageFormats.PNG;
@@ -206,6 +207,7 @@ export class ShardClient extends EventEmitter {
       options.pass = {};
     }
     this.cluster = options.pass.cluster || this.cluster;
+    this.commandClient = options.pass.commandClient || this.commandClient;
     this.gateway = new Gateway.Socket(token, options.gateway);
     this.gatewayHandler = new GatewayHandler(this, options.gateway);
     this.rest = new RestClient(token, Object.assign({
@@ -226,6 +228,7 @@ export class ShardClient extends EventEmitter {
     Object.defineProperties(this, {
       _isBot: {configurable: true, enumerable: false, writable: false},
       cluster: {enumerable: false, writable: false},
+      commandClient: {configurable: true, enumerable: false, writable: false},
       gateway: {enumerable: false, writable: false},
       ran: {configurable: true, writable: false},
       rest: {enumerable: false, writable: false},

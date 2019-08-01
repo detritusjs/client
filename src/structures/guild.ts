@@ -570,10 +570,25 @@ export class Guild extends BaseStructure {
                   }
                 }
               } else {
+                if (this.client.user && this.client.user.id === raw.user.id) {
+                  // is us, force into cache
+                  raw.guild_id = this.id;
+                  this.client.members.insert(new Member(this.client, raw));
+                }
                 if (this.client.users.has(raw.user.id)) {
                   (<User> this.client.users.get(raw.user.id)).merge(raw.user);
                 } else {
                   this.client.users.insert(new User(this.client, raw.user));
+                }
+              }
+            }
+          } else {
+            // still need to find us and put us in cache
+            if (this.client.user) {
+              for (let raw of value) {
+                if (raw.user.id === this.client.user.id) {
+                  raw.guild_id = this.id;
+                  this.client.members.insert(new Member(this.client, raw));
                 }
               }
             }
