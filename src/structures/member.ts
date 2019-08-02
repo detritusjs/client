@@ -64,6 +64,14 @@ export class Member extends UserMixin {
     return !!this.premiumSince;
   }
 
+  get isOffline(): boolean {
+    const presence = this.presence;
+    if (presence) {
+      return presence.isOffline;
+    }
+    return true;
+  }
+
   get isOwner(): boolean {
     const guild = this.guild;
     if (guild !== null) {

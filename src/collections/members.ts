@@ -4,6 +4,7 @@ import {
   BaseCollection,
 } from './basecollection';
 
+import { ShardClient } from '../client';
 import { Member } from '../structures';
 
 
@@ -15,7 +16,7 @@ export interface MembersCache extends BaseCollection<string, Member> {
  * @category Collection Options
  */
 export interface MembersOptions extends BaseClientCollectionOptions {
-
+  storeOffline?: boolean,
 };
 
 /**
@@ -23,21 +24,42 @@ export interface MembersOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class Members extends BaseClientCollection<string, MembersCache, Member> {
+  storeOffline: boolean;
+
+  constructor(client: ShardClient, options: MembersOptions = {}) {
+    super(client, options);
+    this.storeOffline = !!options.storeOffline;
+    Object.defineProperties(this, {
+      client: {enumerable: false, writable: false},
+      storeOffline: {configurable: true, writable: false},
+    });
+  }
+
+  setStoreOffline(value: boolean): void {
+    Object.defineProperty(this, 'storeOffline', {value});
+  }
+
   get size(): number {
     return this.reduce((size: number, cache: MembersCache) => size + cache.size, 0);
   }
 
   insert(member: Member): void {
-    if (this.enabled || member.isMe) {
-      let cache: MembersCache;
-      if (super.has(member.guildId)) {
-        cache = <MembersCache> super.get(member.guildId);
-      } else {
-        cache = new BaseCollection();
-        super.set(member.guildId, cache);
+    if (!member.isMe) {
+      if (!this.enabled) {
+        return;
       }
-      cache.set(member.id, member);
+      if (!this.storeOffline && member.isOffline) {
+        return;
+      }
     }
+    let cache: MembersCache;
+    if (super.has(member.guildId)) {
+      cache = <MembersCache> super.get(member.guildId);
+    } else {
+      cache = new BaseCollection();
+      super.set(member.guildId, cache);
+    }
+    cache.set(member.id, member);
   }
 
   delete(guildId: string, userId?: string): boolean {

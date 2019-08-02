@@ -690,8 +690,27 @@ export class GatewayDispatchHandler {
 
     const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBERS_CHUNK);
 
+    // do presences first since the members cache might depend on it (storeOffline = false)
+    if (data['presences'] !== undefined) {
+      presences = new BaseCollection<string, Presence>();
+      if (this.client.presences.enabled || isListening) {
+        for (let value of data['presences']) {
+          value.guild_id = guildId;
+          let presence: Presence;
+          if (this.client.presences.enabled) {
+            presence = <Presence> this.client.presences.add(value);
+          } else {
+            presence = new Presence(this.client, value);
+          }
+          if (isListening) {
+            presences.set(presence.user.id, presence);
+          }
+        }
+      }
+    }
+
     if (data['members'] !== undefined) {
-      // we won't be in the chunk anyways, right?
+      // we (the bot user) won't be in the chunk anyways, right?
       if (this.client.members.enabled || isListening) {
         members = new BaseCollection<string, Member>();
         for (let value of data['members']) {
@@ -727,24 +746,6 @@ export class GatewayDispatchHandler {
     if (data['not_found'] !== undefined) {
       // user ids
       notFound = data['not_found'];
-    }
-
-    if (data['presences'] !== undefined) {
-      presences = new BaseCollection<string, Presence>();
-      if (this.client.presences.enabled || isListening) {
-        for (let value of data['presences']) {
-          value.guild_id = guildId;
-          let presence: Presence;
-          if (this.client.presences.enabled) {
-            presence = <Presence> this.client.presences.add(value);
-          } else {
-            presence = new Presence(this.client, value);
-          }
-          if (isListening) {
-            presences.set(presence.user.id, presence);
-          }
-        }
-      }
     }
 
     this.client.emit(ClientEvents.GUILD_MEMBERS_CHUNK, {

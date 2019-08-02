@@ -31,6 +31,7 @@ const keysMergeTyping: ReadonlyArray<string> = [
  */
 export class Typing extends BaseStructure {
   readonly _keys = keysTyping;
+  readonly _keysMerge = keysMergeTyping;
   _expiring: null | ReturnType<typeof setTimeout> = null;
 
   channelId: string = '';

@@ -81,6 +81,26 @@ export class Presence extends BaseStructure {
     return this.guildId || DEFAULT_PRESENCE_CACHE_KEY;
   }
 
+  get fromGuild(): boolean {
+    return !!this.guildId;
+  }
+
+  get isDnd(): boolean {
+    return this.status === PresenceStatuses.DND;
+  }
+
+  get isIdle(): boolean {
+    return this.status === PresenceStatuses.IDLE;
+  }
+
+  get isOffline(): boolean {
+    return this.status === PresenceStatuses.OFFLINE || this.status === PresenceStatuses.INVISIBLE;
+  }
+
+  get isOnline(): boolean {
+    return this.status === PresenceStatuses.ONLINE;
+  }
+
   difference(key: string, value: any): [boolean, any] {
     let differences: any;
     switch (key) {

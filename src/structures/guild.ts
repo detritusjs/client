@@ -92,6 +92,7 @@ const keysGuild: ReadonlyArray<string> = [
 const keysMergeGuild: ReadonlyArray<string> = [
   'id',
   'roles',
+  'presences',
   'members',
 ];
 

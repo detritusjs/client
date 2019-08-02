@@ -60,15 +60,21 @@ export class Presences extends BaseClientCollection<string, PresencesCache, Pres
     if (this.has(cacheId, value.user.id)) {
       presence = <Presence> this.get(cacheId, value.user.id);
       presence.merge(value);
+
+      if (presence.isOffline) {
+        if (presence.fromGuild && !this.client.members.storeOffline) {
+          this.client.members.delete(presence.guildId, presence.user.id);
+        }
+        if (!this.storeOffline) {
+          this.delete(cacheId, presence.user.id);
+        }
+      }
     } else {
       presence = new Presence(this.client, value);
       const newPresence = this.insert(presence);
       if (newPresence !== null) {
         presence = newPresence;
       }
-    }
-    if (!this.storeOffline && presence.status === PresenceStatuses.OFFLINE) {
-      this.delete(cacheId, presence.user.id);
     }
     return presence;
   }
@@ -79,9 +85,14 @@ export class Presences extends BaseClientCollection<string, PresencesCache, Pres
     }
 
     const cacheId = presence.cacheId;
-    if (!this.storeOffline && presence.status === PresenceStatuses.OFFLINE) {
-      this.delete(cacheId, presence.user.id);
-      return presence;
+    if (presence.isOffline) {
+      if (presence.fromGuild && !this.client.members.storeOffline) {
+        this.client.members.delete(presence.guildId, presence.user.id);
+      }
+      if (!this.storeOffline) {
+        this.delete(cacheId, presence.user.id);
+        return presence;
+      }
     }
 
     let cache: PresencesCache;
