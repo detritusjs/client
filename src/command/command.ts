@@ -13,7 +13,7 @@ import { Context } from './context';
 /**
  * @category Command
  */
-export type CommandCallback = (context: Context, args: ParsedArgs) => Promise<void> | void;
+export type CommandCallback = (context: Context, args: ParsedArgs) => Promise<any> | any;
 
 /**
  * @category Command
@@ -23,17 +23,17 @@ export type CommandCallbackBefore = (context: Context, args: ParsedArgs) => Prom
 /**
  * @category Command
  */
-export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => Promise<void> | void;
+export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => Promise<any> | any;
 
 /**
  * @category Command
  */
-export type CommandCallbackTypeError = (context: Context, error: any) => Promise<void> | void;
+export type CommandCallbackTypeError = (context: Context, error: any) => Promise<any> | any;
 
 /**
  * @category Command
  */
-export type CommandCallbackRatelimit = (context: Context, remaining: number) => Promise<void> | void;
+export type CommandCallbackRatelimit = (context: Context, remaining: number) => Promise<any> | any;
 
 /**
  * Command Options
