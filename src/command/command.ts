@@ -5,7 +5,7 @@ import {
   COMMAND_RATELIMIT_TYPES,
 } from '../constants';
 
-import { ArgumentOptions } from './argument';
+import { ArgumentOptions, Argument } from './argument';
 import { ArgumentParser, ParsedArgs } from './argumentparser';
 import { Context } from './context';
 
@@ -13,7 +13,7 @@ import { Context } from './context';
 /**
  * @category Command
  */
-export type CommandCallback = (context: Context, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallback = (context: Context, args: ParsedArgs) => Promise<void> | void;
 
 /**
  * @category Command
@@ -23,27 +23,29 @@ export type CommandCallbackBefore = (context: Context, args: ParsedArgs) => Prom
 /**
  * @category Command
  */
-export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => Promise<any> | any;
+export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => Promise<void> | void;
 
 /**
  * @category Command
  */
-export type CommandCallbackRatelimit = (context: Context, remaining: number) => Promise<any> | any;
+export type CommandCallbackTypeError = (context: Context, error: any) => Promise<void> | void;
+
+/**
+ * @category Command
+ */
+export type CommandCallbackRatelimit = (context: Context, remaining: number) => Promise<void> | void;
 
 /**
  * Command Options
  * @category Command Options
  */
-export interface CommandOptions {
-  _class?: any,
+export interface CommandOptions extends ArgumentOptions {
   _file?: string,
-  aliases?: Array<string>,
   args?: Array<ArgumentOptions>,
   disableDm?: boolean,
   disableDmReply?: boolean,
   extras?: {[key: string]: any},
-  label?: string,
-  name?: string,
+  name: string,
   ratelimit?: boolean | CommandRatelimitOptions | null,
   responseOptional?: boolean,
 
@@ -54,6 +56,7 @@ export interface CommandOptions {
   onRatelimit?: CommandCallbackRatelimit,
   onRunError?: CommandCallbackError,
   onSuccess?: CommandCallback,
+  onTypeError?: CommandCallbackTypeError,
 }
 
 /**
@@ -75,13 +78,11 @@ export class Command {
   readonly _file?: string;
   readonly commandClient: CommandClient;
 
-  aliases: Array<string>;
+  arg: Argument;
   args: ArgumentParser;
   disableDm: boolean = false;
   disableDmReply: boolean = false;
   extras: {[key: string]: any};
-  label: string = '';
-  name: string = '';
   ratelimit: CommandRatelimit | null = null;
   responseOptional: boolean = false;
 
@@ -92,6 +93,7 @@ export class Command {
   onRatelimit?: CommandCallbackRatelimit;
   onRunError?: CommandCallbackError;
   onSuccess?: CommandCallback;
+  onTypeError?: CommandCallbackTypeError;
 
   constructor(
     commandClient: CommandClient,
@@ -99,14 +101,11 @@ export class Command {
   ) {
     this.commandClient = commandClient;
 
-    const name = options.name || this.name;
-    this.aliases = (options.aliases || []).map((alias) => alias.toLowerCase());
+    this.arg = new Argument(Object.assign({prefix: ''}, options));
     this.args = new ArgumentParser(options.args);
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
     this.extras = Object.assign({}, options.extras);
-    this.label = (options.label || name).toLowerCase();
-    this.name = name.toLowerCase();
     this.responseOptional = !!options.responseOptional;
 
     if (options._file) {
@@ -130,15 +129,28 @@ export class Command {
     this.onRatelimit = options.onRatelimit;
     this.onRunError = options.onRunError;
     this.onSuccess = options.onSuccess;
+    this.onTypeError = options.onTypeError;
+  }
+
+  get aliases(): Array<string> {
+    return this.arg.aliases;
+  }
+
+  get label(): string {
+    return this.arg.label;
+  }
+
+  get name(): string {
+    return this.arg.name;
   }
 
   check(name: string): boolean {
-    return this.name === name || this.aliases.includes(name);
+    return this.arg.check(name);
   }
 
-  getArgs(args: Array<string>): ParsedArgs {
-    const parsed = this.args.parse(args);
-    parsed[this.label] = args.join(' ');
+  async getArgs(args: Array<string>, context: Context): Promise<ParsedArgs> {
+    const parsed = await this.args.parse(args, context);
+    parsed[this.label] = await this.arg.parse(args.join(' '), context);
     return parsed;
   }
 

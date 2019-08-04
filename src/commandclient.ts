@@ -36,6 +36,10 @@ export interface CommandClientOptions extends ClusterClientOptions {
   useClusterClient?: boolean,
 }
 
+export interface CommandClientAdd extends CommandOptions {
+  _class?: any,
+}
+
 export interface CommandClientRunOptions extends ClusterClientRunOptions {
 
 }
@@ -160,7 +164,7 @@ export class CommandClient extends EventEmitter {
 
   /* Generic Command Function */
   add(
-    options: Command | CommandOptions | string,
+    options: Command | CommandClientAdd | string,
     run?: CommandCallback,
   ): CommandClient {
     let command: Command;
@@ -229,7 +233,7 @@ export class CommandClient extends EventEmitter {
       const filepath = path.resolve(directory, file);
       let importedCommand: any = require(filepath);
       if (typeof(importedCommand) === 'function') {
-        this.add({_file: filepath, _class: importedCommand});
+        this.add({_file: filepath, _class: importedCommand, name: ''});
       } else if (importedCommand instanceof Command) {
         Object.defineProperty(importedCommand, '_file', {value: filepath});
         this.add(importedCommand);
@@ -405,6 +409,7 @@ export class CommandClient extends EventEmitter {
       this.emit(ClientEvents.COMMAND_NONE, {context, error});
       return;
     }
+    context.command = command;
 
     if (!command.responseOptional && !message.canReply) {
       const error = new Error('Cannot send messages in this channel');
@@ -430,7 +435,7 @@ export class CommandClient extends EventEmitter {
         const remaining = (ratelimit.start + command.ratelimit.duration) - Date.now();
         this.emit(ClientEvents.COMMAND_RATELIMIT, {command, context, remaining});
         try {
-          const onRatelimit = (typeof(command.onRatelimit) === 'function') ? command.onRatelimit(context, remaining) : null;
+          const onRatelimit = (typeof(command.onRatelimit) === 'function') ? command.onRatelimit(context, remaining) : undefined;
           await Promise.resolve(onRatelimit);
         } catch(error) {
           // do something with this?
@@ -455,8 +460,18 @@ export class CommandClient extends EventEmitter {
       return;
     }
 
-    const args = command.getArgs(attributes.args);
+    let args: ParsedArgs;
     const prefix = attributes.prefix;
+    try {
+      args = await command.getArgs(attributes.args, context);
+    } catch(error) {
+      if (typeof(command.onTypeError) === 'function') {
+        await Promise.resolve(command.onTypeError(context, error));
+      }
+      this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+      return;
+    }
+
     try {
       const onBefore = (typeof(command.onBefore) === 'function') ? command.onBefore(context, args) : true;
       const shouldRun = await Promise.resolve(onBefore);
@@ -467,16 +482,20 @@ export class CommandClient extends EventEmitter {
         return;
       }
 
-      const run = (typeof(command.run) === 'function') ? command.run(context, args) : null;
+
       try {
-        await Promise.resolve(run);
+        if (typeof(command.run) === 'function') {
+          await Promise.resolve(command.run(context, args));
+        }
         this.emit(ClientEvents.COMMAND_RUN, {args, command, context, prefix});
-        const onSuccess = (typeof(command.onSuccess) === 'function') ? command.onSuccess(context, args) : null;
-        await Promise.resolve(onSuccess);
+        if (typeof(command.onSuccess) === 'function') {
+          await Promise.resolve(command.onSuccess(context, args));
+        }
       } catch(error) {
-        this.emit(ClientEvents.COMMAND_FAIL, {args, command, context, error, prefix});
-        const onError = (typeof(command.onError) === 'function') ? command.onError(context, args, error) : null;
-        await Promise.resolve(onError);
+        this.emit(ClientEvents.COMMAND_RUN_ERROR, {args, command, context, error, prefix});
+        if (typeof(command.onRunError) === 'function') {
+          await Promise.resolve(command.onRunError(context, args, error));
+        }
       }
     } catch(error) {
       if (typeof(command.onError) === 'function') {

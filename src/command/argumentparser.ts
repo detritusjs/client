@@ -4,6 +4,7 @@ import {
   Argument,
   ArgumentOptions,
 } from './argument';
+import { Context } from './context';
 
 
 /**
@@ -32,7 +33,10 @@ export class ArgumentParser {
     });
   }
 
-  parse(args: Array<string>): ParsedArgs {
+  async parse(
+    args: Array<string>,
+    context: Context,
+  ): Promise<ParsedArgs> {
     const parsed: ParsedArgs = Object.assign({}, this.defaults);
 
     for (let argument of this.args) {
@@ -52,22 +56,16 @@ export class ArgumentParser {
       }
     }
 
-    this.args
+    const parsing = this.args
       .filter((arg) => arg.isInfinite && arg.in(args))
-      .map((arg) => ({label: arg.label, index: arg.getPosition(args), type: arg.type}))
-      .sort((x, y) => +(x.index < y.index))
-      .forEach(({label, index, type}) => {
-        const argValues = args.splice(index);
-        argValues.shift();
+      .map((arg) => ({arg, index: arg.getPosition(args)}))
+      .sort((x, y) => +(x.index < y.index));
 
-        let value: any = argValues.join(' ');
-        switch (type) {
-          case CommandArgumentTypes.NUMBER: {
-            value = parseInt(value);
-          }; break;
-        }
-        parsed[label] = value;
-      });
+    for (let {arg, index} of parsing) {
+      const argValues = args.splice(index);
+      argValues.shift();
+      parsed[arg.label] = await arg.parse(argValues.join(' '), context);
+    }
     return parsed;
   }
 }

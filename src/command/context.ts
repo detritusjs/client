@@ -8,6 +8,8 @@ import {
   MessageReply,
 } from '../structures';
 
+import { Command } from './command';
+
 
 /**
  * Command Context
@@ -18,6 +20,8 @@ export class Context {
   readonly commandClient: CommandClient;
   readonly message: Message;
 
+  command: Command | null = null;
+
   constructor(
     message: Message,
     commandClient: CommandClient,
@@ -27,6 +31,7 @@ export class Context {
     this.client = message.client;
     Object.defineProperties(this, {
       client: {enumerable: false, writable: false},
+      command: {enumerable: false},
       commandClient: {enumerable: false, writable: false},
       message: {writable: false},
     });

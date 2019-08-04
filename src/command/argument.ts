@@ -1,5 +1,9 @@
 import { CommandArgumentTypes } from '../constants';
 
+import { Context } from './context';
+
+
+export type ArgumentConverter = (value: string, context?: Context) => Promise<any> | any;
 
 /**
  * Command Argument Options
@@ -10,7 +14,8 @@ export interface ArgumentOptions {
   default?: any,
   label?: string,
   name: string,
-  type?: string,
+  prefix?: string,
+  type?: ArgumentConverter | string,
 }
 
 /**
@@ -22,13 +27,19 @@ export class Argument {
   default: any;
   label: string;
   name: string;
-  type: string = CommandArgumentTypes.STRING;
+  prefix?: string = '-';
+  type: ArgumentConverter | string = CommandArgumentTypes.STRING;
 
   constructor(options: ArgumentOptions) {
-    this.aliases = (options.aliases || []).map((alias) => `-${alias.toLowerCase()}`);
+    if (options.prefix !== undefined) {
+      this.prefix = options.prefix;
+    }
+    this.aliases = (options.aliases || []).map((alias) => {
+      return this.prefix + alias.toLowerCase();
+    });
     this.default = (options.default === undefined) ? '' : options.default;
     this.label = (options.label || options.name).toLowerCase();
-    this.name = `-${options.name.toLowerCase()}`;
+    this.name = this.prefix + options.name.toLowerCase();
     this.type = options.type || this.type;
   }
 
@@ -51,5 +62,25 @@ export class Argument {
       }
     }
     return -1;
+  }
+
+  async parse(value: string, context: Context): Promise<any> {
+    let parsedValue: any = value || this.default;
+    if (typeof(this.type) === 'function') {
+      parsedValue = await Promise.resolve(this.type(value, context));
+    } else {
+      switch (this.type) {
+        case CommandArgumentTypes.BOOL: {
+          parsedValue = !!value;
+        }; break;
+        case CommandArgumentTypes.FLOAT: {
+          parsedValue = parseFloat(value);
+        }; break;
+        case CommandArgumentTypes.NUMBER: {
+          parsedValue = parseInt(value);
+        }; break;
+      }
+    }
+    return parsedValue;
   }
 }
