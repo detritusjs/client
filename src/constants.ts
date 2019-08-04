@@ -4,7 +4,7 @@ import {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.2.9',
+  VERSION: '0.2.10',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -205,19 +205,19 @@ export const DiscordRegexNames = normalize({
 });
 
 export const DiscordRegex = Object.freeze({
-  [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/,
-  [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/,
-  [DiscordRegexNames.MENTION_ROLE]: /<@&(\d+)>/,
-  [DiscordRegexNames.MENTION_USER]: /<@!?(\d+)>$/,
+  [DiscordRegexNames.EMOJI]: /^<a?:(\w+):(\d+)>$/,
+  [DiscordRegexNames.MENTION_CHANNEL]: /^<#(\d+)>$/,
+  [DiscordRegexNames.MENTION_ROLE]: /^<@&(\d+)>$/,
+  [DiscordRegexNames.MENTION_USER]: /^<@!?(\d+)>$/,
   [DiscordRegexNames.TEXT_BOLD]: /\*\*([\s\S]+?)\*\*/,
   [DiscordRegexNames.TEXT_CODEBLOCK]: /```(([a-z0-9-]+?)\n+)?\n*([^]+?)\n*```/i,
   [DiscordRegexNames.TEXT_CODESTRING]: /`([\s\S]+?)`/,
   [DiscordRegexNames.TEXT_ITALICS]: /_([\s\S]+?)_|\*([\s\S]+?)\*/,
-  [DiscordRegexNames.TEXT_SNOWFLAKE]: /(\d+)/,
+  [DiscordRegexNames.TEXT_SNOWFLAKE]: /^(\d+)$/,
   [DiscordRegexNames.TEXT_SPOILER]: /\|\|([\s\S]+?)\|\|/,
   [DiscordRegexNames.TEXT_STRIKE]: /~~([\s\S]+?)~~(?!_)/,
   [DiscordRegexNames.TEXT_UNDERLINE]: /__([\s\S]+?)__/,
-  [DiscordRegexNames.TEXT_URL]: /((?:https?|steam):\/\/[^\s<]+[^<.,:;"'\]\s])/,
+  [DiscordRegexNames.TEXT_URL]: /^((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s])$/,
 });
 
 export const Distributors = Object.freeze({
