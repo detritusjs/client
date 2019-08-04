@@ -1,6 +1,10 @@
+import { URLSearchParams } from 'url';
+
 import {
   DiscordRegex,
   DiscordRegexNames,
+  ImageFormats,
+  IMAGE_FORMATS,
 } from '../constants';
 
 import * as PermissionTools from './permissions';
@@ -10,6 +14,20 @@ export {
   PermissionTools,
   Snowflake,
 };
+
+export type UrlQuery = {[key: string]: any};
+
+export function addQuery(url: string, query?: UrlQuery): string {
+  if (query) {
+    const params = new URLSearchParams(query);
+    if (url.includes('?')) {
+      url += '&' + params.toString();
+    } else {
+      url += '?' + params.toString();
+    }
+  }
+  return url;
+}
 
 export function anyToCamelCase(object: any, skip?: Array<string>): any {
   if (object === null) {
@@ -42,6 +60,25 @@ export function getAcronym(name?: string): string {
     return name.replace(/\w+/g, match => match[0]).replace(/\s/g, '');
   }
   return '';
+}
+
+export function getFormatFromHash(
+  hash: string,
+  format?: null | string,
+  defaultFormat: string = ImageFormats.PNG,
+): string {
+  if (format) {
+    format = format.toLowerCase();
+  } else {
+    format = defaultFormat;
+    if (hash.startsWith('a_')) {
+      format = ImageFormats.GIF;
+    }
+  }
+  if (!IMAGE_FORMATS.includes(format)) {
+    throw new Error(`Invalid format: '${format}', valid: ${IMAGE_FORMATS}`);
+  }
+  return format;
 }
 
 export function hexToInt(hex: string): number {

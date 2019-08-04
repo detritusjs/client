@@ -15,6 +15,7 @@ import {
   ImageFormats,
   PlatformTypes,
 } from '../constants';
+import { addQuery, getFormatFromHash, UrlQuery } from '../utils';
 
 import {
   BaseStructure,
@@ -332,13 +333,13 @@ export class PresenceActivity extends BaseStructure {
     return (this.flags & flag) === flag;
   }
 
-  imageUrlFormat(format?: string): null | string {
+  imageUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.assets !== undefined) {
-      return this.assets.imageUrlFormat(format);
+      return this.assets.imageUrlFormat(format, query);
     }
     const application = this.application;
     if (application !== null) {
-      return application.iconUrlFormat(format);
+      return application.iconUrlFormat(format, query);
     }
     return null;
   }
@@ -444,8 +445,8 @@ export class PresenceActivityAssets extends BaseStructure {
   }
 
   imageUrlFormat(
-    format?: string,
-    size?: number | [number, number],
+    format?: null | string,
+    query?: UrlQuery,
     hash?: null | string,
   ): null | string {
     if (hash === undefined) {
@@ -454,63 +455,52 @@ export class PresenceActivityAssets extends BaseStructure {
     if (hash === null) {
       return null;
     }
-    if (format === undefined) {
-      format = this.client.imageFormat || ImageFormats.PNG;
-    }
-    const valid = [
-      ImageFormats.JPEG,
-      ImageFormats.JPG,
-      ImageFormats.PNG,
-      ImageFormats.WEBP,
-    ];
-    if (!valid.includes(format)) {
-      throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(valid)}`);
-    }
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
 
     if (hash.includes(':')) {
       const [platform, id] = hash.split(':');
       switch (platform) {
         case PlatformTypes.SPOTIFY: {
-          return Endpoints.CDN.CUSTOM_SPOTIFY(id);
+          return addQuery(
+            Endpoints.CDN.CUSTOM_SPOTIFY(id),
+            query,
+          );
         };
         case PlatformTypes.TWITCH: {
           let height = ImageSizes.LARGE;
-          let width = ImageSizes.SMALL;
-          if (size !== undefined) {
-            if (Array.isArray(size)) {
-              [height, width] = size;
-            } else {
-              height = size;
-              width = size;
+          let width = ImageSizes.LARGE;
+          if (query) {
+            if (query.size !== undefined) {
+              height = query.size;
+              width = query.size;
             }
           }
-          if (size === undefined) {
-            size = ImageSizes.LARGE;
-          }
-          return Endpoints.CDN.CUSTOM_TWITCH(id, height, width);
+          return addQuery(
+            Endpoints.CDN.CUSTOM_TWITCH(id, height, width),
+            query,
+          );
         };
       }
     } else {
       // treat it as a normal hash
-      let query = '';
-      if (size !== undefined) {
-        if (Array.isArray(size)) {
-          query = `?size=${encodeURIComponent(size[0])}`;
-        } else {
-          query = `?size=${encodeURIComponent(size)}`;
-        }
-      }
-      return Endpoints.CDN.APP_ASSETS(this.activity.applicationId, hash, format) + query;
+      return addQuery(
+        Endpoints.CDN.APP_ASSETS(this.activity.applicationId, hash, format),
+        query,
+      );
     }
     return null;
   }
 
-  largeImageUrlFormat(format?: string, size?: number | [number, number]) {
-    return this.imageUrlFormat(format, size, this.largeImage || null);
+  largeImageUrlFormat(format?: null | string, query?: UrlQuery) {
+    return this.imageUrlFormat(format, query, this.largeImage || null);
   }
 
-  smallImageUrlFormat(format?: string, size?: number | [number, number]) {
-    return this.imageUrlFormat(format, size, this.smallImage || null);
+  smallImageUrlFormat(format?: null | string, query?: UrlQuery) {
+    return this.imageUrlFormat(format, query, this.smallImage || null);
   }
 }
 

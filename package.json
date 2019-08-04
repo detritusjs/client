@@ -1,6 +1,6 @@
 {
   "name": "detritus-client",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "a typescript nodejs library to interact with Discord's API, both Rest and Gateway.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -8,7 +8,7 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "detritus-client-rest": "^0.3.18",
+    "detritus-client-rest": "^0.3.19",
     "detritus-client-socket": "^0.2.9"
   },
   "devDependencies": {

@@ -4,9 +4,8 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { Snowflake } from '../utils';
+import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 import {
-  ImageFormats,
   PremiumTypes,
   RelationshipTypes,
   UserFlags,
@@ -98,30 +97,20 @@ export class User extends BaseStructure {
     return (<Presence | undefined> this.client.presences.get(null, this.id)) || null;
   }
 
-  avatarUrlFormat(format?: string): string {
+  avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
     if (!this.avatar) {
-      return this.defaultAvatarUrl;
+      return addQuery(this.defaultAvatarUrl, query);
     }
     const hash = this.avatar;
-    if (format) {
-      format = format.toLowerCase();
-    } else {
-      format = this.client.imageFormat || ImageFormats.PNG;
-      if (hash.startsWith('a_')) {
-        format = ImageFormats.GIF;
-      }
-    }
-    const valid = [
-      ImageFormats.GIF,
-      ImageFormats.JPEG,
-      ImageFormats.JPG,
-      ImageFormats.PNG,
-      ImageFormats.WEBP,
-    ];
-    if (!valid.includes(format)) {
-      throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(valid)}`);
-    }
-    return Endpoints.CDN.URL + Endpoints.CDN.AVATAR(this.id, hash, format);
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.AVATAR(this.id, hash, format),
+      query,
+    );
   }
 
   add() {
@@ -418,8 +407,8 @@ export class UserMixin extends BaseStructure {
     return this.user.username;
   }
 
-  avatarUrlFormat(format?: string): string {
-    return this.user.avatarUrlFormat(format);
+  avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
+    return this.user.avatarUrlFormat(format, query);
   }
 
   add() {

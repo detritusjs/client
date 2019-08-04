@@ -6,7 +6,7 @@ import {
 import { BaseCollection } from '../collections/basecollection';
 import { ShardClient } from '../client';
 import { ImageFormats } from '../constants';
-import { Snowflake } from '../utils';
+import { addQuery, Snowflake, UrlQuery } from '../utils';
 
 import {
   BaseStructure,
@@ -89,11 +89,11 @@ export class Emoji extends BaseStructure {
     return this.urlFormat();
   }
 
-  urlFormat(format?: string): string {
+  urlFormat(format?: null | string, query?: UrlQuery): string {
     if (!this.id) {
       throw new Error('Cannot get a URL of a standard Emoji.');
     }
-    if (format === undefined) {
+    if (!format) {
       if (this.animated) {
         format = ImageFormats.GIF;
       } else {
@@ -105,7 +105,10 @@ export class Emoji extends BaseStructure {
     if (!valid.includes(format)) {
       throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(valid)}`);
     }
-    return Endpoints.CDN.URL + Endpoints.CDN.EMOJI(this.id, format);
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.EMOJI(this.id, format),
+      query,
+    );
   }
 
   async edit(options: Options.EditGuildEmoji) {
@@ -124,13 +127,12 @@ export class Emoji extends BaseStructure {
 
   async fetchData(
     options: {
-      format?: string,
-      query?: any,
+      format?: null | string,
+      query?: UrlQuery,
     } = {},
   ) {
     return this.client.rest.request({
-      query: options.query,
-      url: this.urlFormat(options.format),
+      url: this.urlFormat(options.format, options.query),
     });
   }
 

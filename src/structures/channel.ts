@@ -11,13 +11,15 @@ import { BaseCollection } from '../collections/basecollection';
 import { VoiceStatesCache } from '../collections/voicestates';
 import {
   ChannelTypes,
-  ImageFormats,
   Permissions,
 } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 import {
+  addQuery,
+  getFormatFromHash,
   PermissionTools,
   Snowflake,
+  UrlQuery,
 } from '../utils';
 
 import {
@@ -492,9 +494,9 @@ export class ChannelDM extends ChannelBase {
     return this.client.voiceConnections.has(this.id);
   }
 
-  iconUrlFormat(format?: string): null | string {
+  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.recipients.size) {
-      return (<User> this.recipients.first()).avatarUrlFormat(format);
+      return (<User> this.recipients.first()).avatarUrlFormat(format, query);
     }
     return null;
   }
@@ -657,20 +659,20 @@ export class ChannelDMGroup extends ChannelDM {
     return this.client.users.get(this.ownerId) || null;
   }
 
-  iconUrlFormat(format?: string): null | string {
+  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (!this.icon) {
       return null;
     }
-    if (format) {
-      format = format.toLowerCase();
-    } else {
-      format = this.client.imageFormat || ImageFormats.PNG;
-    }
-    const valid = [ImageFormats.JPEG, ImageFormats.JPG, ImageFormats.PNG, ImageFormats.WEBP];
-    if (!valid.includes(format)) {
-      throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(valid)}`);
-    }
-    return Endpoints.CDN.URL + Endpoints.CDN.DM_ICON(this.id, this.icon, format);
+    const hash = this.icon;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.DM_ICON(this.id, hash, format),
+      query,
+    );
   }
 
   isOwner(userId: string): boolean {

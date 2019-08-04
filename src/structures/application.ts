@@ -1,8 +1,12 @@
 import { Endpoints } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { ImageFormats } from '../constants';
-import { Snowflake } from '../utils';
+import {
+  addQuery,
+  getFormatFromHash,
+  Snowflake,
+  UrlQuery,
+} from '../utils';
 
 import {
   BaseStructure,
@@ -105,47 +109,35 @@ export class Application extends BaseStructure {
     return this.splashUrlFormat();
   }
 
-  iconUrlFormat(format?: string): null | string {
+  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (!this.icon) {
       return null;
     }
-    if (format) {
-      format = format.toLowerCase();
-    } else {
-      format = this.client.imageFormat || ImageFormats.PNG;
-    }
-    const valid = [
-      ImageFormats.GIF,
-      ImageFormats.JPEG,
-      ImageFormats.JPG,
-      ImageFormats.PNG,
-      ImageFormats.WEBP,
-    ];
-    if (!valid.includes(format)) {
-      throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(valid)}`);
-    }
-    return Endpoints.CDN.URL + Endpoints.CDN.GAME_ICON(this.id, this.icon, format);
+    const hash = this.icon;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
+      query,
+    );
   }
 
-  splashUrlFormat(format?: string): null | string {
+  splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (!this.splash) {
       return null;
     }
-    if (format) {
-      format = format.toLowerCase();
-    } else {
-      format = this.client.imageFormat || ImageFormats.PNG;
-    }
-    const valid = [
-      ImageFormats.GIF,
-      ImageFormats.JPEG,
-      ImageFormats.JPG,
-      ImageFormats.PNG,
-      ImageFormats.WEBP,
-    ];
-    if (!valid.includes(format)) {
-      throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(valid)}`);
-    }
-    return Endpoints.CDN.URL + Endpoints.CDN.GAME_ICON(this.id, this.splash, format);
+    const hash = this.splash;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET(this.id, hash, format),
+      query,
+    );
   }
 }

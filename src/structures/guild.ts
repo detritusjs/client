@@ -16,9 +16,12 @@ import {
 } from '../constants';
 import { GatewayRawEvents } from '../gateway/rawevents';
 import {
+  addQuery,
   getAcronym,
+  getFormatFromHash,
   PermissionTools,
   Snowflake,
+  UrlQuery,
 } from '../utils';
 
 import { BaseCollection } from '../collections/basecollection';
@@ -154,7 +157,7 @@ export class Guild extends BaseStructure {
   }
 
   get bannerUrl(): null | string {
-    return null;
+    return this.bannerUrlFormat();
   }
 
   get channels(): BaseCollection<string, Channel> {
@@ -175,6 +178,10 @@ export class Guild extends BaseStructure {
 
   get emojis(): BaseCollection<string, Emoji> {
     return new BaseCollection(this.client.emojis.filter((emoji: Emoji) => emoji.guildId === this.id));
+  }
+
+  get iconUrl(): null | string {
+    return this.iconUrlFormat();
   }
 
   get joinedAtUnix(): null | number {
@@ -220,7 +227,7 @@ export class Guild extends BaseStructure {
   }
 
   get splashUrl(): null | string {
-    return null;
+    return this.splashUrlFormat();
   }
 
   get systemChannel(): Channel | null {
@@ -232,6 +239,22 @@ export class Guild extends BaseStructure {
 
   get voiceStates(): null | VoiceStatesCache {
     return this.client.voiceStates.get(this.id) || null;
+  }
+
+  bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.banner) {
+      return null;
+    }
+    const hash = this.banner;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.GUILD_BANNER(this.id, hash, format),
+      query,
+    );
   }
 
   can(
@@ -283,8 +306,40 @@ export class Guild extends BaseStructure {
     return this.features.has(feature);
   }
 
+  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.icon) {
+      return null;
+    }
+    const hash = this.icon;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.GUILD_BANNER(this.id, hash, format),
+      query,
+    );
+  }
+
   isOwner(userId: string): boolean {
     return this.ownerId === userId;
+  }
+
+  splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.splash) {
+      return null;
+    }
+    const hash = this.splash;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format),
+      query,
+    );
   }
 
   async ack() {
