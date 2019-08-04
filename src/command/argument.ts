@@ -3,7 +3,7 @@ import { CommandArgumentTypes } from '../constants';
 import { Context } from './context';
 
 
-export type ArgumentConverter = (value: string, context?: Context) => Promise<any> | any;
+export type ArgumentConverter = (value: string, context: Context) => Promise<any> | any;
 
 /**
  * Command Argument Options
