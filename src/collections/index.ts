@@ -1,4 +1,5 @@
 export * from './applications';
+export * from './basecollection';
 export * from './channels';
 export * from './emojis';
 export * from './guilds';

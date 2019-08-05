@@ -13,12 +13,22 @@ import { Context } from './context';
 /**
  * @category Command
  */
-export type CommandCallback = (context: Context, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackBefore = (context: Context) => Promise<boolean> | boolean;
 
 /**
  * @category Command
  */
-export type CommandCallbackBefore = (context: Context, args: ParsedArgs) => Promise<boolean> | boolean;
+export type CommandCallbackBeforeRun = (context: Context, args: ParsedArgs) => Promise<boolean> | boolean;
+
+/**
+ * @category Command
+ */
+export type CommandCallbackCancel = (context: Context) => Promise<any> | any;
+
+/**
+ * @category Commmand
+ */
+export type CommandCallbackCancelRun = (context: Context, args: ParsedArgs) => Promise<any> | any;
 
 /**
  * @category Command
@@ -28,12 +38,27 @@ export type CommandCallbackError = (context: Context, args: ParsedArgs, error: a
 /**
  * @category Command
  */
-export type CommandCallbackTypeError = (context: Context, error: any) => Promise<any> | any;
+export type CommandCallbackSuccess = (context: Context, args: ParsedArgs) => Promise<any> | any;
 
 /**
  * @category Command
  */
 export type CommandCallbackRatelimit = (context: Context, remaining: number) => Promise<any> | any;
+
+/**
+ * @category Command
+ */
+export type CommandCallbackRun = (context: Context, args: ParsedArgs) => Promise<any> | any;
+
+/**
+ * @category Command
+ */
+export type CommandCallbackRunError = (context: Context, args: ParsedArgs, error: any) => Promise<any> | any;
+
+/**
+ * @category Command
+ */
+export type CommandCallbackTypeError = (context: Context, error: any) => Promise<any> | any;
 
 /**
  * Command Options
@@ -50,12 +75,14 @@ export interface CommandOptions extends ArgumentOptions {
   responseOptional?: boolean,
 
   onBefore?: CommandCallbackBefore,
-  onCancel?: CommandCallback,
+  onBeforeRun?: CommandCallbackBeforeRun,
+  onCancel?: CommandCallbackCancel,
+  onCancelRun?: CommandCallbackCancelRun,
   onError?: CommandCallbackError,
-  run?: CommandCallback,
+  run?: CommandCallbackRun,
   onRatelimit?: CommandCallbackRatelimit,
-  onRunError?: CommandCallbackError,
-  onSuccess?: CommandCallback,
+  onRunError?: CommandCallbackRunError,
+  onSuccess?: CommandCallbackSuccess,
   onTypeError?: CommandCallbackTypeError,
 }
 
@@ -87,12 +114,14 @@ export class Command {
   responseOptional: boolean = false;
 
   onBefore?: CommandCallbackBefore;
-  onCancel?: CommandCallback;
+  onBeforeRun?: CommandCallbackBeforeRun;
+  onCancel?: CommandCallbackCancel;
+  onCancelRun?: CommandCallbackCancelRun;
   onError?: CommandCallbackError;
-  run?: CommandCallback;
+  run?: CommandCallbackRun;
   onRatelimit?: CommandCallbackRatelimit;
-  onRunError?: CommandCallbackError;
-  onSuccess?: CommandCallback;
+  onRunError?: CommandCallbackRunError;
+  onSuccess?: CommandCallbackSuccess;
   onTypeError?: CommandCallbackTypeError;
 
   constructor(
@@ -123,7 +152,9 @@ export class Command {
     });
 
     this.onBefore = options.onBefore;
+    this.onBeforeRun = options.onBeforeRun;
     this.onCancel = options.onCancel;
+    this.onCancelRun = options.onCancelRun;
     this.onError = options.onError;
     this.run = options.run;
     this.onRatelimit = options.onRatelimit;

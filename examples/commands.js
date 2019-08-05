@@ -7,17 +7,24 @@ const {
 const prefix = '!!';
 const token = '';
 
-const client = new CommandClient(token, {
+const commandClient = new CommandClient(token, {
   gateway: {loadAllMembers: true},
   prefix,
 });
 
-client.add({
+commandClient.add({
   name: 'ping',
   run: (context) => context.reply('pong'),
 });
 
-client.add({
+commandClient.add({
+  name: 'custom',
+  label: 'now',
+  type: (value, context) => Date.now(),
+  run: (context, args) => context.reply(`Command was ran at ${args.now}`),
+});
+
+commandClient.add({
   label: 'code',
   name: 'eval',
   args: [
@@ -58,12 +65,12 @@ client.add({
   },
 });
 
-client.add({
+commandClient.add({
   label: 'text',
   name: 'echo',
   args: [{aliases: ['backwards'], name: 'reverse', type: 'bool'}],
-  onBefore: (context, args) => !!args.text,
-  onCancel: (context) => context.reply('give me text next time dummy'),
+  onBeforeRun: (context, args) => !!args.text,
+  onCancelRun: (context) => context.reply('give me text next time dummy'),
   run: (context, args) => {
     let text = args.text;
     if (args.reverse) {
@@ -73,7 +80,7 @@ client.add({
   },
 });
 
-client.add({
+commandClient.add({
   args: [
     {name: 'deaf', type: 'bool'},
     {name: 'mute', type: 'bool'},
@@ -103,7 +110,7 @@ client.add({
   },
 });
 
-client.add({
+commandClient.add({
   name: 'leave',
   onBefore: (context) => !!context.voiceConnection,
   onCancel: (context) => context.reply('im not in a channel??'),
@@ -114,6 +121,7 @@ client.add({
 });
 
 (async () => {
-  await client.run();
+  await commandClient.run();
   // Client fetched the gateway url, got the ready payload, and filled the applications cache
+  console.log('ready');
 })();

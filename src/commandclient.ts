@@ -13,7 +13,7 @@ import EventEmitter from './eventemitter';
 import { ParsedArgs } from './command/argumentparser';
 import {
   Command,
-  CommandCallback,
+  CommandCallbackRun,
   CommandOptions,
   CommandRatelimitItem,
 } from './command/command';
@@ -165,7 +165,7 @@ export class CommandClient extends EventEmitter {
   /* Generic Command Function */
   add(
     options: Command | CommandClientAdd | string,
-    run?: CommandCallback,
+    run?: CommandCallbackRun,
   ): CommandClient {
     let command: Command;
     if (options instanceof Command) {
@@ -434,11 +434,12 @@ export class CommandClient extends EventEmitter {
       if (command.ratelimit.limit < ratelimit.usages + 1) {
         const remaining = (ratelimit.start + command.ratelimit.duration) - Date.now();
         this.emit(ClientEvents.COMMAND_RATELIMIT, {command, context, remaining});
-        try {
-          const onRatelimit = (typeof(command.onRatelimit) === 'function') ? command.onRatelimit(context, remaining) : undefined;
-          await Promise.resolve(onRatelimit);
-        } catch(error) {
-          // do something with this?
+        if (typeof(command.onRatelimit) === 'function') {
+          try {
+            await Promise.resolve(command.onRatelimit(context, remaining));
+          } catch(error) {
+            // do something with this error?
+          }
         }
         return;
       }
@@ -460,6 +461,21 @@ export class CommandClient extends EventEmitter {
       return;
     }
 
+    if (typeof(command.onBefore) === 'function') {
+      try {
+        const shouldContinue = await Promise.resolve(command.onBefore(context));
+        if (!shouldContinue) {
+          if (typeof(command.onCancel) === 'function') {
+            await Promise.resolve(command.onCancel(context));
+          }
+          return;
+        }
+      } catch(error) {
+        this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+        return;
+      }
+    }
+
     let args: ParsedArgs;
     const prefix = attributes.prefix;
     try {
@@ -473,15 +489,15 @@ export class CommandClient extends EventEmitter {
     }
 
     try {
-      const onBefore = (typeof(command.onBefore) === 'function') ? command.onBefore(context, args) : true;
-      const shouldRun = await Promise.resolve(onBefore);
-      if (!shouldRun) {
-        if (typeof(command.onCancel) === 'function') {
-          await Promise.resolve(command.onCancel(context, args));
+      if (typeof(command.onBeforeRun) === 'function') {
+        const shouldRun = await Promise.resolve(command.onBeforeRun(context, args));
+        if (!shouldRun) {
+          if (typeof(command.onCancelRun) === 'function') {
+            await Promise.resolve(command.onCancelRun(context, args));
+          }
+          return;
         }
-        return;
       }
-
 
       try {
         if (typeof(command.run) === 'function') {
