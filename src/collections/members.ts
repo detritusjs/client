@@ -44,6 +44,9 @@ export class Members extends BaseClientCollection<string, MembersCache, Member> 
   }
 
   insert(member: Member): void {
+    const cacheId = member.guildId;
+    this.insertCache(cacheId);
+
     if (!member.isMe) {
       if (!this.enabled) {
         return;
@@ -52,14 +55,14 @@ export class Members extends BaseClientCollection<string, MembersCache, Member> 
         return;
       }
     }
-    let cache: MembersCache;
-    if (super.has(member.guildId)) {
-      cache = <MembersCache> super.get(member.guildId);
-    } else {
-      cache = new BaseCollection();
-      super.set(member.guildId, cache);
-    }
+    const cache = <MembersCache> super.get(cacheId);
     cache.set(member.id, member);
+  }
+
+  insertCache(cacheId: string): void {
+    if (!super.has(cacheId)) {
+      super.set(cacheId, new BaseCollection());
+    }
   }
 
   delete(guildId: string, userId?: string): boolean {
@@ -67,9 +70,6 @@ export class Members extends BaseClientCollection<string, MembersCache, Member> 
       if (userId !== undefined) {
         const cache = <MembersCache> super.get(guildId);
         cache.delete(userId);
-        if (!cache.size) {
-          return super.delete(guildId);
-        }
       } else {
         return super.delete(guildId);
       }

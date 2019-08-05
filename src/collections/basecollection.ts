@@ -92,7 +92,7 @@ export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
   }
 
   map(func: (v: V, k?: K) => any): Array<any> {
-    const map: Array<V> = [];
+    const map: Array<any> = [];
     for (let [key, value] of this) {
       map.push(func(value, key));
     }

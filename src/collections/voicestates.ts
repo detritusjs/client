@@ -28,15 +28,17 @@ export class VoiceStates extends BaseClientCollection<string, VoiceStatesCache, 
   }
 
   insert(voiceState: VoiceState): void {
+    const cacheId = voiceState.serverId;
+    this.insertCache(cacheId);
     if (this.enabled) {
-      let cache: VoiceStatesCache;
-      if (super.has(voiceState.serverId)) {
-        cache = <VoiceStatesCache> super.get(voiceState.serverId);
-      } else {
-        cache = new BaseCollection();
-        super.set(voiceState.serverId, cache);
-      }
+      const cache = <VoiceStatesCache> super.get(cacheId);
       cache.set(voiceState.userId, voiceState);
+    }
+  }
+
+  insertCache(cacheId: string): void {
+    if (!super.has(cacheId)) {
+      super.set(cacheId, new BaseCollection());
     }
   }
 
@@ -47,9 +49,6 @@ export class VoiceStates extends BaseClientCollection<string, VoiceStatesCache, 
       if (userId) {
         const cache = <VoiceStatesCache> super.get(serverId);
         cache.delete(userId);
-        if (!cache.size) {
-          super.delete(serverId);
-        }
       }
       return super.delete(serverId);
     }

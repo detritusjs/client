@@ -114,6 +114,7 @@ export class ClusterManager extends EventEmitter {
       const shardEnd = Math.min(shardStart + this.shardsPerCluster - 1, this.shardEnd);
 
       const clusterProcess = new ClusterProcess(this, {
+        clusterId,
         env: {
           GATEWAY_URL: url,
         },
@@ -121,11 +122,12 @@ export class ClusterManager extends EventEmitter {
         shardEnd,
         shardStart,
       });
-      this.processes.set(clusterId++, clusterProcess);
+      this.processes.set(clusterId, clusterProcess);
       await clusterProcess.run();
       if (shardEnd < this.shardEnd) {
         await sleep(delay * (shardEnd - shardStart));
       }
+      clusterId++;
     }
     Object.defineProperty(this, 'ran', {value: true});
     return this;

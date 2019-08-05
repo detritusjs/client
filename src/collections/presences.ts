@@ -54,9 +54,10 @@ export class Presences extends BaseClientCollection<string, PresencesCache, Pres
   }
 
   add(value: GatewayRawEvents.RawPresence): Presence {
-    let presence: Presence;
-
     const cacheId = value['guild_id'] || DEFAULT_PRESENCE_CACHE_KEY;
+    this.insertCache(cacheId);
+
+    let presence: Presence;
     if (this.has(cacheId, value.user.id)) {
       presence = <Presence> this.get(cacheId, value.user.id);
       presence.merge(value);
@@ -80,11 +81,13 @@ export class Presences extends BaseClientCollection<string, PresencesCache, Pres
   }
 
   insert(presence: Presence): null | Presence {
+    const cacheId = presence.cacheId;
+    this.insertCache(cacheId);
+
     if (!this.enabled) {
       return null;
     }
 
-    const cacheId = presence.cacheId;
     if (presence.isOffline) {
       if (presence.fromGuild && !this.client.members.storeOffline) {
         this.client.members.delete(presence.guildId, presence.user.id);
@@ -95,22 +98,21 @@ export class Presences extends BaseClientCollection<string, PresencesCache, Pres
       }
     }
 
-    let cache: PresencesCache;
-    if (super.has(cacheId)) {
-      cache = <PresencesCache> super.get(cacheId);
-      if (cache.has(presence.user.id)) {
-        const old = <Presence> cache.get(presence.user.id);
-        old.merge(presence);
-        presence = old;
-      } else {
-        cache.set(presence.user.id, presence);
-      }
+    const cache = <PresencesCache> super.get(cacheId);
+    if (cache.has(presence.user.id)) {
+      const old = <Presence> cache.get(presence.user.id);
+      old.merge(presence);
+      presence = old;
     } else {
-      cache = new BaseCollection();
-      super.set(cacheId, cache);
       cache.set(presence.user.id, presence);
     }
     return presence;
+  }
+
+  insertCache(cacheId: string): void {
+    if (!super.has(cacheId)) {
+      super.set(cacheId, new BaseCollection());
+    }
   }
 
   delete(cacheId: string): boolean;
@@ -122,24 +124,20 @@ export class Presences extends BaseClientCollection<string, PresencesCache, Pres
         if (super.has(cacheId)) {
           if (userId != null) {
             const cache = <PresencesCache> super.get(cacheId);
-            const deleted = cache.delete(userId);
-            if (!cache.size) {
-              super.delete(cacheId);
-            }
-            return deleted;
+            return cache.delete(userId);
           } else {
             return super.delete(cacheId);
           }
         }
       } else if (userId != null) {
+        let deleted: boolean = false;
         for (let [cacheId, cache] of this) {
           if (cache.has(userId)) {
             cache.delete(userId);
-            if (!cache.size) {
-              super.delete(cacheId);
-            }
+            deleted = true;
           }
         }
+        return deleted;
       }
     }
     return false;

@@ -24,8 +24,9 @@ import {
   UrlQuery,
 } from '../utils';
 
-import { BaseCollection } from '../collections/basecollection';
 import {
+  BaseCollection,
+  BaseSet,
   MembersCache,
   PresencesCache,
   VoiceStatesCache,
@@ -117,7 +118,7 @@ export class Guild extends BaseStructure {
   embedChannelId: null | string = null;
   embedEnabled: boolean = false;
   explicitContentFilter: number = 0;
-  features!: Set<string>;
+  features!: BaseSet<string>;
   icon: null | string = null;
   id: string = '';
   joinedAt: Date | null = null;
@@ -593,7 +594,7 @@ export class Guild extends BaseStructure {
           }
         }; return;
         case 'features': {
-          value = new Set(value);
+          value = new BaseSet(value);
         }; break;
         case 'joined_at': {
           value = new Date(value);
@@ -604,10 +605,12 @@ export class Guild extends BaseStructure {
           }
         }; break;
         case 'members': {
+          if (this.client.members.has(this.id)) {
+            (<MembersCache> this.client.members.get(this.id)).clear();
+          } else {
+            this.client.members.insertCache(this.id);
+          }
           if (this.client.members.enabled || this.client.users.enabled) {
-            if (this.client.members.has(this.id)) {
-              (<MembersCache> this.client.members.get(this.id)).clear();
-            }
             for (let raw of value) {
               if (this.client.members.enabled) {
                 let member: Member;
@@ -676,10 +679,12 @@ export class Guild extends BaseStructure {
           }
         }; break;
         case 'presences': {
+          if (this.client.presences.has(this.id)) {
+            (<PresencesCache> this.client.presences.get(this.id)).clear();
+          } else {
+            this.client.presences.insertCache(this.id);
+          }
           if (this.client.presences.enabled) {
-            if (this.client.presences.has(this.id)) {
-              (<PresencesCache> this.client.presences.get(this.id)).clear();
-            }
             for (let raw of value) {
               raw.guild_id = this.id;
               this.client.presences.add(raw);
@@ -687,10 +692,12 @@ export class Guild extends BaseStructure {
           }
         }; return;
         case 'voice_states': {
+          if (this.client.voiceStates.has(this.id)) {
+            (<VoiceStatesCache> this.client.voiceStates.get(this.id)).clear();
+          } else {
+            this.client.voiceStates.insertCache(this.id);
+          }
           if (this.client.voiceStates.enabled) {
-            if (this.client.voiceStates.has(this.id)) {
-              (<VoiceStatesCache> this.client.voiceStates.get(this.id)).clear();
-            }
             for (let raw of value) {
               if (this.client.voiceStates.has(this.id, raw.user_id)) {
                 (<VoiceState> this.client.voiceStates.get(this.id, raw.user_id)).merge(raw);

@@ -5,12 +5,12 @@ import { BaseCollection } from '../collections/basecollection';
 import { ClusterIPCOpCodes } from '../constants';
 import { ClusterIPCError } from '../errors';
 import EventEmitter from '../eventemitter';
-import { Snowflake } from '../utils';
 
 import { ClusterIPCTypes } from './ipctypes';
 
 
 export interface ClusterProcessOptions {
+  clusterId: number,
   env: {[key: string]: string | undefined},
   shardCount: number,
   shardEnd: number,
@@ -25,6 +25,7 @@ export interface ClusterProcessRunOptions {
 export class ClusterProcess extends EventEmitter {
   _evalsWaiting = new BaseCollection<string, Promise<any>>();
 
+  clusterId: number = -1;
   env: {[key: string]: string | undefined} = {};
   manager: ClusterManager;
   process: ChildProcess | null = null;
@@ -35,14 +36,17 @@ export class ClusterProcess extends EventEmitter {
   ) {
     super();
     this.manager = manager;
+    this.clusterId = options.clusterId;
 
     Object.assign(this.env, process.env, options.env, {
+      CLUSTER_ID: String(this.clusterId),
       CLUSTER_SHARD_COUNT: String(options.shardCount),
       CLUSTER_SHARD_END: String(options.shardEnd),
       CLUSTER_SHARD_START: String(options.shardStart),
     });
 
     Object.defineProperties(this, {
+      clusterId: {writable: false},
       manager: {enumerable: false, writable: false},
     });
   }

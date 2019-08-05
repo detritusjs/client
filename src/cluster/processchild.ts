@@ -9,14 +9,21 @@ import { ClusterIPCTypes } from './ipctypes';
 
 export class ClusterProcessChild extends EventEmitter {
   cluster: ClusterClient;
+  clusterId: number = -1;
 
   constructor(cluster: ClusterClient) {
     super();
     this.cluster = cluster;
+    this.clusterId = +((<string> process.env.CLUSTER_ID) || this.clusterId);
 
     process.on('message', this.onMessage.bind(this));
     process.on('message', this.emit.bind(this, 'ipc'));
     this.cluster.on('ready', () => this.sendIPC(ClusterIPCOpCodes.READY));
+
+    Object.defineProperties(this, {
+      cluster: {enumerable: false, writable: false},
+      clusterId: {writable: false},
+    });
   }
 
   async onMessage(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {

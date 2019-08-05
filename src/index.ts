@@ -15,3 +15,5 @@ export * from './client';
 export * from './commandclient';
 export * from './clusterclient';
 export * from './clustermanager';
+export * from './gateway/clientevents';
+export * from './gateway/rawevents';
