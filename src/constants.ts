@@ -4,7 +4,7 @@ import {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.3.2',
+  VERSION: '0.3.3',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -13,6 +13,8 @@ function normalize(object: {[key: string]: any}) {
   }
   return Object.freeze(object);
 }
+
+export type Snowflake = number | string;
 
 export const MAX_BITRATE = 96000;
 export const MAX_EMOJI_SLOTS = 50;

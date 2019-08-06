@@ -1,3 +1,6 @@
+import { Snowflake } from '../constants';
+
+
 export namespace GatewayRawEvents {
   export interface GatewayPacket {
     d: any,
@@ -172,7 +175,7 @@ export namespace GatewayRawEvents {
     guild_id: string,
     members: Array<RawMember>,
     presences?: Array<RawPresence>,
-    not_found?: Array<string>,
+    not_found?: Array<Snowflake>,
   }
 
   export interface GuildRoleCreate {

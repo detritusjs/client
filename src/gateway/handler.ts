@@ -745,7 +745,8 @@ export class GatewayDispatchHandler {
 
     if (data['not_found'] !== undefined) {
       // user ids
-      notFound = data['not_found'];
+      // if the userId is not a big int, it'll be an integer..
+      notFound = data['not_found'].map((userId) => String(userId));
     }
 
     this.client.emit(ClientEvents.GUILD_MEMBERS_CHUNK, {

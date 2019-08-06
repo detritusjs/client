@@ -378,23 +378,22 @@ export class PresenceActivity extends BaseStructure {
   }
 
   mergeValue(key: string, value: any): void {
-    if (value === null || value === null) {
-      return;
-    }
-    // just replace our objects since they're of new values
-    switch (key) {
-      case 'assets': {
-        value = new PresenceActivityAssets(this, value);
-      }; break;
-      case 'party': {
-        value = new PresenceActivityParty(this, value);
-      }; break;
-      case 'secrets': {
-        value = new PresenceActivitySecrets(this, value);
-      }; break;
-      case 'timestamps': {
-        value = new PresenceActivityTimestamps(this, value);
-      }; break;
+    if (value !== null) {
+      // just replace our objects since they're of new values
+      switch (key) {
+        case 'assets': {
+          value = new PresenceActivityAssets(this, value);
+        }; break;
+        case 'party': {
+          value = new PresenceActivityParty(this, value);
+        }; break;
+        case 'secrets': {
+          value = new PresenceActivitySecrets(this, value);
+        }; break;
+        case 'timestamps': {
+          value = new PresenceActivityTimestamps(this, value);
+        }; break;
+      }
     }
     return super.mergeValue.call(this, key, value);
   }
@@ -488,7 +487,7 @@ export class PresenceActivityAssets extends BaseStructure {
     } else {
       // treat it as a normal hash
       return addQuery(
-        Endpoints.CDN.APP_ASSETS(this.activity.applicationId, hash, format),
+        Endpoints.CDN.APP_ASSET(this.activity.applicationId, hash, format),
         query,
       );
     }
