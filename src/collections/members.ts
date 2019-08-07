@@ -24,11 +24,12 @@ export interface MembersOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class Members extends BaseClientCollection<string, MembersCache, Member> {
-  storeOffline: boolean;
+  // default behavior since presence updates dont give us the member object if we've received it before
+  storeOffline: boolean = true;
 
   constructor(client: ShardClient, options: MembersOptions = {}) {
     super(client, options);
-    this.storeOffline = !!options.storeOffline;
+    this.storeOffline = !!(options.storeOffline || options.storeOffline === undefined);
     Object.defineProperties(this, {
       client: {enumerable: false, writable: false},
       storeOffline: {configurable: true, writable: false},

@@ -487,7 +487,7 @@ export class PresenceActivityAssets extends BaseStructure {
     } else {
       // treat it as a normal hash
       return addQuery(
-        Endpoints.CDN.APP_ASSET(this.activity.applicationId, hash, format),
+        Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET(this.activity.applicationId, hash, format),
         query,
       );
     }
