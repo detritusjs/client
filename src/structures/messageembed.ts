@@ -116,6 +116,9 @@ export class MessageEmbed extends BaseStructure {
       case 'image': {
         value = new MessageEmbedImage(this.client, value);
       }; break;
+      case 'timestamp': {
+        value = new Date(value);
+      }; break;
       case 'thumbnail': {
         value = new MessageEmbedThumbnail(this.client, value);
       }; break;

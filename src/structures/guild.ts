@@ -744,4 +744,8 @@ export class Guild extends BaseStructure {
       super.mergeValue.call(this, key, value);
     }
   }
+
+  toString(): string {
+    return this.name;
+  }
 }

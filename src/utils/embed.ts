@@ -43,7 +43,7 @@ export class Embed extends Structure {
   url?: string;
   video?: EmbedVideo;
 
-  constructor(data: GatewayRawEvents.RawMessageEmbed) {
+  constructor(data: GatewayRawEvents.RawMessageEmbed = {}) {
     super();
     this.merge(data);
   }
@@ -79,7 +79,7 @@ export class Embed extends Structure {
   }
 
   setAuthor(
-    name: string,
+    name?: null | string,
     iconUrl?: null | string,
     url?: null | string,
   ): Embed {
@@ -201,6 +201,9 @@ export class Embed extends Structure {
           image = new EmbedImage(value);
         }
         value = image;
+      }; break;
+      case 'timestamp': {
+        value = new Date(value);
       }; break;
       case 'thumbnail': {
         let thumbnail: EmbedThumbnail;
