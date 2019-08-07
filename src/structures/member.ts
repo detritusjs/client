@@ -89,7 +89,7 @@ export class Member extends UserMixin {
   }
 
   get permissions(): number {
-    return this.roles.reduce((total: number, role: Role) => {
+    return this.roles.reduce((total: number, role: null | Role) => {
       if (role !== null) {
         return total | role.permissions;
       }

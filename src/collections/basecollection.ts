@@ -61,15 +61,7 @@ export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
     return this.toArray().every(func);
   }
 
-  filter(key: K | Function, value?: V): Array<V> {
-    let func: Function;
-    if (typeof(key) === 'function') {
-      func = key;
-    } else {
-      func = (v: V, k?: K): boolean => {
-        return this.get(<K> key) === value;
-      };
-    }
+  filter(func: (v: V, k: K) => boolean): Array<V> {
     const map: Array<V> = [];
     for (let [k, v] of this) {
       if (func(v, k)) {
@@ -79,7 +71,7 @@ export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
     return map;
   }
 
-  find(func: (v: V, k?: K) => boolean): undefined | V {
+  find(func: (v: V, k: K) => boolean): undefined | V {
     for (let [key, value] of this) {
       if (func(value, key)) {
         return value;
@@ -91,7 +83,7 @@ export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
     return this.values().next().value;
   }
 
-  map(func: (v: V, k?: K) => any): Array<any> {
+  map(func: (v: V, k: K) => any): Array<any> {
     const map: Array<any> = [];
     for (let [key, value] of this) {
       map.push(func(value, key));
@@ -99,11 +91,11 @@ export class BaseCollection<K, V, X = V> extends BaseCollectionMap<K, V, X> {
     return map;
   }
 
-  reduce(cb: any, initialValue?: any): any {
+  reduce(cb: (initial: any, v: V) => number, initialValue?: any): any {
     return this.toArray().reduce(cb, initialValue);
   }
 
-  some(func: (v: V, k?: K) => boolean): boolean {
+  some(func: (v: V, k: K) => boolean): boolean {
     for (let [key, value] of this) {
       if (func(value, key)) {
         return true;

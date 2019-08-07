@@ -39,6 +39,10 @@ import {
 import {
   createChannelFromData,
   Channel,
+  ChannelGuildCategory,
+  ChannelGuildStore,
+  ChannelGuildText,
+  ChannelGuildVoice,
 } from './channel';
 import { Emoji } from './emoji';
 import { Member } from './member';
@@ -161,6 +165,12 @@ export class Guild extends BaseStructure {
     return this.bannerUrlFormat();
   }
 
+  get categoryChannels(): BaseCollection<string, ChannelGuildCategory> {
+    return new BaseCollection(this.client.channels.filter((channel: Channel) => {
+      return channel.isGuildCategory && channel.guildId === this.id
+    }));
+  }
+
   get channels(): BaseCollection<string, Channel> {
     return new BaseCollection(this.client.channels.filter((channel: Channel) => channel.guildId === this.id));
   }
@@ -231,11 +241,29 @@ export class Guild extends BaseStructure {
     return this.splashUrlFormat();
   }
 
+  get storeChannels(): BaseCollection<string, ChannelGuildStore> {
+    return new BaseCollection(this.client.channels.filter((channel: Channel) => {
+      return channel.isGuildStore && channel.guildId === this.id
+    }));
+  }
+
   get systemChannel(): Channel | null {
     if (this.systemChannelId !== null) {
       return this.client.channels.get(this.systemChannelId) || null;
     }
     return null;
+  }
+
+  get textChannels(): BaseCollection<string, ChannelGuildText> {
+    return new BaseCollection(this.client.channels.filter((channel: Channel) => {
+      return channel.isGuildText && channel.guildId === this.id
+    }));
+  }
+
+  get voiceChannels(): BaseCollection<string, ChannelGuildVoice> {
+    return new BaseCollection(this.client.channels.filter((channel: Channel) => {
+      return channel.isGuildVoice && channel.guildId === this.id
+    }));
   }
 
   get voiceStates(): null | VoiceStatesCache {

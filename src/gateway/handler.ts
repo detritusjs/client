@@ -664,10 +664,25 @@ export class GatewayDispatchHandler {
     const guildId = data['guild_id'];
     let member: Member;
 
+    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE);
     if (this.client.members.has(guildId, data['user']['id'])) {
       member = <Member> this.client.members.get(guildId, data['user']['id']);
-      if (this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE)) {
+      if (isListening || this.client.guilds.has(guildId)) {
         differences = member.differences(data);
+        if ('premiumSince' in differences && this.client.guilds.has(guildId)) {
+          const guild = <Guild> this.client.guilds.get(guildId);
+          if (differences.premiumSince) {
+            // just boosted
+            guild.merge({
+              'premium_subscription_count': guild.premiumSubscriptionCount + 1,
+            });
+          } else {
+            // just unboosted
+            guild.merge({
+              'premium_subscription_count': guild.premiumSubscriptionCount - 1,
+            });
+          }
+        }
       }
       member.merge(data);
     } else {

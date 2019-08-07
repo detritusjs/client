@@ -14,6 +14,8 @@ export {
   PermissionTools,
   Snowflake,
 };
+export * from './embed';
+
 
 export type UrlQuery = {[key: string]: any};
 

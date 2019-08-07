@@ -23,9 +23,9 @@ import {
 import { Application } from './application';
 import { Attachment } from './attachment';
 import { Channel } from './channel';
-import { Embed } from './embed';
 import { Guild } from './guild';
 import { Member } from './member';
+import { MessageEmbed } from './messageembed';
 import { Reaction } from './reaction';
 import { Role } from './role';
 import { User } from './user';
@@ -87,7 +87,7 @@ export class Message extends BaseStructure {
   channelId: string = '';
   content: string = '';
   editedTimestamp: Date | null = null;
-  embeds = new BaseCollection<number, Embed>();
+  embeds = new BaseCollection<number, MessageEmbed>();
   flags: number = 0;
   guildId: null | string = null;
   id: string = '';
@@ -360,7 +360,7 @@ export class Message extends BaseStructure {
         case 'embeds': {
           this.embeds.clear();
           for (let i = 0; i < value.length; i++) {
-            this.embeds.set(i, new Embed(this.client, value[i]));
+            this.embeds.set(i, new MessageEmbed(this.client, value[i]));
           }
         }; return;
         case 'member': {

@@ -7,29 +7,20 @@ export interface BaseStructureData {
 }
 
 /**
- * The most basic Structure class, everything extends this
+ * The most basic Structure class, every structure extends this
  * @category Structure
  */
-export class BaseStructure {
+export class Structure {
   /** @ignore */
   readonly _keys: ReadonlyArray<string> | null = null;
   /** @ignore */
   readonly _keysMerge: ReadonlyArray<string> | null = null;
 
-  readonly client: ShardClient;
-
-  constructor(client: ShardClient) {
-    this.client = client;
-
+  constructor() {
     Object.defineProperties(this, {
       _keys: {enumerable: false},
       _keysMerge: {enumerable: false},
-      client: {enumerable: false, writable: false},
     });
-  }
-
-  get shardId(): number {
-    return this.client.shardId;
   }
 
   _getFromSnake(key: string): any {
@@ -102,5 +93,27 @@ export class BaseStructure {
       }
     }
     return obj;
+  }
+}
+
+
+/**
+ * Basic Structure class with an added ShardClient attached to it
+ * @category Structure
+ */
+export class BaseStructure extends Structure {
+  readonly client: ShardClient;
+
+  constructor(client: ShardClient) {
+    super();
+    this.client = client;
+
+    Object.defineProperties(this, {
+      client: {enumerable: false, writable: false},
+    });
+  }
+
+  get shardId(): number {
+    return this.client.shardId;
   }
 }

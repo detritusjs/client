@@ -1,8 +1,6 @@
 import { BaseCollection } from '../collections/basecollection';
 import { ShardClient } from '../client';
-import {
-  MessageEmbedTypes,
-} from '../constants';
+import { MessageEmbedTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -10,7 +8,7 @@ import {
 } from './basestructure';
 
 
-const keysEmbed: ReadonlyArray<string> = [
+const keysMessageEmbed: ReadonlyArray<string> = [
   'author',
   'color',
   'description',
@@ -31,22 +29,22 @@ const keysEmbed: ReadonlyArray<string> = [
  * Embed Structure, used for [Message] Structures
  * @category Structure
  */
-export class Embed extends BaseStructure {
-  readonly _keys = keysEmbed;
-  author: EmbedAuthor | null = null;
-  color: number = 0;
+export class MessageEmbed extends BaseStructure {
+  readonly _keys = keysMessageEmbed;
+  author: MessageEmbedAuthor | null = null;
+  color?: number;
   description: null | string = null;
-  fields: BaseCollection<number, EmbedField> | null = null;
-  footer: EmbedFooter | null = null;
-  image: EmbedImage | null = null;
-  provider: EmbedProvider | null = null;
+  fields: BaseCollection<number, MessageEmbedField> | null = null;
+  footer: MessageEmbedFooter | null = null;
+  image: MessageEmbedImage | null = null;
+  provider: MessageEmbedProvider | null = null;
   referenceId: null | string = null;
-  thumbnail: EmbedThumbnail | null = null;
+  thumbnail: MessageEmbedThumbnail | null = null;
   timestamp: null | Date = null;
   title: null | string = null;
   type: string = MessageEmbedTypes.RICH;
   url: null | string = null;
-  video: EmbedVideo | null = null;
+  video: MessageEmbedVideo | null = null;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -98,11 +96,11 @@ export class Embed extends BaseStructure {
   mergeValue(key: string, value: any): void {
     switch (key) {
       case 'author': {
-        value = new EmbedAuthor(this.client, value);
+        value = new MessageEmbedAuthor(this.client, value);
       }; break;
       case 'fields': {
         if (this.fields === null) {
-          this.fields = new BaseCollection<number, EmbedField>();
+          this.fields = new BaseCollection<number, MessageEmbedField>();
         }
         this.fields.clear();
         for (let i = 0; i < value.length; i++) {
@@ -110,19 +108,19 @@ export class Embed extends BaseStructure {
         }
       }; return;
       case 'footer': {
-        value = new EmbedFooter(this.client, value);
+        value = new MessageEmbedFooter(this.client, value);
       }; break;
       case 'provider': {
-        value = new EmbedProvider(this.client, value);
+        value = new MessageEmbedProvider(this.client, value);
       }; break;
       case 'image': {
-        value = new EmbedImage(this.client, value);
+        value = new MessageEmbedImage(this.client, value);
       }; break;
       case 'thumbnail': {
-        value = new EmbedThumbnail(this.client, value);
+        value = new MessageEmbedThumbnail(this.client, value);
       }; break;
       case 'video': {
-        value = new EmbedVideo(this.client, value);
+        value = new MessageEmbedVideo(this.client, value);
       }; break;
     }
     return super.mergeValue.call(this, key, value);
@@ -130,7 +128,7 @@ export class Embed extends BaseStructure {
 }
 
 
-const keysEmbedAuthor: ReadonlyArray<string> = [
+const keysMessageEmbedAuthor: ReadonlyArray<string> = [
   'icon_url',
   'name',
   'proxy_icon_url',
@@ -138,11 +136,11 @@ const keysEmbedAuthor: ReadonlyArray<string> = [
 ];
 
 /**
- * Embed Author Structure, used for [Embed] Structures
+ * Embed Author Structure, used for [MessageEmbed] Structures
  * @category Structure
  */
-export class EmbedAuthor extends BaseStructure {
-  readonly _keys = keysEmbedAuthor;
+export class MessageEmbedAuthor extends BaseStructure {
+  readonly _keys = keysMessageEmbedAuthor;
 
   iconUrl: null | string = null;
   name:  null | string = null;
@@ -156,18 +154,18 @@ export class EmbedAuthor extends BaseStructure {
 }
 
 
-const keysEmbedField: ReadonlyArray<string> = [
+const keysMessageEmbedField: ReadonlyArray<string> = [
   'inline',
   'name',
   'value',
 ];
 
 /**
- * Embed Field Structure, used for [Embed] Structures
+ * Embed Field Structure, used for [MessageEmbed] Structures
  * @category Structure
  */
-export class EmbedField extends BaseStructure {
-  readonly _keys = keysEmbedField;
+export class MessageEmbedField extends BaseStructure {
+  readonly _keys = keysMessageEmbedField;
 
   inline: boolean = false;
   name: string = '';
@@ -180,18 +178,18 @@ export class EmbedField extends BaseStructure {
 }
 
 
-const keysEmbedFooter: ReadonlyArray<string> = [
+const keysMessageEmbedFooter: ReadonlyArray<string> = [
   'icon_url',
   'proxy_icon_url',
   'text',
 ];
 
 /**
- * Embed Footer Structure, used for [ApplicationNews] and [Embed] Structures
+ * Embed Footer Structure, used for [ApplicationNews] and [MessageEmbed] Structures
  * @category Structure
  */
-export class EmbedFooter extends BaseStructure {
-  readonly _keys = keysEmbedFooter;
+export class MessageEmbedFooter extends BaseStructure {
+  readonly _keys = keysMessageEmbedFooter;
 
   iconUrl: null | string = null;
   proxyIconUrl: null | string = null;
@@ -204,7 +202,7 @@ export class EmbedFooter extends BaseStructure {
 }
 
 
-const keysEmbedImage = [
+const keysMessageEmbedImage = [
   'height',
   'proxy_url',
   'url',
@@ -212,16 +210,16 @@ const keysEmbedImage = [
 ];
 
 /**
- * Embed Image Structure, used for [Embed] Structures
+ * Embed Image Structure, used for [MessageEmbed] Structures
  * @category Structure
  */
-export class EmbedImage extends BaseStructure {
-  readonly _keys: ReadonlyArray<string> = keysEmbedImage;
+export class MessageEmbedImage extends BaseStructure {
+  readonly _keys: ReadonlyArray<string> = keysMessageEmbedImage;
 
   height: number = 0;
   proxyUrl: null | string = null;
   url: string = '';
-  width: null | string = null;
+  width: null | number = 0;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -230,17 +228,17 @@ export class EmbedImage extends BaseStructure {
 }
 
 
-const keysEmbedProvider: ReadonlyArray<string> = [
+const keysMessageEmbedProvider: ReadonlyArray<string> = [
   'name',
   'url',
 ];
 
 /**
- * Embed Provider Structure, used for [Embed] Structures
+ * Embed Provider Structure, used for [MessageEmbed] Structures
  * @category Structure
  */
-export class EmbedProvider extends BaseStructure {
-  readonly _keys = keysEmbedProvider;
+export class MessageEmbedProvider extends BaseStructure {
+  readonly _keys = keysMessageEmbedProvider;
 
   name: null | string = null;
   url: null | string = null;
@@ -253,18 +251,18 @@ export class EmbedProvider extends BaseStructure {
 
 
 /**
- * Embed Thumbnail Structure, used for [ApplicationNews] and [Embed] Structures
+ * Embed Thumbnail Structure, used for [ApplicationNews] and [MessageEmbed] Structures
  * @category Structure
  */
-export class EmbedThumbnail extends EmbedImage {
+export class MessageEmbedThumbnail extends MessageEmbedImage {
 
 }
 
 
 /**
- * Embed Video Structure, used for [Embed] Structures
+ * Embed Video Structure, used for [MessageEmbed] Structures
  * @category Structure
  */
-export class EmbedVideo extends EmbedImage {
+export class MessageEmbedVideo extends MessageEmbedImage {
 
 }

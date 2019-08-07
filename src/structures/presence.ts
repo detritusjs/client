@@ -625,7 +625,7 @@ export class PresenceActivityTimestamps extends BaseStructure {
 
   get elapsedTime(): number {
     const total = this.totalTime;
-    const elapsed = Date.now() - this.start;
+    const elapsed = Math.max(Date.now() - this.start, 0);
     if (total) {
       return Math.min(elapsed, total);
     }

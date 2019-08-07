@@ -8,9 +8,9 @@ import {
   BaseStructureData,
 } from './basestructure';
 import {
-  EmbedFooter,
-  EmbedThumbnail,
-} from './embed';
+  MessageEmbedFooter,
+  MessageEmbedThumbnail,
+} from './messageembed';
 
 
 const keysApplicationNews: ReadonlyArray<string> = [
@@ -38,10 +38,10 @@ export class ApplicationNews extends BaseStructure {
   category: null = null;
   description: string = '';
   flags: number = 0;
-  footer: EmbedFooter | null = null;
+  footer: MessageEmbedFooter | null = null;
   gameId: string = this.applicationId;
   id: string = '';
-  thumbnail: EmbedThumbnail | null = null;
+  thumbnail: MessageEmbedThumbnail | null = null;
   timestamp!: Date;
   title: string = '';
   type: string = MessageEmbedTypes.APPLICATION_NEWS;
@@ -54,10 +54,10 @@ export class ApplicationNews extends BaseStructure {
   mergeValue(key: string, value: any): void {
     switch (key) {
       case 'footer': {
-        value = new EmbedFooter(this.client, value);
+        value = new MessageEmbedFooter(this.client, value);
       }; break;
       case 'thumbnail': {
-        value = new EmbedThumbnail(this.client, value);
+        value = new MessageEmbedThumbnail(this.client, value);
       }; break;
       case 'timestamp': {
         value = new Date(value);

@@ -415,11 +415,23 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  async fetchStoreListing(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async fetchWebhooks(): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  async grantEntitlement(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async join(...args: any[]): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async publish(options: Options.CreateApplicationNews): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -440,6 +452,14 @@ export class ChannelBase extends BaseStructure {
   }
 
   async triggerTyping(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async turnIntoNewsChannel(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async turnIntoTextChannel(): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
