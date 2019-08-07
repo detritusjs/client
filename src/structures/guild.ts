@@ -346,7 +346,7 @@ export class Guild extends BaseStructure {
       this.client.imageFormat,
     );
     return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.GUILD_BANNER(this.id, hash, format),
+      Endpoints.CDN.URL + Endpoints.CDN.GUILD_ICON(this.id, hash, format),
       query,
     );
   }
