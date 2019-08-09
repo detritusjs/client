@@ -11,10 +11,7 @@ const {
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { DEFAULT_PRESENCE_CACHE_KEY } from '../collections/presences';
-import {
-  ImageFormats,
-  PlatformTypes,
-} from '../constants';
+import { PlatformTypes, SpecialUrls } from '../constants';
 import { addQuery, getFormatFromHash, UrlQuery } from '../utils';
 
 import {
@@ -321,6 +318,13 @@ export class PresenceActivity extends BaseStructure {
 
   get isOnXbox(): boolean {
     return this.applicationId === SpecialApplications.XBOX;
+  }
+
+  get spotifyTrackUrl(): null | string {
+    if (this.isOnSpotify && this.syncId) {
+      return SpecialUrls.SPOTIFY_TRACK(this.syncId);
+    }
+    return null;
   }
 
   get typeText(): string {

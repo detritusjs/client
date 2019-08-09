@@ -3,7 +3,7 @@ import { Constants as SocketConstants } from 'detritus-client-socket';
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.3.14',
+  VERSION: '0.3.15',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -547,6 +547,11 @@ export const RelationshipTypes = Object.freeze({
   PENDING_INCOMING: 3,
   PENDING_OUTGOING: 4,
   IMPLICIT: 5,
+});
+
+export const SpecialUrls = Object.freeze({
+  SPOTIFY_TRACK: (trackId: string): string =>
+    `https://open.spotify.com/track/${encodeURIComponent(trackId)}`,
 });
 
 export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';

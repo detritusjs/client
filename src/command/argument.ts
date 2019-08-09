@@ -43,21 +43,25 @@ export class Argument {
     this.type = options.type || this.type;
   }
 
-  get isInfinite(): boolean {
-    return this.type !== CommandArgumentTypes.BOOL;
-  }
-
   check(name: string): boolean {
     return this.name === name || this.aliases.includes(name);
   }
 
-  in(args: Array<string>): boolean {
-    return args.some((arg) => this.check(arg));
+  getName(content: string): null | string {
+    if (content.startsWith(this.name)) {
+      return this.name;
+    }
+    for (let alias of this.aliases) {
+      if (content.startsWith(alias)) {
+        return alias;
+      }
+    }
+    return null;
   }
 
   getPosition(args: Array<string>): number {
     for (let i = 0; i < args.length; i++) {
-      if (this.check(args[i])) {
+      if (this.check(args[i].toLowerCase())) {
         return i;
       }
     }
@@ -71,7 +75,7 @@ export class Argument {
     } else {
       switch (this.type) {
         case CommandArgumentTypes.BOOL: {
-          parsedValue = !!value;
+          parsedValue = !this.default;
         }; break;
         case CommandArgumentTypes.FLOAT: {
           parsedValue = parseFloat(value);

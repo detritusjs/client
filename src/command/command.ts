@@ -1,5 +1,4 @@
-import { ShardClient } from '../client';
-import { CommandClient } from '../commandclient';
+import { CommandAttributes, CommandClient } from '../commandclient';
 import { 
   CommandRatelimitTypes,
   COMMAND_RATELIMIT_TYPES,
@@ -71,6 +70,7 @@ export interface CommandOptions extends ArgumentOptions {
   disableDmReply?: boolean,
   extras?: {[key: string]: any},
   name: string,
+  priority?: number,
   ratelimit?: boolean | CommandRatelimitOptions | null,
   responseOptional?: boolean,
 
@@ -110,6 +110,7 @@ export class Command {
   disableDm: boolean = false;
   disableDmReply: boolean = false;
   extras: {[key: string]: any};
+  priority: number = 0;
   ratelimit: CommandRatelimit | null = null;
   responseOptional: boolean = false;
 
@@ -135,6 +136,7 @@ export class Command {
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
     this.extras = Object.assign({}, options.extras);
+    this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;
 
     if (options._file) {
@@ -180,16 +182,20 @@ export class Command {
   }
 
   async getArgs(
-    args: Array<string>,
+    attributes: CommandAttributes,
     context: Context,
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
-    const {errors, parsed} = await this.args.parse(args, context);
+    const {errors, parsed} = await this.args.parse(attributes, context);
     try {
-      parsed[this.label] = await this.arg.parse(args.join(' '), context);
+      parsed[this.label] = await this.arg.parse(attributes.content, context);
     } catch(error) {
       errors[this.label] = error;
     }
     return {errors, parsed};
+  }
+
+  getName(content: string): null | string {
+    return this.arg.getName(content);
   }
 
   getRatelimit(cacheId: string): CommandRatelimitItem | null {

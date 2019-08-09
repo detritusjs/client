@@ -1,3 +1,4 @@
+import { CommandAttributes } from '../commandclient';
 import { CommandArgumentTypes } from '../constants';
 
 import {
@@ -39,31 +40,15 @@ export class ArgumentParser {
   }
 
   async parse(
-    args: Array<string>,
+    attributes: CommandAttributes,
     context: Context,
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
     const parsed: ParsedArgs = Object.assign({}, this.defaults);
-
-    for (let argument of this.args) {
-      if (argument.isInfinite) {
-        continue;
-      }
-      if (!argument.in(args)) {
-        continue;
-      }
-      const index = <number> argument.getPosition(args);
-      if (argument.type === CommandArgumentTypes.BOOL) {
-        // only remove the argument
-        args.splice(index, 1);
-        parsed[argument.label] = !argument.default;
-      } else {
-        parsed[argument.label] = args.splice(index, 2).pop();
-      }
-    }
+    const args = attributes.content.split(' ');
 
     const parsing = this.args
-      .filter((arg) => arg.isInfinite && arg.in(args))
       .map((arg) => ({arg, index: arg.getPosition(args)}))
+      .filter((x) => x.index !== -1)
       .sort((x, y) => +(x.index < y.index));
 
     const errors: ParsedErrors = {};
@@ -77,6 +62,7 @@ export class ArgumentParser {
         delete parsed[arg.label];
       }
     }
+    attributes.content = args.join(' ');
     return {errors, parsed};
   }
 }

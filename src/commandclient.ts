@@ -31,11 +31,15 @@ export interface CommandClientOptions extends ClusterClientOptions {
   ignoreMe?: boolean,
   maxEditDuration?: number,
   mentionsEnabled?: boolean,
+  onPrefixCheck?: CommandClientPrefixCheck,
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
   useClusterClient?: boolean,
 }
+
+export type CommandClientPrefixes = Array<string> | Set<string> | string;
+export type CommandClientPrefixCheck = (context: Context) => CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
 export interface CommandClientAdd extends CommandOptions {
   _class?: any,
@@ -43,6 +47,11 @@ export interface CommandClientAdd extends CommandOptions {
 
 export interface CommandClientRunOptions extends ClusterClientRunOptions {
 
+}
+
+export interface CommandAttributes {
+  content: string,
+  prefix: string,
 }
 
 
@@ -62,8 +71,9 @@ export class CommandClient extends EventEmitter {
     custom: Set<string>,
     mention: Set<string>,
   };
-  prefixSpace: boolean = false;
   ran: boolean;
+
+  onPrefixCheck?: CommandClientPrefixCheck;
 
   constructor(
     token: ShardClient | string,
@@ -99,11 +109,11 @@ export class CommandClient extends EventEmitter {
     this.ignoreMe = options.ignoreMe || this.ignoreMe;
     this.maxEditDuration = +(options.maxEditDuration || this.maxEditDuration);
     this.mentionsEnabled = !!options.mentionsEnabled || this.mentionsEnabled;
+    this.onPrefixCheck = options.onPrefixCheck;
     this.prefixes = Object.freeze({
       custom: new Set<string>(),
       mention: new Set<string>(),
     });
-    this.prefixSpace = !!options.prefixSpace || this.prefixSpace;
     this.ran = this.client.ran;
 
     if (options.prefix !== undefined) {
@@ -115,7 +125,13 @@ export class CommandClient extends EventEmitter {
     if (options.prefixes !== undefined) {
       options.prefixes.sort((x: string, y: string) => +(x.length < y.length));
       for (let prefix of options.prefixes) {
-        this.prefixes.custom.add(prefix);
+        this.prefixes.custom.add(prefix.trim());
+      }
+    }
+    if (options.prefixSpace) {
+      for (let prefix of this.prefixes.custom) {
+        this.prefixes.custom.delete(prefix);
+        this.prefixes.custom.add(`${prefix} `);
       }
     }
 
@@ -134,6 +150,7 @@ export class CommandClient extends EventEmitter {
       commands: {writable: false},
       maxEditDuration: {configurable: true, writable: false},
       mentionsEnabled: {configurable: true, writable: false},
+      onPrefixCheck: {enumerable: false},
       prefixes: {writable: false},
       prefixSpace: {configurable: true, writable: false},
       ran: {configurable: true, writable: false},
@@ -200,6 +217,7 @@ export class CommandClient extends EventEmitter {
     }
 
     this.commands.push(command);
+    this.commands.sort((x, y) => y.priority - x.priority);
     this.setListeners();
     return this;
   }
@@ -281,53 +299,66 @@ export class CommandClient extends EventEmitter {
     this.resetListeners();
   }
 
-  getAttributes(
-    args: Array<string>,
-  ): CommandAttributes | null {
-    if (!args.length) {
+  async getAttributes(context: Context): Promise<CommandAttributes | null> {
+    let content = context.message.content.trim();
+    let contentLower = content.toLowerCase();
+    if (!content) {
       return null;
     }
+
     let prefix: string = '';
-    if (this.prefixSpace) {
-      const first = (<string> args.shift()).toLowerCase();
-      if (this.prefixes.custom.has(first)) {
-        prefix = first;
-      } else {
-        if (this.mentionsEnabled && this.prefixes.mention.has(first)) {
-          prefix = first;
-        }
-      }
-    } else {
-      const first = args[0].toLowerCase();
-      for (let customPrefix of this.prefixes.custom) {
-        if (first.startsWith(customPrefix)) {
-          prefix = first.substring(0, customPrefix.length);
+    if (this.mentionsEnabled) {
+      for (let mention of this.prefixes.mention) {
+        if (contentLower.startsWith(mention)) {
+          prefix = mention;
           break;
         }
       }
-      if (prefix) {
-        args[0] = args[0].substring(prefix.length);
-      } else {
-        if (this.mentionsEnabled && this.prefixes.mention.has(first)) {
-          args.shift();
-          prefix = first;
+    }
+    if (!prefix) {
+      const customPrefixes = await Promise.resolve(this.getPrefixes(context));
+      for (let custom of customPrefixes) {
+        if (contentLower.startsWith(custom)) {
+          prefix = custom;
+          break;
         }
       }
     }
     if (prefix) {
-      return <CommandAttributes> {args, prefix};
+      content = content.substring(prefix.length).trim();
+      return {content, prefix};
     }
     return null;
   }
 
-  getCommand(
-    args: Array<string>,
-  ): Command | null {
-    const name = (args.shift() || '').toLowerCase();
-    if (name) {
-      return this.commands.find((command) => command.check(name)) || null;
+  getCommand(attributes: CommandAttributes): Command | null {
+    if (attributes.content) {
+      for (let command of this.commands) {
+        const name = command.getName(attributes.content);
+        if (name) {
+          attributes.content = attributes.content.substring(name.length).trim();
+          return command;
+        }
+      }
     }
     return null;
+  }
+
+  async getPrefixes(context: Context): Promise<Set<string>> {
+    if (typeof(this.onPrefixCheck) === 'function') {
+      const prefixes = await Promise.resolve(this.onPrefixCheck(context));
+      if (prefixes instanceof Set) {
+        return prefixes;
+      }
+      if (Array.isArray(prefixes)) {
+        return new Set(prefixes);
+      }
+      if (typeof(prefixes) === 'string') {
+        return new Set([prefixes]);
+      }
+      throw new Error('Invalid Prefixes Type Received');
+    }
+    return this.prefixes.custom;
   }
 
   resetListeners(): void {
@@ -382,35 +413,37 @@ export class CommandClient extends EventEmitter {
         return;
       }
     }
+
     const context = new Context(message, this);
-    if (!message.fromUser) {
-      const error = new Error('Message is not from a user.');
-      this.emit(ClientEvents.COMMAND_NONE, {context, error});
-      return;
-    }
-    if (message.isEdited) {
-      const difference = (<number> message.editedTimestampUnix) - message.timestampUnix;
-      if (this.maxEditDuration < difference) {
-        const error = new Error('Edit timestamp is higher than max edit duration');
-        this.emit(ClientEvents.COMMAND_NONE, {context, error});
-        return;
+
+    let attributes: CommandAttributes | null = null;
+    try {
+      if (!message.fromUser) {
+        throw new Error('Message is not from a user.');
       }
-    }
 
-    const attributes = this.getAttributes(message.content.split(' '));
-    if (attributes === null) {
-      const error = new Error('Does not start with any allowed prefixes');
+      if (message.isEdited) {
+        const difference = (<number> message.editedTimestampUnix) - message.timestampUnix;
+        if (this.maxEditDuration < difference) {
+          throw new Error('Edit timestamp is higher than max edit duration');
+        }
+      }
+
+      attributes = await this.getAttributes(context);
+      if (attributes === null) {
+        throw new Error('Does not start with any allowed prefixes');
+      }
+    } catch(error) {
       this.emit(ClientEvents.COMMAND_NONE, {context, error});
       return;
     }
 
-    const command = this.getCommand(attributes.args);
+    const command = context.command = this.getCommand(attributes);
     if (command === null) {
       const error = new Error('Unknown Command');
       this.emit(ClientEvents.COMMAND_NONE, {context, error});
       return;
     }
-    context.command = command;
 
     if (!command.responseOptional && !message.canReply) {
       const error = new Error('Cannot send messages in this channel');
@@ -477,7 +510,7 @@ export class CommandClient extends EventEmitter {
     }
 
     const prefix = attributes.prefix;
-    const {errors, parsed: args} = await command.getArgs(attributes.args, context);
+    const {errors, parsed: args} = await command.getArgs(attributes, context);
     if (Object.keys(errors).length) {
       if (typeof(command.onTypeError) === 'function') {
         await Promise.resolve(command.onTypeError(context, args, errors));
@@ -530,25 +563,4 @@ export class CommandClient extends EventEmitter {
     super.on(event, listener);
     return this;
   }
-}
-
-
-export interface CommandAttributes {
-  args: Array<string>;
-  prefix: string;
-}
-
-export interface CommandPayloadArgs {
-  [command: string]: string,
-}
-
-export interface CommandPayload {
-  args?: ParsedArgs,
-  command?: Command;
-  content: Context;
-  error?: Error;
-  extra?: any;
-  prefix?: string;
-  remaining?: number;
-  reply?: Message;
 }
