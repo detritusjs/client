@@ -177,6 +177,10 @@ export class Command {
     return this.arg.name;
   }
 
+  get names(): Array<string> {
+    return this.arg.names;
+  }
+
   check(name: string): boolean {
     return this.arg.check(name);
   }

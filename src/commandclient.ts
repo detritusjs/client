@@ -205,12 +205,9 @@ export class CommandClient extends EventEmitter {
       throw new Error('Command needs a run function');
     }
 
-    if (this.commands.some((c) => c.check(command.name))) {
-      throw new Error(`Alias/name ${command.name} already exists.`);
-    }
-    for (let alias of command.aliases) {
-      if (this.commands.some((c) => c.check(alias))) {
-        throw new Error(`Alias/name ${alias} already exists.`);
+    for (let name of command.names) {
+      if (this.commands.some((c) => c.check(name))) {
+        throw new Error(`Alias/name \`${name}\` already exists.`);
       }
     }
 
