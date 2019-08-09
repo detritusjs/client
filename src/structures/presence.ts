@@ -385,19 +385,25 @@ export class PresenceActivity extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== null) {
       // just replace our objects since they're of new values
-      switch (key) {
-        case 'assets': {
-          value = new PresenceActivityAssets(this, value);
-        }; break;
-        case 'party': {
-          value = new PresenceActivityParty(this, value);
-        }; break;
-        case 'secrets': {
-          value = new PresenceActivitySecrets(this, value);
-        }; break;
-        case 'timestamps': {
-          value = new PresenceActivityTimestamps(this, value);
-        }; break;
+      if (typeof(value) === 'object') {
+        if (Object.keys(value).length) {
+          switch (key) {
+            case 'assets': {
+              value = new PresenceActivityAssets(this, value);
+            }; break;
+            case 'party': {
+              value = new PresenceActivityParty(this, value);
+            }; break;
+            case 'secrets': {
+              value = new PresenceActivitySecrets(this, value);
+            }; break;
+            case 'timestamps': {
+              value = new PresenceActivityTimestamps(this, value);
+            }; break;
+          }
+        } else {
+          value = null;
+        }
       }
     }
     return super.mergeValue.call(this, key, value);
