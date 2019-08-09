@@ -44,25 +44,25 @@ export class ArgumentParser {
     context: Context,
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
     const parsed: ParsedArgs = Object.assign({}, this.defaults);
-    const args = attributes.content.split(' ');
 
-    const parsing = this.args
-      .map((arg) => ({arg, index: arg.getPosition(args)}))
-      .filter((x) => x.index !== -1)
-      .sort((x, y) => +(x.index < y.index));
+    const args = this.args
+      .map((arg) => ({arg, info: arg.getInfo(attributes.content)}))
+      .filter((x) => x.info.index !== -1)
+      .sort((x, y) => +(x.info.index < y.info.index));
 
     const errors: ParsedErrors = {};
-    for (let {arg, index} of parsing) {
-      const argValues = args.splice(index);
-      argValues.shift();
+    for (const {arg, info} of args) {
+      const value = attributes.content.slice(info.index + info.name.length).trim();
+      attributes.content = attributes.content.slice(0, info.index).trim();
+
       try {
-        parsed[arg.label] = await arg.parse(argValues.join(' '), context);
+        parsed[arg.label] = await arg.parse(value, context);
       } catch(error) {
         errors[arg.label] = error;
         delete parsed[arg.label];
       }
     }
-    attributes.content = args.join(' ');
+
     return {errors, parsed};
   }
 }

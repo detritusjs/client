@@ -15,8 +15,13 @@ export interface ArgumentOptions {
   label?: string,
   name: string,
   prefix?: string,
+  prefixes?: Array<string>,
+  prefixSpace?: boolean,
   type?: ArgumentConverter | string,
 }
+
+
+const blankPrefixes = Object.freeze(['']);
 
 /**
  * Command Argument
@@ -27,45 +32,76 @@ export class Argument {
   default: any;
   label: string;
   name: string;
-  prefix?: string = '-';
+  prefixes: Set<string> = new Set(['-']);
   type: ArgumentConverter | string = CommandArgumentTypes.STRING;
 
   constructor(options: ArgumentOptions) {
     if (options.prefix !== undefined) {
-      this.prefix = options.prefix;
+      if (options.prefixes === undefined) {
+        options.prefixes = [];
+      }
+      options.prefixes.push(options.prefix);
     }
-    this.aliases = (options.aliases || []).map((alias) => {
-      return this.prefix + alias.toLowerCase();
-    });
+    if (options.prefixes !== undefined) {
+      options.prefixes.sort((x: string, y: string) => +(x.length < y.length));
+
+      this.prefixes.clear();
+      for (let prefix of options.prefixes) {
+        prefix = prefix.trim();
+        if (options.prefixSpace) {
+          prefix += ' ';
+        }
+        if (prefix) {
+          this.prefixes.add(prefix);
+        }
+      }
+    }
+
+    this.aliases = (options.aliases || []).map((alias) => alias.toLowerCase());
     this.default = (options.default === undefined) ? '' : options.default;
     this.label = (options.label || options.name).toLowerCase();
-    this.name = this.prefix + options.name.toLowerCase();
+    this.name = options.name.toLowerCase();
     this.type = options.type || this.type;
   }
 
+  get names(): Array<string> {
+    const names: Array<string> = [];
+    const prefixes = (this.prefixes.size) ? this.prefixes : blankPrefixes;
+    for (let prefix of prefixes) {
+      names.push((prefix) ? prefix + this.name : this.name);
+      for (let alias of this.aliases) {
+        names.push((prefix) ? prefix + alias : alias);
+      }
+    }
+    return names;
+  }
+
   check(name: string): boolean {
-    return this.name === name || this.aliases.includes(name);
+    return this.names.some((n) => n === name);
+  }
+
+  getInfo(content: string): {index: number, name: string} {
+    const info = {index: -1, name: ''};
+
+    for (let name of this.names) {
+      const index = content.indexOf(name);
+      if (index !== -1) {
+        info.index = index;
+        info.name = name;
+        break;
+      }
+    }
+
+    return info;
   }
 
   getName(content: string): null | string {
-    if (content.startsWith(this.name)) {
-      return this.name;
-    }
-    for (let alias of this.aliases) {
-      if (content.startsWith(alias)) {
-        return alias;
+    for (let name of this.names) {
+      if (content.startsWith(name)) {
+        return name;
       }
     }
     return null;
-  }
-
-  getPosition(args: Array<string>): number {
-    for (let i = 0; i < args.length; i++) {
-      if (this.check(args[i].toLowerCase())) {
-        return i;
-      }
-    }
-    return -1;
   }
 
   async parse(value: string, context: Context): Promise<any> {
