@@ -180,7 +180,7 @@ export class Member extends UserMixin {
     if (this.isMe) {
       return this.client.rest.editGuildNick(this.guildId, nick);
     }
-    return this.client.rest.editGuildNick(this.guildId, nick, this.id);
+    return this.edit({nick});
   }
 
   move(channelId: null | string) {
