@@ -1,10 +1,9 @@
-import {
-  Constants as SocketConstants,
-} from 'detritus-client-socket';
+import { Endpoints } from 'detritus-client-rest';
+import { Constants as SocketConstants } from 'detritus-client-socket';
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.3.10',
+  VERSION: '0.3.11',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -242,6 +241,24 @@ export const DistributorNames = Object.freeze({
   [Distributors.STEAM]: 'Steam',
   [Distributors.TWITCH]: 'Twitch',
   [Distributors.UPLAY]: 'Uplay',
+});
+
+// twitch shut down
+export const DistributorUrls = Object.freeze({
+  [Distributors.BATTLENET]: (skuId: string) =>
+    `https://shop.battle.net/family/${encodeURIComponent(skuId)}`,
+  [Distributors.DISCORD]: (skuId: string, slug?: null | string) =>
+    Endpoints.Routes.URL + Endpoints.Routes.APPLICATION_STORE_LISTING_SKU(skuId, slug || undefined),
+  [Distributors.EPIC]: (skuId: string) =>
+    `https://epicgames.com/store/product/${encodeURIComponent(skuId)}`,
+  [Distributors.GOG]: (skuId: string) =>
+    `https://gog.com/game/${skuId}`,
+  [Distributors.ORIGIN]: (skuId: string) =>
+    `https://origin.com/search?searchString=${encodeURIComponent(skuId)}`,
+  [Distributors.STEAM]: (skuId: string) =>
+    `https://store.steampowered.com/app/${encodeURIComponent(skuId)}`,
+  [Distributors.UPLAY]: (skuId: string) =>
+    `https://store.ubi.com/search/?q=${encodeURIComponent(skuId)}`,
 });
 
 export const GuildExplicitContentFilterTypes = Object.freeze({

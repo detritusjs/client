@@ -1,6 +1,8 @@
 import { Endpoints } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseCollection } from '../collections/basecollection';
+import { Distributors, DistributorNames, DistributorUrls } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -12,6 +14,12 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
+
+
+export const SpecialThirdPartySkus: {[key: string]: string} = Object.freeze({
+  'Call of Duty Black Ops 4': 'call-of-duty',
+  'Call of Duty Modern Warfare': 'call-of-duty-mw',
+});
 
 
 export interface ApplicationDeveloper {
@@ -28,12 +36,6 @@ export interface ApplicationExecutable {
 export interface ApplicationPublisher {
   id: string,
   name: string,
-}
-
-export interface ApplicationThirdPartySku {
-  distributor: string,
-  id: string,
-  sku: string,
 }
 
 const keysApplication: ReadonlyArray<string> = [
@@ -84,7 +86,7 @@ export class Application extends BaseStructure {
   slug: null | string = null;
   splash: null | string = null;
   summary: string = '';
-  thirdPartySkus?: Array<ApplicationThirdPartySku>;
+  thirdPartySkus?: BaseCollection<string, ApplicationThirdPartySku>;
   verifyKey: string = '';
   youtubeTrailerVideoId?: string;
 
@@ -121,7 +123,7 @@ export class Application extends BaseStructure {
     if (this.primarySkuId) {
       return (
         Endpoints.Routes.URL +
-        Endpoints.Routes.APPLICATION_STORE_LISTING_APPLICATION(this.primarySkuId, this.slug)
+        Endpoints.Routes.APPLICATION_STORE_LISTING_SKU(this.primarySkuId, this.slug)
       );
     }
     return null;
@@ -177,5 +179,110 @@ export class Application extends BaseStructure {
       Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
       query,
     );
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case 'third_party_skus': {
+          if (this.thirdPartySkus) {
+            this.thirdPartySkus.clear();
+          } else {
+            this.thirdPartySkus = new BaseCollection<string, ApplicationThirdPartySku>();
+          }
+
+          for (let raw of value) {
+            const thirdPartySku = new ApplicationThirdPartySku(this, raw);
+            this.thirdPartySkus.set(thirdPartySku.key, thirdPartySku);
+          }
+        }; return;
+      }
+      return super.mergeValue.call(this, key, value);
+    }
+  }
+}
+
+
+const keysApplicationThirdPartySku: ReadonlyArray<string> = [
+  'distributor',
+  'id',
+  'sku',
+];
+
+export class ApplicationThirdPartySku extends BaseStructure {
+  readonly _keys = keysApplicationThirdPartySku;
+  application: Application;
+
+  distributor: string = '';
+  id: null | string = null;
+  sku: null | string = null;
+
+  constructor(application: Application, data: BaseStructureData) {
+    super(application.client);
+    this.application = application;
+    Object.defineProperty(this, 'application', {enumerable: false, writable: false});
+    this.merge(data);
+  }
+
+  get key(): string {
+    return `${this.distributor}.${this.id || ''}.${this.sku || ''}`;
+  }
+
+  get name(): string {
+    if (this.distributor in DistributorNames) {
+      return DistributorNames[this.distributor];
+    }
+    return this.distributor;
+  }
+
+  get url(): null | string {
+    if (this.distributor in DistributorUrls) {
+      const url = DistributorUrls[this.distributor];
+      switch (this.distributor) {
+        case Distributors.BATTLENET: {
+          // use name
+          let skuId: string;
+          if (this.application.name in SpecialThirdPartySkus) {
+            skuId = SpecialThirdPartySkus[this.application.name];
+          } else {
+            skuId = this.application.name.replace(/ /g, '-').toLowerCase();
+          }
+          return url(skuId);
+        };
+        case Distributors.DISCORD: {
+          const skuId = <string> this.id;
+          return url(skuId, this.application.slug);
+        };
+        case Distributors.EPIC: {
+          const skuId = <string> this.id;
+          return url(skuId);
+        };
+        case Distributors.GOG: {
+          const skuId = this.application.name.replace(/ /g, '_').toLowerCase();
+          return url(skuId);
+        };
+        case Distributors.ORIGIN: {
+          let skuId: string;
+          if (this.application.aliases && this.application.aliases.length) {
+            skuId = this.application.aliases[0];
+          } else {
+            skuId = this.application.name;
+          }
+          return url(skuId);
+        };
+        case Distributors.STEAM: {
+          const skuId = <string> this.id;
+          return url(skuId);
+        };
+        case Distributors.TWITCH: {
+          // they shut down lol
+        }; break;
+        case Distributors.UPLAY: {
+          const skuId = this.application.name;
+          return url(skuId);
+        };
+      }
+    }
+    return null;
   }
 }
