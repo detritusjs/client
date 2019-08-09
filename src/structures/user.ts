@@ -63,7 +63,7 @@ export class User extends BaseStructure {
   }
 
   get defaultAvatarUrl(): string {
-    return Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DEFAULT(parseInt(this.discriminator) % 5);
+    return Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DEFAULT(this.discriminator);
   }
 
   get isClientOwner(): boolean {

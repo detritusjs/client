@@ -26,7 +26,7 @@ export type CommandCallbackBeforeRun = (context: Context, args: ParsedArgs) => P
 export type CommandCallbackCancel = (context: Context) => Promise<any> | any;
 
 /**
- * @category Commmand
+ * @category Command
  */
 export type CommandCallbackCancelRun = (context: Context, args: ParsedArgs) => Promise<any> | any;
 
@@ -43,7 +43,7 @@ export type CommandCallbackSuccess = (context: Context, args: ParsedArgs) => Pro
 /**
  * @category Command
  */
-export type CommandCallbackRatelimit = (context: Context, remaining: number) => Promise<any> | any;
+export type CommandCallbackRatelimit = (context: Context, ratelimit: CommandRatelimitItem, remaining: number) => Promise<any> | any;
 
 /**
  * @category Command
@@ -141,7 +141,7 @@ export class Command {
       this._file = options._file;
     }
 
-    if (options.ratelimit != null) {
+    if (options.ratelimit) {
       this.ratelimit = new CommandRatelimit(this, options.ratelimit);
     }
     Object.defineProperties(this, {
@@ -206,9 +206,10 @@ export class Command {
  * @category Command
  */
 export interface CommandRatelimitItem {
-  start: number;
-  timeout: ReturnType<typeof setTimeout>;
-  usages: number;
+  replied: boolean,
+  start: number,
+  timeout: ReturnType<typeof setTimeout>,
+  usages: number,
 }
 
 /**
@@ -250,6 +251,7 @@ export class CommandRatelimit {
       ratelimit = <CommandRatelimitItem> this.cache.get(cacheId);
     } else {
       ratelimit = {
+        replied: false,
         start: Date.now(),
         timeout: setTimeout(() => {
           this.cache.delete(cacheId);

@@ -18,6 +18,7 @@ import {
   CommandRatelimitItem,
 } from './command/command';
 import { Context } from './command/context';
+import { CommandEvents } from './command/events';
 
 import {
   Message,
@@ -431,12 +432,12 @@ export class CommandClient extends EventEmitter {
         };
       }
       const ratelimit = <CommandRatelimitItem> command.getRatelimit(cacheId);
-      if (command.ratelimit.limit < ratelimit.usages + 1) {
+      if (command.ratelimit.limit <= ratelimit.usages++) {
         const remaining = (ratelimit.start + command.ratelimit.duration) - Date.now();
-        this.emit(ClientEvents.COMMAND_RATELIMIT, {command, context, remaining});
+        this.emit(ClientEvents.COMMAND_RATELIMIT, {command, context, ratelimit, remaining});
         if (typeof(command.onRatelimit) === 'function') {
           try {
-            await Promise.resolve(command.onRatelimit(context, remaining));
+            await Promise.resolve(command.onRatelimit(context, ratelimit, remaining));
           } catch(error) {
             // do something with this error?
           }
@@ -517,6 +518,17 @@ export class CommandClient extends EventEmitter {
       }
       this.emit(ClientEvents.COMMAND_FAIL, {args, command, context, error, prefix});
     }
+  }
+
+  on(event: 'COMMAND_ERROR', listener: (payload: CommandEvents.CommandError) => any): this;
+  on(event: 'COMMAND_FAIL', listener: (payload: CommandEvents.CommandFail) => any): this;
+  on(event: 'COMMAND_NONE', listener: (payload: CommandEvents.CommandNone) => any): this;
+  on(event: 'COMMAND_RATELIMIT', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
+  on(event: 'COMMAND_RUN', listener: (payload: CommandEvents.CommandRun) => any): this;
+  on(event: 'COMMAND_RUN_ERROR', listener: (payload: CommandEvents.CommandRunError) => any): this;
+  on(event: string, listener: Function): this {
+    super.on(event, listener);
+    return this;
   }
 }
 
