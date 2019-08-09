@@ -13,6 +13,11 @@ import { Context } from './context';
 export type ParsedArgs = {[key: string]: any};
 
 /**
+ * @category Command
+ */
+export type ParsedErrors = {[key: string]: Error};
+
+/**
  * Command Argument
  * @category Command
  */
@@ -36,7 +41,7 @@ export class ArgumentParser {
   async parse(
     args: Array<string>,
     context: Context,
-  ): Promise<ParsedArgs> {
+  ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
     const parsed: ParsedArgs = Object.assign({}, this.defaults);
 
     for (let argument of this.args) {
@@ -61,11 +66,17 @@ export class ArgumentParser {
       .map((arg) => ({arg, index: arg.getPosition(args)}))
       .sort((x, y) => +(x.index < y.index));
 
+    const errors: ParsedErrors = {};
     for (let {arg, index} of parsing) {
       const argValues = args.splice(index);
       argValues.shift();
-      parsed[arg.label] = await arg.parse(argValues.join(' '), context);
+      try {
+        parsed[arg.label] = await arg.parse(argValues.join(' '), context);
+      } catch(error) {
+        errors[arg.label] = error;
+        delete parsed[arg.label];
+      }
     }
-    return parsed;
+    return {errors, parsed};
   }
 }

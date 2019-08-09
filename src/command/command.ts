@@ -6,7 +6,7 @@ import {
 } from '../constants';
 
 import { ArgumentOptions, Argument } from './argument';
-import { ArgumentParser, ParsedArgs } from './argumentparser';
+import { ArgumentParser, ParsedArgs, ParsedErrors } from './argumentparser';
 import { Context } from './context';
 
 
@@ -58,7 +58,7 @@ export type CommandCallbackRunError = (context: Context, args: ParsedArgs, error
 /**
  * @category Command
  */
-export type CommandCallbackTypeError = (context: Context, error: any) => Promise<any> | any;
+export type CommandCallbackTypeError = (context: Context, args: ParsedArgs, errors: ParsedErrors) => Promise<any> | any;
 
 /**
  * Command Options
@@ -179,10 +179,17 @@ export class Command {
     return this.arg.check(name);
   }
 
-  async getArgs(args: Array<string>, context: Context): Promise<ParsedArgs> {
-    const parsed = await this.args.parse(args, context);
-    parsed[this.label] = await this.arg.parse(args.join(' '), context);
-    return parsed;
+  async getArgs(
+    args: Array<string>,
+    context: Context,
+  ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
+    const {errors, parsed} = await this.args.parse(args, context);
+    try {
+      parsed[this.label] = await this.arg.parse(args.join(' '), context);
+    } catch(error) {
+      errors[this.label] = error;
+    }
+    return {errors, parsed};
   }
 
   getRatelimit(cacheId: string): CommandRatelimitItem | null {

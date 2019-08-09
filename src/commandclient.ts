@@ -454,8 +454,7 @@ export class CommandClient extends EventEmitter {
           const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
           this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, reply});
         } catch(e) {
-          const extra = e;
-          this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra});
+          this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: e});
         }
       }
       return;
@@ -476,15 +475,14 @@ export class CommandClient extends EventEmitter {
       }
     }
 
-    let args: ParsedArgs;
     const prefix = attributes.prefix;
-    try {
-      args = await command.getArgs(attributes.args, context);
-    } catch(error) {
+    const {errors, parsed: args} = await command.getArgs(attributes.args, context);
+    if (Object.keys(errors).length) {
       if (typeof(command.onTypeError) === 'function') {
-        await Promise.resolve(command.onTypeError(context, error));
+        await Promise.resolve(command.onTypeError(context, args, errors));
       }
-      this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+      const error = new Error('Command errored out while converting args');
+      this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: errors});
       return;
     }
 
