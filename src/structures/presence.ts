@@ -163,7 +163,7 @@ export class Presence extends BaseStructure {
                 }
               }
             } else {
-              value = null;
+              value = undefined;
             }
           }
         }; break;
@@ -245,8 +245,8 @@ export class PresenceActivity extends BaseStructure {
   }
 
   get application(): Application | null {
-    if (this.applicationId) {
-      return this.client.applications.get(this.applicationId) || null;
+    if (this.applicationId && this.client.applications.has(this.applicationId)) {
+      return <Application> this.client.applications.get(this.applicationId);
     }
     if (!this.presence.user.bot && this.name) {
       return this.client.applications.find((application) => {
