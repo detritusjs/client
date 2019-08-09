@@ -202,4 +202,12 @@ export class ClusterClient extends EventEmitter {
     this.emit('ready');
     return this;
   }
+
+  on(event: string, listener: Function): this;
+  on(event: 'killed', listener: () => any): this;
+  on(event: 'ready', listener: () => any): this;
+  on(event: string, listener: Function): this {
+    super.on(event, listener);
+    return this;
+  }
 }

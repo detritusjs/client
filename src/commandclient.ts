@@ -125,13 +125,11 @@ export class CommandClient extends EventEmitter {
     if (options.prefixes !== undefined) {
       options.prefixes.sort((x: string, y: string) => +(x.length < y.length));
       for (let prefix of options.prefixes) {
-        this.prefixes.custom.add(prefix.trim());
-      }
-    }
-    if (options.prefixSpace) {
-      for (let prefix of this.prefixes.custom) {
-        this.prefixes.custom.delete(prefix);
-        this.prefixes.custom.add(`${prefix} `);
+        prefix = prefix.trim();
+        if (options.prefixSpace) {
+          prefix += ' ';
+        }
+        this.prefixes.custom.add(prefix);
       }
     }
 
@@ -553,6 +551,8 @@ export class CommandClient extends EventEmitter {
     }
   }
 
+  on(event: string, listener: Function): this;
+  on(event: 'killed', listener: () => any): this;
   on(event: 'COMMAND_ERROR', listener: (payload: CommandEvents.CommandError) => any): this;
   on(event: 'COMMAND_FAIL', listener: (payload: CommandEvents.CommandFail) => any): this;
   on(event: 'COMMAND_NONE', listener: (payload: CommandEvents.CommandNone) => any): this;

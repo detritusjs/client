@@ -274,9 +274,10 @@ export class ShardClient extends EventEmitter {
   kill(): void {
     this.gateway.kill();
     this.reset();
-    if (this.cluster !== null) {
-      // TODO remove
-      //this.cluster.shards.delete(this.shardId);
+    if (this.cluster) {
+      // must be a better way to handle this
+      // maybe kill the entire cluster?
+      this.cluster.shards.delete(this.shardId);
     }
     this.emit('killed');
     this.clearListeners();
