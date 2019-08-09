@@ -1,4 +1,7 @@
+import { Types as Options } from 'detritus-client-rest';
+
 import { BaseCollection } from '../collections/basecollection';
+import { Embed as EmbedUtils } from '../utils';
 
 import {
   User,
@@ -7,51 +10,44 @@ import {
 } from '../structures';
 
 
-/**
- * @category Rest Response
- */
-export interface fetchGuildBan {
-  reason: null | string,
-  user: User,
-}
+export namespace RestResponses {
+  export interface FetchGuildBans extends BaseCollection<string, RawGuildBan> {
 
-/**
- * @category Rest Response
- */
-export interface fetchGuildBans extends BaseCollection<string, fetchGuildBan> {
+  }
 
-}
-
-/**
- * @category Rest Response
- */
-export interface fetchOauth2Application {
-  bot?: UserWithToken,
-  botPublic: boolean,
-  botRequireCodeGrant: boolean,
-  description: string,
-  flags?: number,
-  guildId?: string,
-  icon: null | string,
-  id: string,
-  name: string,
-  owner: UserWithFlags,
-  redirectUris?: Array<string>,
-  rpcApplicationState?: number,
-  secret?: string,
-  storeApplicationState?: number,
-  summary: string,
-  team?: null | {
+  export interface FetchOauth2Application {
+    bot?: UserWithToken,
+    botPublic: boolean,
+    botRequireCodeGrant: boolean,
+    description: string,
+    flags?: number,
+    guildId?: string,
     icon: null | string,
     id: string,
-    members: Array<{
-      membershipState: number,
-      permissions: Array<string>,
-      teamId: string,
-      user: User,
-    }>,
     name: string,
-    ownerUserId: string,
-  },
-  verifyKey: string,
+    owner: UserWithFlags,
+    redirectUris?: Array<string>,
+    rpcApplicationState?: number,
+    secret?: string,
+    storeApplicationState?: number,
+    summary: string,
+    team?: null | {
+      icon: null | string,
+      id: string,
+      members: Array<{
+        membershipState: number,
+        permissions: Array<string>,
+        teamId: string,
+        user: User,
+      }>,
+      name: string,
+      ownerUserId: string,
+    },
+    verifyKey: string,
+  }
+
+  export interface RawGuildBan {
+    reason: null | string,
+    user: User,
+  }
 }

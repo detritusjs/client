@@ -38,7 +38,6 @@ export interface ApplicationThirdPartySku {
 
 const keysApplication: ReadonlyArray<string> = [
   'aliases',
-  'application_id',
   'bot_public',
   'bot_require_code_grant',
   'cover_image',
@@ -51,6 +50,7 @@ const keysApplication: ReadonlyArray<string> = [
   'name',
   'overlay',
   'overlay_compatibility_hook',
+  'primary_sku_id',
   'publishers',
   'slug',
   'splash',
@@ -66,31 +66,35 @@ const keysApplication: ReadonlyArray<string> = [
  */
 export class Application extends BaseStructure {
   readonly _keys = keysApplication;
-  aliases: Array<string> | null = null;
-  applicationId: null | string = null;
-  botPublic: boolean = false;
-  botRequireCodeGrant: boolean = false;
+  aliases?: Array<string>;
+  botPublic?: boolean;
+  botRequireCodeGrant?: boolean;
   coverImage: null | string = null;
-  description: null | string = null;
-  developers: Array<ApplicationDeveloper> | null = null;
-  executables: Array<ApplicationExecutable> | null = null;
+  description: string = '';
+  developers?: Array<ApplicationDeveloper>;
+  executables?: Array<ApplicationExecutable>;
   icon: null | string = null;
   id: string = '';
-  guildId: null | string = null;
+  guildId?: string;
   name: string = '';
-  overlay: boolean | null = null;
-  overlayCompatibilityHook: boolean | null = null;
-  publishers: Array<ApplicationPublisher> | null = null;
+  overlay?: boolean;
+  overlayCompatibilityHook?: boolean;
+  primarySkuId?: string;
+  publishers?: Array<ApplicationPublisher>;
   slug: null | string = null;
   splash: null | string = null;
-  summary: null | string = null;
-  thirdPartySkus: Array<ApplicationThirdPartySku> | null = null;
+  summary: string = '';
+  thirdPartySkus?: Array<ApplicationThirdPartySku>;
   verifyKey: string = '';
-  youtubeTrailerVideoId: null | string = null;
+  youtubeTrailerVideoId?: string;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get coverImageUrl(): null | string {
+    return this.coverImageUrlFormat();
   }
 
   get createdAt(): Date {
@@ -101,12 +105,46 @@ export class Application extends BaseStructure {
     return Snowflake.timestamp(this.id);
   }
 
+  get jumpLink(): null | string {
+    return this.platformDiscordUrl;
+  }
+
   get iconUrl(): null | string {
     return this.iconUrlFormat();
   }
 
+  get isOnDiscord(): boolean {
+    return !!this.primarySkuId;
+  }
+
+  get platformDiscordUrl(): null | string {
+    if (this.primarySkuId) {
+      return (
+        Endpoints.Routes.URL +
+        Endpoints.Routes.APPLICATION_STORE_LISTING_APPLICATION(this.primarySkuId, this.slug)
+      );
+    }
+    return null;
+  }
+
   get splashUrl(): null | string {
     return this.splashUrlFormat();
+  }
+
+  coverImageUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.icon) {
+      return null;
+    }
+    const hash = this.icon;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
+      query,
+    );
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
@@ -136,7 +174,7 @@ export class Application extends BaseStructure {
       this.client.imageFormat,
     );
     return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET(this.id, hash, format),
+      Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
       query,
     );
   }

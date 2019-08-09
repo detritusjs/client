@@ -38,7 +38,7 @@ import {
   Webhook,
 } from '../structures';
 
-import * as Types from './types';
+import { RestResponses } from './types';
 
 
 export class RestClient extends Client {
@@ -525,9 +525,9 @@ export class RestClient extends Client {
 
   async fetchGuildBans(
     guildId: string,
-  ): Promise<Types.fetchGuildBans> {
+  ): Promise<RestResponses.FetchGuildBans> {
     const data = await super.fetchGuildBans.call(this, guildId);
-    const collection: Types.fetchGuildBans = new BaseCollection();
+    const collection: RestResponses.FetchGuildBans = new BaseCollection();
     for (let raw of data) {
       let user: User;
       if (this.client.users.has(raw.id)) {
@@ -766,7 +766,8 @@ export class RestClient extends Client {
 
   async fetchOauth2Application(
     userId: string = '@me',
-  ): Promise<Types.fetchOauth2Application> {
+  ): Promise<RestResponses.FetchOauth2Application> {
+    // todo fix this and use a structure instead?
     const data = anyToCamelCase(
       await super.fetchOauth2Application.call(this, userId),
       ['bot', 'owner', 'team'],

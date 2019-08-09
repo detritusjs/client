@@ -245,8 +245,13 @@ export class PresenceActivity extends BaseStructure {
   }
 
   get application(): Application | null {
-    if (this.applicationId !== undefined) {
+    if (this.applicationId) {
       return this.client.applications.get(this.applicationId) || null;
+    }
+    if (!this.presence.user.bot && this.name) {
+      return this.client.applications.find((application) => {
+        return application.name === this.name;
+      }) || null;
     }
     return null;
   }
