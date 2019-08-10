@@ -254,7 +254,7 @@ export class ApplicationThirdPartySku extends BaseStructure {
           return url(skuId, this.application.slug);
         };
         case Distributors.EPIC: {
-          const skuId = <string> this.id;
+          const skuId = (<string> this.id).toLowerCase();
           return url(skuId);
         };
         case Distributors.GOG: {

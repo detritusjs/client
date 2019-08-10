@@ -7,12 +7,13 @@ import {
   ShardClient,
   VoiceConnectOptions,
 } from '../client';
-import { BaseCollection } from '../collections/basecollection';
-import { VoiceStatesCache } from '../collections/voicestates';
 import {
-  ChannelTypes,
-  Permissions,
-} from '../constants';
+  BaseCollection,
+  MembersCache,
+  MessagesCache,
+  VoiceStatesCache,
+} from '../collections';
+import { ChannelTypes, Permissions } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 import {
   addQuery,
@@ -28,6 +29,7 @@ import {
 } from './basestructure';
 import { Guild } from './guild';
 import { Member } from './member';
+import { Message } from './message';
 import { Overwrite } from './overwrite';
 import { User } from './user';
 import { VoiceState } from './voicestate';
@@ -207,7 +209,7 @@ export class ChannelBase extends BaseStructure {
     return this.isText;
   }
 
-  get children(): any {
+  get children(): any | null {
     return null;
   }
 
@@ -292,7 +294,11 @@ export class ChannelBase extends BaseStructure {
     return Endpoints.Routes.URL + Endpoints.Routes.CHANNEL(null, this.id);
   }
 
-  get members(): any {
+  get members(): any | null {
+    return null;
+  }
+
+  get messages(): any | null {
     return null;
   }
 
@@ -300,15 +306,15 @@ export class ChannelBase extends BaseStructure {
     return `<#${this.id}>`;
   }
 
-  get owner(): any {
+  get owner(): any | null {
     return null;
   }
 
-  get parent(): any {
+  get parent(): any | null {
     return null;
   }
 
-  get voiceStates(): any {
+  get voiceStates(): any | null {
     return null;
   }
 
@@ -512,6 +518,17 @@ export class ChannelDM extends ChannelBase {
 
   get joined(): boolean {
     return this.client.voiceConnections.has(this.id);
+  }
+
+  get messages(): BaseCollection<string, Message> {
+    if (this.client.messages.has(null, this.id)) {
+      const cache = <MessagesCache> this.client.messages.get(null, this.id);
+      return new BaseCollection(cache.map(({data}) => data));
+    }
+    return new BaseCollection(this.client.messages.reduce((collection, cache) => {
+      const messages = cache.filter(({data}) => data.channelId === this.id).map(({data}) => data);
+      return collection.concat(messages);
+    }, []));
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
@@ -1022,6 +1039,30 @@ export class ChannelGuildText extends ChannelGuildBase {
     this.merge(data);
   }
 
+  get members(): BaseCollection<string, Member> {
+    const collection = new BaseCollection<string, Member>();
+    if (this.client.members.has(this.guildId)) {
+      const members = <MembersCache> this.client.members.get(this.guildId);
+      for (let [userId, member] of members) {
+        if (this.can(Permissions.VIEW_CHANNEL, member)) {
+          collection.set(userId, member);
+        }
+      }
+    }
+    return collection;
+  }
+
+  get messages(): BaseCollection<string, Message> {
+    if (this.client.messages.has(null, this.id)) {
+      const cache = <MessagesCache> this.client.messages.get(null, this.id);
+      return new BaseCollection(cache.map(({data}) => data));
+    }
+    return new BaseCollection(this.client.messages.reduce((collection, cache) => {
+      const messages = cache.filter(({data}) => data.channelId === this.id).map(({data}) => data);
+      return collection.concat(messages);
+    }, []));
+  }
+
   async addPinnedMessage(messageId: string) {
     return this.client.rest.addPinnedMessage(this.id, messageId);
   }
@@ -1175,13 +1216,15 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     return false;
   }
 
-  get members(): BaseCollection<string, Member> | null {
+  get members(): BaseCollection<string, Member> {
+    const collection = new BaseCollection<string, Member>();
     const voiceStates = this.voiceStates;
     if (voiceStates) {
-      const members: Array<Member> = voiceStates.map((state: VoiceState) => state.member);
-      return new BaseCollection(members.filter((member: Member) => member));
+      for (let [cacheId, voiceState] of voiceStates) {
+        collection.set(voiceState.userId, voiceState.member);
+      }
     }
-    return null;
+    return collection;
   }
 
   get voiceStates(): BaseCollection<string, VoiceState> | null {

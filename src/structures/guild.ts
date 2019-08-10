@@ -28,6 +28,7 @@ import {
   BaseCollection,
   BaseSet,
   MembersCache,
+  MessagesCache,
   PresencesCache,
   VoiceStatesCache,
 } from '../collections';
@@ -46,6 +47,7 @@ import {
 } from './channel';
 import { Emoji } from './emoji';
 import { Member } from './member';
+import { Message } from './message';
 import { Role } from './role';
 import { User } from './user';
 import { VoiceRegion } from './voiceregion';
@@ -227,6 +229,17 @@ export class Guild extends BaseStructure {
 
   get members(): MembersCache | null {
     return this.client.members.get(this.id) || null;
+  }
+
+  get messages(): BaseCollection<string, Message> {
+    if (this.client.messages.has(null, this.id)) {
+      const cache = <MessagesCache> this.client.messages.get(null, this.id);
+      return new BaseCollection(cache.map(({data}) => data));
+    }
+    return new BaseCollection(this.client.messages.reduce((collection, cache) => {
+      const messages = cache.filter(({data}) => data.guildId === this.id).map(({data}) => data);
+      return collection.concat(messages);
+    }, []));
   }
 
   get owner(): null | User {

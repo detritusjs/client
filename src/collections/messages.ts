@@ -19,7 +19,7 @@ export interface MessageCacheItem {
   data: Message,
 }
 
-export interface MessageCache extends BaseCollection<string, MessageCacheItem> {
+export interface MessagesCache extends BaseCollection<string, MessageCacheItem> {
   
 };
 
@@ -36,7 +36,7 @@ export interface MessagesOptions extends BaseClientCollectionOptions {
  * Messages Collection
  * @category Collections
  */
-export class Messages extends BaseClientCollection<string, MessageCache, Message> {
+export class Messages extends BaseClientCollection<string, MessagesCache, Message> {
   expire: number = 10 * 60 * 1000; // auto expire messages after 10 minutes
   limit: number = 1000;
   type: string = MessageCacheTypes.CHANNEL;
@@ -44,11 +44,16 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
   constructor(client: ShardClient, options: MessagesOptions = {}) {
     super(client, options);
 
+    this.expire = (options.expire !== undefined) ? options.expire : this.expire;
+    this.limit = (options.limit !== undefined) ? options.limit : this.limit;
     Object.defineProperties(this, {
       expire: {configurable: true, writable: false},
       limit: {configurable: true, writable: false},
       type: {configurable: true, writable: false},
     });
+    if (options.type !== undefined) {
+      this.setType(options.type);
+    }
   }
 
   setExpire(value: number): void {
@@ -67,7 +72,7 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
   }
 
   get size(): number {
-    return this.reduce((size: number, cache: MessageCache) => {
+    return this.reduce((size: number, cache: MessagesCache) => {
       return size + cache.size;
     }, 0);
   }
@@ -77,7 +82,7 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
       return;
     }
 
-    let cache: MessageCache;
+    let cache: MessagesCache;
     let cacheId = DEFAULT_MESSAGES_CACHE_KEY;
     switch (this.type) {
       case MessageCacheTypes.CHANNEL: {
@@ -93,7 +98,7 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
     }
 
     if (this.has(null, cacheId)) {
-      cache = <MessageCache> super.get(cacheId);
+      cache = <MessagesCache> super.get(cacheId);
     } else {
       cache = new BaseCollection();
       super.set(cacheId, cache);
@@ -138,7 +143,7 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
         if (cacheId == null) {
           // search entire collection for it
           for (let [key, value] of this) {
-            const cache = <MessageCache> value;
+            const cache = <MessagesCache> value;
             if (cache.has(messageId)) {
               const item = <MessageCacheItem> cache.get(messageId);
               if (item.expire !== null) {
@@ -155,7 +160,7 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
         } else {
           // delete message from cache, if cache empty, delete from collection
           if (super.has(cacheId)) {
-            const cache = <MessageCache> super.get(cacheId);
+            const cache = <MessagesCache> super.get(cacheId);
             if (cache.has(messageId)) {
               const item = <MessageCacheItem> cache.get(messageId);
               if (item.expire !== null) {
@@ -174,7 +179,7 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
       } else if (cacheId != null) {
         // delete entire cache from collection
         if (super.has(cacheId)) {
-          const cache = <MessageCache> super.get(cacheId);
+          const cache = <MessagesCache> super.get(cacheId);
           for (let [key, value] of cache) {
             if (value.expire !== null) {
               clearTimeout(<number> <unknown> value.expire);
@@ -191,11 +196,11 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
 
   get(messageId: string): Message | undefined;
   get(messageId: string, cacheId: string): Message | undefined;
-  get(messageId: null | undefined, cacheId: string): MessageCache | undefined;
+  get(messageId: null | undefined, cacheId: string): MessagesCache | undefined;
   get(
     messageId?: null | string,
     cacheId?: null | string,
-  ): MessageCache | Message | undefined {
+  ): MessagesCache | Message | undefined {
     if (this.enabled) {
       if (messageId != null) {
         if (this.type === MessageCacheTypes.GLOBAL) {
@@ -204,14 +209,14 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
         if (cacheId == null) {
           // search entire collection for it
           for (let [key, value] of this) {
-            const cache = <MessageCache> value;
+            const cache = <MessagesCache> value;
             if (cache.has(messageId)) {
               return (<MessageCacheItem> cache.get(messageId)).data;
             }
           }
         } else {
           if (super.has(cacheId)) {
-            const cache = <MessageCache> super.get(cacheId);
+            const cache = <MessagesCache> super.get(cacheId);
             if (cache.has(messageId)) {
               const { data } = <MessageCacheItem> cache.get(messageId);
               return data;
@@ -239,14 +244,14 @@ export class Messages extends BaseClientCollection<string, MessageCache, Message
         if (cacheId == null) {
           // search entire collection for it
           for (let [key, value] of this) {
-            const cache = <MessageCache> value;
+            const cache = <MessagesCache> value;
             if (cache.has(messageId)) {
               return true;
             }
           }
         } else {
           if (super.has(cacheId)) {
-            const cache = <MessageCache> super.get(cacheId);
+            const cache = <MessagesCache> super.get(cacheId);
             return cache.has(messageId);
           }
           return false;
