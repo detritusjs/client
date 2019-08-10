@@ -63,6 +63,7 @@ const keysMessage: ReadonlyArray<string> = [
 
 const keysMergeMessage: ReadonlyArray<string> = [
   'author',
+  'channel_id',
   'guild_id',
   'id',
   'mentions',
@@ -427,9 +428,9 @@ export class Message extends BaseStructure {
         case 'reactions': {
           this.reactions.clear();
           for (let raw of value) {
-            value.channel_id = this.channelId;
-            value.guild_id = this.guildId;
-            value.message_id = this.id;
+            raw.channel_id = this.channelId;
+            raw.guild_id = this.guildId;
+            raw.message_id = this.id;
 
             const emojiId = raw.emoji.id || raw.emoji.name;
             this.reactions.set(emojiId, new Reaction(this.client, raw));
