@@ -41,6 +41,11 @@ export class Reaction extends BaseStructure {
     this.merge(data);
   }
 
+  get canClear(): boolean {
+    const channel = this.channel;
+    return !!(channel && channel.canManageMessages);
+  }
+
   get channel(): Channel | null {
     return this.client.channels.get(this.channelId) || null;
   }
@@ -54,6 +59,10 @@ export class Reaction extends BaseStructure {
 
   get message(): Message | null {
     return (<Message | undefined> this.client.messages.get(this.messageId)) || null;
+  }
+
+  clear() {
+    return this.client.rest.deleteReactions(this.channelId, this.messageId);
   }
 
   delete(userId: string = '@me') {

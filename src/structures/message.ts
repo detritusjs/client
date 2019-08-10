@@ -117,6 +117,10 @@ export class Message extends BaseStructure {
     if (this.fromMe) {
       return true;
     }
+    return this.canManage;
+  }
+
+  get canManage(): boolean {
     const channel = this.channel;
     return !!(channel && channel.canManageMessages);
   }
