@@ -1,7 +1,4 @@
-import { Types as Options } from 'detritus-client-rest';
-
 import { BaseCollection } from '../collections/basecollection';
-import { Embed as EmbedUtils } from '../utils';
 
 import {
   User,

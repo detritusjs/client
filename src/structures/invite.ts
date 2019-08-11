@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -78,7 +78,7 @@ export class Invite extends BaseStructure {
     return this.client.rest.deleteInvite(this.code);
   }
 
-  fetch(options: Options.FetchInvite) {
+  fetch(options: RequestTypes.FetchInvite) {
     return this.client.rest.fetchInvite(this.code, options);
   }
 

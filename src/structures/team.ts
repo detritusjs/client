@@ -1,4 +1,4 @@
-import { Types as Options } from 'detritus-client-rest';
+import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
@@ -61,11 +61,11 @@ export class Team extends BaseStructure {
     return null;
   }
 
-  async addMember(options: Options.AddTeamMember) {
+  async addMember(options: RequestTypes.AddTeamMember) {
     return this.client.rest.addTeamMember(this.id, options);
   }
 
-  async edit(options?: Options.EditTeam) {
+  async edit(options?: RequestTypes.EditTeam) {
     return this.client.rest.editTeam(this.id, options);
   }
 
@@ -92,11 +92,11 @@ export class Team extends BaseStructure {
     return member;
   }
 
-  async fetchPayouts(options?: Options.FetchTeamPayouts) {
+  async fetchPayouts(options?: RequestTypes.FetchTeamPayouts) {
     return this.client.rest.fetchTeamPayouts(this.id, options);
   }
 
-  async delete(options?: Options.DeleteTeam) {
+  async delete(options?: RequestTypes.DeleteTeam) {
     return this.client.rest.deleteTeam(this.id, options);
   }
 

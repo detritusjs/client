@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -31,7 +31,7 @@ import { Role } from './role';
 import { User } from './user';
 
 
-export interface MessageReply extends Options.CreateMessage {
+export interface MessageReply extends RequestTypes.CreateMessage {
   mention?: boolean,
 }
 
@@ -237,13 +237,13 @@ export class Message extends BaseStructure {
     return this.client.rest.deleteReactions(this.channelId, this.id);
   }
 
-  async edit(options: Options.EditMessage) {
+  async edit(options: RequestTypes.EditMessage) {
     return this.client.rest.editMessage(this.channelId, this.id, options);
   }
 
   async fetchReactions(
     emoji: string,
-    options: Options.FetchReactions = {},
+    options: RequestTypes.FetchReactions = {},
   ) {
     return this.client.rest.fetchReactions(this.channelId, this.id, emoji, options);
   }
@@ -252,7 +252,7 @@ export class Message extends BaseStructure {
     return this.client.rest.addPinnedMessage(this.channelId, this.id);
   }
 
-  async publish(options: Options.CreateApplicationNews) {
+  async publish(options: RequestTypes.CreateApplicationNews) {
     options.channelId = this.channelId;
     options.messageId = this.id;
     return this.client.rest.createApplicationNews(options);
@@ -273,7 +273,7 @@ export class Message extends BaseStructure {
     if (options.mention) {
       options.content = [
         this.author.mention,
-        options.content || null,
+        options.content,
       ].filter((v) => v).join(', ');
     }
     return this.client.rest.createMessage(this.channelId, options);

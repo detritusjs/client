@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -172,7 +172,7 @@ export class Application extends BaseStructure {
     return this.client.rest.fetchApplicationNews(this.id);
   }
 
-  async joinGuild(options: Options.JoinGuild) {
+  async joinGuild(options: RequestTypes.JoinGuild) {
     if (!this.guildId) {
       throw new Error('Application doesn\'t have a guildId to join');
     }

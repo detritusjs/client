@@ -1,7 +1,7 @@
 import {
   Client,
   ClientOptions,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -24,9 +24,9 @@ import {
   Invite,
   Member,
   Message,
+  Oauth2Application,
   PremiumSubscription,
   Profile,
-  Reaction,
   Role,
   Team,
   TeamMember,
@@ -60,7 +60,7 @@ export class RestClient extends Client {
 
   async createChannelInvite(
     channelId: string,
-    options: Options.CreateChannelInvite = {},
+    options: RequestTypes.CreateChannelInvite = {},
   ): Promise<Invite> {
     const data = super.createChannelInvite.call(this, channelId, options);
     return new Invite(this.client, data);
@@ -69,20 +69,20 @@ export class RestClient extends Client {
   async editChannelOverwrite(
     channelId: string,
     overwriteId: string,
-    options: Options.EditChannelOverwrite = {},
+    options: RequestTypes.EditChannelOverwrite = {},
   ): Promise<any> {
     return super.editChannelOverwrite.call(this, channelId, overwriteId, options);
   }
 
   async createApplicationNews(
-    options: Options.CreateApplicationNews,
+    options: RequestTypes.CreateApplicationNews,
   ): Promise<ApplicationNews> {
     const data = await super.createApplicationNews.call(this, options);
     return new ApplicationNews(this.client, data);
   }
 
   async createDm(
-    options: Options.CreateDm = {},
+    options: RequestTypes.CreateDm = {},
   ): Promise<ChannelDM> {
     const data = await super.createDm.call(this, options);
     let channel: ChannelDM;
@@ -98,7 +98,7 @@ export class RestClient extends Client {
   }
 
   async createGuild(
-    options: Options.CreateGuild,
+    options: RequestTypes.CreateGuild,
   ): Promise<Guild> {
     const data = await super.createGuild.call(this, options);
     let guild: Guild;
@@ -114,7 +114,7 @@ export class RestClient extends Client {
 
   async createGuildChannel(
     guildId: string,
-    options: Options.CreateGuildChannel,
+    options: RequestTypes.CreateGuildChannel,
   ): Promise<Channel> {
     const data = await super.createGuildChannel.call(this, guildId, options);
     let channel: Channel;
@@ -131,7 +131,7 @@ export class RestClient extends Client {
 
   async createGuildEmoji(
     guildId: string,
-    options: Options.CreateGuildEmoji,
+    options: RequestTypes.CreateGuildEmoji,
   ): Promise<Emoji> {
     const data = await super.createGuildEmoji.call(this, guildId, options);
     let emoji: Emoji;
@@ -148,7 +148,7 @@ export class RestClient extends Client {
 
   async createGuildRole(
     guildId: string,
-    options: Options.CreateGuildRole = {},
+    options: RequestTypes.CreateGuildRole = {},
   ): Promise<Role> {
     const data = await super.createGuildRole.call(this, guildId, options);
     data.guild_id = guildId;
@@ -161,7 +161,7 @@ export class RestClient extends Client {
 
   async createMessage(
     channelId: string,
-    options: Options.CreateMessage | string = {},
+    options: RequestTypes.CreateMessage | string = {},
   ): Promise<Message> {
     const data = await super.createMessage.call(this, channelId, options);
     if (this.client.channels.has(data.channel_id)) {
@@ -177,7 +177,7 @@ export class RestClient extends Client {
 
   async createWebhook(
     channelId: string,
-    options: Options.CreateWebhook,
+    options: RequestTypes.CreateWebhook,
   ): Promise<Webhook> {
     const data = await super.createWebhook.call(this, channelId, options);
     return new Webhook(this.client, data);
@@ -204,7 +204,7 @@ export class RestClient extends Client {
   /* Issue with merging data with these edited objects is that the gateway event wont have differences then */
   async editChannel(
     channelId: string,
-    options: Options.EditChannel = {},
+    options: RequestTypes.EditChannel = {},
   ): Promise<Channel> {
     const data = await super.editChannel.call(this, channelId, options);
     let channel: Channel;
@@ -220,7 +220,7 @@ export class RestClient extends Client {
 
   async editGuild(
     guildId: string,
-    options: Options.EditGuild = {},
+    options: RequestTypes.EditGuild = {},
   ): Promise<Guild> {
     const data = await super.editGuild.call(this, guildId, options);
     let guild: Guild;
@@ -236,7 +236,7 @@ export class RestClient extends Client {
   async editGuildEmoji(
     guildId: string,
     emojiId: string,
-    options: Options.EditGuildEmoji = {},
+    options: RequestTypes.EditGuildEmoji = {},
   ): Promise<Emoji> {
     const data = await super.editGuildEmoji.call(this, guildId, emojiId, options);
     let emoji: Emoji;
@@ -253,7 +253,7 @@ export class RestClient extends Client {
   async editGuildRole(
     guildId: string,
     roleId: string,
-    options: Options.EditGuildRole = {},
+    options: RequestTypes.EditGuildRole = {},
   ): Promise<Role> {
     const data = await super.editGuildRole.call(this, guildId, roleId, options);
     let role: Role;
@@ -276,7 +276,7 @@ export class RestClient extends Client {
 
   async editGuildRolePositions(
     guildId: string,
-    options: Options.EditGuildRolePositions,
+    options: RequestTypes.EditGuildRolePositions,
   ): Promise<BaseCollection<string, Role>> {
     const data = await super.editGuildRolePositions.call(this, guildId, options);
 
@@ -301,7 +301,7 @@ export class RestClient extends Client {
   }
 
   async editMe(
-    options: Options.EditMe = {},
+    options: RequestTypes.EditMe = {},
   ): Promise<UserMe> {
     const data = await super.editMe.call(this, options);
     let user: UserMe;
@@ -317,7 +317,7 @@ export class RestClient extends Client {
   async editMessage(
     channelId: string,
     messageId: string,
-    options: Options.EditMessage = {},
+    options: RequestTypes.EditMessage = {},
   ): Promise<Message> {
     const data = await super.editMessage.call(this, channelId, messageId, options);
     let message: Message;
@@ -334,18 +334,18 @@ export class RestClient extends Client {
 
   async editTeam(
     teamId: string,
-    options: Options.EditTeam = {},
+    options: RequestTypes.EditTeam = {},
   ): Promise<any> {
     return super.editTeam.call(this, teamId, options);
   }
 
-  async editUser(options: Options.EditMe = {}) {
+  async editUser(options: RequestTypes.EditMe = {}) {
     return this.editMe(options);
   }
 
   async editWebhook(
     webhookId: string,
-    options: Options.EditWebhook = {},
+    options: RequestTypes.EditWebhook = {},
   ): Promise<Webhook> {
     const data = await super.editWebhook.call(this, webhookId, options);
     return new Webhook(this.client, data);
@@ -354,7 +354,7 @@ export class RestClient extends Client {
   async editWebhookToken(
     webhookId: string,
     token: string,
-    options: Options.EditWebhook = {},
+    options: RequestTypes.EditWebhook = {},
   ): Promise<Webhook> {
     const data = await super.editWebhookToken.call(this, webhookId, token, options);
     return new Webhook(this.client, data);
@@ -363,7 +363,7 @@ export class RestClient extends Client {
   async executeWebhook(
     webhookId: string,
     token: string,
-    options: Options.ExecuteWebhook = {},
+    options: RequestTypes.ExecuteWebhook = {},
     compatibleType?: string,
   ): Promise<Message | null> {
     const data = await super.executeWebhook.call(this, webhookId, token, options, compatibleType);
@@ -454,7 +454,7 @@ export class RestClient extends Client {
 
   async fetchGiftCode(
     code: string,
-    options: Options.FetchGiftCode = {},
+    options: RequestTypes.FetchGiftCode = {},
   ): Promise<Gift> {
     const data = await super.fetchGiftCode.call(this, code, options);
     return new Gift(this.client, data);
@@ -490,7 +490,7 @@ export class RestClient extends Client {
 
   async fetchGuildAuditLogs(
     guildId: string,
-    options: Options.FetchGuildAuditLogs = {},
+    options: RequestTypes.FetchGuildAuditLogs = {},
   ): Promise<BaseCollection<string, AuditLog>> {
     const data = await super.fetchGuildAuditLogs.call(this, guildId, options);
     const collection = new BaseCollection<string, AuditLog>();
@@ -639,7 +639,7 @@ export class RestClient extends Client {
 
   async fetchGuildMembers(
     guildId: string,
-    options: Options.FetchGuildMembers = {},
+    options: RequestTypes.FetchGuildMembers = {},
   ): Promise<BaseCollection<string, Member>> {
     const data = await super.fetchGuildMembers.call(this, guildId, options);
 
@@ -705,7 +705,7 @@ export class RestClient extends Client {
 
   async fetchInvite(
     code: string,
-    options: Options.FetchInvite = {},
+    options: RequestTypes.FetchInvite = {},
   ): Promise<Invite> {
     const data = await super.fetchInvite.call(this, code, options);
     return new Invite(this.client, data);
@@ -743,7 +743,7 @@ export class RestClient extends Client {
 
   async fetchMessages(
     channelId: string,
-    options: Options.FetchMessages = {},
+    options: RequestTypes.FetchMessages = {},
   ): Promise<BaseCollection<string, Message>> {
     const data = await super.fetchMessages.call(this, channelId, options);
 
@@ -775,28 +775,16 @@ export class RestClient extends Client {
     userId: string = '@me',
   ): Promise<RestResponses.FetchOauth2Application> {
     // todo fix this and use a structure instead?
-    const data = anyToCamelCase(
-      await super.fetchOauth2Application.call(this, userId),
-      ['bot', 'owner', 'team'],
-    );
-    if (this.client.users.has(data.owner.id)) {
-      // dont use the cache since this object has flags key, just update the cache
-      (<User> this.client.users.get(data.owner.id)).merge(data.owner);
-    }
+    const data = await super.fetchOauth2Application.call(this, userId);
 
-    data.owner = new UserWithFlags(this.client, data.owner);
-    if (userId === '@me') {
+    const oauth2Application = new Oauth2Application(this.client, data);
+    if (userId === '@me' && oauth2Application.owner) {
       this.client.owners.clear();
-      this.client.owners.set(data.owner.id, data.owner);
-      if (data.team !== null) {
-        data.team = new Team(this.client, data.team);
-        for (let [userId, member] of data.team.members) {
+      this.client.owners.set(oauth2Application.owner.id, oauth2Application.owner);
+      if (oauth2Application.team) {
+        for (let [userId, member] of oauth2Application.team.members) {
           this.client.owners.set(userId, member.user);
         }
-      }
-    } else {
-      if (data.bot) {
-        data.bot = new UserWithToken(this.client, data.bot);
       }
     }
     return data;
@@ -835,7 +823,7 @@ export class RestClient extends Client {
     channelId: string,
     messageId: string,
     emoji: string,
-    options: Options.FetchReactions = {},
+    options: RequestTypes.FetchReactions = {},
   ): Promise<BaseCollection<string, User>> {
     const data = await super.fetchReactions.call(this, channelId, messageId, emoji, options);
     const collection = new BaseCollection<string, User>();

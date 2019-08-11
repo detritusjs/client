@@ -1,4 +1,4 @@
-import { Types as Options } from 'detritus-client-rest';
+import { RequestTypes } from 'detritus-client-rest';
 
 import {
   ShardClient,
@@ -76,7 +76,7 @@ export class VoiceState extends BaseStructure {
     return this.guildId || this.channelId || '';
   }
 
-  async edit(options: Options.EditGuildMember) {
+  async edit(options: RequestTypes.EditGuildMember) {
     if (this.guildId === null) {
       throw new Error('Cannot edit a user in a DM call.');
     }

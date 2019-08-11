@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -99,7 +99,7 @@ export class Webhook extends BaseStructure {
   }
 
   async createMessage(
-    options: Options.ExecuteWebhook,
+    options: RequestTypes.ExecuteWebhook,
     compatibleType?: string,
   ) {
     return this.execute(options, compatibleType);
@@ -113,7 +113,7 @@ export class Webhook extends BaseStructure {
   }
 
   async execute(
-    options: Options.ExecuteWebhook,
+    options: RequestTypes.ExecuteWebhook,
     compatibleType?: string,
   ) {
     if (this.token === null) {

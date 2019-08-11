@@ -13,6 +13,7 @@ export * from './invite';
 export * from './member';
 export * from './message';
 export * from './messageembed';
+export * from './oauth2application';
 export * from './overwrite';
 export * from './premiumsubscription';
 export * from './presence';

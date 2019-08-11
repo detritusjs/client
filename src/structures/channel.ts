@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import {
@@ -345,7 +345,7 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async createInvite(options: Options.CreateChannelInvite) {
+  async createInvite(options: RequestTypes.CreateChannelInvite) {
     return this.client.rest.createChannelInvite(this.id, options);
   }
 
@@ -357,7 +357,7 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async createWebhook(options: Options.CreateWebhook): Promise<any> {
+  async createWebhook(options: RequestTypes.CreateWebhook): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -385,11 +385,11 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async edit(options: Options.EditChannel): Promise<any> {
+  async edit(options: RequestTypes.EditChannel): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async editMessage(messageId: string, options: Options.EditMessage = {}): Promise<any> {
+  async editMessage(messageId: string, options: RequestTypes.EditMessage = {}): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -417,7 +417,7 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async fetchReactions(messageId: string, emoji: string, options: Options.FetchReactions = {}): Promise<any> {
+  async fetchReactions(messageId: string, emoji: string, options: RequestTypes.FetchReactions = {}): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -437,7 +437,7 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async publish(options: Options.CreateApplicationNews): Promise<any> {
+  async publish(options: RequestTypes.CreateApplicationNews): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -550,7 +550,7 @@ export class ChannelDM extends ChannelBase {
     return this.delete();
   }
 
-  async createMessage(options: Options.CreateMessage | string) {
+  async createMessage(options: RequestTypes.CreateMessage | string) {
     return this.client.rest.createMessage(this.id, options);
   }
 
@@ -578,7 +578,7 @@ export class ChannelDM extends ChannelBase {
     return this.client.rest.deleteReactions(this.id, messageId);
   }
 
-  async editMessage(messageId: string, options: Options.EditMessage = {}) {
+  async editMessage(messageId: string, options: RequestTypes.EditMessage = {}) {
     return this.client.rest.editMessage(this.id, messageId, options);
   }
 
@@ -590,7 +590,7 @@ export class ChannelDM extends ChannelBase {
     return this.client.rest.fetchMessage(this.id, messageId);
   }
 
-  async fetchMessages(options: Options.FetchMessages) {
+  async fetchMessages(options: RequestTypes.FetchMessages) {
     return this.client.rest.fetchMessages(this.id, options);
   }
 
@@ -598,7 +598,7 @@ export class ChannelDM extends ChannelBase {
     return this.client.rest.fetchPinnedMessages(this.id);
   }
 
-  async fetchReactions(messageId: string, emoji: string, options: Options.FetchReactions = {}) {
+  async fetchReactions(messageId: string, emoji: string, options: RequestTypes.FetchReactions = {}) {
     return this.client.rest.fetchReactions(this.id, messageId, emoji, options);
   }
 
@@ -612,7 +612,7 @@ export class ChannelDM extends ChannelBase {
     return this.client.voiceConnect(undefined, this.id, options);
   }
 
-  async search(options: Options.SearchOptions, retry?: boolean) {
+  async search(options: RequestTypes.SearchOptions, retry?: boolean) {
     return this.client.rest.searchChannel(this.id, options, retry);
   }
 
@@ -948,7 +948,7 @@ export class ChannelGuildBase extends ChannelBase {
     return this.client.rest.deleteChannelOverwrite(this.id, overwriteId);
   }
 
-  async editOverwrite(overwriteId: string, options: Options.EditChannelOverwrite = {}) {
+  async editOverwrite(overwriteId: string, options: RequestTypes.EditChannelOverwrite = {}) {
     return this.client.rest.editChannelOverwrite(this.id, overwriteId, options);
   }
 
@@ -1071,7 +1071,7 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.bulkDeleteMessages(this.id, messageIds);
   }
 
-  async createMessage(options: Options.CreateMessage | string) {
+  async createMessage(options: RequestTypes.CreateMessage | string) {
     return this.client.rest.createMessage(this.id, options);
   }
 
@@ -1079,7 +1079,7 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.createReaction(this.id, messageId, emoji);
   }
 
-  async createWebhook(options: Options.CreateWebhook) {
+  async createWebhook(options: RequestTypes.CreateWebhook) {
     return this.client.rest.createWebhook(this.id, options);
   }
 
@@ -1099,7 +1099,7 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.deleteReactions(this.id, messageId);
   }
 
-  async editMessage(messageId: string, options: Options.EditMessage = {}) {
+  async editMessage(messageId: string, options: RequestTypes.EditMessage = {}) {
     return this.client.rest.editMessage(this.id, messageId, options);
   }
 
@@ -1107,7 +1107,7 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.fetchMessage(this.id, messageId);
   }
 
-  async fetchMessages(options: Options.FetchMessages) {
+  async fetchMessages(options: RequestTypes.FetchMessages) {
     return this.client.rest.fetchMessages(this.id, options);
   }
 
@@ -1115,7 +1115,7 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.fetchPinnedMessages(this.id);
   }
 
-  async fetchReactions(messageId: string, emoji: string, options: Options.FetchReactions = {}) {
+  async fetchReactions(messageId: string, emoji: string, options: RequestTypes.FetchReactions = {}) {
     return this.client.rest.fetchReactions(this.id, messageId, emoji, options);
   }
 
@@ -1123,12 +1123,12 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.fetchChannelWebhooks(this.id);
   }
 
-  async publish(options: Options.CreateApplicationNews) {
+  async publish(options: RequestTypes.CreateApplicationNews) {
     options.channelId = this.id;
     return this.client.rest.createApplicationNews(options);
   }
 
-  async search(options: Options.SearchOptions, retry?: boolean) {
+  async search(options: RequestTypes.SearchOptions, retry?: boolean) {
     return this.client.rest.searchChannel(this.id, options, retry);
   }
 

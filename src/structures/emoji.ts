@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { BaseCollection } from '../collections/basecollection';
@@ -111,7 +111,7 @@ export class Emoji extends BaseStructure {
     );
   }
 
-  async edit(options: Options.EditGuildEmoji) {
+  async edit(options: RequestTypes.EditGuildEmoji) {
     if (!this.id || this.guildId === null) {
       throw new Error('Cannot edit a standard Emoji.');
     }

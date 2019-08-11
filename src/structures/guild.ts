@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -388,7 +388,7 @@ export class Guild extends BaseStructure {
     return this.client.rest.ackGuild(this.id);
   }
 
-  async addMember(userId: string, options: Options.AddGuildMember) {
+  async addMember(userId: string, options: RequestTypes.AddGuildMember) {
     return this.client.rest.addGuildMember(this.id, userId, options);
   }
 
@@ -396,27 +396,27 @@ export class Guild extends BaseStructure {
     return this.client.rest.addGuildMemberRole(this.id, userId, roleId);
   }
 
-  async beginPrune(options: Options.BeginGuildPrune) {
+  async beginPrune(options: RequestTypes.BeginGuildPrune) {
     return this.client.rest.beginGuildPrune(this.id, options);
   }
 
-  async createBan(userId: string, options: Options.CreateGuildBan) {
+  async createBan(userId: string, options: RequestTypes.CreateGuildBan) {
     return this.client.rest.createGuildBan(this.id, userId, options);
   }
 
-  async createChannel(options: Options.CreateGuildChannel) {
+  async createChannel(options: RequestTypes.CreateGuildChannel) {
     return this.client.rest.createGuildChannel(this.id, options);
   }
 
-  async createEmoji(options: Options.CreateGuildEmoji) {
+  async createEmoji(options: RequestTypes.CreateGuildEmoji) {
     return this.client.rest.createGuildEmoji(this.id, options);
   }
 
-  async createIntegration(options: Options.CreateGuildIntegration) {
+  async createIntegration(options: RequestTypes.CreateGuildIntegration) {
     return this.client.rest.createGuildIntegration(this.id, options);
   }
 
-  async createRole(options: Options.CreateGuildRole) {
+  async createRole(options: RequestTypes.CreateGuildRole) {
     return this.client.rest.createGuildRole(this.id, options);
   }
 
@@ -442,35 +442,35 @@ export class Guild extends BaseStructure {
   }
 
 
-  async edit(options: Options.EditGuild) {
+  async edit(options: RequestTypes.EditGuild) {
     return this.client.rest.editGuild(this.id, options);
   }
 
-  async editChannel(channelId: string, options: Options.EditChannel) {
+  async editChannel(channelId: string, options: RequestTypes.EditChannel) {
     return this.client.rest.editChannel(channelId, options);
   }
 
-  async editChannelPositions(options: Options.EditGuildChannels) {
+  async editChannelPositions(options: RequestTypes.EditGuildChannels) {
     return this.client.rest.editGuildChannels(this.id, options);
   }
 
-  async editEmbed(options: Options.EditGuildEmbed) {
+  async editEmbed(options: RequestTypes.EditGuildEmbed) {
     return this.client.rest.editGuildEmbed(this.id, options);
   }
 
-  async editEmoji(emojiId: string, options: Options.EditGuildEmoji) {
+  async editEmoji(emojiId: string, options: RequestTypes.EditGuildEmoji) {
     return this.client.rest.editGuildEmoji(this.id, emojiId, options);
   }
 
-  async editIntegration(integrationId: string, options: Options.EditGuildIntegration) {
+  async editIntegration(integrationId: string, options: RequestTypes.EditGuildIntegration) {
     return this.client.rest.editGuildIntegration(this.id, integrationId, options);
   }
 
-  async editMember(userId: string, options: Options.EditGuildMember) {
+  async editMember(userId: string, options: RequestTypes.EditGuildMember) {
     return this.client.rest.editGuildMember(this.id, userId, options);
   }
 
-  async editMfaLevel(options: Options.EditGuildMfaLevel) {
+  async editMfaLevel(options: RequestTypes.EditGuildMfaLevel) {
     return this.client.rest.editGuildMfaLevel(this.id, options);
   }
 
@@ -478,11 +478,11 @@ export class Guild extends BaseStructure {
     return this.client.rest.editGuildNick(this.id, nick, userId);
   }
 
-  async editRole(roleId: string, options: Options.EditGuildRole) {
+  async editRole(roleId: string, options: RequestTypes.EditGuildRole) {
     return this.client.rest.editGuildRole(this.id, roleId, options);
   }
 
-  async editRolePositions(options: Options.EditGuildRolePositions) {
+  async editRolePositions(options: RequestTypes.EditGuildRolePositions) {
     return this.client.rest.editGuildRolePositions(this.id, options);
   }
 
@@ -495,7 +495,7 @@ export class Guild extends BaseStructure {
     return this.client.rest.fetchGuildApplications(this.id, channelId);
   }
 
-  async fetchAuditLogs(options: Options.FetchGuildAuditLogs) {
+  async fetchAuditLogs(options: RequestTypes.FetchGuildAuditLogs) {
     return this.client.rest.fetchGuildAuditLogs(this.id, options);
   }
 
@@ -531,7 +531,7 @@ export class Guild extends BaseStructure {
     return this.client.rest.fetchGuildMember(this.id, userId);
   }
 
-  async fetchMembers(options: Options.FetchGuildMembers) {
+  async fetchMembers(options: RequestTypes.FetchGuildMembers) {
     return this.client.rest.fetchGuildMembers(this.id, options);
   }
 
@@ -569,7 +569,7 @@ export class Guild extends BaseStructure {
   }
 
 
-  async join(options: Options.JoinGuild) {
+  async join(options: RequestTypes.JoinGuild) {
     return this.client.rest.joinGuild(this.id, options);
   }
 
@@ -591,7 +591,7 @@ export class Guild extends BaseStructure {
   }
 
 
-  async search(options: Options.SearchOptions, retry?: boolean) {
+  async search(options: RequestTypes.SearchOptions, retry?: boolean) {
     return this.client.rest.searchGuild(this.id, options, retry);
   }
 

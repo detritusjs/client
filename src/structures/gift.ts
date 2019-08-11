@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -64,11 +64,11 @@ export class Gift extends BaseStructure {
     return Endpoints.Gift.SHORT(this.code);
   }
 
-  fetch(options: Options.FetchGiftCode) {
+  fetch(options: RequestTypes.FetchGiftCode) {
     return this.client.rest.fetchGiftCode(this.code, options);
   }
 
-  redeem(options: Options.RedeemGiftCode) {
+  redeem(options: RequestTypes.RedeemGiftCode) {
     return this.client.rest.redeemGiftCode(this.code, options);
   }
 

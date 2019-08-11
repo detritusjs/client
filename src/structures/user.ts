@@ -1,6 +1,6 @@
 import {
   Endpoints,
-  Types as Options,
+  RequestTypes,
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -125,7 +125,7 @@ export class User extends BaseStructure {
     return this.client.rest.createDm({recipientId: this.id});
   }
 
-  async createMessage(options: Options.CreateMessage) {
+  async createMessage(options: RequestTypes.CreateMessage) {
     let channel = this.client.channels.find((c: ChannelDM) => c.isDmSingle && c.recipients.has(this.id));
     if (!channel) {
       channel = await this.createDm();
@@ -423,7 +423,7 @@ export class UserMixin extends BaseStructure {
     return this.user.createDm();
   }
 
-  createMessage(options: Options.CreateMessage) {
+  createMessage(options: RequestTypes.CreateMessage) {
     return this.user.createMessage(options);
   }
 

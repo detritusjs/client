@@ -1,4 +1,4 @@
-import { Types as Options } from 'detritus-client-rest';
+import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 
@@ -70,7 +70,7 @@ export class Reaction extends BaseStructure {
   }
 
   fetchUsers(
-    options: Options.FetchReactions,
+    options: RequestTypes.FetchReactions,
   ) {
     return this.client.rest.fetchReactions(this.channelId, this.messageId, this.emoji.endpointFormat, options);
   }
