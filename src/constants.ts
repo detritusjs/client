@@ -3,7 +3,7 @@ import { Constants as SocketConstants } from 'detritus-client-socket';
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.5',
+  VERSION: '0.4.6',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -29,8 +29,8 @@ export const ApplicationNewsFlags = Object.freeze({
 });
 
 export const Oauth2AssetTypes = Object.freeze({
-  UNKNOWN_1: 1,
-  UNKNOWN_2: 2,
+  SMALL: 1,
+  LARGE: 2,
 });
 
 export const AuditLogActions = Object.freeze({

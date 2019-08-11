@@ -1,6 +1,7 @@
 import { Endpoints, RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { Oauth2AssetTypes } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -146,6 +147,14 @@ export class Oauth2ApplicationAsset extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get isLarge(): boolean {
+    return this.type === Oauth2AssetTypes.LARGE;
+  }
+
+  get isSmall(): boolean {
+    return this.type === Oauth2AssetTypes.SMALL;
   }
 
   get url(): string {
