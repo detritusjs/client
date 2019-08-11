@@ -168,8 +168,32 @@ export class Application extends BaseStructure {
     );
   }
 
+  async createAsset(options: RequestTypes.CreateOauth2ApplicationAsset) {
+    return this.client.createOauth2ApplicationAsset(this.id, options);
+  }
+
+  async createStoreAsset(options: RequestTypes.CreateStoreApplicationAsset) {
+    return this.client.createStoreApplicationAsset(this.id, options);
+  }
+
+  async deleteAsset(assetId: string) {
+    return this.client.deleteOauth2ApplicationAsset(this.id, assetId);
+  }
+
+  async deleteStoreAsset(assetId: string) {
+    return this.client.deleteStoreApplicationAsset(this.id, assetId);
+  }
+
+  async fetchAssets() {
+    return this.client.fetchOauth2ApplicationAssets(this.id);
+  }
+
   async fetchNews() {
     return this.client.rest.fetchApplicationNews(this.id);
+  }
+
+  async fetchStoreAssets() {
+    return this.client.fetchStoreApplicationAssets(this.id);
   }
 
   async joinGuild(options: RequestTypes.JoinGuild) {

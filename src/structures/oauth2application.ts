@@ -1,4 +1,7 @@
+import { Endpoints } from 'detritus-client-rest';
+
 import { ShardClient } from '../client';
+import { AssetTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -82,5 +85,64 @@ export class Oauth2Application extends BaseStructure {
       }
       return super.mergeValue.call(this, key, value);
     }
+  }
+}
+
+
+export const keysOauth2ApplicationAsset: ReadonlyArray<string> = [
+  'application_id',
+  'id',
+  'name',
+  'type',
+];
+
+export class Oauth2ApplicationAsset extends BaseStructure {
+  readonly _keys = keysOauth2ApplicationAsset;
+
+  applicationId: string = '';
+  id: string = '';
+  name: string = '';
+  type: number = 0;
+
+  constructor(client: ShardClient, data: BaseStructureData) {
+    super(client);
+    this.merge(data);
+  }
+
+  get extension(): string {
+    switch (this.type) {
+      case AssetTypes.IMAGE: return 'png';
+      case AssetTypes.VIDEO: return 'mp4';
+    }
+    return '';
+  }
+
+  get isImage(): boolean {
+    return this.type === AssetTypes.IMAGE;
+  }
+
+  get isVideo(): boolean {
+    return this.type === AssetTypes.VIDEO;
+  }
+
+  get isYoutubeVideo(): boolean {
+    return this.type === AssetTypes.YOUTUBE_VIDEO;
+  }
+
+  get url(): string {
+    switch (this.type) {
+      case AssetTypes.IMAGE:
+      case AssetTypes.VIDEO: {
+        return Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET(this.applicationId, this.id, this.extension);
+      };
+      case AssetTypes.YOUTUBE_VIDEO: {
+
+      }; break;
+    }
+    return '';
+  }
+
+  async delete() {
+    return this.client.deleteOauth2ApplicationAsset(this.applicationId, this.id);
   }
 }

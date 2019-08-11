@@ -25,15 +25,15 @@ import {
   Member,
   Message,
   Oauth2Application,
+  Oauth2ApplicationAsset,
   PremiumSubscription,
   Profile,
   Role,
+  StoreApplicationAsset,
   Team,
   TeamMember,
   User,
   UserMe,
-  UserWithFlags,
-  UserWithToken,
   VoiceRegion,
   Webhook,
 } from '../structures';
@@ -173,6 +173,24 @@ export class RestClient extends Client {
     const message = new Message(this.client, data);
     this.client.messages.insert(message);
     return message;
+  }
+
+  async createOauth2ApplicationAsset(
+    applicationId: string,
+    options: RequestTypes.CreateOauth2ApplicationAsset,
+  ): Promise<Oauth2ApplicationAsset> {
+    const data = await super.createOauth2ApplicationAsset.call(this, applicationId, options);
+    data.application_id = applicationId;
+    return new Oauth2ApplicationAsset(this.client, data);
+  }
+
+  async createStoreApplicationAsset(
+    applicationId: string,
+    options: RequestTypes.CreateStoreApplicationAsset,
+  ): Promise<StoreApplicationAsset> {
+    const data = await super.createStoreApplicationAsset.call(this, applicationId, options);
+    data.application_id = applicationId;
+    return new StoreApplicationAsset(this.client, data);
   }
 
   async createWebhook(
@@ -771,10 +789,20 @@ export class RestClient extends Client {
     return collection;
   }
 
+  async fetchOauth2Applications(): Promise<BaseCollection<string, Oauth2Application>> {
+    const data = await super.fetchOauth2Applications.call(this);
+
+    const collection = new BaseCollection<string, Oauth2Application>();
+    for (let raw of data) {
+      const oauth2Application = new Oauth2Application(this.client, raw);
+      collection.set(oauth2Application.id, oauth2Application);
+    }
+    return collection;
+  }
+
   async fetchOauth2Application(
     userId: string = '@me',
-  ): Promise<RestResponses.FetchOauth2Application> {
-    // todo fix this and use a structure instead?
+  ): Promise<Oauth2Application> {
     const data = await super.fetchOauth2Application.call(this, userId);
 
     const oauth2Application = new Oauth2Application(this.client, data);
@@ -788,6 +816,20 @@ export class RestClient extends Client {
       }
     }
     return data;
+  }
+
+  async fetchOauth2ApplicationAssets(
+    applicationId: string,
+  ): Promise<BaseCollection<string, Oauth2ApplicationAsset>> {
+    const data = await super.fetchOauth2ApplicationAssets.call(this, applicationId);
+
+    const collection = new BaseCollection<string, Oauth2ApplicationAsset>();
+    for (let raw of data) {
+      raw.application_id = applicationId;
+      const asset = new Oauth2ApplicationAsset(this.client, raw);
+      collection.set(asset.id, asset);
+    }
+    return collection;
   }
 
   async fetchPinnedMessages(
@@ -815,6 +857,20 @@ export class RestClient extends Client {
         message = new Message(this.client, raw);
       }
       collection.set(message.id, message);
+    }
+    return collection;
+  }
+
+  async fetchStoreApplicationAssets(
+    applicationId: string,
+  ): Promise<BaseCollection<string, StoreApplicationAsset>> {
+    const data = await super.fetchStoreApplicationAssets.call(this, applicationId);
+
+    const collection = new BaseCollection<string, StoreApplicationAsset>();
+    for (let raw of data) {
+      raw.application_id = applicationId;
+      const asset = new StoreApplicationAsset(this.client, raw);
+      collection.set(asset.id, asset);
     }
     return collection;
   }

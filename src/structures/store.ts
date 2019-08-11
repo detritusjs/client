@@ -96,11 +96,6 @@ const keysSku = [
   'type',
 ];
 
-const keysMergeSku: ReadonlyArray<string> = [
-  'application_id',
-  'application',
-];
-
 /**
  * Sku Structure, used in [Gift] and [StoreListing]
  * @category Structure
@@ -151,5 +146,37 @@ export class Sku extends BaseStructure {
       }
       return super.mergeValue.call(this, key, value);
     }
+  }
+}
+
+
+export const keysStoreApplicationAsset: ReadonlyArray<string> = [
+  'application_id',
+  'filename',
+  'height',
+  'id',
+  'mime_type',
+  'size',
+  'width',
+];
+
+export class StoreApplicationAsset extends BaseStructure {
+  readonly _keys = keysStoreApplicationAsset;
+
+  applicationId: string = '';
+  filename: string = '';
+  height: number = 0;
+  id: string = '';
+  mimeType: string = '';
+  size: number = 0;
+  width: string = '';
+
+  constructor(client: ShardClient, data: BaseStructureData) {
+    super(client);
+    this.merge(data);
+  }
+
+  async delete() {
+    return this.client.deleteStoreApplicationAsset(this.applicationId, this.id);
   }
 }

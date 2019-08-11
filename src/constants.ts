@@ -3,7 +3,7 @@ import { Constants as SocketConstants } from 'detritus-client-socket';
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.2',
+  VERSION: '0.4.3',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -26,6 +26,16 @@ export const MIN_BITRATE = 8000;
 export const ApplicationNewsFlags = Object.freeze({
   PATCH_NOTES: 1 << 1,
   PROMOTION: 1 << 2,
+});
+
+export const AssetSpecialMimes = Object.freeze({
+  YOUTUBE: 'video/youtube',
+});
+
+export const AssetTypes = Object.freeze({
+  IMAGE: 1,
+  YOUTUBE_VIDEO: 2,
+  VIDEO: 3,
 });
 
 export const AuditLogActions = Object.freeze({
