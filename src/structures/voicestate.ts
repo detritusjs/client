@@ -41,9 +41,9 @@ export class VoiceState extends BaseStructure {
   readonly _keys = keysVoiceState;
   readonly _keysMerge = keysMergeVoiceState;
 
-  channelId: null | string = null;
+  channelId?: null | string;
   deaf: boolean = false;
-  guildId: null | string = null;
+  guildId?: null | string;
   member!: Member;
   selfDeaf: boolean = false;
   selfMute: boolean = false;
@@ -59,14 +59,14 @@ export class VoiceState extends BaseStructure {
   }
 
   get channel(): Channel | null {
-    if (this.channelId !== null) {
+    if (this.channelId) {
       return this.client.channels.get(this.channelId) || null;
     }
     return null;
   }
 
   get guild(): Guild | null {
-    if (this.guildId !== null) {
+    if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
     }
     return null;
@@ -77,7 +77,7 @@ export class VoiceState extends BaseStructure {
   }
 
   async edit(options: RequestTypes.EditGuildMember) {
-    if (this.guildId === null) {
+    if (!this.guildId) {
       throw new Error('Cannot edit a user in a DM call.');
     }
     return this.client.rest.editGuildMember(this.guildId, this.userId, options);

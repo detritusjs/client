@@ -201,8 +201,24 @@ export class Context {
     return this.message.author.id;
   }
 
+  get voiceChannel() {
+    const member = this.member;
+    if (member) {
+      return member.voiceChannel;
+    }
+    return null;
+  }
+
   get voiceConnection() {
     return this.voiceConnections.get(this.guildId || this.channelId);
+  }
+
+  get voiceState() {
+    const member = this.member;
+    if (member) {
+      return member.voiceState;
+    }
+    return null;
   }
 
   reply(options: MessageReply | string = '') {

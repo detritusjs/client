@@ -111,16 +111,16 @@ export class Sku extends BaseStructure {
   readonly _keys = keysSku;
 
   accessType: number = 0;
-  application: Application | null = null;
+  application?: Application;
   applicationId: string = '';
   dependentSkuId: null | string = null;
   features: Array<string> = [];
   flags: number = 0;
   id: string = '';
-  manifestLabels: Array<any> | null = null;
+  manifestLabels?: Array<any> | null;
   name: string = '';
-  premium: null = null;
-  releaseDate: null | string = null;
+  premium?: null;
+  releaseDate?: null | string;
   showAgeGate: boolean = false;
   slug: string = '';
   type: number = 0;
@@ -134,7 +134,7 @@ export class Sku extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case 'application_id': {
-          if (this.application === null) {
+          if (!this.application) {
             if (this.client.applications.has(value)) {
               this.application = <Application> this.client.applications.get(value);
             }

@@ -71,7 +71,7 @@ export class User extends BaseStructure {
   }
 
   get isMe(): boolean {
-    if (this.client.user != null) {
+    if (this.client.user) {
       return this.id === this.client.user.id;
     }
     return false
@@ -278,9 +278,9 @@ const keysUserExtended: ReadonlyArray<string> = [
  */
 export class UserExtended extends UserWithFlags {
   readonly _keys = keysUserExtended;
-  email: string | null = null;
+  email?: string | null;
   flags: number = 0;
-  locale: string | null = null;
+  locale?: string | null;
   mfaEnabled: boolean = false;
   premiumType: number = 0;
   verified: boolean = false;

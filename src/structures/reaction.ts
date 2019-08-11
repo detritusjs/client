@@ -32,7 +32,7 @@ export class Reaction extends BaseStructure {
   channelId: string = '';
   count: number = 0;
   emoji!: Emoji;
-  guildId: null | string = null;
+  guildId?: string;
   messageId: string = '';
   me: boolean = false;
 
@@ -51,7 +51,7 @@ export class Reaction extends BaseStructure {
   }
 
   get guild(): Guild | null {
-    if (this.guildId !== null) {
+    if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
     }
     return null;
@@ -76,20 +76,19 @@ export class Reaction extends BaseStructure {
   }
 
   mergeValue(key: string, value: any): void {
-    if (value === undefined) {
-      return;
+    if (value !== undefined) {
+      switch (key) {
+        case 'emoji': {
+          let emoji: Emoji;
+          if (value.id && this.client.emojis.has(value.id)) {
+            emoji = <Emoji> this.client.emojis.get(value.id);
+          } else {
+            emoji = new Emoji(this.client, value);
+          }
+          value = emoji;
+        }; break;
+      }
+      return super.mergeValue.call(this, key, value);
     }
-    switch (key) {
-      case 'emoji': {
-        let emoji: Emoji;
-        if (value.id && this.client.emojis.has(value.id)) {
-          emoji = <Emoji> this.client.emojis.get(value.id);
-        } else {
-          emoji = new Emoji(this.client, value);
-        }
-        value = emoji;
-      }; break;
-    }
-    return super.mergeValue.call(this, key, value);
   }
 }

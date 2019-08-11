@@ -81,28 +81,32 @@ const keysChannelBase: ReadonlyArray<string> = [
   'type',
 ];
 
+const keysMergeChannelBase: ReadonlyArray<string> = [];
+
 /**
  * Basic Channel Structure
  * @category Structure
  */
 export class ChannelBase extends BaseStructure {
   readonly _keys = keysChannelBase;
+  readonly _keysMerge = keysMergeChannelBase;
   readonly nicks = new BaseCollection<string, string>();
   readonly permissionOverwrites = new BaseCollection<string, Overwrite>();
   readonly recipients = new BaseCollection<string, User>();
  
-  applicationId: null | string = null;
+  applicationId?: string;
   bitrate: number = 0;
   guildId: string = '';
   id: string = '';
-  lastMessageId: null | string = null;
-  lastPinTimestamp: null | Date = null;
+  icon?: null | string;
+  lastMessageId?: null | string;
+  lastPinTimestamp?: Date;
   name: string = '';
   nsfw: boolean = false;
-  parentId: null | string = null;
+  parentId?: null | string;
   position: number = -1;
   rateLimitPerUser: number = 0;
-  topic: null | string = null;
+  topic?: string;
   type: number = ChannelTypes.BASE;
   userLimit: number = 0;
 
@@ -139,7 +143,7 @@ export class ChannelBase extends BaseStructure {
 
   get canJoin(): boolean {
     if (this.isDm) {
-      if (this.client.user !== null && this.client.user.bot) {
+      if (this.client.user && this.client.user.bot) {
         return false;
       }
       return true;
@@ -181,7 +185,7 @@ export class ChannelBase extends BaseStructure {
 
   get canSpeak(): boolean {
     if (this.isDm) {
-      if (this.client.user !== null && this.client.user.bot) {
+      if (this.client.user && this.client.user.bot) {
         return false;
       }
       return true;
@@ -498,8 +502,8 @@ const keysChannelDm: ReadonlyArray<string> = [
  */
 export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
-  lastMessageId: null | string = null;
-  lastPinTimestamp: null | Date = null;
+  lastMessageId?: null | string;
+  lastPinTimestamp?: Date;
 
   constructor(
     client: ShardClient,
@@ -682,7 +686,7 @@ const keysChannelDmGroup: ReadonlyArray<string> = [
  */
 export class ChannelDMGroup extends ChannelDM {
   readonly _keys = keysChannelDmGroup;
-  applicationId: null | string = null;
+  applicationId?: string;
   icon: null | string = null;
   name: string = '';
   ownerId: string = '';
@@ -747,12 +751,12 @@ const keysMergeChannelGuildBase: ReadonlyArray<string> = [
  */
 export class ChannelGuildBase extends ChannelBase {
   readonly _keys = keysChannelGuildBase;
-  readonly _keysMerge: ReadonlyArray<string> | null = keysMergeChannelGuildBase;
+  readonly _keysMerge = keysMergeChannelGuildBase;
   readonly permissionOverwrites = new BaseCollection<string, Overwrite>();
 
   guildId: string = '';
   nsfw: boolean = false;
-  parentId: null | string = null;
+  parentId?: null | string;
   position: number = -1;
   rateLimitPerUser: number = 0;
 
@@ -921,21 +925,18 @@ export class ChannelGuildBase extends ChannelBase {
     permissions: PermissionTools.PermissionChecks,
     member?: Member,
   ): boolean {
-    if (member === undefined) {
-      if (this.client.user === null) {
+    if (!member) {
+      if (!this.client.user) {
         return false;
       }
-      if (this.client.members.has(this.guildId, this.client.user.id)) {
-        member = <Member> this.client.members.get(this.guildId, this.client.user.id);
-      } else {
+      if (!this.client.members.has(this.guildId, this.client.user.id)) {
         return false;
       }
+      member = <Member> this.client.members.get(this.guildId, this.client.user.id);
     }
     const guild = this.guild;
-    if (guild !== null) {
-      if (guild.isOwner(member.id)) {
-        return true;
-      }
+    if (guild && guild.isOwner(member.id)) {
+      return true;
     }
     const total = member.permissionsFor(this);
     if (PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
@@ -1030,9 +1031,9 @@ const keysChannelGuildText: ReadonlyArray<string> = [
  */
 export class ChannelGuildText extends ChannelGuildBase {
   readonly _keys = keysChannelGuildText;
-  lastMessageId: null | string = null;
-  lastPinTimestamp: null | Date = null;
-  topic: null | string = null;
+  lastMessageId?: null | string;
+  lastPinTimestamp?: Date;
+  topic?: string = '';
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client, data, false);
@@ -1157,7 +1158,7 @@ export class ChannelGuildText extends ChannelGuildBase {
     switch (key) {
       case 'last_pin_timestamp': {
         const old = this.lastPinTimestamp;
-        if (old !== null && value !== null) {
+        if (old && value) {
           if (old.getTime() !== (new Date(value)).getTime()) {
             differences = old;
           }

@@ -535,7 +535,7 @@ export class GatewayDispatchHandler {
       this.client.members.delete(data['id']);
       this.client.presences.delete(data['id']);
       this.client.emojis.forEach((emoji: Emoji) => {
-        if (emoji.guildId === data['id']) {
+        if (emoji.id && emoji.guildId === data['id']) {
           this.client.emojis.delete(emoji.id);
         }
       });
@@ -582,7 +582,7 @@ export class GatewayDispatchHandler {
           emoji.guildId = guildId;
           this.client.emojis.insert(emoji);
         }
-        emojis.set(emoji.id, emoji);
+        emojis.set(emoji.id || emoji.name, emoji);
       }
     }
 

@@ -60,7 +60,7 @@ export class Presence extends BaseStructure {
 
   activities = new BaseCollection<number | string, PresenceActivity>();
   clientStatus?: PresenceClientStatus;
-  game: null | PresenceActivity = null;
+  game?: null | PresenceActivity;
   guildId: string = '';
   lastModified?: number;
   status: string = PresenceStatuses.OFFLINE;
@@ -71,7 +71,7 @@ export class Presence extends BaseStructure {
     this.merge(data);
   }
 
-  get activity(): null | PresenceActivity {
+  get activity(): null | PresenceActivity | undefined {
     return this.game;
   }
 
@@ -139,7 +139,7 @@ export class Presence extends BaseStructure {
           this.activities.clear();
           for (let i = 0; i < value.length; i++) {
             const activity = new PresenceActivity(this, value[i]);
-            if (activity.id !== undefined) {
+            if (activity.id) {
               this.activities.set(activity.id, activity);
             } else {
               this.activities.set(i, activity);
@@ -152,7 +152,7 @@ export class Presence extends BaseStructure {
         case 'game': {
           if (value) {
             if (Object.keys(value).length) {
-              if (value.id !== undefined) {
+              if (value.id) {
                 if (this.activities.has(value.id)) {
                   value = <PresenceActivity> this.activities.get(value.id);
                 } else {
@@ -359,7 +359,7 @@ export class PresenceActivity extends BaseStructure {
       return this.assets.imageUrlFormat(format, query);
     }
     const application = this.application;
-    if (application !== null) {
+    if (application) {
       return application.iconUrlFormat(format, query);
     }
     return null;
@@ -425,7 +425,7 @@ export class PresenceActivity extends BaseStructure {
             }; break;
           }
         } else {
-          value = null;
+          value = undefined;
         }
       }
     }
@@ -483,9 +483,9 @@ export class PresenceActivityAssets extends BaseStructure {
     hash?: null | string,
   ): null | string {
     if (hash === undefined) {
-      hash = this.largeImage || this.smallImage || null;
+      hash = this.largeImage || this.smallImage;
     }
-    if (hash === null) {
+    if (!hash) {
       return null;
     }
     format = getFormatFromHash(

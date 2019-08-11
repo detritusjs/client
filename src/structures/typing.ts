@@ -32,11 +32,11 @@ const keysMergeTyping: ReadonlyArray<string> = [
 export class Typing extends BaseStructure {
   readonly _keys = keysTyping;
   readonly _keysMerge = keysMergeTyping;
-  _expiring: null | ReturnType<typeof setTimeout> = null;
+  _expiring: any | null = null;
 
   channelId: string = '';
-  guildId: null | string = null;
-  member: Member | null = null;
+  guildId?: string;
+  member?: Member;
   timestamp: number = 0;
   userId: string = '';
 
@@ -52,7 +52,7 @@ export class Typing extends BaseStructure {
   }
 
   get guild(): Guild | null {
-    if (this.guildId !== null) {
+    if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
     }
     return null;
@@ -75,7 +75,7 @@ export class Typing extends BaseStructure {
       switch (key) {
         case 'member': {
           let member: Member;
-          if (this.guildId !== null && this.client.members.has(this.guildId, value.user.id)) {
+          if (this.guildId && this.client.members.has(this.guildId, value.user.id)) {
             member = <Member> this.client.members.get(this.guildId, value.user.id);
             member.merge(value);
           } else {
@@ -87,7 +87,7 @@ export class Typing extends BaseStructure {
         }; break;
         case 'timestamp': {
           if (this._expiring !== null) {
-            clearTimeout(<number> <unknown> this._expiring);
+            clearTimeout(this._expiring);
             this._expiring = null;
           }
           this._expiring = setTimeout(() => {

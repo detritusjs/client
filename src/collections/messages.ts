@@ -14,11 +14,6 @@ import {
 
 export const DEFAULT_MESSAGES_CACHE_KEY = '@me';
 
-export interface MessageCacheItem {
-  expire: null | ReturnType<typeof setTimeout>,
-  data: Message,
-}
-
 export interface MessagesCache extends BaseCollection<string, MessageCacheItem> {
   
 };
@@ -89,10 +84,10 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
         cacheId = message.channelId;
       }; break;
       case MessageCacheTypes.GUILD: {
-        if (message.guildId === null) {
-          cacheId = message.channelId;
-        } else {
+        if (message.guildId) {
           cacheId = message.guildId;
+        } else {
+          cacheId = message.channelId;
         }
       }; break;
     }
@@ -105,27 +100,21 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
     }
 
     if (this.limit && this.limit <= cache.size) {
-      const value = <MessageCacheItem> cache.first();
-      if (value.expire !== null) {
-        clearTimeout(<number> <unknown> value.expire);
-        value.expire = null;
-      }
-      cache.delete(value.data.id);
+      const item = <MessageCacheItem> cache.first();
+      item.clearExpire();
+      cache.delete(item.data.id);
     }
 
-    let expire: null | ReturnType<typeof setTimeout> = null;
+    const item = new MessageCacheItem(message);
     if (this.expire) {
-      expire = setTimeout(() => {
+      item.expire = setTimeout(() => {
         cache.delete(message.id);
         if (!cache.size) {
           super.delete(cacheId);
         }
       }, this.expire);
     }
-    cache.set(message.id, {
-      data: message,
-      expire,
-    });
+    cache.set(message.id, item);
   }
 
   delete(messageId: string): boolean;
@@ -136,20 +125,17 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
     cacheId?: null | string,
   ): boolean {
     if (this.enabled) {
-      if (messageId != null) {
+      if (messageId) {
         if (this.type === MessageCacheTypes.GLOBAL) {
           cacheId = DEFAULT_MESSAGES_CACHE_KEY;
         }
-        if (cacheId == null) {
+        if (!cacheId) {
           // search entire collection for it
           for (let [key, value] of this) {
             const cache = <MessagesCache> value;
             if (cache.has(messageId)) {
               const item = <MessageCacheItem> cache.get(messageId);
-              if (item.expire !== null) {
-                clearTimeout(<number> <unknown> item.expire);
-                item.expire = null;
-              }
+              item.clearExpire();
               cache.delete(messageId);
               if (!cache.size) {
                 super.delete(key);
@@ -163,10 +149,7 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
             const cache = <MessagesCache> super.get(cacheId);
             if (cache.has(messageId)) {
               const item = <MessageCacheItem> cache.get(messageId);
-              if (item.expire !== null) {
-                clearTimeout(<number> <unknown> item.expire);
-                item.expire = null;
-              }
+              item.clearExpire();
               cache.delete(messageId);
               if (!cache.size) {
                 super.delete(cacheId);
@@ -176,15 +159,12 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
           }
           return false;
         }
-      } else if (cacheId != null) {
+      } else if (cacheId) {
         // delete entire cache from collection
         if (super.has(cacheId)) {
           const cache = <MessagesCache> super.get(cacheId);
-          for (let [key, value] of cache) {
-            if (value.expire !== null) {
-              clearTimeout(<number> <unknown> value.expire);
-              value.expire = null;
-            }
+          for (let [key, item] of cache) {
+            item.clearExpire();
             cache.delete(key);
           }
         }
@@ -202,11 +182,11 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
     cacheId?: null | string,
   ): MessagesCache | Message | undefined {
     if (this.enabled) {
-      if (messageId != null) {
+      if (messageId) {
         if (this.type === MessageCacheTypes.GLOBAL) {
           cacheId = DEFAULT_MESSAGES_CACHE_KEY;
         }
-        if (cacheId == null) {
+        if (!cacheId) {
           // search entire collection for it
           for (let [key, value] of this) {
             const cache = <MessagesCache> value;
@@ -223,7 +203,7 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
             }
           }
         }
-      } else if (cacheId != null) {
+      } else if (cacheId) {
         return super.get(cacheId);
       }
     }
@@ -237,11 +217,11 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
     cacheId?: null | string,
   ): boolean {
     if (this.enabled) {
-      if (messageId != null) {
+      if (messageId) {
         if (this.type === MessageCacheTypes.GLOBAL) {
           cacheId = DEFAULT_MESSAGES_CACHE_KEY;
         }
-        if (cacheId == null) {
+        if (!cacheId) {
           // search entire collection for it
           for (let [key, value] of this) {
             const cache = <MessagesCache> value;
@@ -256,7 +236,7 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
           }
           return false;
         }
-      } else if (cacheId != null) {
+      } else if (cacheId) {
         return super.has(cacheId);
       }
     }
@@ -272,5 +252,23 @@ export class Messages extends BaseClientCollection<string, MessagesCache, Messag
 
   toString(): string {
     return `${this.size} Messages`;
+  }
+}
+
+
+export class MessageCacheItem {
+  expire: any | null;
+  data: Message;
+
+  constructor(data: Message, expire: any | null = null) {
+    this.data = data;
+    this.expire = expire;
+  }
+
+  clearExpire() {
+    if (this.expire !== null) {
+      clearTimeout(this.expire);
+      this.expire = null;
+    }
   }
 }

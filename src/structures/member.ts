@@ -44,7 +44,7 @@ export class Member extends UserMixin {
 
   deaf: boolean = false;
   guildId: string = '';
-  hoistedRole: null | string = null;
+  hoistedRole?: string;
   joinedAt!: Date;
   mute: boolean = false;
   nick: null | string = null;
@@ -74,7 +74,7 @@ export class Member extends UserMixin {
 
   get isOwner(): boolean {
     const guild = this.guild;
-    if (guild !== null) {
+    if (guild) {
       return guild.isOwner(this.id);
     }
     return false;
@@ -90,7 +90,7 @@ export class Member extends UserMixin {
 
   get permissions(): number {
     return this.roles.reduce((total: number, role: null | Role) => {
-      if (role !== null) {
+      if (role) {
         return total | role.permissions;
       }
       return total;
@@ -103,14 +103,14 @@ export class Member extends UserMixin {
 
   get voiceChannel(): ChannelGuildVoice | null {
     const voiceState = this.voiceState;
-    if (voiceState !== undefined) {
+    if (voiceState) {
       return voiceState.channel;
     }
     return null;
   }
 
-  get voiceState(): undefined | VoiceState {
-    return <undefined | VoiceState> this.client.voiceStates.get(this.guildId, this.id);
+  get voiceState(): null | VoiceState {
+    return this.client.voiceStates.get(this.guildId, this.id) || null;
   }
 
   can(
@@ -121,7 +121,7 @@ export class Member extends UserMixin {
     } = {},
   ): boolean {
     const guild = this.guild;
-    if (guild !== null) {
+    if (guild) {
       return guild.can(permissions, this, options);
     }
     return PermissionTools.checkPermissions(this.permissions, permissions);
@@ -214,7 +214,7 @@ export class Member extends UserMixin {
           value = new Date(value);
         }; break;
         case 'premium_since': {
-          if (value !== null) {
+          if (value) {
             value = new Date(value);
           }
         }; break;
@@ -224,7 +224,7 @@ export class Member extends UserMixin {
           const guild = this.guild;
           this.roles.set(this.guildId, (guild) ? guild.defaultRole : null);
           for (let roleId of value) {
-            if (guild !== null && guild.roles.has(roleId)) {
+            if (guild && guild.roles.has(roleId)) {
               this.roles.set(roleId, <Role> guild.roles.get(roleId));
             } else {
               this.roles.set(roleId, null);

@@ -14,6 +14,18 @@ import { User } from './user';
 import { VoiceState } from './voicestate';
 
 
+const keysVoiceCall: ReadonlyArray<string> = [
+  'channel_id',
+  'message_id',
+  'region',
+  'ringing',
+  'unavailable',
+];
+
+const keysMergeVoiceCall: ReadonlyArray<string> = [
+  'voice_states',
+];
+
 /**
  * VoiceCall Structure
  * a DM Channel's call
@@ -21,6 +33,9 @@ import { VoiceState } from './voicestate';
  * @category Structure
  */
 export class VoiceCall extends BaseStructure {
+  readonly _keys = keysVoiceCall;
+  readonly _keysMerge = keysMergeVoiceCall;
+
   readonly ringing = new BaseCollection<string, null | User>();
 
   channelId: string = '';
@@ -34,7 +49,7 @@ export class VoiceCall extends BaseStructure {
   }
 
   get amBeingRinged(): boolean {
-    if (this.client.user !== null) {
+    if (this.client.user) {
       return this.isRinging(this.client.user.id);
     }
     return false;
@@ -75,40 +90,35 @@ export class VoiceCall extends BaseStructure {
     return this.client.rest.stopChannelCallRinging(this.channelId, {recipients});
   }
 
-  merge(data: BaseStructureData): void {
-    if (data.voice_states) {
-      this.mergeValue('voice_states', data.voice_states);
-      data.voice_states = undefined;
-    }
-    super.merge.call(this, data);
-  }
-
   mergeValue(key: string, value: any): void {
-    switch (key) {
-      case 'ringing': {
-        this.ringing.clear();
-        for (let userId of value.ringing) {
-          if (this.client.users.has(userId)) {
-            this.ringing.set(userId, <User> this.client.users.get(userId));
-          } else {
-            this.ringing.set(userId, null);
-          }
-        }
-      }; return;
-      case 'voice_states': {
-        if (this.client.voiceStates.enabled) {
-          if (this.client.voiceStates.has(this.channelId)) {
-            (<VoiceStatesCache> this.client.voiceStates.get(this.channelId)).clear();
-          }
-          for (let raw of value) {
-            if (this.client.voiceStates.has(this.channelId, raw.user_id)) {
-              (<VoiceState> this.client.voiceStates.get(this.channelId, raw.user_id)).merge(raw);
+    if (value !== undefined) {
+      switch (key) {
+        case 'ringing': {
+          this.ringing.clear();
+          for (let userId of value.ringing) {
+            if (this.client.users.has(userId)) {
+              this.ringing.set(userId, <User> this.client.users.get(userId));
             } else {
-              this.client.voiceStates.insert(new VoiceState(this.client, raw));
+              this.ringing.set(userId, null);
             }
           }
-        }
-      }; return;
+        }; return;
+        case 'voice_states': {
+          if (this.client.voiceStates.enabled) {
+            if (this.client.voiceStates.has(this.channelId)) {
+              (<VoiceStatesCache> this.client.voiceStates.get(this.channelId)).clear();
+            }
+            for (let raw of value) {
+              if (this.client.voiceStates.has(this.channelId, raw.user_id)) {
+                (<VoiceState> this.client.voiceStates.get(this.channelId, raw.user_id)).merge(raw);
+              } else {
+                this.client.voiceStates.insert(new VoiceState(this.client, raw));
+              }
+            }
+          }
+        }; return;
+      }
+      return super.mergeValue.call(this, key, value);
     }
   }
 }

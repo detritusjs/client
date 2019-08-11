@@ -44,10 +44,10 @@ export class Invite extends BaseStructure {
 
   approximateMemberCount: number = 0;
   approximatePresenceCount: number = 0;
-  channel: Channel | null = null;
+  channel?: Channel;
   code: string = '';
   createdAt?: Date;
-  guild: Guild | null = null;
+  guild?: Guild;
   inviter?: User;
   maxAge?: number;
   maxUses?: number;

@@ -44,24 +44,31 @@ export class Emoji extends BaseStructure {
 
   animated: boolean = false;
   available: boolean = true;
-  guildId: null | string = null;
-  id: string = '';
+  guildId?: string;
+  id: null | string = null;
   managed: boolean = false;
   name: string = '';
   requireColons: boolean = false;
-  user: null | User = null;
+  user?: User;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
   }
 
-  get createdAt(): Date {
-    return new Date(this.createdAtUnix);
+  get createdAt(): Date | null {
+    const createdAtUnix = this.createdAtUnix;
+    if (createdAtUnix !== null) {
+      return new Date(createdAtUnix);
+    }
+    return null;
   }
 
-  get createdAtUnix(): number {
-    return Snowflake.timestamp(this.id);
+  get createdAtUnix(): null | number {
+    if (this.id) {
+      return Snowflake.timestamp(this.id);
+    }
+    return null;
   }
 
   get endpointFormat(): string {
@@ -79,7 +86,7 @@ export class Emoji extends BaseStructure {
   }
 
   get guild(): Guild | null {
-    if (this.guildId !== null) {
+    if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
     }
     return null;
@@ -112,14 +119,14 @@ export class Emoji extends BaseStructure {
   }
 
   async edit(options: RequestTypes.EditGuildEmoji) {
-    if (!this.id || this.guildId === null) {
+    if (!this.id || !this.guildId) {
       throw new Error('Cannot edit a standard Emoji.');
     }
     return this.client.rest.editGuildEmoji(this.guildId, this.id, options);
   }
 
   async delete() {
-    if (!this.id || this.guildId === null) {
+    if (!this.id || !this.guildId) {
       throw new Error('Cannot delete a standard Emoji.');
     }
     return this.client.rest.deleteGuildEmoji(this.guildId, this.id);
@@ -143,10 +150,10 @@ export class Emoji extends BaseStructure {
           this.roles.clear();
           const guild = this.guild;
           for (let roleId of (<Array<string>> value)) {
-            if (guild === null) {
-              this.roles.set(roleId, null);
-            } else {
+            if (guild) {
               this.roles.set(roleId, <Role> guild.roles.get(roleId));
+            } else {
+              this.roles.set(roleId, null);
             }
           }
         }; return;

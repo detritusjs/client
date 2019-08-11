@@ -609,7 +609,7 @@ export class RestClient extends Client {
         emoji = new Emoji(this.client, raw);
         this.client.emojis.insert(emoji);
       }
-      collection.set(emoji.id, emoji);
+      collection.set(emoji.id || emoji.name, emoji);
     }
     return collection;
   }

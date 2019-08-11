@@ -12,14 +12,14 @@ export interface BaseStructureData {
  */
 export class Structure {
   /** @ignore */
-  readonly _keys: ReadonlyArray<string> | null = null;
+  readonly _keys?: ReadonlyArray<string>;
   /** @ignore */
-  readonly _keysMerge: ReadonlyArray<string> | null = null;
+  readonly _keysMerge?: ReadonlyArray<string>;
 
   constructor() {
     Object.defineProperties(this, {
-      _keys: {enumerable: false},
-      _keysMerge: {enumerable: false},
+      _keys: {enumerable: false, writable: true},
+      _keysMerge: {enumerable: false, writable: true},
     });
   }
 
@@ -59,13 +59,13 @@ export class Structure {
   }
 
   merge(data: BaseStructureData): void {
-    if (this._keysMerge !== null) {
+    if (this._keysMerge) {
       for (let key of this._keysMerge) {
         this.mergeValue(key, data[key]);
       }
     }
     for (let key in data) {
-      if (this._keysMerge !== null && this._keysMerge.includes(key)) {
+      if (this._keysMerge && this._keysMerge.includes(key)) {
         continue;
       }
       let value = data[key];
@@ -79,7 +79,7 @@ export class Structure {
 
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
-      if (this._keys !== null && this._keys.includes(key)) {
+      if (this._keys && this._keys.includes(key)) {
         this._setFromSnake(key, value);
       }
     }
@@ -87,7 +87,7 @@ export class Structure {
 
   toJSON(): object {
     const obj: BaseStructureData = {};
-    if (this._keys !== null) {
+    if (this._keys) {
       for (let key of this._keys) {
         obj[key] = this._getFromSnake(key);
       }

@@ -31,20 +31,21 @@ const keysMessageEmbed: ReadonlyArray<string> = [
  */
 export class MessageEmbed extends BaseStructure {
   readonly _keys = keysMessageEmbed;
-  author: MessageEmbedAuthor | null = null;
+
+  author?: MessageEmbedAuthor;
   color?: number;
-  description: null | string = null;
-  fields: BaseCollection<number, MessageEmbedField> | null = null;
-  footer: MessageEmbedFooter | null = null;
-  image: MessageEmbedImage | null = null;
-  provider: MessageEmbedProvider | null = null;
-  referenceId: null | string = null;
-  thumbnail: MessageEmbedThumbnail | null = null;
-  timestamp: null | Date = null;
-  title: null | string = null;
+  description?: string;
+  fields?: BaseCollection<number, MessageEmbedField>;
+  footer?: MessageEmbedFooter;
+  image?: MessageEmbedImage;
+  provider?: MessageEmbedProvider;
+  referenceId?: string;
+  thumbnail?: MessageEmbedThumbnail;
+  timestamp?: Date;
+  title?: string;
   type: string = MessageEmbedTypes.RICH;
-  url: null | string = null;
-  video: MessageEmbedVideo | null = null;
+  url?: string;
+  video?: MessageEmbedVideo;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -87,7 +88,7 @@ export class MessageEmbed extends BaseStructure {
     if (!this.isApplicationNews) {
       throw new Error('Embed isn\'t of Application News Type');
     }
-    if (this.referenceId === null) {
+    if (!this.referenceId) {
       throw new Error('Embed is missing Application News Id');
     }
     return this.client.rest.fetchApplicationNewsId(<string> this.referenceId);
@@ -99,7 +100,7 @@ export class MessageEmbed extends BaseStructure {
         value = new MessageEmbedAuthor(this.client, value);
       }; break;
       case 'fields': {
-        if (this.fields === null) {
+        if (!this.fields) {
           this.fields = new BaseCollection<number, MessageEmbedField>();
         }
         this.fields.clear();
@@ -145,10 +146,10 @@ const keysMessageEmbedAuthor: ReadonlyArray<string> = [
 export class MessageEmbedAuthor extends BaseStructure {
   readonly _keys = keysMessageEmbedAuthor;
 
-  iconUrl: null | string = null;
-  name:  null | string = null;
-  proxyIconUrl: null | string = null;
-  url: null | string = null;
+  iconUrl?: string;
+  name?: string;
+  proxyIconUrl?: string;
+  url?: string;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -194,8 +195,8 @@ const keysMessageEmbedFooter: ReadonlyArray<string> = [
 export class MessageEmbedFooter extends BaseStructure {
   readonly _keys = keysMessageEmbedFooter;
 
-  iconUrl: null | string = null;
-  proxyIconUrl: null | string = null;
+  iconUrl?: string;
+  proxyIconUrl?: string;
   text: string = '';
 
   constructor(client: ShardClient, data: BaseStructureData) {
@@ -220,9 +221,9 @@ export class MessageEmbedImage extends BaseStructure {
   readonly _keys: ReadonlyArray<string> = keysMessageEmbedImage;
 
   height: number = 0;
-  proxyUrl: null | string = null;
+  proxyUrl?: string;
   url: string = '';
-  width: null | number = 0;
+  width: number = 0;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -243,8 +244,8 @@ const keysMessageEmbedProvider: ReadonlyArray<string> = [
 export class MessageEmbedProvider extends BaseStructure {
   readonly _keys = keysMessageEmbedProvider;
 
-  name: null | string = null;
-  url: null | string = null;
+  name?: string;
+  url?: string;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);

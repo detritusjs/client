@@ -39,8 +39,8 @@ export class Webhook extends BaseStructure {
   guildId: string = '';
   id: string = '';
   name: string = '';
-  token: null | string = null;
-  user: null | User = null;
+  token?: null | string;
+  user?: null | User;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -106,7 +106,7 @@ export class Webhook extends BaseStructure {
   }
 
   async delete() {
-    if (this.token !== null) {
+    if (this.token) {
       return this.client.rest.deleteWebhookToken(this.id, this.token);
     }
     return this.client.rest.deleteWebhook(this.id);
@@ -116,7 +116,7 @@ export class Webhook extends BaseStructure {
     options: RequestTypes.ExecuteWebhook,
     compatibleType?: string,
   ) {
-    if (this.token === null) {
+    if (!this.token) {
       throw new Error('Webhook is missing it\'s token');
     }
     return this.client.rest.executeWebhook(this.id, this.token, options, compatibleType);

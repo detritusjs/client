@@ -45,8 +45,8 @@ export class Gift extends BaseStructure {
   maxUses: number = 0;
   redeemed: boolean = false;
   skuId: string = '';
-  storeListing: any;
-  subscriptionPlan: any;
+  storeListing?: StoreListing;
+  subscriptionPlan?: SubscriptionPlan;
   subscriptionPlanId: string = '';
   uses: number = 0;
   user!: User;

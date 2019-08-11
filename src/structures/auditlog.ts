@@ -47,9 +47,9 @@ export class AuditLog extends BaseStructure {
   options?: AuditLogOptions;
   reason?: string;
   target?: User | Webhook;
-  targetId: null | string = null;
+  targetId?: string;
   user?: User;
-  userId: null | string = null;
+  userId?: string;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -72,7 +72,11 @@ export class AuditLog extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case 'changes': {
-          value = new AuditLogChange(this, value);
+          this.changes.clear();
+          for (let raw of value) {
+            const change = new AuditLogChange(this, raw);
+            this.changes.set(change.key, change);
+          }
         }; return;
         case 'options': {
           value = new AuditLogOptions(this, value);

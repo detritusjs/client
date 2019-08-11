@@ -80,29 +80,29 @@ export class Message extends BaseStructure {
   readonly _keysMerge = keysMergeMessage;
   _content = '';
 
-  activity: MessageActivity | null = null;
-  application: Application | null = null;
+  activity?: MessageActivity;
+  application?: Application;
   attachments = new BaseCollection<number, Attachment>();
   author!: User;
-  call: MessageCall | null = null;
+  call?: MessageCall;
   channelId: string = '';
   content: string = '';
-  editedTimestamp: Date | null = null;
+  editedTimestamp?: Date;
   embeds = new BaseCollection<number, MessageEmbed>();
   flags: number = 0;
-  guildId: null | string = null;
+  guildId?: string;
   id: string = '';
-  member: Member | null = null;
+  member?: Member;
   mentions = new BaseCollection<string, Member | User>();
   mentionEveryone: boolean = false;
   mentionRoles = new BaseCollection<string, null | Role>();
-  nonce: null | string = null;
+  nonce?: string;
   pinned: boolean = false;
   reactions = new BaseCollection<string, Reaction>();
   timestamp!: Date;
   tts: boolean = false;
   type = MessageTypes.BASE;
-  webhookId: null | string = null;
+  webhookId?: string;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -164,14 +164,14 @@ export class Message extends BaseStructure {
   }
 
   get editedAt(): Date | null {
-    if (this.editedTimestamp !== null) {
+    if (this.editedTimestamp) {
       return this.editedTimestamp;
     }
     return null;
   }
 
   get editedAtUnix(): null | number {
-    if (this.editedTimestamp !== null) {
+    if (this.editedTimestamp) {
       return this.editedTimestamp.getTime();
     }
     return null;
@@ -198,7 +198,7 @@ export class Message extends BaseStructure {
   }
 
   get guild(): Guild | null {
-    if (this.guildId !== null) {
+    if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
     }
     return null;
@@ -577,11 +577,11 @@ export function messageContentFormat(
         }; break;
       }
       const channel = message.channel;
-      if (channel === null) {
+      if (!channel) {
         return SystemMessages.GuildMemberSubscribed.replace(/:user:/g, message.author.mention);
       }
       const guild = channel.guild;
-      if (guild === null) {
+      if (!guild) {
         return SystemMessages.GuildMemberSubscribed.replace(/:user:/g, message.author.mention);
       }
       content = SystemMessages.GuildMemberSubscribedAchievedTier.replace(/:user:/g, message.author.mention);

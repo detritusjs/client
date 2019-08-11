@@ -101,6 +101,7 @@ const keysGuild: ReadonlyArray<string> = [
 
 const keysMergeGuild: ReadonlyArray<string> = [
   'id',
+  'joined_at',
   'roles',
   'presences',
   'members',
@@ -117,7 +118,7 @@ export class Guild extends BaseStructure {
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
-  applicationId: null | string = null;
+  applicationId?: null | string;
   banner: null | string = null;
   defaultMessageNotifications: number = 0;
   description: null | string = null;
@@ -157,7 +158,7 @@ export class Guild extends BaseStructure {
   }
 
   get afkChannel(): Channel | null {
-    if (this.afkChannelId !== null) {
+    if (this.afkChannelId) {
       return this.client.channels.get(this.afkChannelId) || null;
     }
     return null;
@@ -198,7 +199,10 @@ export class Guild extends BaseStructure {
   }
 
   get joinedAtUnix(): null | number {
-    return this.joinedAt && this.joinedAt.getTime();
+    if (this.joinedAt) {
+      return this.joinedAt.getTime();
+    }
+    return null;
   }
 
   get jumpLink(): string {
@@ -221,8 +225,8 @@ export class Guild extends BaseStructure {
   }
 
   get me(): Member | null {
-    if (this.client.user !== null) {
-      return (<Member | undefined> this.client.members.get(this.id, this.client.user.id)) || null;
+    if (this.client.user) {
+      return (this.client.members.get(this.id, this.client.user.id)) || null;
     }
     return null;
   }
@@ -261,7 +265,7 @@ export class Guild extends BaseStructure {
   }
 
   get systemChannel(): Channel | null {
-    if (this.systemChannelId !== null) {
+    if (this.systemChannelId) {
       return this.client.channels.get(this.systemChannelId) || null;
     }
     return null;
@@ -313,7 +317,7 @@ export class Guild extends BaseStructure {
     if (!ignoreOwner) {
       let memberId: string;
       if (member == undefined) {
-        if (this.client.user === null) {
+        if (!this.client.user) {
           throw new Error('Provide a member object please');
         }
         memberId = this.client.user.id;
@@ -327,13 +331,13 @@ export class Guild extends BaseStructure {
 
     if (member == undefined) {
       const me = this.me;
-      if (me === null) {
+      if (!me) {
         throw new Error('Provide a member object please');
       }
       member = me;
     }
 
-    if (member == undefined) {
+    if (!member) {
       return false;
     }
 
@@ -665,7 +669,7 @@ export class Guild extends BaseStructure {
                 }
                 // now fill in the roles since they'll be null if we received this from READY (full guild object) or GUILD_CREATE so guild wasn't in cache
                 for (let [roleId, role] of member.roles) {
-                  if (role === null) {
+                  if (!role) {
                     member.roles.set(roleId, this.roles.get(roleId) || null);
                   }
                 }
@@ -697,12 +701,12 @@ export class Guild extends BaseStructure {
         case 'roles': {
           for (let [roleId, role] of this.roles) {
             // remove any roles that's in cache but not in this new roles array
-            if (role === null) {
-              this.roles.delete(roleId);
-            } else {
+            if (role) {
               if (!value.some((r: Role) => r.id === roleId)) {
                 this.roles.delete(roleId);
               }
+            } else {
+              this.roles.delete(roleId);
             }
           }
           for (let raw of value) {
@@ -715,9 +719,7 @@ export class Guild extends BaseStructure {
           }
         }; return;
         case 'premium_subscription_count': {
-          if (value === null) {
-            value = 0;
-          }
+          value = value || 0;
         }; break;
         case 'presences': {
           if (this.client.presences.has(this.id)) {

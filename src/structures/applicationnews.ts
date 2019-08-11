@@ -38,10 +38,10 @@ export class ApplicationNews extends BaseStructure {
   category: null = null;
   description: string = '';
   flags: number = 0;
-  footer: MessageEmbedFooter | null = null;
+  footer?: MessageEmbedFooter;
   gameId: string = this.applicationId;
   id: string = '';
-  thumbnail: MessageEmbedThumbnail | null = null;
+  thumbnail?: MessageEmbedThumbnail;
   timestamp!: Date;
   title: string = '';
   type: string = MessageEmbedTypes.APPLICATION_NEWS;
