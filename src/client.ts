@@ -1,23 +1,17 @@
-import {
-  ClientOptions as RestOptions,
-  Constants as RestConstants,
-  Endpoints,
-} from 'detritus-client-rest';
+import { ClientOptions as RestOptions, Endpoints } from 'detritus-client-rest';
 import { Gateway } from 'detritus-client-socket';
 
 
 import { ClusterClient } from './clusterclient';
 import { CommandClient } from './commandclient';
 import {
+  AuthTypes,
   ClientEvents,
   ImageFormats,
   IMAGE_FORMATS,
 } from './constants';
 import EventEmitter from './eventemitter';
-import {
-  GatewayHandler,
-  GatewayHandlerOptions,
-} from './gateway/handler';
+import { GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { RestClient } from './rest';
 
@@ -211,7 +205,7 @@ export class ShardClient extends EventEmitter {
     this.gateway = new Gateway.Socket(token, options.gateway);
     this.gatewayHandler = new GatewayHandler(this, options.gateway);
     this.rest = new RestClient(token, Object.assign({
-      authType: (options.isBot) ? RestConstants.AuthTypes.BOT : RestConstants.AuthTypes.USER,
+      authType: (options.isBot) ? AuthTypes.BOT : AuthTypes.USER,
     }, options.rest), this);
 
     if (options.isBot !== undefined) {

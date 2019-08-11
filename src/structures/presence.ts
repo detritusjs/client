@@ -1,17 +1,16 @@
 import { Endpoints } from 'detritus-client-rest';
-import { Constants as SocketConstants } from 'detritus-client-socket';
-
-const {
-  GatewayActivityFlags: ActivityFlags,
-  GatewayPresenceTypes: ActivityTypes,
-  GatewayPresenceStatuses: PresenceStatuses,
-} = SocketConstants;
 
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { DEFAULT_PRESENCE_CACHE_KEY } from '../collections/presences';
-import { PlatformTypes, SpecialUrls } from '../constants';
+import {
+  ActivityFlags,
+  ActivityTypes,
+  PlatformTypes,
+  PresenceStatuses,
+  SpecialUrls,
+} from '../constants';
 import { addQuery, getFormatFromHash, UrlQuery } from '../utils';
 
 import {

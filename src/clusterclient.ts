@@ -1,6 +1,5 @@
 import {
   Client as DetritusRestClient,
-  Constants as RestConstants,
 } from 'detritus-client-rest';
 
 import {
@@ -11,6 +10,7 @@ import {
 import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
+import { AuthTypes } from './constants';
 import EventEmitter from './eventemitter';
 import { sleep } from './utils';
 
@@ -75,7 +75,7 @@ export class ClusterClient extends EventEmitter {
     Object.assign(this.shardOptions, options);
     this.shardOptions.isBot = true;
     this.shardOptions.rest = Object.assign({}, this.shardOptions.rest);
-    this.shardOptions.rest.authType = RestConstants.AuthTypes.BOT;
+    this.shardOptions.rest.authType = AuthTypes.BOT;
 
     this.rest = new DetritusRestClient(token, this.shardOptions.rest);
     this.shardOptions.rest.globalBucket = this.rest.globalBucket;

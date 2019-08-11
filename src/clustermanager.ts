@@ -1,13 +1,11 @@
 import * as path from 'path';
 
-import {
-  Client as DetritusRestClient,
-  Constants as RestConstants,
-} from 'detritus-client-rest';
+import { Client as DetritusRestClient } from 'detritus-client-rest';
 
 
 import { ClusterProcess } from './cluster/process';
 import { BaseCollection } from './collections/basecollection';
+import { AuthTypes } from './constants';
 import EventEmitter from './eventemitter';
 import { sleep, Snowflake } from './utils';
 
@@ -56,7 +54,7 @@ export class ClusterManager extends EventEmitter {
     this.token = token;
 
     this.respawn = (options.respawn || options.respawn === undefined);
-    this.rest = new DetritusRestClient(token, {authType: RestConstants.AuthTypes.BOT});
+    this.rest = new DetritusRestClient(token, {authType: AuthTypes.BOT});
 
     this.shardCount = +(options.shardCount || this.shardCount);
     if (Array.isArray(options.shards)) {

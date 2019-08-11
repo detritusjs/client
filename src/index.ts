@@ -1,3 +1,5 @@
+import { Endpoints } from 'detritus-client-rest';
+
 import * as Collections from './collections';
 import * as Command from './command';
 import * as Constants from './constants';
@@ -8,6 +10,7 @@ export {
   Collections,
   Command,
   Constants,
+  Endpoints,
   Structures,
   Utils,
 };

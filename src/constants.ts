@@ -1,9 +1,55 @@
-import { Endpoints } from 'detritus-client-rest';
+import { Constants as RestConstants, Endpoints } from 'detritus-client-rest';
 import { Constants as SocketConstants } from 'detritus-client-socket';
+
+const {
+  AuthTypes,
+  DiscordAbortCodes,
+  HTTPMethods,
+} = RestConstants;
+export {
+  AuthTypes,
+  DiscordAbortCodes,
+  HTTPMethods,
+};
+
+const {
+  CompressTypes,
+  EncodingTypes,
+  GatewayActivityActionTypes,
+  GatewayActivityFlags,
+  GatewayActivityTypes,
+  GatewayDispatchEvents,
+  GatewayOpCodes,
+  GatewayPresenceStatuses,
+  MediaOpCodes,
+  MediaSpeakingFlags,
+  SocketCloseCodes,
+  SocketGatewayCloseCodes,
+  SocketMediaCloseCodes,
+  SocketStates,
+  SocketEvents,
+} = SocketConstants;
+export {
+  CompressTypes,
+  EncodingTypes,
+  GatewayActivityActionTypes as ActivityActionTypes,
+  GatewayActivityFlags as ActivityFlags,
+  GatewayActivityTypes as ActivityTypes,
+  GatewayDispatchEvents,
+  GatewayOpCodes,
+  GatewayPresenceStatuses as PresenceStatuses,
+  MediaOpCodes,
+  MediaSpeakingFlags as SpeakingFlags,
+  SocketCloseCodes,
+  SocketGatewayCloseCodes,
+  SocketMediaCloseCodes,
+  SocketStates,
+};
+
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.7',
+  VERSION: '0.4.8',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -158,7 +204,7 @@ export const ClientEvents = normalize(Object.assign({
   GATEWAY_RESUMED: null,
   RAW_EVENT: null,
   UNKNOWN: null,
-}, SocketConstants.GatewayDispatchEvents));
+}, GatewayDispatchEvents));
 
 export const ClusterIPCOpCodes = Object.freeze({
   READY: 0,

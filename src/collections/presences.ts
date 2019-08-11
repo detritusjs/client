@@ -1,10 +1,3 @@
-import { Constants as SocketConstants } from 'detritus-client-socket';
-
-const {
-  GatewayPresenceStatuses: PresenceStatuses,
-} = SocketConstants;
-
-
 import { ShardClient } from '../client';
 import { GatewayRawEvents } from '../gateway/rawevents';
 import { Presence } from '../structures';

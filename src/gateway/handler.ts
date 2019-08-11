@@ -1,14 +1,11 @@
-import { Constants as RestConstants } from 'detritus-client-rest';
-import { Constants as SocketConstants } from 'detritus-client-socket';
-
-const {
-  GatewayDispatchEvents,
-  GatewayOpCodes,
-} = SocketConstants;
-
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ClientEvents } from '../constants';
+import {
+  AuthTypes,
+  ClientEvents,
+  GatewayDispatchEvents,
+  GatewayOpCodes,
+} from '../constants';
 import { GatewayHTTPError } from '../errors';
 
 import {
@@ -144,7 +141,7 @@ export class GatewayDispatchHandler {
     this.client.users.insert(me); // since we reset the cache
 
     Object.defineProperty(this.client, '_isBot', {value: data['user']['bot']});
-    const authType = (this.client.isBot) ? RestConstants.AuthTypes.BOT : RestConstants.AuthTypes.USER;
+    const authType = (this.client.isBot) ? AuthTypes.BOT : AuthTypes.USER;
     this.client.rest.setAuthType(authType);
 
     if (this.client.channels.enabled) {
