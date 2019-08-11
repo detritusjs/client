@@ -125,6 +125,22 @@ export class Context {
   }
 
   /* Message Properties */
+  get canDelete() {
+    return this.message.canDelete;
+  }
+
+  get canManage() {
+    return this.message.canManage;
+  }
+
+  get canReact() {
+    return this.message.canReact;
+  }
+
+  get canReply() {
+    return this.message.canReply;
+  }
+
   get channel() {
     return this.message.channel;
   }
@@ -139,6 +155,22 @@ export class Context {
 
   get contentFormatted() {
     return this.message.contentFormatted;
+  }
+
+  get fromBot() {
+    return this.message.fromBot;
+  }
+
+  get fromSystem() {
+    return this.message.fromSystem;
+  }
+
+  get fromUser() {
+    return this.message.fromUser;
+  }
+
+  get fromWebhook() {
+    return this.message.fromWebhook;
   }
 
   get guild() {
