@@ -1,4 +1,11 @@
+import { Endpoints } from 'detritus-client-rest';
+
 import { ShardClient } from '../client';
+import {
+  addQuery,
+  getFormatFromHash,
+  UrlQuery,
+} from '../utils';
 
 import {
   BaseStructure,
@@ -174,6 +181,25 @@ export class StoreApplicationAsset extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get url(): string {
+    return this.urlFormat();
+  }
+
+  urlFormat(format?: null | string, query?: UrlQuery): string {
+    format = getFormatFromHash(
+      this.id,
+      format,
+      this.client.imageFormat,
+    );
+    if (this.mimeType.startsWith('video/')) {
+      format = 'mp4';
+    }
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET_STORE(this.applicationId, this.id, format),
+      query,
+    );
   }
 
   async delete() {

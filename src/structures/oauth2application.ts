@@ -1,7 +1,11 @@
 import { Endpoints, RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { AssetTypes } from '../constants';
+import {
+  addQuery,
+  getFormatFromHash,
+  UrlQuery,
+} from '../utils';
 
 import {
   BaseStructure,
@@ -144,37 +148,21 @@ export class Oauth2ApplicationAsset extends BaseStructure {
     this.merge(data);
   }
 
-  get extension(): string {
-    switch (this.type) {
-      case AssetTypes.IMAGE: return 'png';
-      case AssetTypes.VIDEO: return 'mp4';
-    }
-    return '';
-  }
-
-  get isImage(): boolean {
-    return this.type === AssetTypes.IMAGE;
-  }
-
-  get isVideo(): boolean {
-    return this.type === AssetTypes.VIDEO;
-  }
-
-  get isYoutubeVideo(): boolean {
-    return this.type === AssetTypes.YOUTUBE_VIDEO;
-  }
-
   get url(): string {
-    switch (this.type) {
-      case AssetTypes.IMAGE:
-      case AssetTypes.VIDEO: {
-        return Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET(this.applicationId, this.id, this.extension);
-      };
-      case AssetTypes.YOUTUBE_VIDEO: {
+    return this.urlFormat();
+  }
 
-      }; break;
-    }
-    return '';
+  urlFormat(format?: null | string, query?: UrlQuery): string {
+    const hash = this.id;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET(this.applicationId, hash, format),
+      query,
+    );
   }
 
   async delete() {
