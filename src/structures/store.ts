@@ -177,6 +177,6 @@ export class StoreApplicationAsset extends BaseStructure {
   }
 
   async delete() {
-    return this.client.deleteStoreApplicationAsset(this.applicationId, this.id);
+    return this.client.rest.deleteStoreApplicationAsset(this.applicationId, this.id);
   }
 }

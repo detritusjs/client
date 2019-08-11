@@ -169,23 +169,23 @@ export class Application extends BaseStructure {
   }
 
   async createAsset(options: RequestTypes.CreateOauth2ApplicationAsset) {
-    return this.client.createOauth2ApplicationAsset(this.id, options);
+    return this.client.rest.createOauth2ApplicationAsset(this.id, options);
   }
 
   async createStoreAsset(options: RequestTypes.CreateStoreApplicationAsset) {
-    return this.client.createStoreApplicationAsset(this.id, options);
+    return this.client.rest.createStoreApplicationAsset(this.id, options);
   }
 
   async deleteAsset(assetId: string) {
-    return this.client.deleteOauth2ApplicationAsset(this.id, assetId);
+    return this.client.rest.deleteOauth2ApplicationAsset(this.id, assetId);
   }
 
   async deleteStoreAsset(assetId: string) {
-    return this.client.deleteStoreApplicationAsset(this.id, assetId);
+    return this.client.rest.deleteStoreApplicationAsset(this.id, assetId);
   }
 
   async fetchAssets() {
-    return this.client.fetchOauth2ApplicationAssets(this.id);
+    return this.client.rest.fetchOauth2ApplicationAssets(this.id);
   }
 
   async fetchNews() {
@@ -193,7 +193,7 @@ export class Application extends BaseStructure {
   }
 
   async fetchStoreAssets() {
-    return this.client.fetchStoreApplicationAssets(this.id);
+    return this.client.rest.fetchStoreApplicationAssets(this.id);
   }
 
   async joinGuild(options: RequestTypes.JoinGuild) {

@@ -1,4 +1,4 @@
-import { Endpoints } from 'detritus-client-rest';
+import { Endpoints, RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { AssetTypes } from '../constants';
@@ -57,6 +57,41 @@ export class Oauth2Application extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  async createAsset(options: RequestTypes.CreateOauth2ApplicationAsset) {
+    return this.client.rest.createOauth2ApplicationAsset(this.id, options);
+  }
+
+  async createStoreAsset(options: RequestTypes.CreateStoreApplicationAsset) {
+    return this.client.rest.createStoreApplicationAsset(this.id, options);
+  }
+
+  async deleteAsset(assetId: string) {
+    return this.client.rest.deleteOauth2ApplicationAsset(this.id, assetId);
+  }
+
+  async deleteStoreAsset(assetId: string) {
+    return this.client.rest.deleteStoreApplicationAsset(this.id, assetId);
+  }
+
+  async fetchAssets() {
+    return this.client.rest.fetchOauth2ApplicationAssets(this.id);
+  }
+
+  async fetchNews() {
+    return this.client.rest.fetchApplicationNews(this.id);
+  }
+
+  async fetchStoreAssets() {
+    return this.client.rest.fetchStoreApplicationAssets(this.id);
+  }
+
+  async joinGuild(options: RequestTypes.JoinGuild) {
+    if (!this.guildId) {
+      throw new Error('Application doesn\'t have a guildId to join');
+    }
+    return this.client.rest.joinGuild(this.guildId, options);
   }
 
   mergeValue(key: string, value: any): void {
@@ -143,6 +178,6 @@ export class Oauth2ApplicationAsset extends BaseStructure {
   }
 
   async delete() {
-    return this.client.deleteOauth2ApplicationAsset(this.applicationId, this.id);
+    return this.client.rest.deleteOauth2ApplicationAsset(this.applicationId, this.id);
   }
 }
