@@ -3,7 +3,7 @@ import { Constants as SocketConstants } from 'detritus-client-socket';
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.0',
+  VERSION: '0.4.1',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -161,6 +161,10 @@ export const ClusterIPCOpCodes = Object.freeze({
   RECONNECTING: 2,
   RESPAWN_ALL: 3,
   EVAL: 4,
+});
+
+export const Colors = Object.freeze({
+  BLURPLE: 7506394,
 });
 
 export const CommandArgumentTypes = Object.freeze({

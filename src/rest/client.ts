@@ -402,6 +402,13 @@ export class RestClient extends Client {
     return collection;
   }
 
+  async fetchApplication(
+    applicationId: string,
+  ): Promise<Application> {
+    const data = await super.fetchApplication.call(this, applicationId);
+    return new Application(this.client, data);
+  }
+
   async fetchChannelInvites(
     channelId: string,
   ): Promise<BaseCollection<string, Invite>> {

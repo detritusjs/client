@@ -254,7 +254,7 @@ export class PresenceActivity extends BaseStructure {
   }
 
   get group(): BaseCollection<string, User> | null {
-    if (this.party !== undefined) {
+    if (this.party) {
       return this.party.group;
     }
     return null;
@@ -320,6 +320,18 @@ export class PresenceActivity extends BaseStructure {
     return this.applicationId === SpecialApplications.XBOX;
   }
 
+  get platformDiscordUrl(): null | string {
+    if (this.applicationId) {
+      // now this might not be on discord
+      // you need to check if the application exists on discord (by fetching it)
+      return (
+        Endpoints.Routes.URL +
+        Endpoints.Routes.APPLICATION_STORE_LISTING_SKU(this.applicationId)
+      );
+    }
+    return null;
+  }
+
   get spotifyTrackUrl(): null | string {
     if (this.isOnSpotify && this.syncId) {
       return SpecialUrls.SPOTIFY_TRACK(this.syncId);
@@ -343,12 +355,19 @@ export class PresenceActivity extends BaseStructure {
   }
 
   imageUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (this.assets !== undefined) {
+    if (this.assets) {
       return this.assets.imageUrlFormat(format, query);
     }
     const application = this.application;
     if (application !== null) {
       return application.iconUrlFormat(format, query);
+    }
+    return null;
+  }
+
+  async fetchApplication(): Promise<Application | null> {
+    if (this.applicationId) {
+      return this.client.rest.fetchApplication(this.applicationId);
     }
     return null;
   }

@@ -1,4 +1,7 @@
-import { Endpoints } from 'detritus-client-rest';
+import {
+  Endpoints,
+  Types as Options,
+} from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
@@ -165,6 +168,17 @@ export class Application extends BaseStructure {
     );
   }
 
+  async fetchNews() {
+    return this.client.rest.fetchApplicationNews(this.id);
+  }
+
+  async joinGuild(options: Options.JoinGuild) {
+    if (!this.guildId) {
+      throw new Error('Application doesn\'t have a guildId to join');
+    }
+    return this.client.rest.joinGuild(this.guildId, options);
+  }
+
   splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (!this.splash) {
       return null;
@@ -215,7 +229,7 @@ export class ApplicationThirdPartySku extends BaseStructure {
 
   distributor: string = '';
   id: null | string = null;
-  sku: null | string = null;
+  sku: null | string = null; // deprecated
 
   constructor(application: Application, data: BaseStructureData) {
     super(application.client);
@@ -225,7 +239,7 @@ export class ApplicationThirdPartySku extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.distributor}.${this.id || ''}.${this.sku || ''}`;
+    return `${this.distributor}.${this.id || ''}`;
   }
 
   get name(): string {
