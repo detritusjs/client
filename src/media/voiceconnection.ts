@@ -2,6 +2,7 @@ import {
   Constants as SocketConstants,
   Media,
 } from 'detritus-client-socket';
+import { EventEmitter } from 'detritus-utils';
 
 const {
   MediaCodecs,
@@ -12,7 +13,6 @@ const {
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { DiscordOpusFormat } from '../constants';
-import EventEmitter from '../eventemitter';
 import { AudioFormat } from '../utils/audioformat';
 
 import {

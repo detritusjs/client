@@ -574,20 +574,17 @@ export class PresenceActivityParty extends BaseStructure {
       const me = this.activity.presence.user;
       group.set(me.id, me);
 
-      for (let [cacheId, cache] of this.client.presences) {
-        for (let [userId, presence] of cache) {
-          if (group.has(userId)) {
-            continue;
-          }
-          if (presence.activities && presence.activities.length) {
-            for (let [activityId, activity] of presence.activities) {
-              if (activity.party && activity.party.id === this.id) {
-                group.set(userId, presence.user);
-                break;
-              }
+      for (let [userId, presence] of this.client.presences) {
+        if (group.has(userId)) {
+          continue;
+        }
+        if (presence.activities && presence.activities.length) {
+          for (let [activityId, activity] of presence.activities) {
+            if (activity.party && activity.party.id === this.id) {
+              group.set(userId, presence.user);
+              break;
             }
           }
-          // maybe store this userId in a cache of already checked userIds
         }
       }
     }

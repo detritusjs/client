@@ -8,6 +8,7 @@ import {
 } from './basestructure';
 import { Channel } from './channel';
 import { Guild } from './guild';
+import { Member } from './member';
 import { Role } from './role';
 
 
@@ -53,6 +54,13 @@ export class Overwrite extends BaseStructure {
 
   get isRole(): boolean {
     return this.type === OverwriteTypes.ROLE;
+  }
+
+  get member(): Member | null {
+    if (this.isMember) {
+      return this.client.members.get(this.guildId, this.id) || null;
+    }
+    return null;
   }
 
   get role(): null | Role {

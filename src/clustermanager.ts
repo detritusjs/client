@@ -1,13 +1,13 @@
 import * as path from 'path';
 
 import { Client as DetritusRestClient } from 'detritus-client-rest';
+import { EventEmitter, Timers } from 'detritus-utils';
 
 
 import { ClusterProcess } from './cluster/process';
 import { BaseCollection } from './collections/basecollection';
 import { AuthTypes } from './constants';
-import EventEmitter from './eventemitter';
-import { sleep, Snowflake } from './utils';
+import { Snowflake } from './utils';
 
 
 export interface ClusterManagerOptions {
@@ -123,7 +123,7 @@ export class ClusterManager extends EventEmitter {
       this.processes.set(clusterId, clusterProcess);
       await clusterProcess.run();
       if (shardEnd < this.shardEnd) {
-        await sleep(delay * (shardEnd - shardStart));
+        await Timers.sleep(delay * (shardEnd - shardStart));
       }
       clusterId++;
     }

@@ -1,12 +1,15 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseCollection } from '../collections/basecollection';
 import { Snowflake } from '../utils';
 
 import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
+import { Guild } from './guild';
+import { Member } from './member';
 
 
 const keysRole: ReadonlyArray<string> = [
@@ -49,6 +52,24 @@ export class Role extends BaseStructure {
 
   get createdAtUnix(): number {
     return Snowflake.timestamp(this.id);
+  }
+
+  get guild(): Guild | null {
+    return this.client.guilds.get(this.guildId) || null;
+  }
+
+  get members(): BaseCollection<string, Member> {
+    const collection = new BaseCollection<string, Member>();
+    const guild = this.guild;
+    const members = (guild) ? guild.members : null;
+    if (members) {
+      for (let [userId, member] of members) {
+        if (member.roles.has(this.id)) {
+          collection.set(userId, member);
+        }
+      }
+    }
+    return collection;
   }
 
   get mention(): string {

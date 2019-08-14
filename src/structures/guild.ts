@@ -24,14 +24,7 @@ import {
   UrlQuery,
 } from '../utils';
 
-import {
-  BaseCollection,
-  BaseSet,
-  MembersCache,
-  MessagesCache,
-  PresencesCache,
-  VoiceStatesCache,
-} from '../collections';
+import { BaseCollection, BaseSet } from '../collections';
 
 import {
   BaseStructure,
@@ -48,6 +41,7 @@ import {
 import { Emoji } from './emoji';
 import { Member } from './member';
 import { Message } from './message';
+import { Presence } from './presence';
 import { Role } from './role';
 import { User } from './user';
 import { VoiceRegion } from './voiceregion';
@@ -169,13 +163,23 @@ export class Guild extends BaseStructure {
   }
 
   get categoryChannels(): BaseCollection<string, ChannelGuildCategory> {
-    return new BaseCollection(this.client.channels.filter((channel: Channel) => {
-      return channel.isGuildCategory && channel.guildId === this.id
-    }));
+    const collection = new BaseCollection<string, ChannelGuildCategory>();
+    for (const [channelId, channel] of this.client.channels) {
+      if (channel.isGuildCategory && channel.guildId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
   }
 
   get channels(): BaseCollection<string, Channel> {
-    return new BaseCollection(this.client.channels.filter((channel: Channel) => channel.guildId === this.id));
+    const collection = new BaseCollection<string, Channel>();
+    for (const [channelId, channel] of this.client.channels) {
+      if (channel.guildId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
   }
 
   get createdAt(): Date {
@@ -191,7 +195,13 @@ export class Guild extends BaseStructure {
   }
 
   get emojis(): BaseCollection<string, Emoji> {
-    return new BaseCollection(this.client.emojis.filter((emoji: Emoji) => emoji.guildId === this.id));
+    const collection = new BaseCollection<string, Emoji>();
+    for (const [emojiId, emoji] of this.client.emojis) {
+      if (emoji.guildId === this.id) {
+        collection.set(emojiId, emoji);
+      }
+    }
+    return collection;
   }
 
   get iconUrl(): null | string {
@@ -226,32 +236,41 @@ export class Guild extends BaseStructure {
 
   get me(): Member | null {
     if (this.client.user) {
-      return (this.client.members.get(this.id, this.client.user.id)) || null;
+      return this.client.members.get(this.id, this.client.user.id) || null;
     }
     return null;
   }
 
-  get members(): MembersCache | null {
-    return this.client.members.get(this.id) || null;
+  get members(): BaseCollection<string, Member> {
+    if (this.client.members.has(this.id)) {
+      return <BaseCollection<string, Member>> this.client.members.get(this.id);
+    }
+    return new BaseCollection<string, Member>();
   }
 
+
   get messages(): BaseCollection<string, Message> {
-    if (this.client.messages.has(null, this.id)) {
-      const cache = <MessagesCache> this.client.messages.get(null, this.id);
-      return new BaseCollection(cache.map(({data}) => data));
+    if (this.client.messages.has(this.id)) {
+      return <BaseCollection<string, Message>> this.client.messages.get(this.id);
     }
-    return new BaseCollection(this.client.messages.reduce((collection, cache) => {
-      const messages = cache.filter(({data}) => data.guildId === this.id).map(({data}) => data);
-      return collection.concat(messages);
-    }, []));
+    const collection = new BaseCollection<string, Message>();
+    for (let [messageId, message] of this.client.messages) {
+      if (message.guildId === this.id) {
+        collection.set(messageId, message);
+      }
+    }
+    return collection;
   }
 
   get owner(): null | User {
     return this.client.users.get(this.ownerId) || null;
   }
 
-  get presences(): null | PresencesCache {
-    return this.client.presences.get(this.id) || null;
+  get presences(): BaseCollection<string, Presence> {
+    if (this.client.presences.has(this.id)) {
+      return <BaseCollection<string, Presence>> this.client.presences.get(this.id);
+    }
+    return new BaseCollection<string, Presence>();
   }
 
   get splashUrl(): null | string {
@@ -259,9 +278,13 @@ export class Guild extends BaseStructure {
   }
 
   get storeChannels(): BaseCollection<string, ChannelGuildStore> {
-    return new BaseCollection(this.client.channels.filter((channel: Channel) => {
-      return channel.isGuildStore && channel.guildId === this.id
-    }));
+    const collection = new BaseCollection<string, ChannelGuildStore>();
+    for (const [channelId, channel] of this.client.channels) {
+      if (channel.isGuildStore && channel.guildId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
   }
 
   get systemChannel(): Channel | null {
@@ -272,19 +295,30 @@ export class Guild extends BaseStructure {
   }
 
   get textChannels(): BaseCollection<string, ChannelGuildText> {
-    return new BaseCollection(this.client.channels.filter((channel: Channel) => {
-      return channel.isGuildText && channel.guildId === this.id
-    }));
+    const collection = new BaseCollection<string, ChannelGuildText>();
+    for (const [channelId, channel] of this.client.channels) {
+      if (channel.isGuildText && channel.guildId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
   }
 
   get voiceChannels(): BaseCollection<string, ChannelGuildVoice> {
-    return new BaseCollection(this.client.channels.filter((channel: Channel) => {
-      return channel.isGuildVoice && channel.guildId === this.id
-    }));
+    const collection = new BaseCollection<string, ChannelGuildVoice>();
+    for (const [channelId, channel] of this.client.channels) {
+      if (channel.isGuildVoice && channel.guildId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
   }
 
-  get voiceStates(): null | VoiceStatesCache {
-    return this.client.voiceStates.get(this.id) || null;
+  get voiceStates(): BaseCollection<string, VoiceState> {
+    if (this.client.voiceState.has(this.id)) {
+      return <BaseCollection<string, VoiceState>> this.client.voiceStates.get(this.id);
+    }
+    return new BaseCollection<string, VoiceState>();
   }
 
   bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
@@ -650,11 +684,9 @@ export class Guild extends BaseStructure {
           }
         }; break;
         case 'members': {
-          if (this.client.members.has(this.id)) {
-            (<MembersCache> this.client.members.get(this.id)).clear();
-          } else {
-            this.client.members.insertCache(this.id);
-          }
+          const cache = this.client.members.insertCache(this.id);
+          cache.clear();
+
           if (this.client.members.enabled || this.client.users.enabled) {
             for (let raw of value) {
               if (this.client.members.enabled) {
@@ -722,24 +754,20 @@ export class Guild extends BaseStructure {
           value = value || 0;
         }; break;
         case 'presences': {
-          if (this.client.presences.has(this.id)) {
-            (<PresencesCache> this.client.presences.get(this.id)).clear();
-          } else {
-            this.client.presences.insertCache(this.id);
-          }
+          const cache = this.client.presences.insertCache(this.id);
+          cache.clear();
+
           if (this.client.presences.enabled) {
             for (let raw of value) {
               raw.guild_id = this.id;
-              this.client.presences.add(raw);
+              this.client.presences.insert(raw);
             }
           }
         }; return;
         case 'voice_states': {
-          if (this.client.voiceStates.has(this.id)) {
-            (<VoiceStatesCache> this.client.voiceStates.get(this.id)).clear();
-          } else {
-            this.client.voiceStates.insertCache(this.id);
-          }
+          const cache = this.client.voiceStates.insertCache(this.id);
+          cache.clear();
+
           if (this.client.voiceStates.enabled) {
             for (let raw of value) {
               if (this.client.voiceStates.has(this.id, raw.user_id)) {

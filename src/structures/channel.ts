@@ -7,12 +7,7 @@ import {
   ShardClient,
   VoiceConnectOptions,
 } from '../client';
-import {
-  BaseCollection,
-  MembersCache,
-  MessagesCache,
-  VoiceStatesCache,
-} from '../collections';
+import { BaseCollection } from '../collections';
 import { ChannelTypes, Permissions } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 import {
@@ -213,8 +208,8 @@ export class ChannelBase extends BaseStructure {
     return this.isText;
   }
 
-  get children(): any | null {
-    return null;
+  get children(): BaseCollection<string, ChannelGuildBase> {
+    return new BaseCollection();
   }
 
   get createdAt(): Date {
@@ -225,7 +220,7 @@ export class ChannelBase extends BaseStructure {
     return Snowflake.timestamp(this.id);
   }
 
-  get guild(): any {
+  get guild(): Guild | null {
     return null;
   }
 
@@ -298,28 +293,28 @@ export class ChannelBase extends BaseStructure {
     return Endpoints.Routes.URL + Endpoints.Routes.CHANNEL(null, this.id);
   }
 
-  get members(): any | null {
-    return null;
+  get members(): BaseCollection<string, Member> {
+    return new BaseCollection();
   }
 
-  get messages(): any | null {
-    return null;
+  get messages(): BaseCollection<string, Message> {
+    return new BaseCollection();
   }
 
   get mention(): string {
     return `<#${this.id}>`;
   }
 
-  get owner(): any | null {
+  get owner(): User | null {
     return null;
   }
 
-  get parent(): any | null {
+  get parent(): ChannelGuildCategory | null {
     return null;
   }
 
-  get voiceStates(): any | null {
-    return null;
+  get voiceStates(): BaseCollection<string, VoiceState> | null {
+    return new BaseCollection();
   }
 
   can(
@@ -329,7 +324,7 @@ export class ChannelBase extends BaseStructure {
     return false;
   }
 
-  iconUrlFormat(...args: any[]): any {
+  iconUrlFormat(...args: any[]): null | string {
     return null;
   }
 
@@ -525,14 +520,16 @@ export class ChannelDM extends ChannelBase {
   }
 
   get messages(): BaseCollection<string, Message> {
-    if (this.client.messages.has(null, this.id)) {
-      const cache = <MessagesCache> this.client.messages.get(null, this.id);
-      return new BaseCollection(cache.map(({data}) => data));
+    if (this.client.messages.has(this.id)) {
+      return <BaseCollection<string, Message>> this.client.messages.get(this.id);
     }
-    return new BaseCollection(this.client.messages.reduce((collection, cache) => {
-      const messages = cache.filter(({data}) => data.channelId === this.id).map(({data}) => data);
-      return collection.concat(messages);
-    }, []));
+    const collection = new BaseCollection<string, Message>();
+    for (let [messageId, message] of this.client.messages) {
+      if (message.channelId === this.id) {
+        collection.set(messageId, message);
+      }
+    }
+    return collection;
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
@@ -696,7 +693,7 @@ export class ChannelDMGroup extends ChannelDM {
     this.merge(data);
   }
 
-  get owner(): null | User {
+  get owner(): User | null {
     return this.client.users.get(this.ownerId) || null;
   }
 
@@ -1011,8 +1008,13 @@ export class ChannelGuildCategory extends ChannelGuildBase {
   }
 
   get children(): BaseCollection<string, Channel> {
-    const channels = this.client.channels.filter((channel: ChannelGuildBase) => channel.isGuildChannel && channel.parentId === this.id);
-    return new BaseCollection(channels);
+    const collection = new BaseCollection<string, Channel>();
+    for (let [channelId, channel] of this.client.channels) {
+      if (channel.isGuildChannel && channel.parentId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
   }
 }
 
@@ -1042,26 +1044,30 @@ export class ChannelGuildText extends ChannelGuildBase {
 
   get members(): BaseCollection<string, Member> {
     const collection = new BaseCollection<string, Member>();
-    if (this.client.members.has(this.guildId)) {
-      const members = <MembersCache> this.client.members.get(this.guildId);
+
+    const members = this.client.members.get(this.guildId);
+    if (members) {
       for (let [userId, member] of members) {
         if (this.can(Permissions.VIEW_CHANNEL, member)) {
           collection.set(userId, member);
         }
       }
     }
+
     return collection;
   }
 
   get messages(): BaseCollection<string, Message> {
-    if (this.client.messages.has(null, this.id)) {
-      const cache = <MessagesCache> this.client.messages.get(null, this.id);
-      return new BaseCollection(cache.map(({data}) => data));
+    if (this.client.messages.has(this.id)) {
+      return <BaseCollection<string, Message>> this.client.messages.get(this.id);
     }
-    return new BaseCollection(this.client.messages.reduce((collection, cache) => {
-      const messages = cache.filter(({data}) => data.channelId === this.id).map(({data}) => data);
-      return collection.concat(messages);
-    }, []));
+    const collection = new BaseCollection<string, Message>();
+    for (let [messageId, message] of this.client.messages) {
+      if (message.channelId === this.id) {
+        collection.set(messageId, message);
+      }
+    }
+    return collection;
   }
 
   async addPinnedMessage(messageId: string) {
@@ -1229,11 +1235,16 @@ export class ChannelGuildVoice extends ChannelGuildBase {
   }
 
   get voiceStates(): BaseCollection<string, VoiceState> | null {
-    if (this.client.voiceStates.has(this.guildId)) {
-      const voiceStates = <VoiceStatesCache> this.client.voiceStates.get(this.guildId);
-      return new BaseCollection(voiceStates.filter((state: VoiceState) => state.channelId === this.id), 'userId');
+    const collection = new BaseCollection<string, VoiceState>();
+
+    const voiceStates = this.client.voiceStates.get(this.guildId);
+    if (voiceStates) {
+      for (let [userId, voiceState] of voiceStates) {
+        collection.set(userId, voiceState);
+      }
     }
-    return null;
+
+    return collection;
   }
 
   join(options: VoiceConnectOptions) {

@@ -1,5 +1,6 @@
 import { ClientOptions as RestOptions, Endpoints } from 'detritus-client-rest';
 import { Gateway } from 'detritus-client-socket';
+import { EventEmitter } from 'detritus-utils';
 
 
 import { ClusterClient } from './clusterclient';
@@ -10,7 +11,6 @@ import {
   ImageFormats,
   IMAGE_FORMATS,
 } from './constants';
-import EventEmitter from './eventemitter';
 import { GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { RestClient } from './rest';
@@ -292,18 +292,18 @@ export class ShardClient extends EventEmitter {
 
   reset(): void {
     this.owners.clear();
-    this.channels.clear(this.shardId);
-    this.emojis.clear(this.shardId);
-    this.guilds.clear(this.shardId);
-    this.members.clear(this.shardId);
-    this.messages.clear(this.shardId);
-    this.notes.clear(this.shardId);
-    this.presences.clear(this.shardId);
-    this.relationships.clear(this.shardId);
-    this.sessions.clear(this.shardId);
-    this.users.clear(this.shardId);
-    this.voiceConnections.clear(this.shardId);
-    this.voiceStates.clear(this.shardId);
+    this.channels.clear();
+    this.emojis.clear();
+    this.guilds.clear();
+    this.members.clear();
+    this.messages.clear();
+    this.notes.clear();
+    this.presences.clear();
+    this.relationships.clear();
+    this.sessions.clear();
+    this.users.clear();
+    this.voiceConnections.clear();
+    this.voiceStates.clear();
   }
 
   async run(

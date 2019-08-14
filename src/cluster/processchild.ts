@@ -1,7 +1,8 @@
+import { EventEmitter } from 'detritus-utils';
+
 import { ClusterClient } from '../clusterclient';
 import { ClusterIPCOpCodes } from '../constants';
 import { ClusterIPCError } from '../errors';
-import EventEmitter from '../eventemitter';
 import { Snowflake } from '../utils';
 
 import { ClusterIPCTypes } from './ipctypes';

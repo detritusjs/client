@@ -1,10 +1,11 @@
 import { ChildProcess, fork } from 'child_process';
 
+import { EventEmitter } from 'detritus-utils';
+
 import { ClusterManager } from '../clustermanager';
 import { BaseCollection } from '../collections/basecollection';
 import { ClusterIPCOpCodes } from '../constants';
 import { ClusterIPCError } from '../errors';
-import EventEmitter from '../eventemitter';
 
 import { ClusterIPCTypes } from './ipctypes';
 

@@ -1,6 +1,7 @@
 import {
   Client as DetritusRestClient,
 } from 'detritus-client-rest';
+import { EventEmitter, Timers } from 'detritus-utils';
 
 import {
   ShardClient,
@@ -11,8 +12,6 @@ import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
 import { AuthTypes } from './constants';
-import EventEmitter from './eventemitter';
-import { sleep } from './utils';
 
 
 export type ShardsCollection = BaseCollection<number, ShardClient>;
@@ -195,7 +194,7 @@ export class ClusterClient extends EventEmitter {
       this.shards.set(shardId, shard);
       await shard.run(options);
       if (shardId < this.shardEnd) {
-        await sleep(delay);
+        await Timers.sleep(delay);
       }
     }
     Object.defineProperty(this, 'ran', {value: true});

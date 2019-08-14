@@ -193,7 +193,7 @@ export class GatewayDispatchHandler {
 
     if (this.client.presences.enabled && data['presences']) {
       for (let raw of data['presences']) {
-        this.client.presences.add(raw);
+        this.client.presences.insert(raw);
       }
     }
 
@@ -559,14 +559,17 @@ export class GatewayDispatchHandler {
       guild.merge({emojis: data['emojis']});
       emojis = guild.emojis;
     } else {
-      emojisOld = new BaseCollection(this.client.emojis.filter((emoji: Emoji) => {
-        return emoji.guildId === guildId;
-      }));
-      for (let [id, emoji] of emojisOld) {
-        if (!data['emojis'].some((e) => e.id === id)) {
-          this.client.emojis.delete(id);
+      emojisOld = new BaseCollection();
+      for (let [emojiId, emoji] of this.client.emojis) {
+        if (emoji.guildId === guildId) {
+          emojisOld.set(emojiId, emoji);
+
+          if (!data['emojis'].some((e) => e.id === emojiId)) {
+            this.client.emojis.delete(emojiId);
+          }
         }
       }
+
       emojis = new BaseCollection();
       for (let raw of data['emojis']) {
         const emojiId = <string> raw.id;
@@ -708,12 +711,7 @@ export class GatewayDispatchHandler {
       if (this.client.presences.enabled || isListening) {
         for (let value of data['presences']) {
           value.guild_id = guildId;
-          let presence: Presence;
-          if (this.client.presences.enabled) {
-            presence = <Presence> this.client.presences.add(value);
-          } else {
-            presence = new Presence(this.client, value);
-          }
+          const presence = this.client.presences.insert(value);
           if (isListening) {
             presences.set(presence.user.id, presence);
           }
@@ -918,7 +916,7 @@ export class GatewayDispatchHandler {
     let message: Message;
 
     if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(data['id']);
+      message = <Message> this.client.messages.get(null, data['id']);
       message.merge(data);
     } else {
       message = new Message(this.client, data);
@@ -939,7 +937,7 @@ export class GatewayDispatchHandler {
     let message: Message | null = null;
 
     if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(data['id']);
+      message = <Message> this.client.messages.get(null, data['id']);
       this.client.messages.delete(data['id']);
     }
 
@@ -959,7 +957,7 @@ export class GatewayDispatchHandler {
 
     for (let messageId of data['ids']) {
       if (this.client.messages.has(messageId)) {
-        messages.set(messageId, <Message> this.client.messages.get(messageId));
+        messages.set(messageId, <Message> this.client.messages.get(null, messageId));
         this.client.messages.delete(messageId);
       } else {
         messages.set(messageId, null);
@@ -1001,7 +999,7 @@ export class GatewayDispatchHandler {
 
     const emojiId = data.emoji.id || data.emoji.name;
     if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(messageId);
+      message = <Message> this.client.messages.get(null, messageId);
       if (message.reactions.has(emojiId)) {
         reaction = <Reaction> message.reactions.get(emojiId);
       }
@@ -1060,7 +1058,7 @@ export class GatewayDispatchHandler {
 
     const emojiId = data.emoji.id || data.emoji.name;
     if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(messageId);
+      message = <Message> this.client.messages.get(null, messageId);
       if (message.reactions.has(emojiId)) {
         reaction = <Reaction> message.reactions.get(emojiId);
         reaction.merge({
@@ -1107,7 +1105,7 @@ export class GatewayDispatchHandler {
     const messageId = data['message_id'];
 
     if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(messageId);
+      message = <Message> this.client.messages.get(null, messageId);
       message.reactions.clear();
     }
 
@@ -1139,7 +1137,7 @@ export class GatewayDispatchHandler {
     }
 
     if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(data['id']);
+      message = <Message> this.client.messages.get(null, data['id']);
       if (this.client.hasEventListener(ClientEvents.MESSAGE_UPDATE)) {
         differences = message.differences(data);
       }
@@ -1176,7 +1174,7 @@ export class GatewayDispatchHandler {
         differences = (<Presence> this.client.presences.get(cacheId, data['user']['id'])).differences(data);
       }
     }
-    presence = this.client.presences.add(data);
+    presence = this.client.presences.insert(data);
 
     if (data['guild_id']) {
       const rawMember = {
@@ -1210,7 +1208,7 @@ export class GatewayDispatchHandler {
     if (data['presences'] != null) {
       for (let raw of data['presences']) {
         // guildId is empty, use default presence cache id
-        const presence = this.client.presences.add(raw);
+        const presence = this.client.presences.insert(raw);
         presences.set(presence.user.id, presence);
       }
     }

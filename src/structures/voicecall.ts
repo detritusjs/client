@@ -3,7 +3,6 @@ import {
   VoiceConnectOptions,
 } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { VoiceStatesCache } from '../collections/voicestates';
 import { VoiceConnection } from '../media/voiceconnection';
 
 import {
@@ -63,8 +62,11 @@ export class VoiceCall extends BaseStructure {
     return this.client.voiceConnections.get(this.channelId);
   }
 
-  get voiceStates(): undefined | VoiceStatesCache {
-    return <undefined | VoiceStatesCache> this.client.voiceStates.get(this.channelId);
+  get voiceStates(): BaseCollection<string, VoiceState> {
+    if (this.client.voiceStates.has(this.channelId)) {
+      return <BaseCollection<string, VoiceState>> this.client.voiceStates.get(this.channelId);
+    }
+    return new BaseCollection();
   }
 
   isRinging(userId: string) {
@@ -105,9 +107,9 @@ export class VoiceCall extends BaseStructure {
         }; return;
         case 'voice_states': {
           if (this.client.voiceStates.enabled) {
-            if (this.client.voiceStates.has(this.channelId)) {
-              (<VoiceStatesCache> this.client.voiceStates.get(this.channelId)).clear();
-            }
+            const cache = this.client.voiceStates.insertCache(this.channelId);
+            cache.clear();
+
             for (let raw of value) {
               if (this.client.voiceStates.has(this.channelId, raw.user_id)) {
                 (<VoiceState> this.client.voiceStates.get(this.channelId, raw.user_id)).merge(raw);

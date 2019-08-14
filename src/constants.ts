@@ -49,7 +49,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.9',
+  VERSION: '0.4.10',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -370,8 +370,8 @@ export const LobbyTypes = Object.freeze({
 
 export const MessageCacheTypes = Object.freeze({
   CHANNEL: 'channel',
-  GLOBAL: 'global',
   GUILD: 'guild',
+  USER: 'user',
 });
 
 export const MESSAGE_CACHE_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(MessageCacheTypes));

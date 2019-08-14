@@ -340,7 +340,7 @@ export class RestClient extends Client {
     const data = await super.editMessage.call(this, channelId, messageId, options);
     let message: Message;
     if (this.client.messages.has(data.id)) {
-      message = <Message> this.client.messages.get(data.id);
+      message = <Message> this.client.messages.get(null, data.id);
       message.merge(data);
     } else {
       message = new Message(this.client, data);
@@ -747,7 +747,7 @@ export class RestClient extends Client {
 
     let message: Message;
     if (this.client.messages.has(data.id)) {
-      message = <Message> this.client.messages.get(data.id);
+      message = <Message> this.client.messages.get(null, data.id);
       message.merge(data);
     } else {
       if (this.client.channels.has(data.channel_id)) {
@@ -778,7 +778,7 @@ export class RestClient extends Client {
     for (let raw of data) {
       let message: Message;
       if (this.client.messages.has(raw.id)) {
-        message = <Message> this.client.messages.get(raw.id);
+        message = <Message> this.client.messages.get(null, raw.id);
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -850,7 +850,7 @@ export class RestClient extends Client {
     for (let raw of data) {
       let message: Message;
       if (this.client.messages.has(raw.id)) {
-        message = <Message> this.client.messages.get(raw.id);
+        message = <Message> this.client.messages.get(null, raw.id);
         message.merge(raw);
       } else {
         raw.guild_id = guildId;

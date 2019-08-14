@@ -97,8 +97,8 @@ export class Member extends UserMixin {
     }, Permissions.NONE);
   }
 
-  get presence(): Presence | undefined {
-    return <Presence | undefined> this.client.presences.get(this.guildId, this.id);
+  get presence(): null | Presence {
+    return this.client.presences.get(this.guildId, this.id) || null;
   }
 
   get voiceChannel(): ChannelGuildVoice | null {

@@ -303,14 +303,14 @@ export namespace GatewayRawEvents {
     embeds?: Array<RawMessageEmbed>,
     guild_id?: string,
     id: string,
-    member?: RawMember,
+    member?: RawMemberWithoutUser,
     mention_everyone: boolean,
     mention_roles: Array<string>,
     mentions: Array<{
       bot: boolean,
       discriminator: string,
       id: string,
-      member?: RawMember,
+      member?: RawMemberWithoutUser,
       username: string,
     }>,
     message_reference?: {
@@ -620,7 +620,7 @@ export namespace GatewayRawEvents {
   export interface RawEmoji extends RawEmojiPartial {
     available: boolean,
     managed: boolean,
-    required_colons: boolean,
+    require_colons: boolean,
     roles: Array<string>,
   }
 
@@ -646,6 +646,7 @@ export namespace GatewayRawEvents {
     afk_timeout: number,
     application_id: null | string,
     banner: null | string,
+    channels: Array<RawChannel>,
     default_message_notifications: number,
     embed_channel_id: null | string,
     embed_enabled: boolean,
@@ -657,12 +658,15 @@ export namespace GatewayRawEvents {
     id: string,
     max_members: number,
     max_presences: number,
+    members: Array<RawMember>,
+    member_count: number,
     mfa_level: number,
     name: string,
     owner_id: string,
     preferred_locale: null | string,
     premium_subscription_count: number,
     premium_tier: number,
+    presences: Array<RawPresence>,
     region: string,
     roles: Array<RawRole>,
     splash: null | string,
@@ -684,7 +688,7 @@ export namespace GatewayRawEvents {
     member?: RawMember,
   }
 
-  export interface RawMember {
+  export interface RawMemberWithoutUser {
     deaf: boolean,
     joined_at: string,
     mute: boolean,
@@ -692,7 +696,10 @@ export namespace GatewayRawEvents {
     premium_since: null | string,
     presence?: RawPresence, // Guild Member List Update has this
     roles: Array<string>,
-    user?: RawUser,
+  }
+
+  export interface RawMember extends RawMemberWithoutUser {
+    user: RawUser,
   }
 
   export interface RawMessageAttachment {
@@ -834,17 +841,18 @@ export namespace GatewayRawEvents {
   }
 
   export interface RawUserPartial {
+    bot?: boolean,
     discriminator?: string,
     id: string,
     username?: string,
-    bot?: boolean,
   }
 
   export interface RawUser {
+    avatar: null | string,
+    bot: boolean,
     discriminator: string,
     id: string,
     username: string,
-    bot: boolean,
   }
 
   export interface RawUserMe extends RawUser {

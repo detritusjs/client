@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { EventEmitter } from 'detritus-utils';
+
 import { ShardClient } from './client';
 import {
   ClusterClient,
@@ -8,9 +10,7 @@ import {
   ClusterClientRunOptions,
 } from './clusterclient';
 import { ClientEvents, CommandRatelimitTypes } from './constants';
-import EventEmitter from './eventemitter';
 
-import { ParsedArgs } from './command/argumentparser';
 import {
   Command,
   CommandCallbackRun,
@@ -398,7 +398,7 @@ export class CommandClient extends EventEmitter {
   /* Handler */
   async handle(
     name: string,
-    {differences, message}: any,
+    {differences, message}: {differences: any, message: Message},
   ): Promise<void> {
     if (!message || (this.ignoreMe && message.fromMe)) {
       return;
@@ -418,7 +418,7 @@ export class CommandClient extends EventEmitter {
       }
 
       if (message.isEdited) {
-        const difference = (<number> message.editedTimestampUnix) - message.timestampUnix;
+        const difference = (<number> message.editedAtUnix) - message.timestampUnix;
         if (this.maxEditDuration < difference) {
           throw new Error('Edit timestamp is higher than max edit duration');
         }
