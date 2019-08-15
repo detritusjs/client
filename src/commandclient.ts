@@ -158,6 +158,7 @@ export class CommandClient extends EventEmitter {
       replies: {enumerable: false, writable: false},
     });
     this._clientListeners[ClientEvents.MESSAGE_CREATE] = null;
+    this._clientListeners[ClientEvents.MESSAGE_DELETE] = null;
     this._clientListeners[ClientEvents.MESSAGE_UPDATE] = null;
   }
 
@@ -363,7 +364,7 @@ export class CommandClient extends EventEmitter {
   resetListeners(): void {
     for (let name in this._clientListeners) {
       const listener = this._clientListeners[name];
-      if (listener !== null) {
+      if (listener) {
         this.client.removeListener(name, listener);
         this._clientListeners[name] = null;
       }
@@ -371,11 +372,14 @@ export class CommandClient extends EventEmitter {
   }
 
   setListeners(): void {
+    this.resetListeners();
+    this._clientListeners[ClientEvents.MESSAGE_CREATE] = this.handle.bind(this, ClientEvents.MESSAGE_CREATE);
+    this._clientListeners[ClientEvents.MESSAGE_DELETE] = this.handleDelete.bind(this, ClientEvents.MESSAGE_DELETE);
+    this._clientListeners[ClientEvents.MESSAGE_UPDATE] = this.handle.bind(this, ClientEvents.MESSAGE_UPDATE);
     for (let name in this._clientListeners) {
-      if (this._clientListeners[name] === null) {
-        const listener = this.handle.bind(this, name);
-        this.client.on(name, listener);
-        this._clientListeners[name] = listener;
+      const listener = this._clientListeners[name];
+      if (listener) {
+        this.client.addListener(name, listener);
       }
     }
   }
@@ -427,9 +431,6 @@ export class CommandClient extends EventEmitter {
         const difference = (<number> message.editedAtUnix) - message.timestampUnix;
         if (this.maxEditDuration < difference) {
           throw new Error('Edit timestamp is higher than max edit duration');
-        }
-        if (this.replies.has(message.id)) {
-          context.response = this.replies.get(message.id);
         }
       }
 
@@ -573,6 +574,13 @@ export class CommandClient extends EventEmitter {
       }
       this.emit(ClientEvents.COMMAND_FAIL, {args, command, context, error, prefix});
     }
+  }
+
+  async handleDelete(
+    name: string,
+    {raw}: {raw: any},
+  ): Promise<void> {
+    this.replies.delete(raw.id);
   }
 
   on(event: string, listener: Function): this;

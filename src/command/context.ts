@@ -22,7 +22,6 @@ export class Context {
   readonly message: Message;
 
   command?: Command;
-  response?: Message;
 
   constructor(
     message: Message,
@@ -65,6 +64,10 @@ export class Context {
 
   get shardId() {
     return this.client.shardId;
+  }
+
+  get response() {
+    return this.commandClient.replies.get(this.messageId);
   }
 
   /* Client Collections */
@@ -226,8 +229,9 @@ export class Context {
   }
 
   editOrReply(options: MessageEdit | string = '') {
-    if (this.response) {
-      return this.response.replyEdit(options);
+    const response = this.response;
+    if (response) {
+      return response.replyEdit(options);
     }
     return this.message.reply(options);
   }
