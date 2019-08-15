@@ -37,15 +37,19 @@ export class Members extends BaseClientCollectionCache<string, Member> {
 
   insert(member: Member): void {
     const cache = this.insertCache(member.guildId);
-    if (!member.isMe) {
-      if (!this.enabled) {
-        return;
-      }
-      if (!this.storeOffline && member.isOffline) {
-        return;
+    if (member.isMe) {
+      cache.set(member.id, member);
+    } else {
+      if (this.enabled) {
+        if (this.storeOffline) {
+          cache.set(member.id, member);
+        } else {
+          if (!member.isOffline) {
+            cache.set(member.id, member);
+          }
+        }
       }
     }
-    cache.set(member.id, member);
   }
 
   toString(): string {

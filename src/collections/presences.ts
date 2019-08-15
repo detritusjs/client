@@ -22,7 +22,7 @@ export interface PresencesOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class Presences extends BaseClientCollectionCache<string, Presence> {
-  storeOffline: boolean;
+  storeOffline: boolean = false;
 
   constructor(client: ShardClient, options: PresencesOptions = {}) {
     super(client, options);
@@ -48,7 +48,16 @@ export class Presences extends BaseClientCollectionCache<string, Presence> {
         presence.merge(value);
       } else {
         presence = new Presence(this.client, value);
-        cache.set(value.user.id, presence);
+        cache.set(presence.user.id, presence);
+      }
+
+      if (presence.isOffline) {
+        if (presence.fromGuild && !this.client.members.storeOffline) {
+          this.client.members.delete(presence.guildId, presence.user.id);
+        }
+        if (!this.storeOffline) {
+          cache.delete(presence.user.id);
+        }
       }
     } else {
       presence = new Presence(this.client, value);
