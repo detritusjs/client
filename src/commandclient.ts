@@ -20,6 +20,7 @@ import {
 import { Context } from './command/context';
 import { CommandEvents } from './command/events';
 
+import { BaseCollection } from './collections';
 import {
   Message,
   User,
@@ -65,13 +66,14 @@ export class CommandClient extends EventEmitter {
   client: ClusterClient | ShardClient;
   commands: Array<Command>;
   ignoreMe: boolean = true;
-  maxEditDuration: number = 0;
+  maxEditDuration: number = 5 * 60 * 1000;
   mentionsEnabled: boolean = true;
   prefixes: {
     custom: Set<string>,
     mention: Set<string>,
   };
   ran: boolean;
+  replies: BaseCollection<string, Message>;
 
   onPrefixCheck?: CommandClientPrefixCheck;
 
@@ -115,6 +117,7 @@ export class CommandClient extends EventEmitter {
       mention: new Set<string>(),
     });
     this.ran = this.client.ran;
+    this.replies = new BaseCollection({expire: this.maxEditDuration});
 
     if (options.prefix !== undefined) {
       if (options.prefixes === undefined) {
@@ -152,6 +155,7 @@ export class CommandClient extends EventEmitter {
       prefixes: {writable: false},
       prefixSpace: {configurable: true, writable: false},
       ran: {configurable: true, writable: false},
+      replies: {enumerable: false, writable: false},
     });
     this._clientListeners[ClientEvents.MESSAGE_CREATE] = null;
     this._clientListeners[ClientEvents.MESSAGE_UPDATE] = null;
@@ -403,10 +407,12 @@ export class CommandClient extends EventEmitter {
     if (!message || (this.ignoreMe && message.fromMe)) {
       return;
     }
-    if (name === ClientEvents.MESSAGE_UPDATE) {
-      if (!this.activateOnEdits || differences.content === undefined) {
-        return;
-      }
+    switch (name) {
+      case ClientEvents.MESSAGE_UPDATE: {
+        if (!this.activateOnEdits || !!(differences && differences.content)) {
+          return;
+        }
+      }; break;
     }
 
     const context = new Context(message, this);
@@ -422,6 +428,9 @@ export class CommandClient extends EventEmitter {
         if (this.maxEditDuration < difference) {
           throw new Error('Edit timestamp is higher than max edit duration');
         }
+        if (this.replies.has(message.id)) {
+          context.response = this.replies.get(message.id);
+        }
       }
 
       attributes = await this.getAttributes(context);
@@ -433,8 +442,10 @@ export class CommandClient extends EventEmitter {
       return;
     }
 
-    const command = context.command = this.getCommand(attributes);
-    if (command === null) {
+    const command = this.getCommand(attributes);
+    if (command) {
+      context.command = command;
+    } else {
       const error = new Error('Unknown Command');
       this.emit(ClientEvents.COMMAND_NONE, {context, error});
       return;
@@ -481,6 +492,9 @@ export class CommandClient extends EventEmitter {
       } else {
         try {
           const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
+          if (this.maxEditDuration) {
+            this.replies.set(message.id, reply);
+          }
           this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, reply});
         } catch(e) {
           this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: e});
@@ -494,7 +508,10 @@ export class CommandClient extends EventEmitter {
         const shouldContinue = await Promise.resolve(command.onBefore(context));
         if (!shouldContinue) {
           if (typeof(command.onCancel) === 'function') {
-            await Promise.resolve(command.onCancel(context));
+            const reply = await Promise.resolve(command.onCancel(context));
+            if (this.maxEditDuration && reply instanceof Message) {
+              this.replies.set(message.id, reply);
+            }
           }
           return;
         }
@@ -508,7 +525,11 @@ export class CommandClient extends EventEmitter {
     const {errors, parsed: args} = await command.getArgs(attributes, context);
     if (Object.keys(errors).length) {
       if (typeof(command.onTypeError) === 'function') {
-        await Promise.resolve(command.onTypeError(context, args, errors));
+        const reply = await Promise.resolve(command.onTypeError(context, args, errors));
+        if (this.maxEditDuration && reply instanceof Message) {
+          this.replies.set(message.id, reply);
+        }
+        
       }
       const error = new Error('Command errored out while converting args');
       this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: errors});
@@ -520,7 +541,10 @@ export class CommandClient extends EventEmitter {
         const shouldRun = await Promise.resolve(command.onBeforeRun(context, args));
         if (!shouldRun) {
           if (typeof(command.onCancelRun) === 'function') {
-            await Promise.resolve(command.onCancelRun(context, args));
+            const reply = await Promise.resolve(command.onCancelRun(context, args));
+            if (this.maxEditDuration && reply instanceof Message) {
+              this.replies.set(message.id, reply);
+            }
           }
           return;
         }
@@ -528,7 +552,10 @@ export class CommandClient extends EventEmitter {
 
       try {
         if (typeof(command.run) === 'function') {
-          await Promise.resolve(command.run(context, args));
+          const reply = await Promise.resolve(command.run(context, args));
+          if (this.maxEditDuration && reply instanceof Message) {
+            this.replies.set(message.id, reply);
+          }
         }
         this.emit(ClientEvents.COMMAND_RUN, {args, command, context, prefix});
         if (typeof(command.onSuccess) === 'function') {

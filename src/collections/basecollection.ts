@@ -133,9 +133,6 @@ export class BaseCollection<K, V> extends BaseCollectionMixin<K, V> {
     this.expire = (expire === undefined) ? this.expire : expire;
     this.intervalTime = (intervalTime === undefined) ? this.intervalTime : intervalTime;
     this.limit = (limit === undefined) ? this.limit : limit;
-    if (this.expire) {
-      this.startInterval(this.expire);
-    }
 
     Object.defineProperties(this, {
       cache: {enumerable: false},

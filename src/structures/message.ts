@@ -35,6 +35,10 @@ export interface MessageReply extends RequestTypes.CreateMessage {
   mention?: boolean,
 }
 
+export interface MessageEdit extends RequestTypes.EditMessage {
+  mention?: boolean,
+}
+
 
 const keysMessage: ReadonlyArray<string> = [
   'activity',
@@ -277,6 +281,19 @@ export class Message extends BaseStructure {
       ].filter((v) => v).join(', ');
     }
     return this.client.rest.createMessage(this.channelId, options);
+  }
+
+  async replyEdit(options: MessageEdit | string = '') {
+    if (typeof(options) === 'string') {
+      options = {content: options};
+    }
+    if (options.mention) {
+      options.content = [
+        this.author.mention,
+        options.content,
+      ].filter((v) => v).join(', ');
+    }
+    return this.edit(options);
   }
 
   async suppressEmbeds(suppress: boolean = true) {

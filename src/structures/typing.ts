@@ -1,3 +1,5 @@
+import { Timers } from 'detritus-utils';
+
 import { ShardClient } from '../client';
 import { TYPING_TIMEOUT } from '../constants';
 
@@ -32,7 +34,7 @@ const keysMergeTyping: ReadonlyArray<string> = [
 export class Typing extends BaseStructure {
   readonly _keys = keysTyping;
   readonly _keysMerge = keysMergeTyping;
-  _expiring: any | null = null;
+  readonly timeout = new Timers.Timeout();
 
   channelId: string = '';
   guildId?: string;
@@ -44,7 +46,7 @@ export class Typing extends BaseStructure {
     super(client);
     this.merge(data);
 
-    Object.defineProperty(this, '_expiring', {enumerable: false});
+    Object.defineProperty(this, 'timeout', {enumerable: false});
   }
 
   get channel(): Channel | null {
@@ -86,14 +88,11 @@ export class Typing extends BaseStructure {
           value = member;
         }; break;
         case 'timestamp': {
-          if (this._expiring !== null) {
-            clearTimeout(this._expiring);
-            this._expiring = null;
-          }
-          this._expiring = setTimeout(() => {
+          value *= 1000;
+
+          this.timeout.start(TYPING_TIMEOUT, () => {
             this.client.typing.delete(this.channelId, this.userId);
-            this._expiring = null;
-          }, TYPING_TIMEOUT);
+          });
         }; break;
       }
       return super.mergeValue.call(this, key, value);

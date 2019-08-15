@@ -3,6 +3,7 @@ import {
   CommandRatelimitTypes,
   COMMAND_RATELIMIT_TYPES,
 } from '../constants';
+import { Message } from '../structures/message';
 
 import { ArgumentOptions, Argument } from './argument';
 import { ArgumentParser, ParsedArgs, ParsedErrors } from './argumentparser';
@@ -22,12 +23,12 @@ export type CommandCallbackBeforeRun = (context: Context, args: ParsedArgs) => P
 /**
  * @category Command
  */
-export type CommandCallbackCancel = (context: Context) => Promise<any> | any;
+export type CommandCallbackCancel = (context: Context) => Promise<any | Message> | any | Message;
 
 /**
  * @category Command
  */
-export type CommandCallbackCancelRun = (context: Context, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackCancelRun = (context: Context, args: ParsedArgs) => Promise<any | Message> | any | Message;
 
 /**
  * @category Command
@@ -47,7 +48,7 @@ export type CommandCallbackRatelimit = (context: Context, ratelimit: CommandRate
 /**
  * @category Command
  */
-export type CommandCallbackRun = (context: Context, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackRun = (context: Context, args: ParsedArgs) => Promise<any | Message> | any | Message;
 
 /**
  * @category Command
@@ -57,7 +58,7 @@ export type CommandCallbackRunError = (context: Context, args: ParsedArgs, error
 /**
  * @category Command
  */
-export type CommandCallbackTypeError = (context: Context, args: ParsedArgs, errors: ParsedErrors) => Promise<any> | any;
+export type CommandCallbackTypeError = (context: Context, args: ParsedArgs, errors: ParsedErrors) => Promise<any | Message> | any | Message;
 
 /**
  * Command Options

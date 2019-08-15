@@ -5,6 +5,7 @@ import { CommandClient } from '../commandclient';
 
 import {
   Message,
+  MessageEdit,
   MessageReply,
 } from '../structures';
 
@@ -20,7 +21,8 @@ export class Context {
   readonly commandClient: CommandClient;
   readonly message: Message;
 
-  command: Command | null = null;
+  command?: Command;
+  response?: Message;
 
   constructor(
     message: Message,
@@ -29,11 +31,13 @@ export class Context {
     this.message = message;
     this.commandClient = commandClient;
     this.client = message.client;
+
     Object.defineProperties(this, {
       client: {enumerable: false, writable: false},
-      command: {enumerable: false},
+      command: {enumerable: false, writable: true},
       commandClient: {enumerable: false, writable: false},
       message: {writable: false},
+      response: {enumerable: false, writable: true},
     });
   }
 
@@ -219,6 +223,13 @@ export class Context {
       return member.voiceState;
     }
     return null;
+  }
+
+  editOrReply(options: MessageEdit | string = '') {
+    if (this.response) {
+      return this.response.replyEdit(options);
+    }
+    return this.message.reply(options);
   }
 
   reply(options: MessageReply | string = '') {
