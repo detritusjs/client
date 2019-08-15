@@ -137,35 +137,35 @@ export class Application extends BaseStructure {
   }
 
   coverImageUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (!this.icon) {
-      return null;
+    if (this.coverImage) {
+      const hash = this.coverImage;
+      format = getFormatFromHash(
+        hash,
+        format,
+        this.client.imageFormat,
+      );
+      return addQuery(
+        Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
+        query,
+      );
     }
-    const hash = this.icon;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
-    return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
-      query,
-    );
+    return null;
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (!this.icon) {
-      return null;
+    if (this.icon) {
+      const hash = this.icon;
+      format = getFormatFromHash(
+        hash,
+        format,
+        this.client.imageFormat,
+      );
+      return addQuery(
+        Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
+        query,
+      );
     }
-    const hash = this.icon;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
-    return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
-      query,
-    );
+    return null;
   }
 
   async createAsset(options: RequestTypes.CreateOauth2ApplicationAsset) {
@@ -204,19 +204,19 @@ export class Application extends BaseStructure {
   }
 
   splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (!this.splash) {
-      return null;
+    if (this.splash) {
+      const hash = this.splash;
+      format = getFormatFromHash(
+        hash,
+        format,
+        this.client.imageFormat,
+      );
+      return addQuery(
+        Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
+        query,
+      );
     }
-    const hash = this.splash;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
-    return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
-      query,
-    );
+    return null;
   }
 
   mergeValue(key: string, value: any): void {

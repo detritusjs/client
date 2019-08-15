@@ -49,7 +49,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.11',
+  VERSION: '0.4.12',
 });
 
 function normalize(object: {[key: string]: any}) {
