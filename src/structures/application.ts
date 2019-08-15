@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { Distributors, DistributorNames, DistributorUrls } from '../constants';
+import { Distributors, DistributorNames, DistributorUrls, SpecialUrls } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -134,6 +134,13 @@ export class Application extends BaseStructure {
 
   get splashUrl(): null | string {
     return this.splashUrlFormat();
+  }
+
+  get youtubeTrailerUrl(): null | string {
+    if (this.youtubeTrailerVideoId) {
+      return SpecialUrls.YOUTUBE_VIDEO(this.youtubeTrailerVideoId);
+    }
+    return null;
   }
 
   coverImageUrlFormat(format?: null | string, query?: UrlQuery): null | string {

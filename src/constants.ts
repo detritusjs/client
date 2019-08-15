@@ -49,7 +49,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.12',
+  VERSION: '0.4.13',
 });
 
 function normalize(object: {[key: string]: any}) {
@@ -607,6 +607,8 @@ export const RelationshipTypes = Object.freeze({
 export const SpecialUrls = Object.freeze({
   SPOTIFY_TRACK: (trackId: string): string =>
     `https://open.spotify.com/track/${encodeURIComponent(trackId)}`,
+  YOUTUBE_VIDEO: (videoId: string): string =>
+    `https://youtu.be/${encodeURIComponent(videoId)}`,
 });
 
 export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
