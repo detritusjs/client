@@ -87,7 +87,7 @@ export class Message extends BaseStructure {
   call?: MessageCall;
   channelId: string = '';
   content: string = '';
-  editedTimestamp?: Date;
+  editedTimestamp?: Date | null;
   embeds = new BaseCollection<number, MessageEmbed>();
   flags: number = 0;
   guildId?: string;
@@ -360,7 +360,9 @@ export class Message extends BaseStructure {
           }
         }; break;
         case 'edited_timestamp': {
-          value = new Date(value);
+          if (value) {
+            value = new Date(value);
+          }
         }; break;
         case 'embeds': {
           this.embeds.clear();
@@ -509,7 +511,9 @@ export class MessageCall extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case 'ended_timestamp': {
-          value = new Date(value);
+          if (value) {
+            value = new Date(value);
+          }
         }; break;
       }
       return super.mergeValue.call(this, key, value);
