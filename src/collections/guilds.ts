@@ -24,7 +24,7 @@ export class Guilds extends BaseClientCollection<string, Guild> {
     }
   }
 
-  toString(): string {
-    return `${this.size} Guilds`;
+  get [Symbol.toStringTag](): string {
+    return `Guilds (${this.size.toLocaleString()} items)`;
   }
 }

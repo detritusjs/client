@@ -24,7 +24,7 @@ export class Users extends BaseClientCollection<string, User> {
     }
   }
 
-  toString(): string {
-    return `${this.size} Users`;
+  get [Symbol.toStringTag](): string {
+    return `Users (${this.size.toLocaleString()} items)`;
   }
 }

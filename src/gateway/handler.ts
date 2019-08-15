@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import {
   AuthTypes,
   ClientEvents,
@@ -52,11 +53,11 @@ export interface GatewayHandlerPayload {
  */
 export class GatewayHandler {
   client: ShardClient;
-  disabledEvents: Set<string>;
+  disabledEvents: BaseSet<string>;
   dispatchHandler: GatewayDispatchHandler;
-  emitRawEvent: boolean;
-  loadAllMembers: boolean;
-  memberChunksLeft: Set<string>;
+  emitRawEvent: boolean = false;
+  loadAllMembers: boolean = false;
+  memberChunksLeft = new BaseSet<string>();
 
   constructor(
     client: ShardClient,
@@ -67,11 +68,10 @@ export class GatewayHandler {
 
     this.emitRawEvent = !!options.emitRawEvent;
     this.dispatchHandler = new GatewayDispatchHandler(this);
-    this.disabledEvents = new Set((options.disabledEvents || []).map((v) => {
+    this.disabledEvents = new BaseSet((options.disabledEvents || []).map((v) => {
       return v.toUpperCase();
     }));
     this.loadAllMembers = !!options.loadAllMembers;
-    this.memberChunksLeft = new Set();
   }
 
   get shouldLoadAllMembers(): boolean {

@@ -27,7 +27,7 @@ export class Notes extends BaseClientCollection<string, string> {
     }
   }
 
-  toString(): string {
-    return `${this.size} Notes`;
+  get [Symbol.toStringTag](): string {
+    return `Notes (${this.size.toLocaleString()} items)`;
   }
 }

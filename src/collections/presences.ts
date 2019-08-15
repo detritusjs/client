@@ -65,7 +65,7 @@ export class Presences extends BaseClientCollectionCache<string, Presence> {
     return presence;
   }
 
-  toString(): string {
-    return `${this.size} Presences`;
+  get [Symbol.toStringTag](): string {
+    return `Presences (${this.caches.size.toLocaleString()} guilds, ${this.size.toLocaleString()} items)`;
   }
 }

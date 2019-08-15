@@ -67,6 +67,10 @@ export class BaseSet<V> extends Set<V> {
   }
 
   toString(): string {
-    return `BaseSet (${this.size} items)`;
+    return this[Symbol.toStringTag];
+  }
+
+  get [Symbol.toStringTag](): string {
+    return `BaseSet (${this.size.toLocaleString()} items)`;
   }
 }

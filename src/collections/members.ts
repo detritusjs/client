@@ -52,7 +52,7 @@ export class Members extends BaseClientCollectionCache<string, Member> {
     }
   }
 
-  toString(): string {
-    return `${this.size} Members`;
+  get [Symbol.toStringTag](): string {
+    return `Members (${this.caches.size.toLocaleString()} guilds, ${this.size.toLocaleString()} items)`;
   }
 }

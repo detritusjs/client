@@ -79,7 +79,7 @@ export class Messages extends BaseClientCollectionCache<string, Message> {
     cache.set(message.id, message);
   }
 
-  toString(): string {
-    return `${this.size} Messages`;
+  get [Symbol.toStringTag](): string {
+    return `Messages (${this.caches.size.toLocaleString()} caches, ${this.size.toLocaleString()} items)`;
   }
 }

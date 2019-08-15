@@ -28,7 +28,7 @@ export class VoiceCalls extends BaseClientCollection<string, VoiceCall> {
     }
   }
 
-  toString(): string {
-    return `${this.size} VoiceCalls`;
+  get [Symbol.toStringTag](): string {
+    return `VoiceCalls (${this.size.toLocaleString()} items)`;
   }
 }

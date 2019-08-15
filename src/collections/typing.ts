@@ -25,7 +25,7 @@ export class TypingCollection extends BaseClientCollectionCache<string, Typing> 
     }
   }
 
-  toString(): string {
-    return `${this.size} Users Typing`;
+  get [Symbol.toStringTag](): string {
+    return `TypingCollection (${this.caches.size.toLocaleString()} channels, ${this.size.toLocaleString()} items)`;
   }
 }

@@ -25,7 +25,7 @@ export class Relationships extends BaseClientCollection<string, Relationship> {
     }
   }
 
-  toString(): string {
-    return `${this.size} Relationships`;
+  get [Symbol.toStringTag](): string {
+    return `Relationships (${this.size.toLocaleString()} items)`;
   }
 }

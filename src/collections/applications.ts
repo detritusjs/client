@@ -29,7 +29,7 @@ export class Applications extends BaseClientCollection<string, Application> {
     }
   }
 
-  toString(): string {
-    return `${this.size} Applications`;
+  get [Symbol.toStringTag](): string {
+    return `Applications (${this.size.toLocaleString()} items)`;
   }
 }

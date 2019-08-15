@@ -24,7 +24,7 @@ export class Channels extends BaseClientCollection<string, Channel> {
     }
   }
 
-  toString(): string {
-    return `${this.size} Channels`;
+  get [Symbol.toStringTag](): string {
+    return `Channels (${this.size.toLocaleString()} items)`;
   }
 }

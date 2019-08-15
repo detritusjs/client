@@ -24,7 +24,7 @@ export class Emojis extends BaseClientCollection<string, Emoji> {
     }
   }
 
-  toString(): string {
-    return `${this.size} Emojis`;
+  get [Symbol.toStringTag](): string {
+    return `Emojis (${this.size.toLocaleString()} items)`;
   }
 }

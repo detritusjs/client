@@ -18,7 +18,6 @@ export interface VoiceStatesOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class VoiceStates extends BaseClientCollectionCache<string, VoiceState> {
-
   insert(voiceState: VoiceState): void {
     const cache = this.insertCache(voiceState.serverId);
     if (this.enabled) {
@@ -26,7 +25,7 @@ export class VoiceStates extends BaseClientCollectionCache<string, VoiceState> {
     }
   }
 
-  toString(): string {
-    return `${this.size} VoiceStates`;
+  get [Symbol.toStringTag](): string {
+    return `VoiceStates (${this.caches.size.toLocaleString()} caches, ${this.size.toLocaleString()} items)`;
   }
 }

@@ -229,7 +229,7 @@ export class BaseCollection<K, V> extends BaseCollectionMixin<K, V> {
   }
 
   get [Symbol.toStringTag](): string {
-    return `BaseCollection (${this.size} items)`;
+    return `BaseCollection (${this.size.toLocaleString()} items)`;
   }
 }
 
@@ -388,7 +388,7 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
   }
 
   get [Symbol.toStringTag](): string {
-    return `BaseCollectionCache (${this.caches.size} caches, ${this.size} items)`;
+    return `BaseCollectionCache (${this.caches.size.toLocaleString()} caches, ${this.size.toLocaleString()} items)`;
   }
 }
 

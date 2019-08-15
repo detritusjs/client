@@ -15,7 +15,7 @@ export interface SessionsOptions extends BaseClientCollectionOptions {};
  * @category Collections
  */
 export class Sessions extends BaseClientCollection<string, any> {
-  toString(): string {
-    return `${this.size} Sessions`;
+  get [Symbol.toStringTag](): string {
+    return `Sessions (${this.size.toLocaleString()} items)`;
   }
 }

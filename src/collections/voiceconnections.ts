@@ -22,7 +22,7 @@ export class VoiceConnections extends BaseClientCollection<string, VoiceConnecti
     }
   }
 
-  toString(): string {
-    return `${this.size} VoiceConnections`;
+  get [Symbol.toStringTag](): string {
+    return `VoiceConnections (${this.size.toLocaleString()} items)`;
   }
 }
