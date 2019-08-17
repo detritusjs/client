@@ -1,5 +1,7 @@
 import { URLSearchParams } from 'url';
 
+import { Snowflake } from 'detritus-utils';
+
 import {
   DiscordRegex,
   DiscordRegexNames,
@@ -8,7 +10,6 @@ import {
 } from '../constants';
 
 import * as PermissionTools from './permissions';
-import * as Snowflake from './snowflake';
 
 export {
   PermissionTools,

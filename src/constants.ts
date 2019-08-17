@@ -1,5 +1,6 @@
 import { Constants as RestConstants, Endpoints } from 'detritus-client-rest';
 import { Constants as SocketConstants } from 'detritus-client-socket';
+import { Constants as UtilConstants, Tools } from 'detritus-utils';
 
 const {
   AuthTypes,
@@ -46,18 +47,17 @@ export {
   SocketStates,
 };
 
+const {
+  DISCORD_SNOWFLAKE_EPOCH,
+  DISCORD_TOKEN_EPOCH,
+} = UtilConstants;
+export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
+
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.17',
+  VERSION: '0.4.18',
 });
-
-function normalize(object: {[key: string]: any}) {
-  for (let key in object) {
-    object[key] = key;
-  }
-  return Object.freeze(object);
-}
 
 export type Snowflake = number | string;
 
@@ -108,7 +108,7 @@ export const AuditLogActions = Object.freeze({
   MESSAGE_DELETE: 72,
 });
 
-export const AuditLogActionTypes = normalize({
+export const AuditLogActionTypes = Tools.normalize({
   ALL: null,
   CREATE: null,
   UPDATE: null,
@@ -120,7 +120,7 @@ export const AuditLogSubtargetTypes = Object.freeze({
   ROLE: 'role',
 });
 
-export const AuditLogTargetTypes = normalize({
+export const AuditLogTargetTypes = Tools.normalize({
   ALL: null,
   GUILD: null,
   CHANNEL: null,
@@ -193,7 +193,7 @@ export const ChannelTypes = Object.freeze({
   GUILD_LFG_LISTINGS: 7,
 });
 
-export const ClientEvents = normalize(Object.assign({
+export const ClientEvents = Tools.normalize(Object.assign({
   COMMAND_ERROR: null,
   COMMAND_FAIL: null,
   COMMAND_NONE: null,
@@ -244,7 +244,7 @@ export const DiscordOpusFormat = Object.freeze({
   SAMPLE_RATE: 48000,
 });
 
-export const DiscordRegexNames = normalize({
+export const DiscordRegexNames = Tools.normalize({
   EMOJI: null,
   MENTION_CHANNEL: null,
   MENTION_ROLE: null,
@@ -322,7 +322,7 @@ export const GuildExplicitContentFilterTypes = Object.freeze({
   ALL_MEMBERS: 2,
 });
 
-export const GuildFeatures = normalize({
+export const GuildFeatures = Tools.normalize({
   ANIMATED_ICON: null,
   BANNER: null,
   COMMERCE: null,
@@ -699,7 +699,7 @@ export const UserFlags = Object.freeze({
   TEAM_USER: 1 << 10,
 });
 
-export const UserRequiredActions = normalize({
+export const UserRequiredActions = Tools.normalize({
   AGREEMENTS: null,
   REQUIRE_CAPTCHA: null,
   REQUIRE_VERIFIED_EMAIL: null,
