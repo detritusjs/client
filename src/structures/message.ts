@@ -6,6 +6,7 @@ import {
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import {
+  MessageFlags,
   MessageTypes,
   PremiumGuildTiers,
   PremiumGuildTierNames,
@@ -50,12 +51,14 @@ const keysMessage: ReadonlyArray<string> = [
   'content',
   'edited_timestamp',
   'embeds',
+  'flags',
   'guild_id',
   'id',
   'member',
   'mentions',
   'mention_everyone',
   'mention_roles',
+  'message_reference',
   'nonce',
   'pinned',
   'reactions',
@@ -100,6 +103,7 @@ export class Message extends BaseStructure {
   mentions = new BaseCollection<string, Member | User>();
   mentionEveryone: boolean = false;
   mentionRoles = new BaseCollection<string, null | Role>();
+  messageReference?: MessageReference;
   nonce?: string;
   pinned: boolean = false;
   reactions = new BaseCollection<string, Reaction>();
@@ -208,6 +212,14 @@ export class Message extends BaseStructure {
     return null;
   }
 
+  get hasFlagCrossposted(): boolean {
+    return this.hasFlag(MessageFlags.CROSSPOSTED);
+  }
+
+  get hasFlagIsCrossposted(): boolean {
+    return this.hasFlag(MessageFlags.IS_CROSSPOST);
+  }
+
   get inDm(): boolean {
     // messages from rest doesn\'t provide this..
     return !this.guildId;
@@ -223,6 +235,10 @@ export class Message extends BaseStructure {
 
   get timestampUnix(): number {
     return this.timestamp.getTime();
+  }
+
+  hasFlag(flag: number): boolean {
+    return (this.flags & flag) === flag;
   }
 
   async ack(token: string) {
@@ -442,7 +458,7 @@ export class Message extends BaseStructure {
           }
         }; return;
         case 'message_reference': {
-
+          value = new MessageReference(this, value);
         }; break;
         case 'reactions': {
           this.reactions.clear();
@@ -535,6 +551,41 @@ export class MessageCall extends BaseStructure {
       }
       return super.mergeValue.call(this, key, value);
     }
+  }
+}
+
+
+const keysMessageReference: ReadonlyArray<string> = [
+  'ended_timestamp',
+  'participants',
+];
+
+/**
+ * Channel Message Reference Structure, used to tell the client that this is from a server webhook
+ * Used for crossposts
+ * @category Structure
+ */
+export class MessageReference extends BaseStructure {
+  readonly _keys = keysMessageReference;
+  message: Message;
+
+  channelId: string = '';
+  guildId: string = '';
+  messageId: string = '';
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get channel(): null | Channel {
+    return this.client.channels.get(this.channelId) || null;
+  }
+
+  get guild(): null | Guild {
+    return this.client.guilds.get(this.guildId) || null;
   }
 }
 

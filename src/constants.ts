@@ -56,7 +56,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.18',
+  VERSION: '0.4.19',
 });
 
 export type Snowflake = number | string;
@@ -376,6 +376,17 @@ export const MessageCacheTypes = Object.freeze({
 
 export const MESSAGE_CACHE_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(MessageCacheTypes));
 
+export const MessageEmbedTypes = Object.freeze({
+  APPLICATION_NEWS: 'application_news',
+  ARTICLE: 'article',
+  GIFV: 'gifv',
+  IMAGE: 'image',
+  LINK: 'link',
+  RICH: 'rich',
+  TWEET: 'tweet',
+  VIDEO: 'video',
+});
+
 export const MessageFlags = Object.freeze({
   CROSSPOSTED: 1 << 0,
   IS_CROSSPOST: 1 << 1,
@@ -406,17 +417,6 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_1]: true,
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_2]: true,
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_3]: true,
-});
-
-export const MessageEmbedTypes = Object.freeze({
-  APPLICATION_NEWS: 'application_news',
-  ARTICLE: 'article',
-  GIFV: 'gifv',
-  IMAGE: 'image',
-  LINK: 'link',
-  RICH: 'rich',
-  TWEET: 'tweet',
-  VIDEO: 'video',
 });
 
 export const MfaLevels = Object.freeze({
