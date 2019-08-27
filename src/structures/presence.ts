@@ -136,13 +136,12 @@ export class Presence extends BaseStructure {
       switch (key) {
         case 'activities': {
           this.activities.clear();
-          for (let i = 0; i < value.length; i++) {
-            const activity = new PresenceActivity(this, value[i]);
-            if (activity.id) {
-              this.activities.set(activity.id, activity);
-            } else {
-              this.activities.set(i, activity);
-            }
+          for (let position = 0; position < value.length; position++) {
+            const raw = value[position];
+            raw.position = position;
+
+            const activity = new PresenceActivity(this, raw);
+            this.activities.set(activity.id || activity.position, activity);
           }
         }; return;
         case 'client_status': {
@@ -197,6 +196,7 @@ const keysPresenceActivity: ReadonlyArray<string> = [
   'name',
   'party',
   'platform',
+  'position',
   'secrets',
   'session_id',
   'state',
@@ -225,6 +225,7 @@ export class PresenceActivity extends BaseStructure {
   name: string = '';
   party?: PresenceActivityParty;
   platform?: string;
+  position: number = 0;
   secrets?: PresenceActivitySecrets;
   sessionId?: string;
   state?: string;
@@ -369,6 +370,17 @@ export class PresenceActivity extends BaseStructure {
       return this.client.rest.fetchApplication(this.applicationId);
     }
     return null;
+  }
+
+  async fetchMetadata() {
+    if (!this.sessionId) {
+      throw new Error('Activity has no Session Id');
+    }
+    return this.client.rest.fetchUserActivityMetadata(
+      this.presence.user.id,
+      this.sessionId,
+      String(this.position),
+    );
   }
 
   difference(key: string, value: any): [boolean, any] {
