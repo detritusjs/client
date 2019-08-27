@@ -4,6 +4,7 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseCollection } from '../collections/basecollection';
 import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 import {
   PremiumTypes,
@@ -102,7 +103,17 @@ export class User extends BaseStructure {
   }
 
   get presence(): null | Presence {
-    return (<Presence | undefined> this.client.presences.get(null, this.id)) || null;
+    return this.client.presences.get(null, this.id) || null;
+  }
+
+  get presences(): BaseCollection<string, Presence> {
+    const presences = new BaseCollection<string, Presence>();
+    for (let [userId, presence] of this.client.presences) {
+      if (userId === this.id) {
+        presences.set(presence.cacheId, presence);
+      }
+    }
+    return presences;
   }
 
   avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
@@ -172,8 +183,8 @@ export class User extends BaseStructure {
 
 
 const keysUserWithToken: ReadonlyArray<string> = [
-  'token',
   ...keysUser,
+  'token',
 ];
 
 /**
@@ -196,8 +207,8 @@ export class UserWithToken extends User {
 
 
 const keysUserWithFlags: ReadonlyArray<string> = [
-  'flags',
   ...keysUser,
+  'flags',
 ];
 
 /**
@@ -271,12 +282,12 @@ export class UserWithFlags extends User {
 
 
 const keysUserExtended: ReadonlyArray<string> = [
+  ...keysUserWithFlags,
   'email',
   'locale',
   'mfa_enabled',
   'premium_type',
   'verified',
-  ...keysUserWithFlags,
 ];
 
 /**
@@ -324,8 +335,8 @@ export class UserExtended extends UserWithFlags {
 
 
 const keysUserMe: ReadonlyArray<string> = [
-  'phone',
   ...keysUserExtended,
+  'phone',
 ];
 
 /**
@@ -417,6 +428,10 @@ export class UserMixin extends BaseStructure {
 
   get note(): string {
     return this.user.note;
+  }
+
+  get presences(): BaseCollection<string, Presence> {
+    return this.user.presences;
   }
 
   get username(): string {
