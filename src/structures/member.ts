@@ -88,6 +88,17 @@ export class Member extends UserMixin {
     return (this.nick) ? `<@!${this.id}>` : this.user.mention;
   }
 
+  get name(): string {
+    return this.nick || this.username;
+  }
+
+  get names(): Array<string> {
+    if (this.nick) {
+      return [this.nick, this.username];
+    }
+    return [this.username];
+  }
+
   get permissions(): number {
     return this.roles.reduce((total: number, role: null | Role) => {
       if (role) {

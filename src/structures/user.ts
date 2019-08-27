@@ -89,6 +89,14 @@ export class User extends BaseStructure {
     return `<@${this.id}>`;
   }
 
+  get name(): string {
+    return this.username;
+  }
+
+  get names(): Array<string> {
+    return [this.username];
+  }
+
   get note(): string {
     return this.client.notes.get(this.id) || '';
   }
@@ -397,6 +405,14 @@ export class UserMixin extends BaseStructure {
 
   get mention(): string {
     return this.user.mention;
+  }
+
+  get name(): string {
+    return this.user.name;
+  }
+
+  get names(): Array<string> {
+    return this.user.names;
   }
 
   get note(): string {

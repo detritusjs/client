@@ -315,7 +315,7 @@ export class Guild extends BaseStructure {
   }
 
   get voiceStates(): BaseCollection<string, VoiceState> {
-    if (this.client.voiceState.has(this.id)) {
+    if (this.client.voiceStates.has(this.id)) {
       return <BaseCollection<string, VoiceState>> this.client.voiceStates.get(this.id);
     }
     return new BaseCollection<string, VoiceState>();

@@ -496,7 +496,7 @@ const keysMessageActivity: ReadonlyArray<string> = [
  */
 export class MessageActivity extends BaseStructure {
   readonly _keys = keysMessageActivity;
-  message: Message;
+  readonly message: Message;
 
   coverImage: null | string = null;
   name: null | string = null;
@@ -524,7 +524,7 @@ const keysMessageCall: ReadonlyArray<string> = [
  */
 export class MessageCall extends BaseStructure {
   readonly _keys = keysMessageCall;
-  message: Message;
+  readonly message: Message;
 
   endedTimestamp: Date | null = null;
   participants: Array<string> = [];
@@ -556,8 +556,9 @@ export class MessageCall extends BaseStructure {
 
 
 const keysMessageReference: ReadonlyArray<string> = [
-  'ended_timestamp',
-  'participants',
+  'channel_id',
+  'guild_id',
+  'message_id',
 ];
 
 /**
@@ -567,7 +568,7 @@ const keysMessageReference: ReadonlyArray<string> = [
  */
 export class MessageReference extends BaseStructure {
   readonly _keys = keysMessageReference;
-  message: Message;
+  readonly message: Message;
 
   channelId: string = '';
   guildId: string = '';
