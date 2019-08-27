@@ -8,6 +8,7 @@ import { BaseCollection } from '../collections/basecollection';
 import {
   MessageFlags,
   MessageTypes,
+  MessageTypesDeletable,
   PremiumGuildTiers,
   PremiumGuildTierNames,
   SystemMessages,
@@ -23,7 +24,7 @@ import {
 } from './basestructure';
 import { Application } from './application';
 import { Attachment } from './attachment';
-import { Channel } from './channel';
+import { Channel, createChannelFromData } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
 import { MessageEmbed } from './messageembed';
@@ -56,9 +57,10 @@ const keysMessage: ReadonlyArray<string> = [
   'id',
   'member',
   'mentions',
+  'mention_channels',
   'mention_everyone',
-  'mention_roles',
   'message_reference',
+  'mention_roles',
   'nonce',
   'pinned',
   'reactions',
@@ -101,9 +103,10 @@ export class Message extends BaseStructure {
   id: string = '';
   member?: Member;
   mentions = new BaseCollection<string, Member | User>();
+  mentionChannels?: BaseCollection<string, Channel>;
   mentionEveryone: boolean = false;
-  mentionRoles = new BaseCollection<string, null | Role>();
   messageReference?: MessageReference;
+  mentionRoles = new BaseCollection<string, null | Role>();
   nonce?: string;
   pinned: boolean = false;
   reactions = new BaseCollection<string, Reaction>();
@@ -123,10 +126,12 @@ export class Message extends BaseStructure {
   }
 
   get canDelete(): boolean {
-    if (this.fromMe) {
-      return true;
+    if (this.fromMe || this.canManage) {
+      if (this.type in MessageTypesDeletable && MessageTypesDeletable[this.type]) {
+        return true;
+      }
     }
-    return this.canManage;
+    return false;
   }
 
   get canManage(): boolean {
@@ -218,6 +223,10 @@ export class Message extends BaseStructure {
 
   get hasFlagIsCrossposted(): boolean {
     return this.hasFlag(MessageFlags.IS_CROSSPOST);
+  }
+
+  get hasFlagSuppressEmbeds(): boolean {
+    return this.hasFlag(MessageFlags.SUPPRESS_EMBEDS);
   }
 
   get inDm(): boolean {
@@ -328,10 +337,11 @@ export class Message extends BaseStructure {
       case 'attachments':
       case 'embeds':
       case 'mentions':
+      case 'mention_channels':
       case 'mention_roles': {
         key = toCamelCase(key);
         const old = (<any> this)[key];
-        if (old.size && old.size !== value.length) {
+        if (old && old.size && old.size !== value.length) {
           differences = old.clone();
         }
       }; break;
@@ -445,6 +455,25 @@ export class Message extends BaseStructure {
             }
           }
         }; return;
+        case 'mention_channels': {
+          if (!this.mentionChannels) {
+            this.mentionChannels = new BaseCollection<string, Channel>();
+          }
+          this.mentionChannels.clear();
+          for (let raw of value) {
+            let channel: Channel;
+            if (this.client.channels.has(raw.id)) {
+              channel = <Channel> this.client.channels.get(raw.id);
+              channel.merge(raw);
+            } else {
+              channel = createChannelFromData(this.client, raw);
+            }
+            this.mentionChannels.set(channel.id, channel);
+          }
+        }; return;
+        case 'message_reference': {
+          value = new MessageReference(this, value);
+        }; break;
         case 'mention_roles': {
           this.mentionRoles.clear();
 
@@ -457,9 +486,6 @@ export class Message extends BaseStructure {
             }
           }
         }; return;
-        case 'message_reference': {
-          value = new MessageReference(this, value);
-        }; break;
         case 'reactions': {
           this.reactions.clear();
           for (let raw of value) {
@@ -572,7 +598,7 @@ export class MessageReference extends BaseStructure {
 
   channelId: string = '';
   guildId: string = '';
-  messageId: string = '';
+  messageId?: string;
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client);
@@ -660,6 +686,10 @@ export function messageContentFormat(
       content = SystemMessages.GuildMemberSubscribedAchievedTier.replace(/:user:/g, message.author.mention);
       content = content.replace(/:guild:/g, guild.toString());
       content = content.replace(/:premiumTier:/g, (<any> PremiumGuildTierNames)[premiumTier]);
+    }; break;
+    case MessageTypes.CHANNEL_FOLLOW_ADD: {
+      content = SystemMessages.ChannelFollowAdd.replace(/:user:/g, message.author.mention);
+      content = content.replace(/:webhookName:/g, message.content);
     }; break;
   }
   return <string> content;

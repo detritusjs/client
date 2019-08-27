@@ -29,6 +29,7 @@ const {
   SocketMediaCloseCodes,
   SocketStates,
   SocketEvents,
+  DEFAULT_SHARD_LAUNCH_DELAY,
 } = SocketConstants;
 export {
   CompressTypes,
@@ -45,6 +46,7 @@ export {
   SocketGatewayCloseCodes,
   SocketMediaCloseCodes,
   SocketStates,
+  DEFAULT_SHARD_LAUNCH_DELAY,
 };
 
 const {
@@ -56,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.4.24',
+  VERSION: '0.4.25',
 });
 
 export type Snowflake = number | string;
@@ -390,6 +392,7 @@ export const MessageEmbedTypes = Object.freeze({
 export const MessageFlags = Object.freeze({
   CROSSPOSTED: 1 << 0,
   IS_CROSSPOST: 1 << 1,
+  SUPPRESS_EMBEDS: 1 << 2,
 });
 
 export const MessageTypes = Object.freeze({
@@ -406,6 +409,7 @@ export const MessageTypes = Object.freeze({
   GUILD_PREMIUM_SUBSCRIPTION_TIER_1: 9,
   GUILD_PREMIUM_SUBSCRIPTION_TIER_2: 10,
   GUILD_PREMIUM_SUBSCRIPTION_TIER_3: 11,
+  CHANNEL_FOLLOW_ADD: 12,
 });
 
 export const MessageTypesDeletable = Object.freeze({
@@ -417,6 +421,7 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_1]: true,
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_2]: true,
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_3]: true,
+  [MessageTypes.CHANNEL_FOLLOW_ADD]: true,
 });
 
 export const MfaLevels = Object.freeze({
@@ -616,6 +621,7 @@ export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
 export const SystemMessages = Object.freeze({
   CallMissed: 'You missed a call from :user:.',
   CallStarted: ':user: started a call.',
+  ChannelFollowAdd: ':user: has added **:webhookName:** to this channel',
   ChannelIconChange: ':user: changed the channel name: **:name:**',
   ChannelNameChange: ':user: changed the channel icon.',
   PinnedMessage: ':user: pinned a message to this channel.',

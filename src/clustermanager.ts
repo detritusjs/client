@@ -6,7 +6,7 @@ import { EventEmitter, Timers } from 'detritus-utils';
 
 import { ClusterProcess } from './cluster/process';
 import { BaseCollection } from './collections/basecollection';
-import { AuthTypes } from './constants';
+import { AuthTypes, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { Snowflake } from './utils';
 
 
@@ -83,13 +83,11 @@ export class ClusterManager extends EventEmitter {
     if (this.ran) {
       return this;
     }
+    options = Object.assign({
+      delay: DEFAULT_SHARD_LAUNCH_DELAY,
+    }, options);
 
-    let delay: number;
-    if (options.delay === undefined) {
-      delay = 5000;
-    } else {
-      delay = options.delay;
-    }
+    const delay = <number> options.delay;
 
     let shardCount: number = +(options.shardCount || this.shardCount || 0);
     let url: string = options.url || '';

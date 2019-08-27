@@ -11,7 +11,7 @@ import {
 import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
-import { AuthTypes } from './constants';
+import { AuthTypes, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 
 
 export type ShardsCollection = BaseCollection<number, ShardClient>;
@@ -154,16 +154,11 @@ export class ClusterClient extends EventEmitter {
       return this;
     }
     options = Object.assign({
+      delay: DEFAULT_SHARD_LAUNCH_DELAY,
       url: process.env.GATEWAY_URL,
     }, options);
 
-    let delay: number;
-    if (options.delay === undefined) {
-      delay = 5000;
-    } else {
-      delay = options.delay;
-    }
-
+    const delay = <number> options.delay;
     let shardCount: number = options.shardCount || this.shardCount || 0;
     if (options.url === undefined || !shardCount) {
       const data = await this.rest.fetchGatewayBot();
