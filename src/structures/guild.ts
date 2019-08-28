@@ -606,6 +606,18 @@ export class Guild extends BaseStructure {
     return this.client.rest.fetchGuildWebhooks(this.id);
   }
 
+  async fetchWidget() {
+    return this.client.rest.fetchGuildWidget(this.id);
+  }
+
+  async fetchWidgetJson() {
+    return this.client.rest.fetchGuildWidgetJson(this.id);
+  }
+
+  async fetchWidgetPng(options: RequestTypes.FetchGuildWidgetPng = {}) {
+    return this.client.rest.fetchGuildWidgetPng(this.id, options);
+  }
+
 
   async join(options: RequestTypes.JoinGuild) {
     return this.client.rest.joinGuild(this.id, options);

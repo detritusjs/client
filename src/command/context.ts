@@ -1,13 +1,11 @@
+import { RequestTypes } from 'detritus-client-rest';
+
 import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
 import { CommandClient } from '../commandclient';
 
-import {
-  Message,
-  MessageEdit,
-  MessageReply,
-} from '../structures';
+import { Message } from '../structures';
 
 import { Command } from './command';
 
@@ -228,7 +226,7 @@ export class Context {
     return null;
   }
 
-  editOrReply(options: MessageEdit | string = '') {
+  editOrReply(options: RequestTypes.EditMessage | string = {}) {
     const message = this.response;
     if (message) {
       return message.edit(options);
@@ -236,7 +234,7 @@ export class Context {
     return this.message.reply(options);
   }
 
-  reply(options: MessageReply | string = '') {
+  reply(options: RequestTypes.CreateMessage | string = {}) {
     return this.message.reply(options);
   }
 

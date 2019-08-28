@@ -35,15 +35,20 @@ const keysInvite: ReadonlyArray<string> = [
   'uses',
 ];
 
+const keysMergeInvite: ReadonlyArray<string> = [
+  'guild',
+];
+
 /**
  * Instant Invite Structure
  * @category Structure
  */
 export class Invite extends BaseStructure {
   readonly _keys = keysInvite;
+  readonly _keysMerge = keysMergeInvite;
 
-  approximateMemberCount: number = 0;
-  approximatePresenceCount: number = 0;
+  approximateMemberCount?: number;
+  approximatePresenceCount?: number;
   channel?: Channel;
   code: string = '';
   createdAt?: Date;
@@ -62,6 +67,32 @@ export class Invite extends BaseStructure {
     this.merge(data);
   }
 
+  get createdAtUnix(): number {
+    return (this.createdAt) ? this.createdAt.getTime() : 0;
+  }
+
+  get expiresAt(): Date | null {
+    const expiresAt = this.expiresAtUnix;
+    if (expiresAt !== Infinity) {
+      return new Date(expiresAt);
+    }
+    return null;
+  }
+
+  get expiresAtUnix(): number {
+    if (this.createdAt && this.maxAge) {
+      return this.createdAtUnix + this.maxAge;
+    }
+    return Infinity;
+  }
+
+  get isVanity(): boolean {
+    if (this.guild) {
+      return this.code === this.guild.vanityUrlCode;
+    }
+    return false;
+  }
+
   get longUrl(): string {
     return Endpoints.Invite.LONG(this.code);
   }
@@ -78,7 +109,7 @@ export class Invite extends BaseStructure {
     return this.client.rest.deleteInvite(this.code);
   }
 
-  fetch(options: RequestTypes.FetchInvite) {
+  fetch(options: RequestTypes.FetchInvite = {}) {
     return this.client.rest.fetchInvite(this.code, options);
   }
 
@@ -91,9 +122,17 @@ export class Invite extends BaseStructure {
             channel = <Channel> this.client.channels.get(value.id);
             channel.merge(value);
           } else {
+            if (this.guild) {
+              value.guild_id = this.guild.id;
+            }
             channel = createChannelFromData(this.client, value);
           }
           value = channel;
+        }; break;
+        case 'created_at': {
+          if (value) {
+            value = new Date(value);
+          }
         }; break;
         case 'guild': {
           let guild: Guild;

@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.5.0',
+  VERSION: '0.5.1',
 });
 
 export type Snowflake = number | string;
@@ -718,4 +718,12 @@ export const VerificationLevels = Object.freeze({
   MEDIUM: 2,
   HIGH: 3,
   VERY_HIGH: 4,
+});
+
+export const GuildWidgetStyles = Object.freeze({
+  BANNER_1: 'banner1',
+  BANNER_2: 'banner2',
+  BANNER_3: 'banner3',
+  BANNER_4: 'banner4',
+  SHIELD: 'shield',
 });

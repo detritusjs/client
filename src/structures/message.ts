@@ -33,15 +33,6 @@ import { Role } from './role';
 import { User } from './user';
 
 
-export interface MessageReply extends RequestTypes.CreateMessage {
-  mention?: boolean,
-}
-
-export interface MessageEdit extends RequestTypes.EditMessage {
-  mention?: boolean,
-}
-
-
 const keysMessage: ReadonlyArray<string> = [
   'activity',
   'application',
