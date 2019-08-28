@@ -322,13 +322,13 @@ export class Guild extends BaseStructure {
   }
 
   get widgetImageUrl(): string {
-    return Endpoints.formatRoute(Endpoints.Api.GUILD_WIDGET_PNG, {
+    return Endpoints.Api.URL_STABLE + Endpoints.formatRoute(Endpoints.Api.GUILD_WIDGET_PNG, {
       guildId: this.id,
     });
   }
 
   get widgetUrl(): string {
-    return Endpoints.RoutesQuery.WIDGET(this.id, {theme: 'dark'});
+    return Endpoints.Api.URL_STABLE + Endpoints.RoutesQuery.WIDGET(this.id, {theme: 'dark'});
   }
 
   bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
@@ -437,7 +437,7 @@ export class Guild extends BaseStructure {
   }
 
   widgetUrlFormat(options: RequestTypes.RouteWidget = {}): string {
-    return Endpoints.RoutesQuery.WIDGET(this.id, options);
+    return Endpoints.Api.URL_STABLE + Endpoints.RoutesQuery.WIDGET(this.id, options);
   }
 
   async ack() {
