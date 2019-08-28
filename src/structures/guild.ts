@@ -322,7 +322,7 @@ export class Guild extends BaseStructure {
   }
 
   get widgetImageUrl(): string {
-    return Endpoints.Api.URL_STABLE + Endpoints.formatRoute(Endpoints.Api.GUILD_WIDGET_PNG, {
+    return Endpoints.Api.URL_STABLE + Endpoints.Api.PATH + Endpoints.formatRoute(Endpoints.Api.GUILD_WIDGET_PNG, {
       guildId: this.id,
     });
   }
