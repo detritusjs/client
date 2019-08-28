@@ -321,6 +321,16 @@ export class Guild extends BaseStructure {
     return new BaseCollection<string, VoiceState>();
   }
 
+  get widgetImageUrl(): string {
+    return Endpoints.formatRoute(Endpoints.Api.GUILD_WIDGET_PNG, {
+      guildId: this.id,
+    });
+  }
+
+  get widgetUrl(): string {
+    return Endpoints.RoutesQuery.WIDGET(this.id, {theme: 'dark'});
+  }
+
   bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (!this.banner) {
       return null;
@@ -420,6 +430,14 @@ export class Guild extends BaseStructure {
       Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format),
       query,
     );
+  }
+
+  widgetImageUrlFormat(query?: UrlQuery): string {
+    return addQuery(this.widgetImageUrl, query);
+  }
+
+  widgetUrlFormat(options: RequestTypes.RouteWidget = {}): string {
+    return Endpoints.RoutesQuery.WIDGET(this.id, options);
   }
 
   async ack() {
