@@ -5,8 +5,6 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { anyToCamelCase } from '../utils';
-
 import { BaseCollection } from '../collections/basecollection';
 
 import {
@@ -335,7 +333,7 @@ export class RestClient extends Client {
   async editMessage(
     channelId: string,
     messageId: string,
-    options: RequestTypes.EditMessage = {},
+    options: RequestTypes.EditMessage | string = {},
   ): Promise<Message> {
     const data = await super.editMessage.call(this, channelId, messageId, options);
     let message: Message;
@@ -381,11 +379,11 @@ export class RestClient extends Client {
   async executeWebhook(
     webhookId: string,
     token: string,
-    options: RequestTypes.ExecuteWebhook = {},
+    options: RequestTypes.ExecuteWebhook | string = {},
     compatibleType?: string,
   ): Promise<Message | null> {
     const data = await super.executeWebhook.call(this, webhookId, token, options, compatibleType);
-    if (options.wait) {
+    if (typeof(options) !== 'string' && options.wait) {
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
       return message;

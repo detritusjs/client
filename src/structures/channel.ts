@@ -324,7 +324,7 @@ export class ChannelBase extends BaseStructure {
     return false;
   }
 
-  iconUrlFormat(...args: any[]): null | string {
+  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     return null;
   }
 
@@ -332,11 +332,11 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async addRecipient(...args: any[]): Promise<any> {
+  async addRecipient(userId: string): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async bulkDelete(...args: any[]): Promise<any> {
+  async bulkDelete(messageIds: Array<string>): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -348,7 +348,7 @@ export class ChannelBase extends BaseStructure {
     return this.client.rest.createChannelInvite(this.id, options);
   }
 
-  async createMessage(...args: any[]): Promise<any> {
+  async createMessage(options: RequestTypes.CreateMessage | string = {}): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -404,11 +404,11 @@ export class ChannelBase extends BaseStructure {
     return this.client.rest.fetchChannelInvites(this.id);
   }
 
-  async fetchMessage(...args: any[]): Promise<any> {
+  async fetchMessage(messageId: string): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async fetchMessages(...args: any[]): Promise<any> {
+  async fetchMessages(options: RequestTypes.FetchMessages = {}): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -440,19 +440,19 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async removeRecipient(...args: any[]): Promise<any> {
+  async removeRecipient(userId: string): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async search(...args: any[]): Promise<any> {
+  async search(options: RequestTypes.SearchOptions, retry?: boolean): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async startCallRinging(...args: any[]): Promise<any> {
+  async startCallRinging(recipients?: Array<string>): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async stopCallRinging(...args: any[]): Promise<any> {
+  async stopCallRinging(recipients?: Array<string>): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -551,7 +551,7 @@ export class ChannelDM extends ChannelBase {
     return this.delete();
   }
 
-  async createMessage(options: RequestTypes.CreateMessage | string) {
+  async createMessage(options: RequestTypes.CreateMessage | string = {}) {
     return this.client.rest.createMessage(this.id, options);
   }
 
@@ -1078,7 +1078,7 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.bulkDeleteMessages(this.id, messageIds);
   }
 
-  async createMessage(options: RequestTypes.CreateMessage | string) {
+  async createMessage(options: RequestTypes.CreateMessage | string = {}) {
     return this.client.rest.createMessage(this.id, options);
   }
 

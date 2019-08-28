@@ -266,7 +266,7 @@ export class Message extends BaseStructure {
     return this.client.rest.deleteReactions(this.channelId, this.id);
   }
 
-  async edit(options: RequestTypes.EditMessage) {
+  async edit(options: RequestTypes.EditMessage | string = {}) {
     return this.client.rest.editMessage(this.channelId, this.id, options);
   }
 
@@ -295,30 +295,8 @@ export class Message extends BaseStructure {
     return this.client.rest.removeMention(this.id);
   }
 
-  async reply(options: MessageReply | string = '') {
-    if (typeof(options) === 'string') {
-      options = {content: options};
-    }
-    if (options.mention) {
-      options.content = [
-        this.author.mention,
-        options.content,
-      ].filter((v) => v).join(', ');
-    }
+  async reply(options: RequestTypes.CreateMessage | string = {}) {
     return this.client.rest.createMessage(this.channelId, options);
-  }
-
-  async replyEdit(options: MessageEdit | string = '') {
-    if (typeof(options) === 'string') {
-      options = {content: options};
-    }
-    if (options.mention) {
-      options.content = [
-        this.author.mention,
-        options.content,
-      ].filter((v) => v).join(', ');
-    }
-    return this.edit(options);
   }
 
   async suppressEmbeds(suppress: boolean = true) {

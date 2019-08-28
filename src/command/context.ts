@@ -229,9 +229,9 @@ export class Context {
   }
 
   editOrReply(options: MessageEdit | string = '') {
-    const response = this.response;
-    if (response) {
-      return response.replyEdit(options);
+    const message = this.response;
+    if (message) {
+      return message.edit(options);
     }
     return this.message.reply(options);
   }
