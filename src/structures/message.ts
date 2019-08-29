@@ -114,6 +114,10 @@ export class Message extends BaseStructure {
       enumerable: false,
       writable: false,
     });
+
+    if (this.guildId && !this.member) {
+      this.member = this.client.members.get(this.guildId, this.author.id);
+    }
   }
 
   get canDelete(): boolean {
@@ -412,15 +416,21 @@ export class Message extends BaseStructure {
               }
               this.mentions.set(member.id, member);
             } else {
-              let user: User;
-              if (this.client.users.has(raw.id)) {
-                user = <User> this.client.users.get(raw.id);
-                user.merge(raw);
+              if (guildId && this.client.members.has(guildId, raw.id)) {
+                const member = <Member> this.client.members.get(guildId, raw.id);
+                member.merge({user: raw});
+                this.mentions.set(member.id, member);
               } else {
-                user = new User(this.client, raw);
-                this.client.users.insert(user);
+                let user: User;
+                if (this.client.users.has(raw.id)) {
+                  user = <User> this.client.users.get(raw.id);
+                  user.merge(raw);
+                } else {
+                  user = new User(this.client, raw);
+                  this.client.users.insert(user);
+                }
+                this.mentions.set(user.id, user);
               }
-              this.mentions.set(user.id, user);
             }
           }
         }; return;
