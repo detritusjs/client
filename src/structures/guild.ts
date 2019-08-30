@@ -4,8 +4,12 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import {
   GuildFeatures,
+  DEFAULT_MAX_MEMBERS,
+  DEFAULT_MAX_PRESENCES,
   MAX_ATTACHMENT_SIZE,
   MAX_BITRATE,
   MAX_EMOJI_SLOTS,
@@ -23,8 +27,6 @@ import {
   Snowflake,
   UrlQuery,
 } from '../utils';
-
-import { BaseCollection, BaseSet } from '../collections';
 
 import {
   BaseStructure,
@@ -48,10 +50,7 @@ import { VoiceRegion } from './voiceregion';
 import { VoiceState } from './voicestate';
 
 
-export const DEFAULT_MAX_PRESENCES = 5000;
-
-
-const keysGuild: ReadonlyArray<string> = [
+const keysGuild = new BaseSet<string>([
   'afk_channel_id',
   'afk_timeout',
   'application_id',
@@ -91,15 +90,15 @@ const keysGuild: ReadonlyArray<string> = [
   'voice_states',
   'widget_channel_id',
   'widget_enabled',
-];
+]);
 
-const keysMergeGuild: ReadonlyArray<string> = [
+const keysMergeGuild = new BaseSet<string>([
   'id',
   'joined_at',
   'roles',
   'presences',
   'members',
-];
+]);
 
 /**
  * Guild Structure
@@ -123,7 +122,9 @@ export class Guild extends BaseStructure {
   icon: null | string = null;
   id: string = '';
   joinedAt: Date | null = null;
-  maxMembers: number = 0;
+  large: boolean = false;
+  lazy: boolean = false;
+  maxMembers: number = DEFAULT_MAX_MEMBERS;
   maxPresences: number = DEFAULT_MAX_PRESENCES;
   memberCount: number = 0;
   mfaLevel: number = 0;
@@ -755,6 +756,7 @@ export class Guild extends BaseStructure {
                 if (raw.user.id === this.client.user.id) {
                   raw.guild_id = this.id;
                   this.client.members.insert(new Member(this.client, raw));
+                  break;
                 }
               }
             }

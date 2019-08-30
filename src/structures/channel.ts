@@ -7,7 +7,8 @@ import {
   ShardClient,
   VoiceConnectOptions,
 } from '../client';
-import { BaseCollection } from '../collections';
+import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { ChannelTypes, Permissions } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 import {
@@ -70,13 +71,13 @@ export function createChannelFromData(client: ShardClient, data: any): Channel {
 }
 
 
-const keysChannelBase: ReadonlyArray<string> = [
+const keysChannelBase = new BaseSet<string>([
   'id',
   'name',
   'type',
-];
+]);
 
-const keysMergeChannelBase: ReadonlyArray<string> = [];
+const keysMergeChannelBase = new BaseSet<string>();
 
 /**
  * Basic Channel Structure
@@ -483,13 +484,13 @@ export interface CallOptions extends VoiceConnectOptions {
   verify?: boolean,
 }
 
-const keysChannelDm: ReadonlyArray<string> = [
+const keysChannelDm = new BaseSet<string>([
+  ...keysChannelBase,
   'last_message_id',
   'last_pin_timestamp',
   'nicks',
   'recipients',
-  ...keysChannelBase,
-];
+]);
 
 /**
  * Single DM Channel
@@ -497,6 +498,7 @@ const keysChannelDm: ReadonlyArray<string> = [
  */
 export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
+
   lastMessageId?: null | string;
   lastPinTimestamp?: Date;
 
@@ -669,13 +671,13 @@ export class ChannelDM extends ChannelBase {
 }
 
 
-const keysChannelDmGroup: ReadonlyArray<string> = [
+const keysChannelDmGroup = new BaseSet<string>([
+  ...keysChannelDm,
   'application_id',
   'icon',
   'name',
   'owner_id',
-  ...keysChannelDm,
-];
+]);
 
 /**
  * Group DM Channel
@@ -683,6 +685,7 @@ const keysChannelDmGroup: ReadonlyArray<string> = [
  */
 export class ChannelDMGroup extends ChannelDM {
   readonly _keys = keysChannelDmGroup;
+
   applicationId?: string;
   icon: null | string = null;
   name: string = '';
@@ -727,20 +730,20 @@ export class ChannelDMGroup extends ChannelDM {
 }
 
 
-const keysChannelGuildBase: ReadonlyArray<string> = [
+const keysChannelGuildBase = new BaseSet<string>([
+  ...keysChannelBase,
   'guild_id',
   'nsfw',
   'parent_id',
   'permission_overwrites',
   'position',
   'rate_limit_per_user',
-  ...keysChannelBase,
-];
+]);
 
-const keysMergeChannelGuildBase: ReadonlyArray<string> = [
+const keysMergeChannelGuildBase = new BaseSet<string>([
   'id',
   'guild_id',
-];
+]);
 
 /**
  * Basic Guild Channel
@@ -987,11 +990,11 @@ export class ChannelGuildBase extends ChannelBase {
 }
 
 
-const keysChannelGuildCategory: ReadonlyArray<string> = [
+const keysChannelGuildCategory = new BaseSet<string>([
+  ...keysChannelGuildBase,
   'bitrate',
   'user_limit',
-  ...keysChannelGuildBase,
-];
+]);
 
 /**
  * Guild Category Channel
@@ -999,6 +1002,7 @@ const keysChannelGuildCategory: ReadonlyArray<string> = [
  */
 export class ChannelGuildCategory extends ChannelGuildBase {
   readonly _keys = keysChannelGuildCategory;
+
   bitrate: number = 0;
   userLimit: number = 0;
 
@@ -1019,12 +1023,12 @@ export class ChannelGuildCategory extends ChannelGuildBase {
 }
 
 
-const keysChannelGuildText: ReadonlyArray<string> = [
+const keysChannelGuildText = new BaseSet<string>([
+  ...keysChannelGuildBase,
   'last_message_id',
   'last_pin_timestamp',
   'topic',
-  ...keysChannelGuildBase,
-];
+]);
 
 /**
  * Guild Text Channel, it can also be a news channel.
@@ -1033,6 +1037,7 @@ const keysChannelGuildText: ReadonlyArray<string> = [
  */
 export class ChannelGuildText extends ChannelGuildBase {
   readonly _keys = keysChannelGuildText;
+
   lastMessageId?: null | string;
   lastPinTimestamp?: Date;
   topic?: string = '';
@@ -1195,11 +1200,11 @@ export class ChannelGuildText extends ChannelGuildBase {
 }
 
 
-const keysChannelGuildVoice: ReadonlyArray<string> = [
+const keysChannelGuildVoice = new BaseSet<string>([
+  ...keysChannelGuildBase,
   'bitrate',
   'user_limit',
-  ...keysChannelGuildBase,
-];
+]);
 
 /**
  * Guild Voice Channel
@@ -1207,6 +1212,7 @@ const keysChannelGuildVoice: ReadonlyArray<string> = [
  */
 export class ChannelGuildVoice extends ChannelGuildBase {
   readonly _keys = keysChannelGuildVoice;
+
   bitrate: number = 64000;
   userLimit: number = 0;
 

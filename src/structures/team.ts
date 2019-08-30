@@ -2,6 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { Snowflake } from '../utils';
 import {
   TeamMembershipStates,
@@ -15,14 +16,14 @@ import {
 import { User } from './user';
 
 
-const keysTeam: ReadonlyArray<string> = [
+const keysTeam = new BaseSet<string>([
   'icon',
   'id',
   'members',
   'name',
   'owner_user_id',
   'payout_account_status',
-];
+]);
 
 /**
  * Team Structure
@@ -118,12 +119,12 @@ export class Team extends BaseStructure {
 }
 
 
-const keysTeamMember: ReadonlyArray<string> = [
+const keysTeamMember = new BaseSet<string>([
   'membership_state',
   'permissions',
   'team_id',
   'user',
-];
+]);
 
 /**
  * Team Member Structure

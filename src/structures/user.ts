@@ -5,6 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 import {
   PremiumTypes,
@@ -20,13 +21,13 @@ import { ChannelDM } from './channel';
 import { Presence } from './presence';
 
 
-const keysUser: ReadonlyArray<string> = [
+const keysUser = new BaseSet<string>([
   'avatar',
   'bot',
   'discriminator',
   'id',
   'username',
-];
+]);
 
 /**
  * Basic User Structure
@@ -34,6 +35,7 @@ const keysUser: ReadonlyArray<string> = [
  */
 export class User extends BaseStructure {
   readonly _keys = keysUser;
+
   avatar: string | null = null;
   bot: boolean = false;
   discriminator: string = '0000';
@@ -182,10 +184,10 @@ export class User extends BaseStructure {
 }
 
 
-const keysUserWithToken: ReadonlyArray<string> = [
+const keysUserWithToken = new BaseSet<string>([
   ...keysUser,
   'token',
-];
+]);
 
 /**
  * User with Token Structure
@@ -194,6 +196,7 @@ const keysUserWithToken: ReadonlyArray<string> = [
  */
 export class UserWithToken extends User {
   readonly _keys = keysUserWithToken;
+
   token: string = '';
 
   constructor(
@@ -206,10 +209,10 @@ export class UserWithToken extends User {
 }
 
 
-const keysUserWithFlags: ReadonlyArray<string> = [
+const keysUserWithFlags = new BaseSet<string>([
   ...keysUser,
   'flags',
-];
+]);
 
 /**
  * User with Flags Structure
@@ -218,6 +221,7 @@ const keysUserWithFlags: ReadonlyArray<string> = [
  */
 export class UserWithFlags extends User {
   readonly _keys = keysUserWithFlags;
+
   flags: number = 0;
 
   constructor(
@@ -281,14 +285,14 @@ export class UserWithFlags extends User {
 }
 
 
-const keysUserExtended: ReadonlyArray<string> = [
+const keysUserExtended = new BaseSet<string>([
   ...keysUserWithFlags,
   'email',
   'locale',
   'mfa_enabled',
   'premium_type',
   'verified',
-];
+]);
 
 /**
  * User Extended Structure
@@ -297,6 +301,7 @@ const keysUserExtended: ReadonlyArray<string> = [
  */
 export class UserExtended extends UserWithFlags {
   readonly _keys = keysUserExtended;
+
   email?: string | null;
   flags: number = 0;
   locale?: string | null;
@@ -334,10 +339,10 @@ export class UserExtended extends UserWithFlags {
 }
 
 
-const keysUserMe: ReadonlyArray<string> = [
+const keysUserMe = new BaseSet<string>([
   ...keysUserExtended,
   'phone',
-];
+]);
 
 /**
  * User Me Structure
@@ -346,7 +351,8 @@ const keysUserMe: ReadonlyArray<string> = [
  */
 export class UserMe extends UserExtended {
   readonly _keys = keysUserMe;
-  phone: string = '';
+
+  phone?: string;
 
   constructor(
     client: ShardClient,

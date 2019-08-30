@@ -1,10 +1,11 @@
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { MessageEmbedTypes } from '../constants';
 import { GatewayRawEvents } from '../gateway/rawevents';
 import { BaseStructureData, Structure } from '../structures/basestructure';
 
 
-const keysEmbed: ReadonlyArray<string> = [
+const keysEmbed = new BaseSet<string>([
   'author',
   'color',
   'description',
@@ -19,7 +20,7 @@ const keysEmbed: ReadonlyArray<string> = [
   'type',
   'url',
   'video',
-];
+]);
 
 /**
  * Utils Embed Structure
@@ -231,12 +232,12 @@ export class Embed extends Structure {
 }
 
 
-const keysEmbedAuthor: ReadonlyArray<string> = [
+const keysEmbedAuthor = new BaseSet<string>([
   'icon_url',
   'name',
   'proxy_icon_url',
   'url',
-];
+]);
 
 /**
  * Utils Embed Author Structure, used for [Embed] Structures
@@ -257,11 +258,11 @@ export class EmbedAuthor extends Structure {
 }
 
 
-const keysEmbedField: ReadonlyArray<string> = [
+const keysEmbedField = new BaseSet<string>([
   'inline',
   'name',
   'value',
-];
+]);
 
 /**
  * Utils Embed Field Structure, used for [Embed] Structures
@@ -281,11 +282,11 @@ export class EmbedField extends Structure {
 }
 
 
-const keysEmbedFooter: ReadonlyArray<string> = [
+const keysEmbedFooter = new BaseSet<string>([
   'icon_url',
   'proxy_icon_url',
   'text',
-];
+]);
 
 /**
  * Utils Embed Footer Structure, used for [Embed] Structures
@@ -305,19 +306,19 @@ export class EmbedFooter extends Structure {
 }
 
 
-const keysEmbedImage = [
+const keysEmbedImage = new BaseSet<string>([
   'height',
   'proxy_url',
   'url',
   'width',
-];
+]);
 
 /**
  * Utils Embed Image Structure, used for [Embed] Structures
  * @category Utils
  */
 export class EmbedImage extends Structure {
-  readonly _keys: ReadonlyArray<string> = keysEmbedImage;
+  readonly _keys = keysEmbedImage;
 
   height?: number;
   proxyUrl?: string;
@@ -331,10 +332,10 @@ export class EmbedImage extends Structure {
 }
 
 
-const keysEmbedProvider: ReadonlyArray<string> = [
+const keysEmbedProvider = new BaseSet<string>([
   'name',
   'url',
-];
+]);
 
 /**
  * Utils Provider Structure, used for [Embed] Structures

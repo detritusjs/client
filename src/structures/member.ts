@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { Permissions } from '../constants';
 import { PermissionTools } from '../utils';
 
@@ -17,7 +18,7 @@ import { User, UserMixin } from './user';
 import { VoiceState } from './voicestate';
 
 
-const keysMember: ReadonlyArray<string> = [
+const keysMember = new BaseSet<string>([
   'deaf',
   'guild_id',
   'hoisted_role',
@@ -27,11 +28,11 @@ const keysMember: ReadonlyArray<string> = [
   'premium_since',
   'roles',
   'user',
-];
+]);
 
-const keysMergeMember: ReadonlyArray<string> = [
+const keysMergeMember = new BaseSet<string>([
   'guild_id',
-];
+]);
 
 /**
  * Guild Member Structure

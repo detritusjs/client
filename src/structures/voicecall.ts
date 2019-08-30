@@ -3,6 +3,7 @@ import {
   VoiceConnectOptions,
 } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { VoiceConnection } from '../media/voiceconnection';
 
 import {
@@ -13,17 +14,17 @@ import { User } from './user';
 import { VoiceState } from './voicestate';
 
 
-const keysVoiceCall: ReadonlyArray<string> = [
+const keysVoiceCall = new BaseSet<string>([
   'channel_id',
   'message_id',
   'region',
   'ringing',
   'unavailable',
-];
+]);
 
-const keysMergeVoiceCall: ReadonlyArray<string> = [
+const keysMergeVoiceCall = new BaseSet<string>([
   'voice_states',
-];
+]);
 
 /**
  * VoiceCall Structure

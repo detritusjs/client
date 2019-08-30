@@ -4,6 +4,7 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import { InviteTargetUserTypes } from '../constants';
 
 import {
@@ -18,7 +19,7 @@ import { Guild } from './guild';
 import { User } from './user';
 
 
-const keysInvite: ReadonlyArray<string> = [
+const keysInvite = new BaseSet<string>([
   'approximate_member_count',
   'approximate_presence_count',
   'channel',
@@ -33,11 +34,11 @@ const keysInvite: ReadonlyArray<string> = [
   'target_user_type',
   'temporary',
   'uses',
-];
+]);
 
-const keysMergeInvite: ReadonlyArray<string> = [
+const keysMergeInvite = new BaseSet<string>([
   'guild',
-];
+]);
 
 /**
  * Instant Invite Structure

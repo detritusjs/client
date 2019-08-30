@@ -4,6 +4,7 @@ import {
 } from 'detritus-client-rest';
 
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { ShardClient } from '../client';
 import { ImageFormats } from '../constants';
 import { addQuery, Snowflake, UrlQuery } from '../utils';
@@ -17,7 +18,7 @@ import { Role } from './role';
 import { User } from './user';
 
 
-const keysEmoji: ReadonlyArray<string> = [
+const keysEmoji = new BaseSet<string>([
   'animated',
   'available',
   'guild_id',
@@ -27,11 +28,11 @@ const keysEmoji: ReadonlyArray<string> = [
   'require_colons',
   'roles',
   'user',
-];
+]);
 
-const keysMergeEmoji: ReadonlyArray<string> = [
+const keysMergeEmoji = new BaseSet<string>([
   'guild_id',
-];
+]);
 
 /**
  * Emoji Structure

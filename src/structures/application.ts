@@ -5,6 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { Distributors, DistributorNames, DistributorUrls, SpecialUrls } from '../constants';
 import {
   addQuery,
@@ -41,13 +42,14 @@ export interface ApplicationPublisher {
   name: string,
 }
 
-const keysApplication: ReadonlyArray<string> = [
+const keysApplication = new BaseSet<string>([
   'aliases',
   'bot_public',
   'bot_require_code_grant',
   'cover_image',
   'description',
   'developers',
+  'eula_id',
   'executables',
   'icon',
   'id',
@@ -57,13 +59,14 @@ const keysApplication: ReadonlyArray<string> = [
   'overlay_compatibility_hook',
   'primary_sku_id',
   'publishers',
+  'rpc_origins',
   'slug',
   'splash',
   'summary',
   'third_party_skus',
   'verify_key',
   'youtube_trailer_video_id',
-];
+]);
 
 /**
  * Application Structure, used for channels, guilds, presences, etc..
@@ -71,12 +74,14 @@ const keysApplication: ReadonlyArray<string> = [
  */
 export class Application extends BaseStructure {
   readonly _keys = keysApplication;
+
   aliases?: Array<string>;
   botPublic?: boolean;
   botRequireCodeGrant?: boolean;
   coverImage: null | string = null;
   description: string = '';
   developers?: Array<ApplicationDeveloper>;
+  eulaId?: string;
   executables?: Array<ApplicationExecutable>;
   icon: null | string = null;
   id: string = '';
@@ -86,6 +91,7 @@ export class Application extends BaseStructure {
   overlayCompatibilityHook?: boolean;
   primarySkuId?: string;
   publishers?: Array<ApplicationPublisher>;
+  rpcOrigins?: BaseSet<string>;
   slug: null | string = null;
   splash: null | string = null;
   summary: string = '';
@@ -229,6 +235,18 @@ export class Application extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case 'rpc_origins': {
+          if (this.rpcOrigins) {
+            this.rpcOrigins.clear();
+            for (let raw of value) {
+              this.rpcOrigins.add(raw);
+            }
+          } else {
+            if (value.length) {
+              this.rpcOrigins = new BaseSet(value);
+            }
+          }
+        }; return;
         case 'third_party_skus': {
           if (this.thirdPartySkus) {
             this.thirdPartySkus.clear();
@@ -248,15 +266,15 @@ export class Application extends BaseStructure {
 }
 
 
-const keysApplicationThirdPartySku: ReadonlyArray<string> = [
+const keysApplicationThirdPartySku = new BaseSet<string>([
   'distributor',
   'id',
   'sku',
-];
+]);
 
 export class ApplicationThirdPartySku extends BaseStructure {
   readonly _keys = keysApplicationThirdPartySku;
-  application: Application;
+  readonly application: Application;
 
   distributor: string = '';
   id: null | string = null;

@@ -1,3 +1,4 @@
+import { BaseSet } from '../collections/baseset';
 import { SPOILER_ATTACHMENT_PREFIX } from '../constants';
 import { Snowflake } from '../utils';
 
@@ -87,7 +88,7 @@ export const MimeClassTypes: Array<{
 ];
 
 
-const keysAttachment: ReadonlyArray<string> = [
+const keysAttachment = new BaseSet<string>([
   'filename',
   'height',
   'id',
@@ -95,7 +96,7 @@ const keysAttachment: ReadonlyArray<string> = [
   'size',
   'url',
   'width',
-];
+]);
 
 /**
  * Attachment Structure, used for [Message] objects
@@ -103,7 +104,7 @@ const keysAttachment: ReadonlyArray<string> = [
  */
 export class Attachment extends BaseStructure {
   readonly _keys = keysAttachment;
-  message: Message;
+  readonly message: Message;
 
   filename: string = '';
   height: number = 0;

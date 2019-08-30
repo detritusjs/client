@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections';
 import { toCamelCase } from '../utils';
 
 
@@ -12,9 +13,9 @@ export interface BaseStructureData {
  */
 export class Structure {
   /** @ignore */
-  readonly _keys?: ReadonlyArray<string>;
+  readonly _keys?: BaseSet<string>;
   /** @ignore */
-  readonly _keysMerge?: ReadonlyArray<string>;
+  readonly _keysMerge?: BaseSet<string>;
 
   constructor() {
     Object.defineProperties(this, {
@@ -59,29 +60,33 @@ export class Structure {
   }
 
   merge(data: BaseStructureData): void {
-    if (this._keysMerge) {
-      for (let key of this._keysMerge) {
-        this.mergeValue(key, data[key]);
+    if (this._keys) {
+      if (this._keysMerge) {
+        for (let key of this._keysMerge) {
+          if (this._keys.has(key)) {
+            this.mergeValue(key, data[key]);
+          }
+        }
       }
-    }
-    for (let key in data) {
-      if (this._keysMerge && this._keysMerge.includes(key)) {
-        continue;
+      for (let key in data) {
+        if (this._keysMerge && this._keysMerge.has(key)) {
+          continue;
+        }
+        if (this._keys.has(key)) {
+          let value = data[key];
+          if (value instanceof BaseStructure) {
+            this._setFromSnake(key, value);
+            continue;
+          }
+          this.mergeValue(key, value);
+        }
       }
-      let value = data[key];
-      if (value instanceof BaseStructure) {
-        this._setFromSnake(key, value);
-        continue;
-      }
-      this.mergeValue(key, value);
     }
   }
 
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
-      if (this._keys && this._keys.includes(key)) {
-        this._setFromSnake(key, value);
-      }
+      this._setFromSnake(key, value);
     }
   }
 

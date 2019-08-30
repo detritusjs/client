@@ -4,6 +4,7 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 
 import {
@@ -15,7 +16,7 @@ import { Guild } from './guild';
 import { User } from './user';
 
 
-const keysWebhook: ReadonlyArray<string> = [
+const keysWebhook = new BaseSet<string>([
   'avatar',
   'channel_id',
   'discriminator',
@@ -24,7 +25,7 @@ const keysWebhook: ReadonlyArray<string> = [
   'name',
   'token',
   'user',
-];
+]);
 
 /**
  * Webhook Structure

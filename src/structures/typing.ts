@@ -1,6 +1,7 @@
 import { Timers } from 'detritus-utils';
 
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import { TYPING_TIMEOUT } from '../constants';
 
 import {
@@ -13,18 +14,18 @@ import { Member } from './member';
 import { User } from './user';
 
 
-const keysTyping: ReadonlyArray<string> = [
+const keysTyping = new BaseSet<string>([
   'channel_id',
   'guild_id',
   'member',
   'timestamp',
   'user',
   'user_id',
-];
+]);
 
-const keysMergeTyping: ReadonlyArray<string> = [
+const keysMergeTyping = new BaseSet<string>([
   'guild_id',
-];
+]);
 
 /**
  * Channel Typing Structure

@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import { Snowflake } from '../utils';
 
 import {
@@ -8,7 +9,7 @@ import {
 import { User } from './user';
 
 
-const keysIntegration: ReadonlyArray<string> = [
+const keysIntegration = new BaseSet<string>([
   'account',
   'enabled',
   'expire_behavior',
@@ -21,7 +22,7 @@ const keysIntegration: ReadonlyArray<string> = [
   'syncing',
   'type',
   'user',
-];
+]);
 
 /**
  * Guild Integration Structure
@@ -82,10 +83,10 @@ export class Integration extends BaseStructure {
 }
 
 
-const keysIntegrationAccount: ReadonlyArray<string> = [
+const keysIntegrationAccount = new BaseSet<string>([
   'id',
   'name',
-];
+]);
 
 /**
  * Guild Integration Account Structure, used in [[Integration]]
@@ -93,7 +94,7 @@ const keysIntegrationAccount: ReadonlyArray<string> = [
  */
 export class IntegrationAccount extends BaseStructure {
   readonly _keys = keysIntegrationAccount;
-  integration: Integration;
+  readonly integration: Integration;
 
   id: string = '';
   name: string = '';

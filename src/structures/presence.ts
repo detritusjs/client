@@ -3,6 +3,7 @@ import { Endpoints } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { DEFAULT_PRESENCE_CACHE_KEY } from '../collections/presences';
 import {
   ActivityFlags,
@@ -35,7 +36,7 @@ export const ImageSizes = Object.freeze({
 });
 
 
-const keysPresence: ReadonlyArray<string> = [
+const keysPresence = new BaseSet<string>([
   'activities',
   'client_status',
   'game',
@@ -43,11 +44,11 @@ const keysPresence: ReadonlyArray<string> = [
   'last_modified',
   'status',
   'user',
-];
+]);
 
-const keysMergePresence: ReadonlyArray<string> = [
+const keysMergePresence = new BaseSet<string>([
   'activities',
-];
+]);
 
 /**
  * Presence Structure, used to detail a user's presence in a guild (or general if you have them added (non-bots only))
@@ -184,7 +185,7 @@ export class Presence extends BaseStructure {
 }
 
 
-const keysPresenceActivity: ReadonlyArray<string> = [
+const keysPresenceActivity = new BaseSet<string>([
   'application_id',
   'assets',
   'created_at',
@@ -204,7 +205,7 @@ const keysPresenceActivity: ReadonlyArray<string> = [
   'timestamps',
   'type',
   'url',
-];
+]);
 
 /**
  * Presence Activity Structure, used in [Presence]
@@ -212,7 +213,7 @@ const keysPresenceActivity: ReadonlyArray<string> = [
  */
 export class PresenceActivity extends BaseStructure {
   readonly _keys = keysPresenceActivity;
-  presence: Presence;
+  readonly presence: Presence;
 
   applicationId?: string;
   assets?: PresenceActivityAssets;
@@ -449,12 +450,12 @@ export class PresenceActivity extends BaseStructure {
 }
 
 
-const keysPresenceActivityAssets: ReadonlyArray<string> = [
+const keysPresenceActivityAssets = new BaseSet<string>([
   'large_image',
   'large_text',
   'small_image',
   'small_text',
-];
+]);
 
 /**
  * Presence Activity Assets Structure, used in [PresenceActivity]
@@ -462,7 +463,7 @@ const keysPresenceActivityAssets: ReadonlyArray<string> = [
  */
 export class PresenceActivityAssets extends BaseStructure {
   readonly _keys = keysPresenceActivityAssets;
-  activity: PresenceActivity;
+  readonly activity: PresenceActivity;
 
   largeImage?: string;
   largeText?: string;
@@ -549,10 +550,10 @@ export class PresenceActivityAssets extends BaseStructure {
 }
 
 
-const keysPresenceActivityParty: ReadonlyArray<string> = [
+const keysPresenceActivityParty = new BaseSet<string>([
   'id',
   'size',
-];
+]);
 
 /**
  * Presence Activity Party Structure, used in [PresenceActivity]
@@ -561,7 +562,7 @@ const keysPresenceActivityParty: ReadonlyArray<string> = [
  */
 export class PresenceActivityParty extends BaseStructure {
   readonly _keys = keysPresenceActivityParty;
-  activity: PresenceActivity;
+  readonly activity: PresenceActivity;
 
   id?: string;
   size?: [number, number];
@@ -623,11 +624,11 @@ export class PresenceActivityParty extends BaseStructure {
 }
 
 
-const keysPresenceActivitySecrets: ReadonlyArray<string> = [
+const keysPresenceActivitySecrets = new BaseSet<string>([
   'join',
   'match',
   'spectate',
-];
+]);
 
 /**
  * Presence Activity Secrets Structure
@@ -636,7 +637,7 @@ const keysPresenceActivitySecrets: ReadonlyArray<string> = [
  */
 export class PresenceActivitySecrets extends BaseStructure {
   readonly _keys = keysPresenceActivitySecrets;
-  activity: PresenceActivity;
+  readonly activity: PresenceActivity;
 
   join?: string;
   match?: string;
@@ -651,10 +652,10 @@ export class PresenceActivitySecrets extends BaseStructure {
 }
 
 
-const keysPresenceActivityTimestamps: ReadonlyArray<string> = [
+const keysPresenceActivityTimestamps = new BaseSet<string>([
   'end',
   'start',
-];
+]);
 
 /**
  * Presence Activity Timestamp Structure
@@ -663,7 +664,7 @@ const keysPresenceActivityTimestamps: ReadonlyArray<string> = [
  */
 export class PresenceActivityTimestamps extends BaseStructure {
   readonly _keys = keysPresenceActivityTimestamps;
-  activity: PresenceActivity;
+  readonly activity: PresenceActivity;
 
   end?: number;
   start: number = 0;
@@ -693,11 +694,11 @@ export class PresenceActivityTimestamps extends BaseStructure {
 }
 
 
-const keysPresenceClientStatus: ReadonlyArray<string> = [
+const keysPresenceClientStatus = new BaseSet<string>([
   'desktop',
   'mobile',
   'web',
-];
+]);
 
 /**
  * Presence Client Status Structure, used in [Presence]
@@ -706,7 +707,7 @@ const keysPresenceClientStatus: ReadonlyArray<string> = [
  */
 export class PresenceClientStatus extends BaseStructure {
   readonly _keys = keysPresenceClientStatus;
-  presence: Presence;
+  readonly presence: Presence;
 
   desktop?: string;
   mobile?: string;

@@ -1,6 +1,7 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 
 import {
   BaseStructure,
@@ -12,14 +13,14 @@ import { Guild } from './guild';
 import { Message } from './message';
 
 
-const keysReaction: ReadonlyArray<string> = [
+const keysReaction = new BaseSet<string>([
   'channel_id',
   'count',
   'emoji',
   'guild_id',
   'message_id',
   'me',
-];
+]);
 
 /**
  * Reaction Structure, used in [Message]

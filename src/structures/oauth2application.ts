@@ -1,6 +1,7 @@
 import { Endpoints, RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import { Oauth2AssetTypes } from '../constants';
 import {
   addQuery,
@@ -16,7 +17,7 @@ import { Team } from './team';
 import { User, UserWithFlags, UserWithToken } from './user';
 
 
-const keysOauth2Application: ReadonlyArray<string> = [
+const keysOauth2Application = new BaseSet<string>([
   'bot',
   'bot_public',
   'bot_require_code_grant',
@@ -34,7 +35,7 @@ const keysOauth2Application: ReadonlyArray<string> = [
   'summary',
   'team',
   'verify_key',
-];
+]);
 
 /**
  * Oauth2 Application Structure
@@ -129,12 +130,12 @@ export class Oauth2Application extends BaseStructure {
 }
 
 
-export const keysOauth2ApplicationAsset: ReadonlyArray<string> = [
+export const keysOauth2ApplicationAsset = new BaseSet<string>([
   'application_id',
   'id',
   'name',
   'type',
-];
+]);
 
 export class Oauth2ApplicationAsset extends BaseStructure {
   readonly _keys = keysOauth2ApplicationAsset;

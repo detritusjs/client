@@ -2,6 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { Snowflake } from '../utils';
 
 import {
@@ -12,7 +13,7 @@ import { Guild } from './guild';
 import { Member } from './member';
 
 
-const keysRole: ReadonlyArray<string> = [
+const keysRole = new BaseSet<string>([
   'color',
   'guild_id',
   'hoist',
@@ -22,7 +23,7 @@ const keysRole: ReadonlyArray<string> = [
   'name',
   'permissions',
   'position',
-];
+]);
 
 /**
  * Guild Role Structure, used in [Guild]

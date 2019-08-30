@@ -1,5 +1,6 @@
-import { BaseCollection } from '../collections/basecollection';
 import { ShardClient } from '../client';
+import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { MessageEmbedTypes } from '../constants';
 
 import {
@@ -8,7 +9,7 @@ import {
 } from './basestructure';
 
 
-const keysMessageEmbed: ReadonlyArray<string> = [
+const keysMessageEmbed = new BaseSet<string>([
   'author',
   'color',
   'description',
@@ -23,7 +24,7 @@ const keysMessageEmbed: ReadonlyArray<string> = [
   'type',
   'url',
   'video',
-];
+]);
 
 /**
  * Embed Structure, used for [Message] Structures
@@ -132,12 +133,12 @@ export class MessageEmbed extends BaseStructure {
 }
 
 
-const keysMessageEmbedAuthor: ReadonlyArray<string> = [
+const keysMessageEmbedAuthor = new BaseSet<string>([
   'icon_url',
   'name',
   'proxy_icon_url',
   'url',
-];
+]);
 
 /**
  * Embed Author Structure, used for [MessageEmbed] Structures
@@ -158,11 +159,11 @@ export class MessageEmbedAuthor extends BaseStructure {
 }
 
 
-const keysMessageEmbedField: ReadonlyArray<string> = [
+const keysMessageEmbedField = new BaseSet<string>([
   'inline',
   'name',
   'value',
-];
+]);
 
 /**
  * Embed Field Structure, used for [MessageEmbed] Structures
@@ -182,11 +183,11 @@ export class MessageEmbedField extends BaseStructure {
 }
 
 
-const keysMessageEmbedFooter: ReadonlyArray<string> = [
+const keysMessageEmbedFooter = new BaseSet<string>([
   'icon_url',
   'proxy_icon_url',
   'text',
-];
+]);
 
 /**
  * Embed Footer Structure, used for [ApplicationNews] and [MessageEmbed] Structures
@@ -206,19 +207,19 @@ export class MessageEmbedFooter extends BaseStructure {
 }
 
 
-const keysMessageEmbedImage = [
+const keysMessageEmbedImage = new BaseSet<string>([
   'height',
   'proxy_url',
   'url',
   'width',
-];
+]);
 
 /**
  * Embed Image Structure, used for [MessageEmbed] Structures
  * @category Structure
  */
 export class MessageEmbedImage extends BaseStructure {
-  readonly _keys: ReadonlyArray<string> = keysMessageEmbedImage;
+  readonly _keys = keysMessageEmbedImage;
 
   height: number = 0;
   proxyUrl?: string;
@@ -232,10 +233,10 @@ export class MessageEmbedImage extends BaseStructure {
 }
 
 
-const keysMessageEmbedProvider: ReadonlyArray<string> = [
+const keysMessageEmbedProvider = new BaseSet<string>([
   'name',
   'url',
-];
+]);
 
 /**
  * Embed Provider Structure, used for [MessageEmbed] Structures

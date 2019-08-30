@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 
 import {
   BaseStructure,
@@ -10,13 +11,13 @@ import { Guild } from './guild';
 import { User } from './user';
 
 
-const keysProfile: ReadonlyArray<string> = [
+const keysProfile = new BaseSet<string>([
   'connected_accounts',
   'mutual_guilds',
   'premium_guild_since',
   'premium_since',
   'user',
-];
+]);
 
 /**
  * User Profile Structure

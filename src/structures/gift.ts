@@ -4,6 +4,7 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 
 import {
   BaseStructure,
@@ -13,7 +14,7 @@ import { StoreListing } from './store';
 import { User } from './user';
 
 
-const keysGift: ReadonlyArray<string> = [
+const keysGift = new BaseSet<string>([
   'application_id',
   'code',
   'expires_at',
@@ -25,11 +26,11 @@ const keysGift: ReadonlyArray<string> = [
   'subscription_plan_id',
   'user',
   'uses',
-];
+]);
 
-const keysMergeGift: ReadonlyArray<string> = [
+const keysMergeGift = new BaseSet<string>([
   'subscription_plan',
-];
+]);
 
 /**
  * Discord Nitro Gift Structure
@@ -102,7 +103,7 @@ export class Gift extends BaseStructure {
 }
 
 
-const keysSubscriptionPlan = [
+const keysSubscriptionPlan = new BaseSet<string>([
   'currency',
   'id',
   'interval',
@@ -111,7 +112,7 @@ const keysSubscriptionPlan = [
   'price',
   'sku_id',
   'tax_inclusive',
-];
+]);
 
 /**
  * Subscription Plan, used in [[Gift]]

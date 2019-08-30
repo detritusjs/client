@@ -1,6 +1,7 @@
 import { Endpoints } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import {
   addQuery,
   getFormatFromHash,
@@ -14,12 +15,12 @@ import {
 import { Application } from './application';
 
 
-const keysStore: ReadonlyArray<string> = [
+const keysStore = new BaseSet<string>([
   'id',
   'sku',
   'summary',
   'thumbnail',
-];
+]);
 
 /**
  * Store Listing Structure
@@ -55,13 +56,13 @@ export class StoreListing extends BaseStructure {
 }
 
 
-const keysStoreListingThumbnail: ReadonlyArray<string> = [
+const keysStoreListingThumbnail = new BaseSet<string>([
   'height',
   'id',
   'mime_type',
   'size',
   'width',
-];
+]);
 
 /**
  * Store Listing Thumbnail Structure, used in [StoreListing]
@@ -86,7 +87,7 @@ export class StoreListingThumbnail extends BaseStructure {
 }
 
 
-const keysSku = [
+const keysSku = new BaseSet<string>([
   'access_type',
   'application',
   'application_id',
@@ -101,7 +102,7 @@ const keysSku = [
   'show_age_gate',
   'slug',
   'type',
-];
+]);
 
 /**
  * Sku Structure, used in [Gift] and [StoreListing]
@@ -157,7 +158,7 @@ export class Sku extends BaseStructure {
 }
 
 
-export const keysStoreApplicationAsset: ReadonlyArray<string> = [
+export const keysStoreApplicationAsset = new BaseSet<string>([
   'application_id',
   'filename',
   'height',
@@ -165,7 +166,7 @@ export const keysStoreApplicationAsset: ReadonlyArray<string> = [
   'mime_type',
   'size',
   'width',
-];
+]);
 
 export class StoreApplicationAsset extends BaseStructure {
   readonly _keys = keysStoreApplicationAsset;

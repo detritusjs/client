@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 
 import {
   BaseStructure,
@@ -6,7 +7,7 @@ import {
 } from './basestructure';
 
 
-const keysConnectedAccount = [
+const keysConnectedAccount = new BaseSet<string>([
   'friend_sync',
   'id',
   'integrations',
@@ -16,7 +17,7 @@ const keysConnectedAccount = [
   'type',
   'verified',
   'visibility',
-];
+]);
 
 /**
  * Connected Account

@@ -1,3 +1,5 @@
+import { Timers } from 'detritus-utils';
+
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
@@ -39,6 +41,7 @@ export interface GatewayHandlerOptions {
   disabledEvents?: Array<string>,
   emitRawEvent?: boolean,
   loadAllMembers?: boolean,
+  whitelistedEvents?: Array<string>,
 }
 
 export interface GatewayHandlerPayload {
@@ -57,7 +60,14 @@ export class GatewayHandler {
   dispatchHandler: GatewayDispatchHandler;
   emitRawEvent: boolean = false;
   loadAllMembers: boolean = false;
-  memberChunksLeft = new BaseSet<string>();
+
+  memberChunks = {
+    delay: 2000,
+    done: new BaseSet<string>(),
+    left: new BaseSet<string>(),
+    sending: new BaseSet<string>(),
+    timer: new Timers.Timeout(),
+  };
 
   constructor(
     client: ShardClient,
@@ -72,6 +82,17 @@ export class GatewayHandler {
       return v.toUpperCase();
     }));
     this.loadAllMembers = !!options.loadAllMembers;
+
+    if (options.whitelistedEvents) {
+      this.disabledEvents.clear();
+      for (let event of Object.values(GatewayDispatchEvents)) {
+        this.disabledEvents.add(event);
+      }
+      for (let event of options.whitelistedEvents) {
+        this.disabledEvents.delete(event.toUpperCase());
+      }
+    }
+    this.disabledEvents.delete(GatewayDispatchEvents.READY);
   }
 
   get shouldLoadAllMembers(): boolean {
@@ -157,6 +178,7 @@ export class GatewayDispatchHandler {
     }
 
     if (this.client.guilds.enabled) {
+      const requestChunksNow: Array<string> = [];
       for (let raw of data['guilds']) {
         let guild: Guild;
         if (this.client.guilds.has(raw.id)) {
@@ -168,20 +190,21 @@ export class GatewayDispatchHandler {
         }
         if (this.handler.shouldLoadAllMembers) {
           if (guild.unavailable) {
-            this.handler.memberChunksLeft.add(guild.id);
+            this.handler.memberChunks.left.add(guild.id);
           } else {
-            if (this.handler.memberChunksLeft.has(guild.id)) {
-              if (this.client.gateway.largeThreshold < guild.memberCount) {
-                this.client.gateway.requestGuildMembers(guild.id, {
-                  limit: 0,
-                  presences: true,
-                  query: '',
-                });
-              }
-              this.handler.memberChunksLeft.delete(guild.id);
+            if (guild.large && guild.members.length !== guild.memberCount) {
+              requestChunksNow.push(guild.id);
+              this.handler.memberChunks.done.add(guild.id);
             }
           }
         }
+      }
+      if (requestChunksNow.length) {
+        this.client.gateway.requestGuildMembers(requestChunksNow, {
+          limit: 0,
+          presences: true,
+          query: '',
+        });
       }
     }
 
@@ -218,7 +241,6 @@ export class GatewayDispatchHandler {
     }
 
     this.client.gateway.discordTrace = data['_trace'];
-    this.client.emit(ClientEvents.GATEWAY_READY, {raw: data});
 
     if (this.client.isBot) {
       try {
@@ -229,6 +251,14 @@ export class GatewayDispatchHandler {
     } else {
       this.client.owners.set(me.id, me);
     }
+
+    try {
+      await this.client.applications.fill();
+    } catch(error) {
+      this.client.emit('warn', new GatewayHTTPError('Failed to fetch Applications', error));
+    }
+
+    this.client.emit(ClientEvents.GATEWAY_READY, {raw: data});
   }
 
   [GatewayDispatchEvents.RESUMED](data: GatewayRawEvents.Resumed) {
@@ -490,22 +520,29 @@ export class GatewayDispatchHandler {
     } else {
       guild = new Guild(this.client, data);
       this.client.guilds.insert(guild);
-      if (this.handler.shouldLoadAllMembers) {
-        this.handler.memberChunksLeft.add(guild.id);
-      }
     }
 
-    if (this.handler.memberChunksLeft.has(guild.id)) {
-      if (this.handler.shouldLoadAllMembers) {
-        if (this.client.gateway.largeThreshold < guild.memberCount) {
-          this.client.gateway.requestGuildMembers(guild.id, {
-            limit: 0,
-            presences: true,
-            query: '',
+    if (this.handler.shouldLoadAllMembers) {
+      if (!this.handler.memberChunks.done.has(guild.id)) {
+        this.handler.memberChunks.left.add(guild.id);
+      }
+
+      if (this.handler.memberChunks.left.has(guild.id)) {
+        if (guild.large && guild.members.length !== guild.memberCount) {
+          this.handler.memberChunks.sending.add(guild.id);
+          this.handler.memberChunks.timer.start(this.handler.memberChunks.delay, () => {
+            const guildIds = this.handler.memberChunks.sending.toArray();
+            this.handler.memberChunks.sending.clear();
+            this.client.gateway.requestGuildMembers(guildIds, {
+              limit: 0,
+              presences: true,
+              query: '',
+            });
           });
         }
+        this.handler.memberChunks.done.add(guild.id);
+        this.handler.memberChunks.left.delete(guild.id);
       }
-      this.handler.memberChunksLeft.delete(data.id);
     }
 
     this.client.emit(ClientEvents.GUILD_CREATE, {
@@ -1005,7 +1042,7 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (reaction === null) {
+    if (!reaction) {
       reaction = new Reaction(this.client, data);
       if (message) {
         message.reactions.set(emojiId, reaction);
@@ -1021,7 +1058,7 @@ export class GatewayDispatchHandler {
     if (this.client.channels.has(channelId)) {
       channel = <Channel> this.client.channels.get(channelId);
     }
-    if (guildId !== undefined && this.client.guilds.has(guildId)) {
+    if (guildId && this.client.guilds.has(guildId)) {
       guild = <Guild> this.client.guilds.get(guildId);
     }
 
@@ -1071,14 +1108,14 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (reaction === null) {
+    if (!reaction) {
       reaction = new Reaction(this.client, data);
     }
 
     if (this.client.channels.has(channelId)) {
       channel = <Channel> this.client.channels.get(channelId);
     }
-    if (guildId !== undefined && this.client.guilds.has(guildId)) {
+    if (guildId && this.client.guilds.has(guildId)) {
       guild = <Guild> this.client.guilds.get(guildId);
     }
 
@@ -1177,18 +1214,11 @@ export class GatewayDispatchHandler {
     presence = this.client.presences.insert(data);
 
     if (data['guild_id']) {
-      const rawMember = {
-        guild_id: data['guild_id'],
-        nick: data['nick'],
-        premium_since: data['premium_since'],
-        roles: data['roles'] || [],
-        user: data['user'],
-      };
       if (this.client.members.has(data['guild_id'], data['user']['id'])) {
         member = <Member> this.client.members.get(data['guild_id'], data['user']['id']);
-        member.merge(rawMember);
+        member.merge(data);
       } else {
-        member = new Member(this.client, rawMember);
+        member = new Member(this.client, data);
         this.client.members.insert(member);
       }
     }

@@ -4,6 +4,7 @@ import {
   ShardClient,
   VoiceConnectOptions,
 } from '../client';
+import { BaseSet } from '../collections/baseset';
 
 import {
   BaseStructure,
@@ -14,7 +15,7 @@ import { Guild } from './guild';
 import { Member } from './member';
 
 
-const keysVoiceState: ReadonlyArray<string> = [
+const keysVoiceState = new BaseSet<string>([
   'channel_id',
   'deaf',
   'guild_id',
@@ -27,11 +28,11 @@ const keysVoiceState: ReadonlyArray<string> = [
   'session_id',
   'suppress',
   'user_id',
-];
+]);
 
-const keysMergeVoiceState: ReadonlyArray<string> = [
+const keysMergeVoiceState = new BaseSet<string>([
   'guild_id',
-];
+]);
 
 /**
  * Voice State Structure

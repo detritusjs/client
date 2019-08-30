@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import { RelationshipTypes } from '../constants';
 
 import {
@@ -8,11 +9,11 @@ import {
 import { User } from './user';
 
 
-const keysRelationship: ReadonlyArray<string> = [
+const keysRelationship = new BaseSet<string>([
   'id',
   'type',
   'user',
-];
+]);
 
 /**
  * Relationship Structure

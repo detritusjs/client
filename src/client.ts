@@ -108,7 +108,6 @@ export interface ShardClientOptions {
 }
 
 export interface ShardClientRunOptions {
-  applications?: boolean,
   url?: string,
   wait?: boolean,
 }
@@ -292,6 +291,7 @@ export class ShardClient extends EventEmitter {
 
   reset(): void {
     this.owners.clear();
+    this.applications.clear();
     this.channels.clear();
     this.emojis.clear();
     this.guilds.clear();
@@ -309,7 +309,6 @@ export class ShardClient extends EventEmitter {
   async run(
     options: ShardClientRunOptions = {},
   ): Promise<ShardClient> {
-    const fetchApplications = options.applications || options.applications === undefined;
     const wait = options.wait || options.wait === undefined;
 
     let url: string;
@@ -321,21 +320,13 @@ export class ShardClient extends EventEmitter {
     }
 
     this.gateway.connect(url);
-    return new Promise((resolve) => {
-      if (wait) {
+    if (wait) {
+      await new Promise((resolve) => {
         this.once(ClientEvents.GATEWAY_READY, resolve);
-      } else {
-        resolve();
-      }
-    }).then(() => {
-      Object.defineProperty(this, 'ran', {value: true});
-      if (fetchApplications) {
-        this.applications.fill().catch((error: any) => {
-          this.emit('warn', error);
-        });
-      }
-      return this;
-    });
+      });
+    }
+    Object.defineProperty(this, 'ran', {value: true});
+    return this;
   }
 
   /**

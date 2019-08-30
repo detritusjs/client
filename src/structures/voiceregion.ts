@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 
 import {
   BaseStructure,
@@ -6,14 +7,14 @@ import {
 } from './basestructure';
 
 
-const keysVoiceRegion: ReadonlyArray<string> = [
+const keysVoiceRegion = new BaseSet<string>([
   'custom',
   'deprecated',
   'id',
   'name',
   'optimal',
   'vip',
-];
+]);
 
 /**
  * Voice Region Structure
@@ -21,6 +22,7 @@ const keysVoiceRegion: ReadonlyArray<string> = [
  */
 export class VoiceRegion extends BaseStructure {
   readonly _keys = keysVoiceRegion;
+
   custom: boolean = false;
   deprecated: boolean = false;
   id: string = '';

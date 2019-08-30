@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { Snowflake } from '../utils';
 
 import {
@@ -21,7 +22,7 @@ import { User } from './user';
 import { Webhook } from './webhook';
 
 
-const keysAuditLog: ReadonlyArray<string> = [
+const keysAuditLog = new BaseSet<string>([
   'action_type',
   'changes',
   'id',
@@ -32,7 +33,7 @@ const keysAuditLog: ReadonlyArray<string> = [
   'target_id',
   'user',
   'user_id',
-];
+]);
 
 /**
  * Guild Audit Log
@@ -40,6 +41,7 @@ const keysAuditLog: ReadonlyArray<string> = [
  */
 export class AuditLog extends BaseStructure {
   readonly _keys = keysAuditLog;
+
   actionType: number = -1;
   changes = new BaseCollection<string, any>();
   id: string = '';
@@ -88,11 +90,11 @@ export class AuditLog extends BaseStructure {
 }
 
 
-const keysAuditLogChange: ReadonlyArray<string> = [
+const keysAuditLogChange = new BaseSet<string>([
   'key',
   'new_value',
   'old_value',
-];
+]);
 
 /**
  * Guild Audit Log Change, used in [[AuditLog]]
@@ -115,7 +117,7 @@ export class AuditLogChange extends BaseStructure {
 }
 
 
-const keysAuditLogOptions: ReadonlyArray<string> = [
+const keysAuditLogOptions = new BaseSet<string>([
   'channel',
   'channel_id',
   'count',
@@ -124,7 +126,7 @@ const keysAuditLogOptions: ReadonlyArray<string> = [
   'members_removed',
   'subtarget',
   'type',
-];
+]);
 
 /**
  * Guild Audit Log Options, used in [[AuditLog]]

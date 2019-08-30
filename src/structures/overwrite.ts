@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import { OverwriteTypes } from '../constants';
 import { PermissionTools } from '../utils';
 
@@ -12,14 +13,14 @@ import { Member } from './member';
 import { Role } from './role';
 
 
-const keysOverwrite: ReadonlyArray<string> = [
+const keysOverwrite = new BaseSet<string>([
   'allow',
   'channel_id',
   'deny',
   'guild_id',
   'id',
   'type',
-];
+]);
 
 /**
  * Channel Overwrite Structure, used in [ChannelGuildBase] Structures

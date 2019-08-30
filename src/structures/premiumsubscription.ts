@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import { Snowflake } from '../utils';
 
 import {
@@ -9,12 +10,12 @@ import { Guild } from './guild';
 import { User } from './user';
 
 
-const keysPremiumSubscription: ReadonlyArray<string> = [
+const keysPremiumSubscription = new BaseSet<string>([
   'ended',
   'guild_id',
   'id',
   'user_id',
-];
+]);
 
 /**
  * Premium Subscription Structure, details a user's nitro boost on the server

@@ -5,6 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import {
   MessageFlags,
   MessageTypes,
@@ -33,7 +34,7 @@ import { Role } from './role';
 import { User } from './user';
 
 
-const keysMessage: ReadonlyArray<string> = [
+const keysMessage = new BaseSet<string>([
   'activity',
   'application',
   'attachments',
@@ -59,9 +60,9 @@ const keysMessage: ReadonlyArray<string> = [
   'tts',
   'type',
   'webhook_id',
-];
+]);
 
-const keysMergeMessage: ReadonlyArray<string> = [
+const keysMergeMessage = new BaseSet<string>([
   'author',
   'channel_id',
   'guild_id',
@@ -69,7 +70,7 @@ const keysMergeMessage: ReadonlyArray<string> = [
   'mentions',
   'type',
   'webhook_id',
-];
+]);
 
 /**
  * Channel Message Structure
@@ -490,10 +491,12 @@ export class Message extends BaseStructure {
 }
 
 
-const keysMessageActivity: ReadonlyArray<string> = [
+const keysMessageActivity = new BaseSet<string>([
+  'cover_image',
+  'name',
   'party_id',
   'type',
-];
+]);
 
 /**
  * Channel Message Activity Structure, used for inviting people to listen/join
@@ -517,10 +520,10 @@ export class MessageActivity extends BaseStructure {
 }
 
 
-const keysMessageCall: ReadonlyArray<string> = [
+const keysMessageCall = new BaseSet<string>([
   'ended_timestamp',
   'participants',
-];
+]);
 
 /**
  * Channel Message Call Structure, used to define the call properties in the DM it's from
@@ -560,11 +563,11 @@ export class MessageCall extends BaseStructure {
 }
 
 
-const keysMessageReference: ReadonlyArray<string> = [
+const keysMessageReference = new BaseSet<string>([
   'channel_id',
   'guild_id',
   'message_id',
-];
+]);
 
 /**
  * Channel Message Reference Structure, used to tell the client that this is from a server webhook

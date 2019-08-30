@@ -1,4 +1,5 @@
 import { ShardClient } from '../client';
+import { BaseSet } from '../collections/baseset';
 import {
   MessageEmbedTypes,
 } from '../constants';
@@ -13,7 +14,7 @@ import {
 } from './messageembed';
 
 
-const keysApplicationNews: ReadonlyArray<string> = [
+const keysApplicationNews = new BaseSet<string>([
   'application_id',
   'category',
   'description',
@@ -26,7 +27,7 @@ const keysApplicationNews: ReadonlyArray<string> = [
   'title',
   'type',
   'url',
-];
+]);
 
 /**
  * Application News Structure
@@ -34,6 +35,7 @@ const keysApplicationNews: ReadonlyArray<string> = [
  */
 export class ApplicationNews extends BaseStructure {
   readonly _keys = keysApplicationNews;
+
   applicationId: string = '';
   category: null = null;
   description: string = '';
