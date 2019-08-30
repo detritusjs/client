@@ -148,4 +148,11 @@ export class ClusterProcessChild extends EventEmitter {
       }
     });
   }
+
+  on(event: string, listener: Function): this;
+  on(event: 'ipc', listener: (message: any) => any): this;
+  on(event: string, listener: Function): this {
+    super.on(event, listener);
+    return this;
+  }
 }

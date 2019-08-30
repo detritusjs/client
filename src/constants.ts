@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.5.6',
+  VERSION: '0.5.7',
 });
 
 export type Snowflake = number | string;
@@ -212,6 +212,10 @@ export const ClusterClientEvents = Object.freeze({
   KILLED: 'killed',
   READY: 'ready',
   SHARD: 'shard',
+});
+
+export const ClusterManagerEvents = Object.freeze({
+  CLUSTER_PROCESS: 'clusterProcess',
 });
 
 export const ClusterIPCOpCodes = Object.freeze({

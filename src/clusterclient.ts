@@ -203,6 +203,7 @@ export class ClusterClient extends EventEmitter {
   on(event: 'killed', listener: () => any): this;
   on(event: 'ready', listener: () => any): this;
   on(event: 'shard', listener: ({shard}: {shard: ShardClient}) => any): this;
+  on(event: 'warn', listener: (error: Error) => any): this;
   on(event: string, listener: Function): this {
     super.on(event, listener);
     return this;

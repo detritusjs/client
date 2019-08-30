@@ -6,7 +6,7 @@ import { EventEmitter, Timers } from 'detritus-utils';
 
 import { ClusterProcess } from './cluster/process';
 import { BaseCollection } from './collections/basecollection';
-import { AuthTypes, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
+import { AuthTypes, ClusterManagerEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { ClusterIPCError } from './errors';
 import { Snowflake } from './utils';
 
@@ -120,7 +120,7 @@ export class ClusterManager extends EventEmitter {
         shardStart,
       });
       this.processes.set(clusterId, clusterProcess);
-      this.emit('clusterProcess', {clusterProcess});
+      this.emit(ClusterManagerEvents.CLUSTER_PROCESS, {clusterProcess});
 
       await clusterProcess.run();
       if (shardEnd < this.shardEnd) {
@@ -163,5 +163,12 @@ export class ClusterManager extends EventEmitter {
       }
       return result;
     });
+  }
+
+  on(event: string, listener: Function): this;
+  on(event: 'clusterProcess', listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
+  on(event: string, listener: Function): this {
+    super.on(event, listener);
+    return this;
   }
 }
