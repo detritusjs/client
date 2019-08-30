@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.5.5',
+  VERSION: '0.5.6',
 });
 
 export type Snowflake = number | string;
@@ -208,9 +208,15 @@ export const ClientEvents = Tools.normalize(Object.assign({
   UNKNOWN: null,
 }, GatewayDispatchEvents));
 
+export const ClusterClientEvents = Object.freeze({
+  KILLED: 'killed',
+  READY: 'ready',
+  SHARD: 'shard',
+});
+
 export const ClusterIPCOpCodes = Object.freeze({
   READY: 0,
-  DISCONNECT: 1,
+  CLOSE: 1,
   RECONNECTING: 2,
   RESPAWN_ALL: 3,
   EVAL: 4,

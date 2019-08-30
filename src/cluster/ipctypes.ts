@@ -6,6 +6,11 @@ export namespace ClusterIPCTypes {
     shard?: number,
   }
 
+  export interface Close {
+    code: number,
+    reason: string,
+  }
+
   export interface Eval {
     error?: {
       message: string,
@@ -16,6 +21,6 @@ export namespace ClusterIPCTypes {
     ignored?: boolean,
     nonce: string,
     result?: any,
-    results?: Array<any>,
+    results?: Array<[any, boolean]>,
   }
 }

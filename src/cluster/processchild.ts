@@ -20,6 +20,15 @@ export class ClusterProcessChild extends EventEmitter {
     process.on('message', this.onMessage.bind(this));
     process.on('message', this.emit.bind(this, 'ipc'));
     this.cluster.on('ready', () => this.sendIPC(ClusterIPCOpCodes.READY));
+    this.cluster.on('shard', ({shard}) => {
+      shard.gateway.on('close', async (payload: {code: number, reason: string}) => {
+        try {
+          await this.sendIPC(ClusterIPCOpCodes.CLOSE, payload, false, shard.shardId);
+        } catch(error) {
+          this.cluster.emit('warn', error);
+        }
+      });
+    });
 
     Object.defineProperties(this, {
       cluster: {enumerable: false, writable: false},
@@ -109,10 +118,17 @@ export class ClusterProcessChild extends EventEmitter {
               const data: ClusterIPCTypes.Eval = message.data;
               if (data.nonce === nonce) {
                 parent.removeListener('message', listener);
+
                 if (data.error) {
                   reject(new ClusterIPCError(data.error));
                 } else {
-                  resolve(data.results);
+                  const results = (data.results || []).map(([result, isError]) => {
+                    if (isError) {
+                      return new ClusterIPCError(result);
+                    }
+                    return result;
+                  });
+                  resolve(results);
                 }
               }
             }; break;
@@ -125,10 +141,7 @@ export class ClusterProcessChild extends EventEmitter {
         code = `(${String(code)})(this)`;
       }
       try {
-        await this.sendIPC(ClusterIPCOpCodes.EVAL, {
-          code,
-          nonce,
-        }, true, shard);
+        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true, shard);
       } catch(error) {
         parent.removeListener('message', listener);
         reject(error);

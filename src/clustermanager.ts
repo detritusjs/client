@@ -7,6 +7,7 @@ import { EventEmitter, Timers } from 'detritus-utils';
 import { ClusterProcess } from './cluster/process';
 import { BaseCollection } from './collections/basecollection';
 import { AuthTypes, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
+import { ClusterIPCError } from './errors';
 import { Snowflake } from './utils';
 
 
@@ -119,6 +120,8 @@ export class ClusterManager extends EventEmitter {
         shardStart,
       });
       this.processes.set(clusterId, clusterProcess);
+      this.emit('clusterProcess', {clusterProcess});
+
       await clusterProcess.run();
       if (shardEnd < this.shardEnd) {
         await Timers.sleep(delay * (shardEnd - shardStart));
@@ -129,14 +132,23 @@ export class ClusterManager extends EventEmitter {
     return this;
   }
 
-  async broadcast(
-    message: any,
-    shard?: number,
-  ): Promise<Array<any>> {
+  async broadcast(message: any): Promise<Array<any>> {
     const promises = this.processes.map((clusterProcess) => {
       return clusterProcess.send(message);
     });
     return Promise.all(promises);
+  }
+
+  async broadcastEvalRaw(
+    code: Function | string,
+    shard?: number,
+    nonce: string = Snowflake.generate().id,
+  ): Promise<Array<[any, boolean]>> {
+    const promises = this.processes.map((clusterProcess) => {
+      return clusterProcess.eval(code, nonce, shard);
+    });
+    const results: Array<[any, boolean]> = await Promise.all(promises);
+    return results.filter((item) => item);
   }
 
   async broadcastEval(
@@ -144,12 +156,12 @@ export class ClusterManager extends EventEmitter {
     shard?: number,
     nonce: string = Snowflake.generate().id,
   ): Promise<Array<any>> {
-    const promises = this.processes.map((clusterProcess) => {
-      return clusterProcess.eval(code, nonce, shard);
-    });
-    const results = await Promise.all(promises);
-    return results.filter((result: any) => {
-      return result !== undefined;
+    const results = await this.broadcastEvalRaw(code, shard, nonce);
+    return results.map(([result, isError]) => {
+      if (isError) {
+        return new ClusterIPCError(result);
+      }
+      return result;
     });
   }
 }

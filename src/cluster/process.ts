@@ -1,6 +1,6 @@
 import { ChildProcess, fork } from 'child_process';
 
-import { EventEmitter } from 'detritus-utils';
+import { EventEmitter, Timers } from 'detritus-utils';
 
 import { ClusterManager } from '../clustermanager';
 import { BaseCollection } from '../collections/basecollection';
@@ -24,7 +24,11 @@ export interface ClusterProcessRunOptions {
 }
 
 export class ClusterProcess extends EventEmitter {
-  _evalsWaiting = new BaseCollection<string, Promise<any>>();
+  readonly _evalsWaiting = new BaseCollection<string, {
+    promise: Promise<any>,
+    resolve: Function,
+    reject: Function,
+  }>();
 
   clusterId: number = -1;
   env: {[key: string]: string | undefined} = {};
@@ -66,11 +70,12 @@ export class ClusterProcess extends EventEmitter {
           case ClusterIPCOpCodes.READY: {
             this.emit('ready');
           }; return;
-          case ClusterIPCOpCodes.DISCONNECT: {
-            this.emit('disconnect');
+          case ClusterIPCOpCodes.CLOSE: {
+            const data: ClusterIPCTypes.Close = message.data;
+            this.emit('shardClose', {...data, shardId: message.shard});
           }; return;
           case ClusterIPCOpCodes.RECONNECTING: {
-            this.emit('reconnecting');
+            this.emit('shardReconnecting');
           }; return;
           case ClusterIPCOpCodes.RESPAWN_ALL: {
             
@@ -79,7 +84,7 @@ export class ClusterProcess extends EventEmitter {
             if (message.request) {
               const data: ClusterIPCTypes.Eval = message.data;
               try {
-                const results = await this.manager.broadcastEval(
+                const results = await this.manager.broadcastEvalRaw(
                   data.code,
                   message.shard,
                   data.nonce,
@@ -109,13 +114,18 @@ export class ClusterProcess extends EventEmitter {
   }
 
   async onExit(code: number, signal: string): Promise<void> {
-    this.emit('killed');
+    this.emit('close', {code, signal});
     Object.defineProperty(this, 'ran', {value: false});
     this.process = null;
 
+    for (let [nonce, item] of this._evalsWaiting) {
+      item.resolve([new Error(`Process has closed with '${code}' code and '${signal}' signal.`), true]);
+      this._evalsWaiting.delete(nonce);
+    }
+
     if (this.manager.respawn) {
       try {
-        await this.spawn();
+        await this.run();
       } catch(error) {
         this.emit('warn', error);
       }
@@ -126,57 +136,59 @@ export class ClusterProcess extends EventEmitter {
     code: Function | string,
     nonce: string,
     shard?: number,
-  ): Promise<any> {
+  ): Promise<[any, boolean] | null> {
     if (this.process === null) {
       throw new Error('Cannot eval without a child!');
     }
     if (this._evalsWaiting.has(nonce)) {
-      return <Promise<any>> this._evalsWaiting.get(nonce);
+      return <Promise<[any, boolean] | null>> (<any> this._evalsWaiting.get(nonce)).promise;
     }
     // incase the process dies
     const child = this.process;
-    const promise = new Promise(async (resolve, reject) => {
-      const listener = (
-        message: ClusterIPCTypes.IPCMessage | any,
-      ) => {
-        if (message && typeof(message) === 'object') {
-          switch (message.op) {
-            case ClusterIPCOpCodes.EVAL: {
-              const data: ClusterIPCTypes.Eval = message.data;
-              if (data.nonce === nonce) {
-                child.removeListener('message', listener);
-                this._evalsWaiting.delete(nonce);
-                if (data.ignored) {
-                  resolve();
-                } else {
-                  if (data.error) {
-                    reject(new ClusterIPCError(data.error));
+
+    return new Promise((resolve, reject) => {
+      const promise: Promise<[any, boolean] | null> = new Promise(async (res, rej) => {
+        const listener = (
+          message: ClusterIPCTypes.IPCMessage | any,
+        ) => {
+          if (message && typeof(message) === 'object') {
+            switch (message.op) {
+              case ClusterIPCOpCodes.EVAL: {
+                const data: ClusterIPCTypes.Eval = message.data;
+                if (data.nonce === nonce) {
+                  child.removeListener('message', listener);
+                  this._evalsWaiting.delete(nonce);
+  
+                  if (data.ignored) {
+                    res(null);
                   } else {
-                    resolve(data.result);
+                    if (data.error) {
+                      res([data.error, true]);
+                    } else {
+                      res([data.result, false]);
+                    }
                   }
                 }
-              }
-            }; break;
+              }; break;
+            }
           }
+        };
+        child.addListener('message', listener);
+  
+        if (typeof(code) === 'function') {
+          code = `(${String(code)})(this)`;
         }
-      };
-      child.addListener('message', listener);
+        try {
+          await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true, shard);
+        } catch(error) {
+          child.removeListener('message', listener);
+          rej(error);
+        }
+      });
 
-      if (typeof(code) === 'function') {
-        code = `(${String(code)})(this)`;
-      }
-      try {
-        await this.sendIPC(ClusterIPCOpCodes.EVAL, {
-          code,
-          nonce,
-        }, true, shard);
-      } catch(error) {
-        child.removeListener('message', listener);
-        reject(error);
-      }
+      this._evalsWaiting.set(nonce, {promise, resolve, reject});
+      promise.then(resolve).catch(reject);
     });
-    this._evalsWaiting.set(nonce, promise);
-    return promise;
   }
 
   async send(message: any): Promise<void> {
@@ -218,22 +230,18 @@ export class ClusterProcess extends EventEmitter {
 
     if (options.wait || options.wait === undefined) {
       return new Promise((resolve, reject) => {
-        let timeout: any = null;
+        const timeout = new Timers.Timeout();
         if (options.timeout) {
-          timeout = setTimeout(() => {
+          timeout.start(options.timeout, () => {
             if (this.process === process) {
               this.process.kill();
               this.process = null;
             }
             reject(new Error('Cluster Child took too long to ready up'));
-            timeout = null;
-          }, options.timeout);
+          });
         }
         this.once('ready', () => {
-          if (timeout) {
-            clearTimeout(timeout);
-            timeout = null;
-          }
+          timeout.stop();
           resolve(process);
         });
       });
