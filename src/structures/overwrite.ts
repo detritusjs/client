@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { OverwriteTypes } from '../constants';
+import { DiscordKeys, OverwriteTypes } from '../constants';
 import { PermissionTools } from '../utils';
 
 import {
@@ -14,12 +14,12 @@ import { Role } from './role';
 
 
 const keysOverwrite = new BaseSet<string>([
-  'allow',
-  'channel_id',
-  'deny',
-  'guild_id',
-  'id',
-  'type',
+  DiscordKeys.ALLOW,
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.DENY,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
 ]);
 
 /**

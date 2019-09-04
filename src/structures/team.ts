@@ -5,6 +5,7 @@ import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { Snowflake } from '../utils';
 import {
+  DiscordKeys,
   TeamMembershipStates,
   TeamPayoutAccountStatuses,
 } from '../constants';
@@ -17,12 +18,12 @@ import { User } from './user';
 
 
 const keysTeam = new BaseSet<string>([
-  'icon',
-  'id',
-  'members',
-  'name',
-  'owner_user_id',
-  'payout_account_status',
+  DiscordKeys.ICON,
+  DiscordKeys.ID,
+  DiscordKeys.MEMBERS,
+  DiscordKeys.NAME,
+  DiscordKeys.OWNER_USER_ID,
+  DiscordKeys.PAYOUT_ACCOUNT_STATUS,
 ]);
 
 /**
@@ -32,6 +33,7 @@ const keysTeam = new BaseSet<string>([
  */
 export class Team extends BaseStructure {
   readonly _keys = keysTeam;
+
   icon: null | string = null;
   id: string = '';
   members = new BaseCollection<string, TeamMember>();
@@ -106,24 +108,26 @@ export class Team extends BaseStructure {
   }
 
   mergeValue(key: string, value: any): void {
-    switch (key) {
-      case 'members': {
-        this.members.clear();
-        for (let raw of value) {
-          this.members.set(raw.user.id, new TeamMember(this.client, raw));
-        }
-      }; return;
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.MEMBERS: {
+          this.members.clear();
+          for (let raw of value) {
+            this.members.set(raw.user.id, new TeamMember(this.client, raw));
+          }
+        }; return;
+      }
+      return super.mergeValue.call(this, key, value);
     }
-    return super.mergeValue.call(this, key, value);
   }
 }
 
 
 const keysTeamMember = new BaseSet<string>([
-  'membership_state',
-  'permissions',
-  'team_id',
-  'user',
+  DiscordKeys.MEMBERSHIP_STATE,
+  DiscordKeys.PERMISSIONS,
+  DiscordKeys.TEAM_ID,
+  DiscordKeys.USER,
 ]);
 
 /**
@@ -133,8 +137,9 @@ const keysTeamMember = new BaseSet<string>([
  */
 export class TeamMember extends BaseStructure {
   readonly _keys = keysTeamMember;
+
   membershipState: number = TeamMembershipStates.BASE;
-  permissions!: Array<string>;
+  permissions!: BaseSet<string>;
   teamId: string = '';
   user!: User;
 
@@ -174,19 +179,24 @@ export class TeamMember extends BaseStructure {
   }
 
   mergeValue(key: string, value: any): void {
-    switch (key) {
-      case 'user': {
-        let user: User;
-        if (this.client.users.has(value.id)) {
-          user = <User> this.client.users.get(value.id);
-          user.merge(value);
-        } else {
-          user = new User(this.client, value);
-          // dont insert into cache
-        }
-        value = user;
-      }; break;
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.PERMISSIONS: {
+          value = new BaseSet(value);
+        }; break;
+        case DiscordKeys.USER: {
+          let user: User;
+          if (this.client.users.has(value.id)) {
+            user = <User> this.client.users.get(value.id);
+            user.merge(value);
+          } else {
+            user = new User(this.client, value);
+            // dont insert into cache
+          }
+          value = user;
+        }; break;
+      }
+      super.mergeValue.call(this, key, value);
     }
-    super.mergeValue.call(this, key, value);
   }
 }

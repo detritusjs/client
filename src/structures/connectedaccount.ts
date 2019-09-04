@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -8,15 +9,15 @@ import {
 
 
 const keysConnectedAccount = new BaseSet<string>([
-  'friend_sync',
-  'id',
-  'integrations',
-  'name',
-  'revoked',
-  'show_activity',
-  'type',
-  'verified',
-  'visibility',
+  DiscordKeys.FRIEND_SYNC,
+  DiscordKeys.ID,
+  DiscordKeys.INTEGRATIONS,
+  DiscordKeys.NAME,
+  DiscordKeys.REVOKED,
+  DiscordKeys.SHOW_ACTIVITY,
+  DiscordKeys.TYPE,
+  DiscordKeys.VERIFIED,
+  DiscordKeys.VISIBILITY,
 ]);
 
 /**

@@ -6,12 +6,13 @@ import {
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 import {
+  DiscordKeys,
   PremiumTypes,
   RelationshipTypes,
   UserFlags,
 } from '../constants';
+import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 
 import {
   BaseStructure,
@@ -22,11 +23,11 @@ import { Presence } from './presence';
 
 
 const keysUser = new BaseSet<string>([
-  'avatar',
-  'bot',
-  'discriminator',
-  'id',
-  'username',
+  DiscordKeys.AVATAR,
+  DiscordKeys.BOT,
+  DiscordKeys.DISCRIMINATOR,
+  DiscordKeys.ID,
+  DiscordKeys.USERNAME,
 ]);
 
 /**
@@ -186,7 +187,7 @@ export class User extends BaseStructure {
 
 const keysUserWithToken = new BaseSet<string>([
   ...keysUser,
-  'token',
+  DiscordKeys.TOKEN,
 ]);
 
 /**
@@ -211,7 +212,7 @@ export class UserWithToken extends User {
 
 const keysUserWithFlags = new BaseSet<string>([
   ...keysUser,
-  'flags',
+  DiscordKeys.FLAGS,
 ]);
 
 /**
@@ -287,11 +288,11 @@ export class UserWithFlags extends User {
 
 const keysUserExtended = new BaseSet<string>([
   ...keysUserWithFlags,
-  'email',
-  'locale',
-  'mfa_enabled',
-  'premium_type',
-  'verified',
+  DiscordKeys.EMAIL,
+  DiscordKeys.LOCALE,
+  DiscordKeys.MFA_ENABLED,
+  DiscordKeys.PREMIUM_TYPE,
+  DiscordKeys.VERIFIED,
 ]);
 
 /**
@@ -341,7 +342,7 @@ export class UserExtended extends UserWithFlags {
 
 const keysUserMe = new BaseSet<string>([
   ...keysUserExtended,
-  'phone',
+  DiscordKeys.PHONE,
 ]);
 
 /**

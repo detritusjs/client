@@ -2,7 +2,7 @@ import { Timers } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { TYPING_TIMEOUT } from '../constants';
+import { DiscordKeys, TYPING_TIMEOUT } from '../constants';
 
 import {
   BaseStructure,
@@ -15,16 +15,16 @@ import { User } from './user';
 
 
 const keysTyping = new BaseSet<string>([
-  'channel_id',
-  'guild_id',
-  'member',
-  'timestamp',
-  'user',
-  'user_id',
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.MEMBER,
+  DiscordKeys.TIMESTAMP,
+  DiscordKeys.USER,
+  DiscordKeys.USER_ID,
 ]);
 
 const keysMergeTyping = new BaseSet<string>([
-  'guild_id',
+  DiscordKeys.GUILD_ID,
 ]);
 
 /**
@@ -76,7 +76,7 @@ export class Typing extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'member': {
+        case DiscordKeys.MEMBER: {
           let member: Member;
           if (this.guildId && this.client.members.has(this.guildId, value.user.id)) {
             member = <Member> this.client.members.get(this.guildId, value.user.id);
@@ -88,7 +88,7 @@ export class Typing extends BaseStructure {
           }
           value = member;
         }; break;
-        case 'timestamp': {
+        case DiscordKeys.TIMESTAMP: {
           value *= 1000;
 
           this.timeout.start(TYPING_TIMEOUT, () => {

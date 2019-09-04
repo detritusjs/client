@@ -2,7 +2,7 @@ import { Endpoints, RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { Oauth2AssetTypes } from '../constants';
+import { DiscordKeys, Oauth2AssetTypes } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -18,23 +18,24 @@ import { User, UserWithFlags, UserWithToken } from './user';
 
 
 const keysOauth2Application = new BaseSet<string>([
-  'bot',
-  'bot_public',
-  'bot_require_code_grant',
-  'description',
-  'flags',
-  'guild_id',
-  'icon',
-  'id',
-  'name',
-  'owner',
-  'redirect_uris',
-  'rpc_application_state',
-  'secret',
-  'store_application_state',
-  'summary',
-  'team',
-  'verify_key',
+  DiscordKeys.BOT,
+  DiscordKeys.BOT_PUBLIC,
+  DiscordKeys.BOT_REQUIRE_CODE_GRANT,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.FLAGS,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ICON,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.OWNER,
+  DiscordKeys.REDIRECT_URIS,
+  DiscordKeys.RPC_APPLICATION_STATE,
+  DiscordKeys.SECRET,
+  DiscordKeys.STORE_APPLICATION_STATE,
+  DiscordKeys.SUMMARY,
+  DiscordKeys.TEAM,
+  DiscordKeys.VERIFY_KEY,
 ]);
 
 /**
@@ -103,17 +104,17 @@ export class Oauth2Application extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'bot': {
+        case DiscordKeys.BOT: {
           value = new UserWithToken(this.client, value);
         }; break;
-        case 'owner': {
+        case DiscordKeys.OWNER: {
           if (this.client.users.has(value.id)) {
             // dont use the cache since this object has flags key, just update the cache
             (<User> this.client.users.get(value.id)).merge(value);
           }
           value = new UserWithFlags(this.client, value);
         }; break;
-        case 'team': {
+        case DiscordKeys.TEAM: {
           let team: Team;
           if (this.team) {
             team = this.team;
@@ -131,10 +132,10 @@ export class Oauth2Application extends BaseStructure {
 
 
 export const keysOauth2ApplicationAsset = new BaseSet<string>([
-  'application_id',
-  'id',
-  'name',
-  'type',
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.TYPE,
 ]);
 
 export class Oauth2ApplicationAsset extends BaseStructure {

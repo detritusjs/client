@@ -3,6 +3,7 @@ import { RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
@@ -14,15 +15,15 @@ import { Member } from './member';
 
 
 const keysRole = new BaseSet<string>([
-  'color',
-  'guild_id',
-  'hoist',
-  'id',
-  'managed',
-  'mentionable',
-  'name',
-  'permissions',
-  'position',
+  DiscordKeys.COLOR,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.HOIST,
+  DiscordKeys.ID,
+  DiscordKeys.MANAGED,
+  DiscordKeys.MENTIONABLE,
+  DiscordKeys.NAME,
+  DiscordKeys.PERMISSIONS,
+  DiscordKeys.POSITION,
 ]);
 
 /**

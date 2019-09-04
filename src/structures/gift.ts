@@ -5,6 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -15,21 +16,21 @@ import { User } from './user';
 
 
 const keysGift = new BaseSet<string>([
-  'application_id',
-  'code',
-  'expires_at',
-  'max_uses',
-  'redeemed',
-  'sku_id',
-  'store_listing',
-  'subscription_plan',
-  'subscription_plan_id',
-  'user',
-  'uses',
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.CODE,
+  DiscordKeys.EXPIRES_AT,
+  DiscordKeys.MAX_USES,
+  DiscordKeys.REDEEMED,
+  DiscordKeys.SKU_ID,
+  DiscordKeys.STORE_LISTING,
+  DiscordKeys.SUBSCRIPTION_PLAN,
+  DiscordKeys.SUBSCRIPTION_PLAN_ID,
+  DiscordKeys.USER,
+  DiscordKeys.USES,
 ]);
 
 const keysMergeGift = new BaseSet<string>([
-  'subscription_plan',
+  DiscordKeys.SUBSCRIPTION_PLAN,
 ]);
 
 /**
@@ -76,17 +77,17 @@ export class Gift extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'expires_at': {
+        case DiscordKeys.EXPIRES_AT: {
           value = new Date(value);
         }; break;
-        case 'store_listing': {
+        case DiscordKeys.STORE_LISTING: {
           value = new StoreListing(this.client, value);
         }; break;
-        case 'subscription_plan': {
+        case DiscordKeys.SUBSCRIPTION_PLAN: {
           value = new SubscriptionPlan(this.client, value);
           this.subscriptionPlanId = value.id;
         }; break;
-        case 'user': {
+        case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
             user = <User> this.client.users.get(value.id);
@@ -104,14 +105,14 @@ export class Gift extends BaseStructure {
 
 
 const keysSubscriptionPlan = new BaseSet<string>([
-  'currency',
-  'id',
-  'interval',
-  'interval_count',
-  'name',
-  'price',
-  'sku_id',
-  'tax_inclusive',
+  DiscordKeys.CURRENCY,
+  DiscordKeys.ID,
+  DiscordKeys.INTERVAL,
+  DiscordKeys.INTERVAL_COUNT,
+  DiscordKeys.NAME,
+  DiscordKeys.PRICE,
+  DiscordKeys.SKU_ID,
+  DiscordKeys.TAX_INCLUSIVE,
 ]);
 
 /**

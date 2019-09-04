@@ -5,6 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 
 import {
@@ -17,14 +18,14 @@ import { User } from './user';
 
 
 const keysWebhook = new BaseSet<string>([
-  'avatar',
-  'channel_id',
-  'discriminator',
-  'guild_id',
-  'id',
-  'name',
-  'token',
-  'user',
+  DiscordKeys.AVATAR,
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.DISCRIMINATOR,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.TOKEN,
+  DiscordKeys.USER,
 ]);
 
 /**
@@ -127,7 +128,7 @@ export class Webhook extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'user': {
+        case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
             user = <User> this.client.users.get(value.id);

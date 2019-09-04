@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { RelationshipTypes } from '../constants';
+import { DiscordKeys, RelationshipTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -10,9 +10,9 @@ import { User } from './user';
 
 
 const keysRelationship = new BaseSet<string>([
-  'id',
-  'type',
-  'user',
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
+  DiscordKeys.USER,
 ]);
 
 /**
@@ -63,7 +63,7 @@ export class Relationship extends BaseStructure {
   mergeValue(key: string, value: any) {
     if (value !== undefined) {
       switch (key) {
-        case 'user': {
+        case DiscordKeys.USER: {
           if (this.client.users.has(value.id)) {
             (<User> this.client.users.get(value.id)).merge(value);
           } else {

@@ -2,6 +2,7 @@ import { Endpoints } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -16,10 +17,10 @@ import { Application } from './application';
 
 
 const keysStore = new BaseSet<string>([
-  'id',
-  'sku',
-  'summary',
-  'thumbnail',
+  DiscordKeys.ID,
+  DiscordKeys.SKU,
+  DiscordKeys.SUMMARY,
+  DiscordKeys.THUMBNAIL,
 ]);
 
 /**
@@ -43,10 +44,10 @@ export class StoreListing extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'sku': {
+        case DiscordKeys.SKU: {
           value = new Sku(this.client, value);
         }; break;
-        case 'thumbnail': {
+        case DiscordKeys.THUMBNAIL: {
           value = new StoreListingThumbnail(this, value);
         }; break;
       }
@@ -57,11 +58,11 @@ export class StoreListing extends BaseStructure {
 
 
 const keysStoreListingThumbnail = new BaseSet<string>([
-  'height',
-  'id',
-  'mime_type',
-  'size',
-  'width',
+  DiscordKeys.HEIGHT,
+  DiscordKeys.ID,
+  DiscordKeys.MIME_TYPE,
+  DiscordKeys.SIZE,
+  DiscordKeys.WIDTH,
 ]);
 
 /**
@@ -88,20 +89,20 @@ export class StoreListingThumbnail extends BaseStructure {
 
 
 const keysSku = new BaseSet<string>([
-  'access_type',
-  'application',
-  'application_id',
-  'dependent_sku_id',
-  'features',
-  'flags',
-  'id',
-  'manifest_labels',
-  'name',
-  'premium',
-  'release_date',
-  'show_age_gate',
-  'slug',
-  'type',
+  DiscordKeys.ACCESS_TYPE,
+  DiscordKeys.APPLICATION,
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.DEPENDENT_SKU_ID,
+  DiscordKeys.FEATURES,
+  DiscordKeys.FLAGS,
+  DiscordKeys.ID,
+  DiscordKeys.MANIFEST_LABELS,
+  DiscordKeys.NAME,
+  DiscordKeys.PREMIUM,
+  DiscordKeys.RELEASE_DATE,
+  DiscordKeys.SHOW_AGE_GATE,
+  DiscordKeys.SLUG,
+  DiscordKeys.TYPE,
 ]);
 
 /**
@@ -134,14 +135,14 @@ export class Sku extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'application_id': {
+        case DiscordKeys.APPLICATION_ID: {
           if (!this.application) {
             if (this.client.applications.has(value)) {
               this.application = <Application> this.client.applications.get(value);
             }
           }
         }; break;
-        case 'application': {
+        case DiscordKeys.APPLICATION: {
           let application: Application;
           if (this.client.applications.has(value.id)) {
             application = <Application> this.client.applications.get(value.id);
@@ -159,13 +160,13 @@ export class Sku extends BaseStructure {
 
 
 export const keysStoreApplicationAsset = new BaseSet<string>([
-  'application_id',
-  'filename',
-  'height',
-  'id',
-  'mime_type',
-  'size',
-  'width',
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.FILENAME,
+  DiscordKeys.HEIGHT,
+  DiscordKeys.ID,
+  DiscordKeys.MIME_TYPE,
+  DiscordKeys.SIZE,
+  DiscordKeys.WIDTH,
 ]);
 
 export class StoreApplicationAsset extends BaseStructure {

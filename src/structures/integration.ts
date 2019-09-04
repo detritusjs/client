@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
@@ -10,18 +11,18 @@ import { User } from './user';
 
 
 const keysIntegration = new BaseSet<string>([
-  'account',
-  'enabled',
-  'expire_behavior',
-  'expire_grace_period',
-  'guild_id',
-  'id',
-  'name',
-  'role_id',
-  'synced_at',
-  'syncing',
-  'type',
-  'user',
+  DiscordKeys.ACCOUNT,
+  DiscordKeys.ENABLED,
+  DiscordKeys.EXPIRE_BEHAVIOR,
+  DiscordKeys.EXPIRE_GRACE_PERIOD,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.ROLE_ID,
+  DiscordKeys.SYNCED_AT,
+  DiscordKeys.SYNCING,
+  DiscordKeys.TYPE,
+  DiscordKeys.USER,
 ]);
 
 /**
@@ -60,13 +61,13 @@ export class Integration extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'account': {
+        case DiscordKeys.ACCOUNT: {
           value = new IntegrationAccount(this, value);
         }; break;
-        case 'synced_at': {
+        case DiscordKeys.SYNCED_AT: {
           value = new Date(value);
         }; break;
-        case 'user': {
+        case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
             user = <User> this.client.users.get(value.id);
@@ -84,8 +85,8 @@ export class Integration extends BaseStructure {
 
 
 const keysIntegrationAccount = new BaseSet<string>([
-  'id',
-  'name',
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
 ]);
 
 /**

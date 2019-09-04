@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { InviteTargetUserTypes } from '../constants';
+import { DiscordKeys, InviteTargetUserTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -20,24 +20,24 @@ import { User } from './user';
 
 
 const keysInvite = new BaseSet<string>([
-  'approximate_member_count',
-  'approximate_presence_count',
-  'channel',
-  'code',
-  'created_at',
-  'guild',
-  'inviter',
-  'max_age',
-  'max_uses',
-  'revoked',
-  'target_user',
-  'target_user_type',
-  'temporary',
-  'uses',
+  DiscordKeys.APPROXIMATE_MEMBER_COUNT,
+  DiscordKeys.APPROXIMATE_PRESENCE_COUNT,
+  DiscordKeys.CHANNEL,
+  DiscordKeys.CODE,
+  DiscordKeys.CREATED_AT,
+  DiscordKeys.GUILD,
+  DiscordKeys.INVITER,
+  DiscordKeys.MAX_AGE,
+  DiscordKeys.MAX_USES,
+  DiscordKeys.REVOKED,
+  DiscordKeys.TARGET_USER,
+  DiscordKeys.TARGET_USER_TYPE,
+  DiscordKeys.TEMPORARY,
+  DiscordKeys.USES,
 ]);
 
 const keysMergeInvite = new BaseSet<string>([
-  'guild',
+  DiscordKeys.GUILD,
 ]);
 
 /**
@@ -117,7 +117,7 @@ export class Invite extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'channel': {
+        case DiscordKeys.CHANNEL: {
           let channel: Channel;
           if (this.client.channels.has(value.id)) {
             channel = <Channel> this.client.channels.get(value.id);
@@ -130,12 +130,12 @@ export class Invite extends BaseStructure {
           }
           value = channel;
         }; break;
-        case 'created_at': {
+        case DiscordKeys.CREATED_AT: {
           if (value) {
             value = new Date(value);
           }
         }; break;
-        case 'guild': {
+        case DiscordKeys.GUILD: {
           let guild: Guild;
           if (this.client.guilds.has(value.id)) {
             guild = <Guild> this.client.guilds.get(value.id);
@@ -145,7 +145,7 @@ export class Invite extends BaseStructure {
           }
           value = guild;
         }; break;
-        case 'inviter': {
+        case DiscordKeys.INVITER: {
           let inviter: User;
           if (this.client.users.has(value.id)) {
             inviter = <User> this.client.users.get(value.id);
@@ -155,7 +155,7 @@ export class Invite extends BaseStructure {
           }
           value = inviter;
         }; break;
-        case 'target_user': {
+        case DiscordKeys.TARGET_USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
             user = <User> this.client.users.get(value.id);

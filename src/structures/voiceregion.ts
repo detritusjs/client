@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -8,12 +9,12 @@ import {
 
 
 const keysVoiceRegion = new BaseSet<string>([
-  'custom',
-  'deprecated',
-  'id',
-  'name',
-  'optimal',
-  'vip',
+  DiscordKeys.CUSTOM,
+  DiscordKeys.DEPRECATED,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.OPTIMAL,
+  DiscordKeys.VIP,
 ]);
 
 /**

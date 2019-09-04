@@ -81,7 +81,7 @@ export interface ShardClientOptions {
     voiceCalls?: VoiceCallsOptions,
     voiceConnections?: VoiceConnectionsOptions,
     voiceStates?: VoiceStatesOptions,
-  },
+  } | boolean,
   gateway?: GatewayOptions,
   imageFormat?: string,
   isBot?: boolean,
@@ -227,6 +227,27 @@ export class ShardClient extends EventEmitter {
       rest: {enumerable: false, writable: false},
       token: {enumerable: false, writable: false},
     });
+
+    if (typeof(options.cache) === 'boolean') {
+      const enabled = options.cache;
+      options.cache = {
+        applications: {enabled},
+        channels: {enabled},
+        emojis: {enabled},
+        guilds: {enabled},
+        members: {enabled},
+        messages: {enabled},
+        notes: {enabled},
+        presences: {enabled},
+        relationships: {enabled},
+        sessions: {enabled},
+        typing: {enabled},
+        users: {enabled},
+        voiceCalls: {enabled},
+        voiceConnections: {enabled},
+        voiceStates: {enabled},
+      };
+    }
 
     this.applications = options.pass.applications || new Applications(this, options.cache.applications);
     this.channels = options.pass.channels || new Channels(this, options.cache.channels);

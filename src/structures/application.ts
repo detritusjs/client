@@ -6,7 +6,13 @@ import {
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { Distributors, DistributorNames, DistributorUrls, SpecialUrls } from '../constants';
+import {
+  DiscordKeys,
+  Distributors,
+  DistributorNames,
+  DistributorUrls,
+  SpecialUrls,
+} from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -43,29 +49,29 @@ export interface ApplicationPublisher {
 }
 
 const keysApplication = new BaseSet<string>([
-  'aliases',
-  'bot_public',
-  'bot_require_code_grant',
-  'cover_image',
-  'description',
-  'developers',
-  'eula_id',
-  'executables',
-  'icon',
-  'id',
-  'guild_id',
-  'name',
-  'overlay',
-  'overlay_compatibility_hook',
-  'primary_sku_id',
-  'publishers',
-  'rpc_origins',
-  'slug',
-  'splash',
-  'summary',
-  'third_party_skus',
-  'verify_key',
-  'youtube_trailer_video_id',
+  DiscordKeys.ALIASES,
+  DiscordKeys.BOT_PUBLIC,
+  DiscordKeys.BOT_REQUIRE_CODE_GRANT,
+  DiscordKeys.COVER_IMAGE,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.DEVELOPERS,
+  DiscordKeys.EULA_ID,
+  DiscordKeys.EXECUTABLES,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ICON,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.OVERLAY,
+  DiscordKeys.OVERLAY_COMPATIBILITY_HOOK,
+  DiscordKeys.PRIMARY_SKU_ID,
+  DiscordKeys.PUBLISHERS,
+  DiscordKeys.RPC_ORIGINS,
+  DiscordKeys.SLUG,
+  DiscordKeys.SPLASH,
+  DiscordKeys.SUMMARY,
+  DiscordKeys.THIRD_PARTY_SKUS,
+  DiscordKeys.VERIFY_KEY,
+  DiscordKeys.YOUTUBE_TRAILER_VIDEO_ID,
 ]);
 
 /**
@@ -83,9 +89,9 @@ export class Application extends BaseStructure {
   developers?: Array<ApplicationDeveloper>;
   eulaId?: string;
   executables?: Array<ApplicationExecutable>;
+  guildId?: string;
   icon: null | string = null;
   id: string = '';
-  guildId?: string;
   name: string = '';
   overlay?: boolean;
   overlayCompatibilityHook?: boolean;
@@ -235,7 +241,7 @@ export class Application extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'rpc_origins': {
+        case DiscordKeys.RPC_ORIGINS: {
           if (this.rpcOrigins) {
             this.rpcOrigins.clear();
             for (let raw of value) {
@@ -247,7 +253,7 @@ export class Application extends BaseStructure {
             }
           }
         }; return;
-        case 'third_party_skus': {
+        case DiscordKeys.THIRD_PARTY_SKUS: {
           if (this.thirdPartySkus) {
             this.thirdPartySkus.clear();
           } else {
@@ -267,9 +273,9 @@ export class Application extends BaseStructure {
 
 
 const keysApplicationThirdPartySku = new BaseSet<string>([
-  'distributor',
-  'id',
-  'sku',
+  DiscordKeys.DISTRIBUTOR,
+  DiscordKeys.ID,
+  DiscordKeys.SKU,
 ]);
 
 export class ApplicationThirdPartySku extends BaseStructure {
@@ -283,8 +289,8 @@ export class ApplicationThirdPartySku extends BaseStructure {
   constructor(application: Application, data: BaseStructureData) {
     super(application.client);
     this.application = application;
-    Object.defineProperty(this, 'application', {enumerable: false, writable: false});
     this.merge(data);
+    Object.defineProperty(this, 'application', {enumerable: false, writable: false});
   }
 
   get key(): string {

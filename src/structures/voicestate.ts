@@ -5,6 +5,7 @@ import {
   VoiceConnectOptions,
 } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -16,22 +17,22 @@ import { Member } from './member';
 
 
 const keysVoiceState = new BaseSet<string>([
-  'channel_id',
-  'deaf',
-  'guild_id',
-  'member',
-  'mute',
-  'self_deaf',
-  'self_mute',
-  'self_stream',
-  'self_video',
-  'session_id',
-  'suppress',
-  'user_id',
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.DEAF,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.MEMBER,
+  DiscordKeys.MUTE,
+  DiscordKeys.SELF_DEAF,
+  DiscordKeys.SELF_MUTE,
+  DiscordKeys.SELF_STREAM,
+  DiscordKeys.SELF_VIDEO,
+  DiscordKeys.SESSION_ID,
+  DiscordKeys.SUPPRESS,
+  DiscordKeys.USER_ID,
 ]);
 
 const keysMergeVoiceState = new BaseSet<string>([
-  'guild_id',
+  DiscordKeys.GUILD_ID,
 ]);
 
 /**
@@ -103,7 +104,7 @@ export class VoiceState extends BaseStructure {
   difference(key: string, value: any): [boolean, any] {
     let differences: any;
     switch (key) {
-      case 'member': break;
+      case DiscordKeys.MEMBER: break;
       default: {
         return super.difference.call(this, key, value);
       };
@@ -117,7 +118,7 @@ export class VoiceState extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'member': {
+        case DiscordKeys.MEMBER: {
           let member: Member;
           const guildId: string = this.guildId || value.guild_id;
           if (this.client.members.has(guildId, value.user.id)) {

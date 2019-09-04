@@ -1,6 +1,7 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -12,11 +13,11 @@ import { User } from './user';
 
 
 const keysProfile = new BaseSet<string>([
-  'connected_accounts',
-  'mutual_guilds',
-  'premium_guild_since',
-  'premium_since',
-  'user',
+  DiscordKeys.CONNECTED_ACCOUNTS,
+  DiscordKeys.MUTUAL_GUILDS,
+  DiscordKeys.PREMIUM_GUILD_SINCE,
+  DiscordKeys.PREMIUM_SINCE,
+  DiscordKeys.USER,
 ]);
 
 /**
@@ -42,14 +43,14 @@ export class Profile extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'connectedAccounts': {
+        case DiscordKeys.CONNECTED_ACCOUNTS: {
           this.connectedAccounts.clear();
           for (let raw of value) {
             const connectedAccount = new ConnectedAccount(this.client, raw);
             this.connectedAccounts.set(connectedAccount.id, connectedAccount);
           }
         }; return;
-        case 'mutualGuilds': {
+        case DiscordKeys.MUTUAL_GUILDS: {
           this.mutualGuilds.clear();
           for (let raw of value) {
             if (this.client.guilds.has(raw.id)) {
@@ -60,17 +61,17 @@ export class Profile extends BaseStructure {
             }
           }
         }; return;
-        case 'premiumGuildSince': {
-          if (value !== null) {
+        case DiscordKeys.PREMIUM_GUILD_SINCE: {
+          if (value) {
             value = new Date(value);
           }
         }; break;
-        case 'premiumSince': {
-          if (value !== null) {
+        case DiscordKeys.PREMIUM_SINCE: {
+          if (value) {
             value = new Date(value);
           }
         }; break;
-        case 'user': {
+        case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
             user = <User> this.client.users.get(value.id);

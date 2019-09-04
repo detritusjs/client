@@ -1,6 +1,7 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
 import {
+  DiscordKeys,
   MessageEmbedTypes,
 } from '../constants';
 
@@ -15,18 +16,18 @@ import {
 
 
 const keysApplicationNews = new BaseSet<string>([
-  'application_id',
-  'category',
-  'description',
-  'flags',
-  'footer',
-  'game_id',
-  'id',
-  'thumbnail',
-  'timestamp',
-  'title',
-  'type',
-  'url',
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.CATEGORY,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.FLAGS,
+  DiscordKeys.FOOTER,
+  DiscordKeys.GAME_ID,
+  DiscordKeys.ID,
+  DiscordKeys.THUMBNAIL,
+  DiscordKeys.TIMESTAMP,
+  DiscordKeys.TITLE,
+  DiscordKeys.TYPE,
+  DiscordKeys.URL,
 ]);
 
 /**
@@ -55,13 +56,13 @@ export class ApplicationNews extends BaseStructure {
 
   mergeValue(key: string, value: any): void {
     switch (key) {
-      case 'footer': {
+      case DiscordKeys.FOOTER: {
         value = new MessageEmbedFooter(this.client, value);
       }; break;
-      case 'thumbnail': {
+      case DiscordKeys.THUMBNAIL: {
         value = new MessageEmbedThumbnail(this.client, value);
       }; break;
-      case 'timestamp': {
+      case DiscordKeys.TIMESTAMP: {
         value = new Date(value);
       }; break;
     }

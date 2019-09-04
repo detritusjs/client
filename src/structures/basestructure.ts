@@ -1,6 +1,15 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections';
+import { DetritusKeys } from '../constants';
 import { toCamelCase } from '../utils';
+
+
+export function convertKey(snake: string): string {
+  if (snake in DetritusKeys) {
+    return DetritusKeys[snake];
+  }
+  return toCamelCase(snake);
+}
 
 
 export interface BaseStructureData {
@@ -25,16 +34,16 @@ export class Structure {
   }
 
   _getFromSnake(key: string): any {
-    return (<any> this)[toCamelCase(key)];
+    return (<any> this)[convertKey(key)];
   }
 
   _setFromSnake(key: string, value: any): any {
-    return (<any> this)[toCamelCase(key)] = value;
+    return (<any> this)[convertKey(key)] = value;
   }
 
   difference(key: string, value: any): [boolean, any] {
     if (value !== undefined) {
-      const camelKey = toCamelCase(key);
+      const camelKey = convertKey(key);
       const old = (<any> this)[camelKey];
       if (old !== undefined && old !== value) {
         return [true, old];
@@ -49,7 +58,7 @@ export class Structure {
     for (let key in data) {
       const [hasDifference, difference] = this.difference(key, data[key]);
       if (hasDifference) {
-        obj[toCamelCase(key)] = difference;
+        obj[convertKey(key)] = difference;
         hasDifferences = true;
       }
     }

@@ -4,6 +4,7 @@ import {
 } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 
 import {
@@ -15,15 +16,16 @@ import { VoiceState } from './voicestate';
 
 
 const keysVoiceCall = new BaseSet<string>([
-  'channel_id',
-  'message_id',
-  'region',
-  'ringing',
-  'unavailable',
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.MESSAGE_ID,
+  DiscordKeys.REGION,
+  DiscordKeys.RINGING,
+  DiscordKeys.UNAVAILABLE,
+  DiscordKeys.VOICE_STATES,
 ]);
 
 const keysMergeVoiceCall = new BaseSet<string>([
-  'voice_states',
+  DiscordKeys.VOICE_STATES,
 ]);
 
 /**
@@ -96,7 +98,7 @@ export class VoiceCall extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'ringing': {
+        case DiscordKeys.RINGING: {
           this.ringing.clear();
           for (let userId of value.ringing) {
             if (this.client.users.has(userId)) {
@@ -106,7 +108,7 @@ export class VoiceCall extends BaseStructure {
             }
           }
         }; return;
-        case 'voice_states': {
+        case DiscordKeys.VOICE_STATES: {
           if (this.client.voiceStates.enabled) {
             const cache = this.client.voiceStates.insertCache(this.channelId);
             cache.clear();

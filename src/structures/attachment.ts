@@ -1,5 +1,5 @@
 import { BaseSet } from '../collections/baseset';
-import { SPOILER_ATTACHMENT_PREFIX } from '../constants';
+import { DiscordKeys, SPOILER_ATTACHMENT_PREFIX } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
@@ -89,13 +89,13 @@ export const MimeClassTypes: Array<{
 
 
 const keysAttachment = new BaseSet<string>([
-  'filename',
-  'height',
-  'id',
-  'proxy_url',
-  'size',
-  'url',
-  'width',
+  DiscordKeys.FILENAME,
+  DiscordKeys.HEIGHT,
+  DiscordKeys.ID,
+  DiscordKeys.PROXY_URL,
+  DiscordKeys.SIZE,
+  DiscordKeys.URL,
+  DiscordKeys.WIDTH,
 ]);
 
 /**

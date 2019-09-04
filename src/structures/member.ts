@@ -1,7 +1,7 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { Permissions } from '../constants';
+import { DiscordKeys, Permissions } from '../constants';
 import { PermissionTools } from '../utils';
 
 import { BaseStructureData } from './basestructure';
@@ -19,19 +19,19 @@ import { VoiceState } from './voicestate';
 
 
 const keysMember = new BaseSet<string>([
-  'deaf',
-  'guild_id',
-  'hoisted_role',
-  'joined_at',
-  'mute',
-  'nick',
-  'premium_since',
-  'roles',
-  'user',
+  DiscordKeys.DEAF,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.HOISTED_ROLE,
+  DiscordKeys.JOINED_AT,
+  DiscordKeys.MUTE,
+  DiscordKeys.NICK,
+  DiscordKeys.PREMIUM_SINCE,
+  DiscordKeys.ROLES,
+  DiscordKeys.USER,
 ]);
 
 const keysMergeMember = new BaseSet<string>([
-  'guild_id',
+  DiscordKeys.GUILD_ID,
 ]);
 
 /**
@@ -222,15 +222,15 @@ export class Member extends UserMixin {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'joined_at': {
+        case DiscordKeys.JOINED_AT: {
           value = new Date(value);
         }; break;
-        case 'premium_since': {
+        case DiscordKeys.PREMIUM_SINCE: {
           if (value) {
             value = new Date(value);
           }
         }; break;
-        case 'roles': {
+        case DiscordKeys.ROLES: {
           this.roles.clear();
 
           const guild = this.guild;
@@ -243,7 +243,7 @@ export class Member extends UserMixin {
             }
           }
         }; return;
-        case 'user': {
+        case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
             user = <User> this.client.users.get(value.id);

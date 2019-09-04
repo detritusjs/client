@@ -7,6 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  DiscordKeys,
   MessageFlags,
   MessageTypes,
   MessageTypesDeletable,
@@ -14,14 +15,12 @@ import {
   PremiumGuildTierNames,
   SystemMessages,
 } from '../constants';
-import {
-  toCamelCase,
-  Snowflake,
-} from '../utils';
+import { Snowflake } from '../utils';
 
 import {
   BaseStructure,
   BaseStructureData,
+  convertKey,
 } from './basestructure';
 import { Application } from './application';
 import { Attachment } from './attachment';
@@ -35,41 +34,41 @@ import { User } from './user';
 
 
 const keysMessage = new BaseSet<string>([
-  'activity',
-  'application',
-  'attachments',
-  'author',
-  'call',
-  'channel_id',
-  'content',
-  'edited_timestamp',
-  'embeds',
-  'flags',
-  'guild_id',
-  'id',
-  'member',
-  'mentions',
-  'mention_channels',
-  'mention_everyone',
-  'message_reference',
-  'mention_roles',
-  'nonce',
-  'pinned',
-  'reactions',
-  'timestamp',
-  'tts',
-  'type',
-  'webhook_id',
+  DiscordKeys.ACTIVITY,
+  DiscordKeys.APPLICATION,
+  DiscordKeys.ATTACHMENTS,
+  DiscordKeys.AUTHOR,
+  DiscordKeys.CALL,
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.CONTENT,
+  DiscordKeys.EDITED_TIMESTAMP,
+  DiscordKeys.EMBEDS,
+  DiscordKeys.FLAGS,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.MEMBER,
+  DiscordKeys.MENTIONS,
+  DiscordKeys.MENTION_CHANNELS,
+  DiscordKeys.MENTION_EVERYONE,
+  DiscordKeys.MENTION_ROLES,
+  DiscordKeys.MESSAGE_REFERENCE,
+  DiscordKeys.NONCE,
+  DiscordKeys.PINNED,
+  DiscordKeys.REACTIONS,
+  DiscordKeys.TIMESTAMP,
+  DiscordKeys.TTS,
+  DiscordKeys.TYPE,
+  DiscordKeys.WEBHOOK_ID,
 ]);
 
 const keysMergeMessage = new BaseSet<string>([
-  'author',
-  'channel_id',
-  'guild_id',
-  'id',
-  'mentions',
-  'type',
-  'webhook_id',
+  DiscordKeys.AUTHOR,
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.MENTIONS,
+  DiscordKeys.TYPE,
+  DiscordKeys.WEBHOOK_ID,
 ]);
 
 /**
@@ -306,14 +305,14 @@ export class Message extends BaseStructure {
   difference(key: string, value: any): [boolean, any] {
     let differences: any;
     switch (key) {
-      case 'application': break;
-      case 'author': break;
-      case 'attachments':
-      case 'embeds':
-      case 'mentions':
-      case 'mention_channels':
-      case 'mention_roles': {
-        key = toCamelCase(key);
+      case DiscordKeys.APPLICATION: break;
+      case DiscordKeys.AUTHOR: break;
+      case DiscordKeys.ATTACHMENTS:
+      case DiscordKeys.EMBEDS:
+      case DiscordKeys.MENTIONS:
+      case DiscordKeys.MENTION_CHANNELS:
+      case DiscordKeys.MENTION_ROLES: {
+        key = convertKey(key);
         const old = (<any> this)[key];
         if (old && old.size && old.size !== value.length) {
           differences = old.clone();
@@ -332,10 +331,10 @@ export class Message extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'activity': {
+        case DiscordKeys.ACTIVITY: {
           value = new MessageActivity(this, value);
         }; break;
-        case 'application': {
+        case DiscordKeys.APPLICATION: {
           let application: Application;
           if (this.client.applications.has(value.id)) {
             application = <Application> this.client.applications.get(value.id);
@@ -345,13 +344,13 @@ export class Message extends BaseStructure {
           }
           value = application;
         }; break;
-        case 'attachments': {
+        case DiscordKeys.ATTACHMENTS: {
           this.attachments.clear();
           for (let raw of value) {
             this.attachments.set(raw.id, new Attachment(this, raw));
           }
         }; return;
-        case 'author': {
+        case DiscordKeys.AUTHOR: {
           let user: User;
           if (this.fromWebhook) {
             user = new User(this.client, value);
@@ -366,28 +365,28 @@ export class Message extends BaseStructure {
           }
           value = user;
         }; break;
-        case 'call': {
+        case DiscordKeys.CALL: {
           value = new MessageCall(this, value);
         }; break;
-        case 'content': {
+        case DiscordKeys.CONTENT: {
           if (this._content) {
             Object.defineProperty(this, '_content', {
-              value: messageContentFormat(this),
+              value: messageContentFormat(this, value),
             });
           }
         }; break;
-        case 'edited_timestamp': {
+        case DiscordKeys.EDITED_TIMESTAMP: {
           if (value) {
             value = new Date(value);
           }
         }; break;
-        case 'embeds': {
+        case DiscordKeys.EMBEDS: {
           this.embeds.clear();
           for (let i = 0; i < value.length; i++) {
             this.embeds.set(i, new MessageEmbed(this.client, value[i]));
           }
         }; return;
-        case 'member': {
+        case DiscordKeys.MEMBER: {
           const guildId = <string> this.guildId;
           let member: Member;
           if (this.client.members.has(guildId, this.author.id)) {
@@ -400,7 +399,7 @@ export class Message extends BaseStructure {
           }
           value = member;
         }; break;
-        case 'mentions': {
+        case DiscordKeys.MENTIONS: {
           const guildId = <string> this.guildId;
           this.mentions.clear();
           for (let raw of value) {
@@ -435,7 +434,7 @@ export class Message extends BaseStructure {
             }
           }
         }; return;
-        case 'mention_channels': {
+        case DiscordKeys.MENTION_CHANNELS: {
           if (!this.mentionChannels) {
             this.mentionChannels = new BaseCollection<string, Channel>();
           }
@@ -451,10 +450,7 @@ export class Message extends BaseStructure {
             this.mentionChannels.set(channel.id, channel);
           }
         }; return;
-        case 'message_reference': {
-          value = new MessageReference(this, value);
-        }; break;
-        case 'mention_roles': {
+        case DiscordKeys.MENTION_ROLES: {
           this.mentionRoles.clear();
 
           const guild = this.guild;
@@ -466,7 +462,10 @@ export class Message extends BaseStructure {
             }
           }
         }; return;
-        case 'reactions': {
+        case DiscordKeys.MESSAGE_REFERENCE: {
+          value = new MessageReference(this, value);
+        }; break;
+        case DiscordKeys.REACTIONS: {
           this.reactions.clear();
           for (let raw of value) {
             raw.channel_id = this.channelId;
@@ -477,7 +476,7 @@ export class Message extends BaseStructure {
             this.reactions.set(emojiId, new Reaction(this.client, raw));
           }
         }; return;
-        case 'timestamp': {
+        case DiscordKeys.TIMESTAMP: {
           value = new Date(value);
         }; break;
       }
@@ -492,10 +491,10 @@ export class Message extends BaseStructure {
 
 
 const keysMessageActivity = new BaseSet<string>([
-  'cover_image',
-  'name',
-  'party_id',
-  'type',
+  DiscordKeys.COVER_IMAGE,
+  DiscordKeys.NAME,
+  DiscordKeys.PARTY_ID,
+  DiscordKeys.TYPE,
 ]);
 
 /**
@@ -521,8 +520,8 @@ export class MessageActivity extends BaseStructure {
 
 
 const keysMessageCall = new BaseSet<string>([
-  'ended_timestamp',
-  'participants',
+  DiscordKeys.ENDED_TIMESTAMP,
+  DiscordKeys.PARTICIPANTS,
 ]);
 
 /**
@@ -564,9 +563,9 @@ export class MessageCall extends BaseStructure {
 
 
 const keysMessageReference = new BaseSet<string>([
-  'channel_id',
-  'guild_id',
-  'message_id',
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.MESSAGE_ID,
 ]);
 
 /**

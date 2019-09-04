@@ -12,7 +12,6 @@ export {
   BaseCollectionOptions,
 };
 
-
 export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
   caches = new BaseCollection<K, BaseCollection<K, V>>();
   options: BaseCollectionOptions = {};
@@ -186,8 +185,11 @@ export class BaseClientCollection<K, V> extends BaseCollection<K, V> {
 
   constructor(
     client: ShardClient,
-    options: BaseClientCollectionOptions = {},
+    options: BaseClientCollectionOptions | boolean = {},
   ) {
+    if (typeof(options) === 'boolean') {
+      options = {enabled: options};
+    }
     super(options);
 
     this.client = client;

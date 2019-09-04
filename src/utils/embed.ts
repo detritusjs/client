@@ -1,25 +1,25 @@
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { MessageEmbedTypes } from '../constants';
+import { DiscordKeys, MessageEmbedTypes } from '../constants';
 import { GatewayRawEvents } from '../gateway/rawevents';
 import { BaseStructureData, Structure } from '../structures/basestructure';
 
 
 const keysEmbed = new BaseSet<string>([
-  'author',
-  'color',
-  'description',
-  'fields',
-  'footer',
-  'image',
-  'provider',
-  'reference_id',
-  'thumbnail',
-  'timestamp',
-  'title',
-  'type',
-  'url',
-  'video',
+  DiscordKeys.AUTHOR,
+  DiscordKeys.COLOR,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.FIELDS,
+  DiscordKeys.FOOTER,
+  DiscordKeys.IMAGE,
+  DiscordKeys.PROVIDER,
+  DiscordKeys.REFERENCE_ID,
+  DiscordKeys.THUMBNAIL,
+  DiscordKeys.TIMESTAMP,
+  DiscordKeys.TITLE,
+  DiscordKeys.TYPE,
+  DiscordKeys.URL,
+  DiscordKeys.VIDEO,
 ]);
 
 /**
@@ -154,7 +154,7 @@ export class Embed extends Structure {
 
   mergeValue(key: string, value: any): void {
     switch (key) {
-      case 'author': {
+      case DiscordKeys.AUTHOR: {
         let author: EmbedAuthor;
         if (this.author) {
           author = this.author;
@@ -164,7 +164,7 @@ export class Embed extends Structure {
         }
         value = author;
       }; break;
-      case 'fields': {
+      case DiscordKeys.FIELDS: {
         if (!this.fields) {
           this.fields = new BaseCollection<number,EmbedField>();
         }
@@ -173,7 +173,7 @@ export class Embed extends Structure {
           this.fields.set(i, value[i]);
         }
       }; return;
-      case 'footer': {
+      case DiscordKeys.FOOTER: {
         let footer: EmbedFooter;
         if (this.footer) {
           footer = this.footer;
@@ -183,7 +183,7 @@ export class Embed extends Structure {
         }
         value = footer;
       }; break;
-      case 'provider': {
+      case DiscordKeys.PROVIDER: {
         let provider: EmbedProvider;
         if (this.provider) {
           provider = this.provider;
@@ -193,7 +193,7 @@ export class Embed extends Structure {
         }
         value = provider;
       }; break;
-      case 'image': {
+      case DiscordKeys.IMAGE: {
         let image: EmbedImage;
         if (this.image) {
           image = this.image;
@@ -203,10 +203,10 @@ export class Embed extends Structure {
         }
         value = image;
       }; break;
-      case 'timestamp': {
+      case DiscordKeys.TIMESTAMP: {
         value = new Date(value);
       }; break;
-      case 'thumbnail': {
+      case DiscordKeys.THUMBNAIL: {
         let thumbnail: EmbedThumbnail;
         if (this.thumbnail) {
           thumbnail = this.thumbnail;
@@ -216,7 +216,7 @@ export class Embed extends Structure {
         }
         value = thumbnail;
       }; break;
-      case 'video': {
+      case DiscordKeys.VIDEO: {
         let video: EmbedVideo;
         if (this.video) {
           video = this.video;
@@ -233,10 +233,10 @@ export class Embed extends Structure {
 
 
 const keysEmbedAuthor = new BaseSet<string>([
-  'icon_url',
-  'name',
-  'proxy_icon_url',
-  'url',
+  DiscordKeys.ICON_URL,
+  DiscordKeys.NAME,
+  DiscordKeys.PROXY_ICON_URL,
+  DiscordKeys.URL,
 ]);
 
 /**
@@ -259,9 +259,9 @@ export class EmbedAuthor extends Structure {
 
 
 const keysEmbedField = new BaseSet<string>([
-  'inline',
-  'name',
-  'value',
+  DiscordKeys.INLINE,
+  DiscordKeys.NAME,
+  DiscordKeys.VALUE,
 ]);
 
 /**
@@ -283,9 +283,9 @@ export class EmbedField extends Structure {
 
 
 const keysEmbedFooter = new BaseSet<string>([
-  'icon_url',
-  'proxy_icon_url',
-  'text',
+  DiscordKeys.ICON_URL,
+  DiscordKeys.PROXY_ICON_URL,
+  DiscordKeys.TEXT,
 ]);
 
 /**
@@ -307,10 +307,10 @@ export class EmbedFooter extends Structure {
 
 
 const keysEmbedImage = new BaseSet<string>([
-  'height',
-  'proxy_url',
-  'url',
-  'width',
+  DiscordKeys.HEIGHT,
+  DiscordKeys.PROXY_URL,
+  DiscordKeys.URL,
+  DiscordKeys.WIDTH,
 ]);
 
 /**
@@ -333,8 +333,8 @@ export class EmbedImage extends Structure {
 
 
 const keysEmbedProvider = new BaseSet<string>([
-  'name',
-  'url',
+  DiscordKeys.NAME,
+  DiscordKeys.URL,
 ]);
 
 /**

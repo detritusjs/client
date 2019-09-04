@@ -9,7 +9,7 @@ import {
 } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { ChannelTypes, Permissions } from '../constants';
+import { DiscordKeys, ChannelTypes, Permissions } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 import {
   addQuery,
@@ -72,9 +72,9 @@ export function createChannelFromData(client: ShardClient, data: any): Channel {
 
 
 const keysChannelBase = new BaseSet<string>([
-  'id',
-  'name',
-  'type',
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.TYPE,
 ]);
 
 const keysMergeChannelBase = new BaseSet<string>();
@@ -486,10 +486,10 @@ export interface CallOptions extends VoiceConnectOptions {
 
 const keysChannelDm = new BaseSet<string>([
   ...keysChannelBase,
-  'last_message_id',
-  'last_pin_timestamp',
-  'nicks',
-  'recipients',
+  DiscordKeys.LAST_MESSAGE_ID,
+  DiscordKeys.LAST_PIN_TIMESTAMP,
+  DiscordKeys.NICKS,
+  DiscordKeys.RECIPIENTS,
 ]);
 
 /**
@@ -638,16 +638,16 @@ export class ChannelDM extends ChannelBase {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'last_pin_timestamp': {
+        case DiscordKeys.LAST_PIN_TIMESTAMP: {
           value = new Date(value);
         }; break;
-        case 'nicks': {
+        case DiscordKeys.NICKS: {
           this.nicks.clear();
           for (let userId in value) {
             this.nicks.set(userId, value[userId]);
           }
         }; return;
-        case 'recipients': {
+        case DiscordKeys.RECIPIENTS: {
           this.recipients.clear();
           for (let raw of value) {
             let user: User;
@@ -659,7 +659,7 @@ export class ChannelDM extends ChannelBase {
               this.client.users.insert(user);
             }
             this.recipients.set(user.id, user);
-            if ('nick' in raw) {
+            if (DiscordKeys.NICK in raw) {
               this.nicks.set(user.id, raw.nick);
             }
           }
@@ -673,10 +673,10 @@ export class ChannelDM extends ChannelBase {
 
 const keysChannelDmGroup = new BaseSet<string>([
   ...keysChannelDm,
-  'application_id',
-  'icon',
-  'name',
-  'owner_id',
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.ICON,
+  DiscordKeys.NAME,
+  DiscordKeys.OWNER_ID,
 ]);
 
 /**
@@ -732,17 +732,17 @@ export class ChannelDMGroup extends ChannelDM {
 
 const keysChannelGuildBase = new BaseSet<string>([
   ...keysChannelBase,
-  'guild_id',
-  'nsfw',
-  'parent_id',
-  'permission_overwrites',
-  'position',
-  'rate_limit_per_user',
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.NSFW,
+  DiscordKeys.PARENT_ID,
+  DiscordKeys.PERMISSION_OVERWRITES,
+  DiscordKeys.POSITION,
+  DiscordKeys.RATE_LIMIT_PER_USER,
 ]);
 
 const keysMergeChannelGuildBase = new BaseSet<string>([
-  'id',
-  'guild_id',
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
 ]);
 
 /**
@@ -956,7 +956,7 @@ export class ChannelGuildBase extends ChannelBase {
   difference(key: string, value: any): [boolean, any] {
     let differences: any;
     switch (key) {
-      case 'permission_overwrites': {
+      case DiscordKeys.PERMISSION_OVERWRITES: {
         const old = this.permissionOverwrites;
         if (old.size || old.size !== value.length) {
           differences = old.clone();
@@ -975,7 +975,7 @@ export class ChannelGuildBase extends ChannelBase {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'permission_overwrites': {
+        case DiscordKeys.PERMISSION_OVERWRITES: {
           this.permissionOverwrites.clear();
           for (let raw of value) {
             raw.channel_id = this.id;
@@ -992,8 +992,8 @@ export class ChannelGuildBase extends ChannelBase {
 
 const keysChannelGuildCategory = new BaseSet<string>([
   ...keysChannelGuildBase,
-  'bitrate',
-  'user_limit',
+  DiscordKeys.BITRATE,
+  DiscordKeys.USER_LIMIT,
 ]);
 
 /**
@@ -1025,9 +1025,9 @@ export class ChannelGuildCategory extends ChannelGuildBase {
 
 const keysChannelGuildText = new BaseSet<string>([
   ...keysChannelGuildBase,
-  'last_message_id',
-  'last_pin_timestamp',
-  'topic',
+  DiscordKeys.LAST_MESSAGE_ID,
+  DiscordKeys.LAST_PIN_TIMESTAMP,
+  DiscordKeys.TOPIC,
 ]);
 
 /**
@@ -1167,7 +1167,7 @@ export class ChannelGuildText extends ChannelGuildBase {
   difference(key: string, value: any): [boolean, any] {
     let differences: any;
     switch (key) {
-      case 'last_pin_timestamp': {
+      case DiscordKeys.LAST_PIN_TIMESTAMP: {
         const old = this.lastPinTimestamp;
         if (old && value) {
           if (old.getTime() !== (new Date(value)).getTime()) {
@@ -1191,7 +1191,7 @@ export class ChannelGuildText extends ChannelGuildBase {
 
   mergeValue(key: string, value: any) {
     switch (key) {
-      case 'last_pin_timestamp': {
+      case DiscordKeys.LAST_PIN_TIMESTAMP: {
         value = new Date(value);
       }; break;
     }
@@ -1202,8 +1202,8 @@ export class ChannelGuildText extends ChannelGuildBase {
 
 const keysChannelGuildVoice = new BaseSet<string>([
   ...keysChannelGuildBase,
-  'bitrate',
-  'user_limit',
+  DiscordKeys.BITRATE,
+  DiscordKeys.USER_LIMIT,
 ]);
 
 /**

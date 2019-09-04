@@ -8,6 +8,7 @@ import { DEFAULT_PRESENCE_CACHE_KEY } from '../collections/presences';
 import {
   ActivityFlags,
   ActivityTypes,
+  DiscordKeys,
   PlatformTypes,
   PresenceStatuses,
   SpecialUrls,
@@ -37,17 +38,17 @@ export const ImageSizes = Object.freeze({
 
 
 const keysPresence = new BaseSet<string>([
-  'activities',
-  'client_status',
-  'game',
-  'guild_id',
-  'last_modified',
-  'status',
-  'user',
+  DiscordKeys.ACTIVITIES,
+  DiscordKeys.CLIENT_STATUS,
+  DiscordKeys.GAME,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.LAST_MODIFIED,
+  DiscordKeys.STATUS,
+  DiscordKeys.USER,
 ]);
 
 const keysMergePresence = new BaseSet<string>([
-  'activities',
+  DiscordKeys.ACTIVITIES,
 ]);
 
 /**
@@ -102,22 +103,22 @@ export class Presence extends BaseStructure {
   difference(key: string, value: any): [boolean, any] {
     let differences: any;
     switch (key) {
-      case 'activities': {
+      case DiscordKeys.ACTIVITIES: {
         // sift through all the activities and compare each
         // compare lengths
         // return {activities: []};
       }; break;
-      case 'client_status': {
+      case DiscordKeys.CLIENT_STATUS: {
         if (this.clientStatus) {
           differences = this.clientStatus.differences(value);
         }
       }; break;
-      case 'game': {
+      case DiscordKeys.GAME: {
         if (this.game) {
           differences = this.game.differences(value);
         }
       }; break;
-      case 'user': {
+      case DiscordKeys.USER: {
         if (this.user) {
           differences = this.user.differences(value);
         }
@@ -135,7 +136,7 @@ export class Presence extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'activities': {
+        case DiscordKeys.ACTIVITIES: {
           this.activities.clear();
           for (let position = 0; position < value.length; position++) {
             const raw = value[position];
@@ -145,10 +146,10 @@ export class Presence extends BaseStructure {
             this.activities.set(activity.id || activity.position, activity);
           }
         }; return;
-        case 'client_status': {
+        case DiscordKeys.CLIENT_STATUS: {
           value = new PresenceClientStatus(this, value);
         }; break;
-        case 'game': {
+        case DiscordKeys.GAME: {
           if (value) {
             if (Object.keys(value).length) {
               if (value.id) {
@@ -163,7 +164,7 @@ export class Presence extends BaseStructure {
             }
           }
         }; break;
-        case 'user': {
+        case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
             user = <User> this.client.users.get(value.id);
@@ -186,25 +187,25 @@ export class Presence extends BaseStructure {
 
 
 const keysPresenceActivity = new BaseSet<string>([
-  'application_id',
-  'assets',
-  'created_at',
-  'details',
-  'flags',
-  'id',
-  'instance',
-  'metadata',
-  'name',
-  'party',
-  'platform',
-  'position',
-  'secrets',
-  'session_id',
-  'state',
-  'sync_id',
-  'timestamps',
-  'type',
-  'url',
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.ASSETS,
+  DiscordKeys.CREATED_AT,
+  DiscordKeys.DETAILS,
+  DiscordKeys.FLAGS,
+  DiscordKeys.ID,
+  DiscordKeys.INSTANCE,
+  DiscordKeys.METADATA,
+  DiscordKeys.NAME,
+  DiscordKeys.PARTY,
+  DiscordKeys.PLATFORM,
+  DiscordKeys.POSITION,
+  DiscordKeys.SECRETS,
+  DiscordKeys.SESSION_ID,
+  DiscordKeys.STATE,
+  DiscordKeys.SYNC_ID,
+  DiscordKeys.TIMESTAMPS,
+  DiscordKeys.TYPE,
+  DiscordKeys.URL,
 ]);
 
 /**
@@ -238,8 +239,8 @@ export class PresenceActivity extends BaseStructure {
   constructor(presence: Presence, data: BaseStructureData) {
     super(presence.client);
     this.presence = presence;
-    Object.defineProperty(this, 'presence', {enumerable: false, writable: false});
     this.merge(data);
+    Object.defineProperty(this, 'presence', {enumerable: false, writable: false});
   }
 
   get application(): Application | null {
@@ -387,22 +388,22 @@ export class PresenceActivity extends BaseStructure {
   difference(key: string, value: any): [boolean, any] {
     let differences: any;
     switch (key) {
-      case 'assets': {
+      case DiscordKeys.ASSETS: {
         if (this.assets) {
           differences = this.assets.differences(value);
         }
       }; break;
-      case 'party': {
+      case DiscordKeys.PARTY: {
         if (this.party) {
           differences = this.party.differences(value);
         }
       }; break;
-      case 'secrets': {
+      case DiscordKeys.SECRETS: {
         if (this.secrets) {
           differences = this.secrets.differences(value);
         }
       }; break;
-      case 'timestamps': {
+      case DiscordKeys.TIMESTAMPS: {
         if (this.timestamps) {
           differences = this.timestamps.differences(value);
         }
@@ -423,16 +424,16 @@ export class PresenceActivity extends BaseStructure {
       if (typeof(value) === 'object') {
         if (Object.keys(value).length) {
           switch (key) {
-            case 'assets': {
+            case DiscordKeys.ASSETS: {
               value = new PresenceActivityAssets(this, value);
             }; break;
-            case 'party': {
+            case DiscordKeys.PARTY: {
               value = new PresenceActivityParty(this, value);
             }; break;
-            case 'secrets': {
+            case DiscordKeys.SECRETS: {
               value = new PresenceActivitySecrets(this, value);
             }; break;
-            case 'timestamps': {
+            case DiscordKeys.TIMESTAMPS: {
               value = new PresenceActivityTimestamps(this, value);
             }; break;
           }
@@ -451,10 +452,10 @@ export class PresenceActivity extends BaseStructure {
 
 
 const keysPresenceActivityAssets = new BaseSet<string>([
-  'large_image',
-  'large_text',
-  'small_image',
-  'small_text',
+  DiscordKeys.LARGE_IMAGE,
+  DiscordKeys.LARGE_TEXT,
+  DiscordKeys.SMALL_IMAGE,
+  DiscordKeys.SMALL_TEXT,
 ]);
 
 /**
@@ -473,8 +474,8 @@ export class PresenceActivityAssets extends BaseStructure {
   constructor(activity: PresenceActivity, data: BaseStructureData) {
     super(activity.client);
     this.activity = activity;
-    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
     this.merge(data);
+    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
 
   get imageUrl() {
@@ -551,8 +552,8 @@ export class PresenceActivityAssets extends BaseStructure {
 
 
 const keysPresenceActivityParty = new BaseSet<string>([
-  'id',
-  'size',
+  DiscordKeys.ID,
+  DiscordKeys.SIZE,
 ]);
 
 /**
@@ -570,8 +571,8 @@ export class PresenceActivityParty extends BaseStructure {
   constructor(activity: PresenceActivity, data: BaseStructureData) {
     super(activity.client);
     this.activity = activity;
-    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
     this.merge(data);
+    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
 
   get currentSize(): number | null {
@@ -625,9 +626,9 @@ export class PresenceActivityParty extends BaseStructure {
 
 
 const keysPresenceActivitySecrets = new BaseSet<string>([
-  'join',
-  'match',
-  'spectate',
+  DiscordKeys.JOIN,
+  DiscordKeys.MATCH,
+  DiscordKeys.SPECTATE,
 ]);
 
 /**
@@ -646,15 +647,15 @@ export class PresenceActivitySecrets extends BaseStructure {
   constructor(activity: PresenceActivity, data: BaseStructureData) {
     super(activity.client);
     this.activity = activity;
-    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
     this.merge(data);
+    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
 }
 
 
 const keysPresenceActivityTimestamps = new BaseSet<string>([
-  'end',
-  'start',
+  DiscordKeys.END,
+  DiscordKeys.START,
 ]);
 
 /**
@@ -672,8 +673,8 @@ export class PresenceActivityTimestamps extends BaseStructure {
   constructor(activity: PresenceActivity, data: BaseStructureData) {
     super(activity.client);
     this.activity = activity;
-    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
     this.merge(data);
+    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
 
   get elapsedTime(): number {
@@ -695,9 +696,9 @@ export class PresenceActivityTimestamps extends BaseStructure {
 
 
 const keysPresenceClientStatus = new BaseSet<string>([
-  'desktop',
-  'mobile',
-  'web',
+  DiscordKeys.DESKTOP,
+  DiscordKeys.MOBILE,
+  DiscordKeys.WEB,
 ]);
 
 /**
@@ -716,8 +717,8 @@ export class PresenceClientStatus extends BaseStructure {
   constructor(presence: Presence, data: BaseStructureData) {
     super(presence.client);
     this.presence = presence;
-    Object.defineProperty(this, 'presence', {enumerable: false, writable: false});
     this.merge(data);
+    Object.defineProperty(this, 'presence', {enumerable: false, writable: false});
   }
 
   get isOnDesktop(): boolean {

@@ -6,7 +6,7 @@ import {
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { ShardClient } from '../client';
-import { ImageFormats } from '../constants';
+import { DiscordKeys, ImageFormats } from '../constants';
 import { addQuery, Snowflake, UrlQuery } from '../utils';
 
 import {
@@ -19,19 +19,19 @@ import { User } from './user';
 
 
 const keysEmoji = new BaseSet<string>([
-  'animated',
-  'available',
-  'guild_id',
-  'id',
-  'managed',
-  'name',
-  'require_colons',
-  'roles',
-  'user',
+  DiscordKeys.ANIMATED,
+  DiscordKeys.AVAILABLE,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.MANAGED,
+  DiscordKeys.NAME,
+  DiscordKeys.REQUIRE_COLONS,
+  DiscordKeys.ROLES,
+  DiscordKeys.USER,
 ]);
 
 const keysMergeEmoji = new BaseSet<string>([
-  'guild_id',
+  DiscordKeys.GUILD_ID,
 ]);
 
 /**
@@ -147,7 +147,7 @@ export class Emoji extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'roles': {
+        case DiscordKeys.ROLES: {
           this.roles.clear();
           const guild = this.guild;
           for (let roleId of (<Array<string>> value)) {
@@ -158,7 +158,7 @@ export class Emoji extends BaseStructure {
             }
           }
         }; return;
-        case 'user': {
+        case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
             user = <User> this.client.users.get(value.id);

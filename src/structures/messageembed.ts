@@ -1,7 +1,7 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { MessageEmbedTypes } from '../constants';
+import { DiscordKeys, MessageEmbedTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -10,20 +10,20 @@ import {
 
 
 const keysMessageEmbed = new BaseSet<string>([
-  'author',
-  'color',
-  'description',
-  'fields',
-  'footer',
-  'image',
-  'provider',
-  'reference_id',
-  'thumbnail',
-  'timestamp',
-  'title',
-  'type',
-  'url',
-  'video',
+  DiscordKeys.AUTHOR,
+  DiscordKeys.COLOR,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.FIELDS,
+  DiscordKeys.FOOTER,
+  DiscordKeys.IMAGE,
+  DiscordKeys.PROVIDER,
+  DiscordKeys.REFERENCE_ID,
+  DiscordKeys.THUMBNAIL,
+  DiscordKeys.TIMESTAMP,
+  DiscordKeys.TITLE,
+  DiscordKeys.TYPE,
+  DiscordKeys.URL,
+  DiscordKeys.VIDEO,
 ]);
 
 /**
@@ -97,10 +97,10 @@ export class MessageEmbed extends BaseStructure {
 
   mergeValue(key: string, value: any): void {
     switch (key) {
-      case 'author': {
+      case DiscordKeys.AUTHOR: {
         value = new MessageEmbedAuthor(this.client, value);
       }; break;
-      case 'fields': {
+      case DiscordKeys.FIELDS: {
         if (!this.fields) {
           this.fields = new BaseCollection<number, MessageEmbedField>();
         }
@@ -109,22 +109,22 @@ export class MessageEmbed extends BaseStructure {
           this.fields.set(i, value[i]);
         }
       }; return;
-      case 'footer': {
+      case DiscordKeys.FOOTER: {
         value = new MessageEmbedFooter(this.client, value);
       }; break;
-      case 'provider': {
+      case DiscordKeys.PROVIDER: {
         value = new MessageEmbedProvider(this.client, value);
       }; break;
-      case 'image': {
+      case DiscordKeys.IMAGE: {
         value = new MessageEmbedImage(this.client, value);
       }; break;
-      case 'timestamp': {
+      case DiscordKeys.TIMESTAMP: {
         value = new Date(value);
       }; break;
-      case 'thumbnail': {
+      case DiscordKeys.THUMBNAIL: {
         value = new MessageEmbedThumbnail(this.client, value);
       }; break;
-      case 'video': {
+      case DiscordKeys.VIDEO: {
         value = new MessageEmbedVideo(this.client, value);
       }; break;
     }
@@ -134,10 +134,10 @@ export class MessageEmbed extends BaseStructure {
 
 
 const keysMessageEmbedAuthor = new BaseSet<string>([
-  'icon_url',
-  'name',
-  'proxy_icon_url',
-  'url',
+  DiscordKeys.ICON_URL,
+  DiscordKeys.NAME,
+  DiscordKeys.PROXY_ICON_URL,
+  DiscordKeys.URL,
 ]);
 
 /**
@@ -160,9 +160,9 @@ export class MessageEmbedAuthor extends BaseStructure {
 
 
 const keysMessageEmbedField = new BaseSet<string>([
-  'inline',
-  'name',
-  'value',
+  DiscordKeys.INLINE,
+  DiscordKeys.NAME,
+  DiscordKeys.VALUE,
 ]);
 
 /**
@@ -184,9 +184,9 @@ export class MessageEmbedField extends BaseStructure {
 
 
 const keysMessageEmbedFooter = new BaseSet<string>([
-  'icon_url',
-  'proxy_icon_url',
-  'text',
+  DiscordKeys.ICON_URL,
+  DiscordKeys.PROXY_ICON_URL,
+  DiscordKeys.TEXT,
 ]);
 
 /**
@@ -208,10 +208,10 @@ export class MessageEmbedFooter extends BaseStructure {
 
 
 const keysMessageEmbedImage = new BaseSet<string>([
-  'height',
-  'proxy_url',
-  'url',
-  'width',
+  DiscordKeys.HEIGHT,
+  DiscordKeys.PROXY_URL,
+  DiscordKeys.URL,
+  DiscordKeys.WIDTH,
 ]);
 
 /**
@@ -234,8 +234,8 @@ export class MessageEmbedImage extends BaseStructure {
 
 
 const keysMessageEmbedProvider = new BaseSet<string>([
-  'name',
-  'url',
+  DiscordKeys.NAME,
+  DiscordKeys.URL,
 ]);
 
 /**

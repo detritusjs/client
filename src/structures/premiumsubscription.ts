@@ -1,5 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
@@ -11,10 +12,10 @@ import { User } from './user';
 
 
 const keysPremiumSubscription = new BaseSet<string>([
-  'ended',
-  'guild_id',
-  'id',
-  'user_id',
+  DiscordKeys.ENDED,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.USER_ID,
 ]);
 
 /**

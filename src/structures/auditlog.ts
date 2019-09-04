@@ -9,6 +9,7 @@ import {
   AuditLogSubtargetTypes,
   AuditLogTargetTypes,
   AuditLogChangeKeys,
+  DiscordKeys,
 } from '../constants';
 
 import {
@@ -23,16 +24,16 @@ import { Webhook } from './webhook';
 
 
 const keysAuditLog = new BaseSet<string>([
-  'action_type',
-  'changes',
-  'id',
-  'guild_id',
-  'options',
-  'reason',
-  'target',
-  'target_id',
-  'user',
-  'user_id',
+  DiscordKeys.ACTION_TYPE,
+  DiscordKeys.CHANGES,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.OPTIONS,
+  DiscordKeys.REASON,
+  DiscordKeys.TARGET,
+  DiscordKeys.TARGET_ID,
+  DiscordKeys.USER,
+  DiscordKeys.USER_ID,
 ]);
 
 /**
@@ -73,14 +74,14 @@ export class AuditLog extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'changes': {
+        case DiscordKeys.CHANGES: {
           this.changes.clear();
           for (let raw of value) {
             const change = new AuditLogChange(this, raw);
             this.changes.set(change.key, change);
           }
         }; return;
-        case 'options': {
+        case DiscordKeys.OPTIONS: {
           value = new AuditLogOptions(this, value);
         }; break;
       }
@@ -91,9 +92,9 @@ export class AuditLog extends BaseStructure {
 
 
 const keysAuditLogChange = new BaseSet<string>([
-  'key',
-  'new_value',
-  'old_value',
+  DiscordKeys.KEY,
+  DiscordKeys.NEW_VALUE,
+  DiscordKeys.OLD_VALUE,
 ]);
 
 /**
@@ -118,14 +119,14 @@ export class AuditLogChange extends BaseStructure {
 
 
 const keysAuditLogOptions = new BaseSet<string>([
-  'channel',
-  'channel_id',
-  'count',
-  'delete_member_days',
-  'id',
-  'members_removed',
-  'subtarget',
-  'type',
+  DiscordKeys.CHANNEL,
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.COUNT,
+  DiscordKeys.DELETE_MEMBER_DAYS,
+  DiscordKeys.ID,
+  DiscordKeys.MEMBERS_REMOVED,
+  DiscordKeys.SUBTARGET,
+  DiscordKeys.TYPE,
 ]);
 
 /**

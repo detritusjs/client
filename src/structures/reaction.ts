@@ -2,6 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
+import { DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -14,12 +15,12 @@ import { Message } from './message';
 
 
 const keysReaction = new BaseSet<string>([
-  'channel_id',
-  'count',
-  'emoji',
-  'guild_id',
-  'message_id',
-  'me',
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.COUNT,
+  DiscordKeys.EMOJI,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.MESSAGE_ID,
+  DiscordKeys.ME,
 ]);
 
 /**
@@ -79,7 +80,7 @@ export class Reaction extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'emoji': {
+        case DiscordKeys.EMOJI: {
           let emoji: Emoji;
           if (value.id && this.client.emojis.has(value.id)) {
             emoji = <Emoji> this.client.emojis.get(value.id);

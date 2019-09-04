@@ -7,6 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  DiscordKeys,
   GuildFeatures,
   DEFAULT_MAX_MEMBERS,
   DEFAULT_MAX_PRESENCES,
@@ -51,53 +52,53 @@ import { VoiceState } from './voicestate';
 
 
 const keysGuild = new BaseSet<string>([
-  'afk_channel_id',
-  'afk_timeout',
-  'application_id',
-  'banner',
-  'channels',
-  'default_message_notifications',
-  'description',
-  'embed_channel_id',
-  'embed_enabled',
-  'emojis',
-  'explicit_content_filter',
-  'features',
-  'icon',
-  'id',
-  'joined_at',
-  'large',
-  'lazy',
-  'max_members',
-  'max_presences',
-  'member_count',
-  'members',
-  'mfa_level',
-  'name',
-  'owner_id',
-  'preferred_locale',
-  'premium_subscription_count',
-  'premium_tier',
-  'presences',
-  'region',
-  'roles',
-  'splash',
-  'system_channel_flags',
-  'system_channel_id',
-  'unavailable',
-  'vanity_url_code',
-  'verification_level',
-  'voice_states',
-  'widget_channel_id',
-  'widget_enabled',
+  DiscordKeys.AFK_CHANNEL_ID,
+  DiscordKeys.AFK_TIMEOUT,
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.BANNER,
+  DiscordKeys.CHANNELS,
+  DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.EMBED_CHANNEL_ID,
+  DiscordKeys.EMBED_ENABLED,
+  DiscordKeys.EMOJIS,
+  DiscordKeys.EXPLICIT_CONTENT_FILTER,
+  DiscordKeys.FEATURES,
+  DiscordKeys.ICON,
+  DiscordKeys.ID,
+  DiscordKeys.JOINED_AT,
+  DiscordKeys.LARGE,
+  DiscordKeys.LAZY,
+  DiscordKeys.MAX_MEMBERS,
+  DiscordKeys.MAX_PRESENCES,
+  DiscordKeys.MEMBER_COUNT,
+  DiscordKeys.MEMBERS,
+  DiscordKeys.MFA_LEVEL,
+  DiscordKeys.NAME,
+  DiscordKeys.OWNER_ID,
+  DiscordKeys.PREFERRED_LOCALE,
+  DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT,
+  DiscordKeys.PREMIUM_TIER,
+  DiscordKeys.PRESENCES,
+  DiscordKeys.REGION,
+  DiscordKeys.ROLES,
+  DiscordKeys.SPLASH,
+  DiscordKeys.SYSTEM_CHANNEL_FLAGS,
+  DiscordKeys.SYSTEM_CHANNEL_ID,
+  DiscordKeys.UNAVAILABLE,
+  DiscordKeys.VANITY_URL_CODE,
+  DiscordKeys.VERIFICATION_LEVEL,
+  DiscordKeys.VOICE_STATES,
+  DiscordKeys.WIDGET_CHANNEL_ID,
+  DiscordKeys.WIDGET_ENABLED,
 ]);
 
 const keysMergeGuild = new BaseSet<string>([
-  'id',
-  'joined_at',
-  'roles',
-  'presences',
-  'members',
+  DiscordKeys.ID,
+  DiscordKeys.JOINED_AT,
+  DiscordKeys.ROLES,
+  DiscordKeys.PRESENCES,
+  DiscordKeys.MEMBERS,
 ]);
 
 /**
@@ -671,7 +672,7 @@ export class Guild extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case 'channels': {
+        case DiscordKeys.CHANNELS: {
           if (this.client.channels.enabled) {
             for (let raw of value) {
               let channel: Channel;
@@ -686,7 +687,7 @@ export class Guild extends BaseStructure {
             }
           }
         }; return;
-        case 'emojis': {
+        case DiscordKeys.EMOJIS: {
           if (this.client.emojis.enabled) {
             for (let [id, emoji] of this.emojis) {
               if (!value.some((e: GatewayRawEvents.RawEmoji) => e.id === id)) {
@@ -703,18 +704,18 @@ export class Guild extends BaseStructure {
             }
           }
         }; return;
-        case 'features': {
+        case DiscordKeys.FEATURES: {
           value = new BaseSet(value);
         }; break;
-        case 'joined_at': {
+        case DiscordKeys.JOINED_AT: {
           value = new Date(value);
         }; break;
-        case 'max_presences': {
+        case DiscordKeys.MAX_PRESENCES: {
           if (value === null) {
             value = DEFAULT_MAX_PRESENCES;
           }
         }; break;
-        case 'members': {
+        case DiscordKeys.MEMBERS: {
           const cache = this.client.members.insertCache(this.id);
           cache.clear();
 
@@ -762,7 +763,7 @@ export class Guild extends BaseStructure {
             }
           }
         }; return;
-        case 'roles': {
+        case DiscordKeys.ROLES: {
           for (let [roleId, role] of this.roles) {
             // remove any roles that's in cache but not in this new roles array
             if (role) {
@@ -782,10 +783,10 @@ export class Guild extends BaseStructure {
             }
           }
         }; return;
-        case 'premium_subscription_count': {
+        case DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT: {
           value = value || 0;
         }; break;
-        case 'presences': {
+        case DiscordKeys.PRESENCES: {
           const cache = this.client.presences.insertCache(this.id);
           cache.clear();
 
@@ -796,7 +797,7 @@ export class Guild extends BaseStructure {
             }
           }
         }; return;
-        case 'voice_states': {
+        case DiscordKeys.VOICE_STATES: {
           const cache = this.client.voiceStates.insertCache(this.id);
           cache.clear();
 
