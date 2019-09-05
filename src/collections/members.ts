@@ -40,14 +40,8 @@ export class Members extends BaseClientCollectionCache<string, Member> {
     if (member.isMe) {
       cache.set(member.id, member);
     } else {
-      if (this.enabled) {
-        if (this.storeOffline) {
-          cache.set(member.id, member);
-        } else {
-          if (!member.isOffline) {
-            cache.set(member.id, member);
-          }
-        }
+      if (this.enabled && (this.storeOffline || !member.isOffline)) {
+        cache.set(member.id, member);
       }
     }
   }

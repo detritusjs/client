@@ -19,7 +19,7 @@ export interface UsersOptions extends BaseClientCollectionOptions {
  */
 export class Users extends BaseClientCollection<string, User> {
   insert(user: User): void {
-    if (this.enabled) {
+    if (this.enabled || user.isMe) {
       this.set(user.id, user);
     }
   }

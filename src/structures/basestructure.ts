@@ -121,10 +121,7 @@ export class BaseStructure extends Structure {
   constructor(client: ShardClient) {
     super();
     this.client = client;
-
-    Object.defineProperties(this, {
-      client: {enumerable: false, writable: false},
-    });
+    Object.defineProperty(this, 'client', {enumerable: false, writable: false});
   }
 
   get shardId(): number {
