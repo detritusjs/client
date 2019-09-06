@@ -385,8 +385,8 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async edit(options: RequestTypes.EditChannel): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  edit(options: RequestTypes.EditChannel = {}): Promise<any> {
+    return this.client.rest.editChannel(this.id, options);
   }
 
   async editMessage(messageId: string, options: RequestTypes.EditMessage = {}): Promise<any> {
