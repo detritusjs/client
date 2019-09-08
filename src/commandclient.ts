@@ -110,7 +110,7 @@ export class CommandClient extends EventEmitter {
     this.commands = [];
     this.ignoreMe = options.ignoreMe || this.ignoreMe;
     this.maxEditDuration = +(options.maxEditDuration || this.maxEditDuration);
-    this.mentionsEnabled = !!options.mentionsEnabled || this.mentionsEnabled;
+    this.mentionsEnabled = !!(options.mentionsEnabled || options.mentionsEnabled === undefined);
     this.onPrefixCheck = options.onPrefixCheck;
     this.prefixes = Object.freeze({
       custom: new Set<string>(),
