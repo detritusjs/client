@@ -250,7 +250,6 @@ export class Guild extends BaseStructure {
     return new BaseCollection<string, Member>();
   }
 
-
   get messages(): BaseCollection<string, Message> {
     if (this.client.messages.has(this.id)) {
       return <BaseCollection<string, Message>> this.client.messages.get(this.id);

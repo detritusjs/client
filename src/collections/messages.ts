@@ -72,7 +72,7 @@ export class Messages extends BaseClientCollectionCache<string, Message> {
       }; break;
       case MessageCacheTypes.USER: {
         cacheKey = message.author.id;
-      };
+      }; break;
     }
 
     const cache = this.insertCache(cacheKey);

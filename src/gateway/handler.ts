@@ -8,6 +8,7 @@ import {
   ClientEvents,
   GatewayDispatchEvents,
   GatewayOpCodes,
+  MessageCacheTypes,
 } from '../constants';
 import { GatewayHTTPError } from '../errors';
 
@@ -565,14 +566,32 @@ export class GatewayDispatchHandler {
         this.client.guilds.insert(guild);
       }
     } else {
-      this.client.guilds.delete(data['id']);
-      this.client.members.delete(data['id']);
-      this.client.presences.delete(data['id']);
-      this.client.emojis.forEach((emoji: Emoji) => {
-        if (emoji.id && emoji.guildId === data['id']) {
-          this.client.emojis.delete(emoji.id);
+      for (let [channelId, channel] of this.client.channels) {
+        if (channel.guildId === guildId) {
+          this.client.channels.delete(channelId);
+          this.client.messages.delete(channelId);
+          this.client.typing.delete(channelId);
         }
-      });
+      }
+      for (let [emojiId, emoji] of this.client.emojis) {
+        if (emoji.id && emoji.guildId === guildId) {
+          this.client.emojis.delete(emojiId);
+        }
+      }
+      this.client.members.delete(guildId);
+      this.client.messages.delete(guildId);
+      this.client.presences.delete(guildId);
+      this.client.voiceStates.delete(guildId);
+
+      if (this.client.messages.type === MessageCacheTypes.USER) {
+        for (let [messageId, message] of this.client.messages) {
+          if (message.guildId === guildId) {
+            this.client.messages.delete(message.author.id, messageId);
+          }
+        }
+      }
+
+      this.client.guilds.delete(guildId);
     }
   
     this.client.emit(ClientEvents.GUILD_DELETE, {
