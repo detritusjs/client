@@ -39,8 +39,7 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
   }
 
   delete(cacheKey: K): boolean;
-  delete(cacheKey: K, key: K): boolean;
-  delete(cacheKey: null | undefined, key: K): boolean;
+  delete(cacheKey: K | null | undefined, key: K): boolean;
   delete(cacheKey?: K | null, key?: K | null): boolean {
     if (cacheKey) {
       if (key) {
@@ -72,8 +71,7 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
   }
 
   get(cacheKey: K): BaseCollection<K, V> | undefined;
-  get(cacheKey: K, key: K): V | undefined;
-  get(cacheKey: null | undefined, key: K): V | undefined;
+  get(cacheKey: K | null | undefined, key: K): V | undefined;
   get(cacheKey?: K | null, key?: K | null): BaseCollection<K, V> | V | undefined {
     if (cacheKey) {
       const cache = this.caches.get(cacheKey);
@@ -95,8 +93,7 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
   }
 
   has(cacheKey: K): boolean;
-  has(cacheKey: K, key: K): boolean;
-  has(cacheKey: null | undefined, key: K): boolean;
+  has(cacheKey: K | null | undefined, key: K): boolean;
   has(cacheKey?: K | null, key?: K | null): boolean {
     if (cacheKey) {
       if (key) {

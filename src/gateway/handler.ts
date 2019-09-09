@@ -863,6 +863,13 @@ export class GatewayDispatchHandler {
       }
     }
 
+    const members = this.client.members.get(guildId);
+    if (members) {
+      for (let [userId, member] of members) {
+        member.roles.delete(roleId);
+      }
+    }
+
     this.client.emit(ClientEvents.GUILD_ROLE_DELETE, {
       guild,
       guildId,
@@ -971,17 +978,30 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.MESSAGE_CREATE](data: GatewayRawEvents.MessageCreate) {
     let message: Message;
 
-    if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(null, data['id']);
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = data['channel_id'];
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = data['guild_id'] || data['channel_id'];
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
+    if (this.client.messages.has(cacheKey, data['id'])) {
+      message = <Message> this.client.messages.get(cacheKey, data['id']);
       message.merge(data);
     } else {
       message = new Message(this.client, data);
       this.client.messages.insert(message);
     }
 
-    if (this.client.channels.has(data['channel_id'])) {
-      const channel = <Channel> this.client.channels.get(data['channel_id']);
-      channel.merge({last_message_id: data['id']});
+    if (this.client.channels.has(message.channelId)) {
+      const channel = <Channel> this.client.channels.get(message.channelId);
+      channel.merge({last_message_id: message.id});
     }
 
     this.client.emit(ClientEvents.MESSAGE_CREATE, {
@@ -992,9 +1012,22 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.MESSAGE_DELETE](data: GatewayRawEvents.MessageDelete) {
     let message: Message | null = null;
 
-    if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(null, data['id']);
-      this.client.messages.delete(data['id']);
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = data['channel_id'];
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = data['guild_id'] || data['channel_id'];
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
+    if (this.client.messages.has(cacheKey, data['id'])) {
+      message = <Message> this.client.messages.get(cacheKey, data['id']);
+      this.client.messages.delete(cacheKey, data['id']);
     }
 
     this.client.emit(ClientEvents.MESSAGE_DELETE, {
@@ -1011,10 +1044,23 @@ export class GatewayDispatchHandler {
     const guildId = data['guild_id'];
     const messages = new BaseCollection<string, Message | null>();
 
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = data['channel_id'];
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = data['guild_id'] || data['channel_id'];
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
     for (let messageId of data['ids']) {
-      if (this.client.messages.has(messageId)) {
-        messages.set(messageId, <Message> this.client.messages.get(null, messageId));
-        this.client.messages.delete(messageId);
+      if (this.client.messages.has(cacheKey, messageId)) {
+        messages.set(messageId, <Message> this.client.messages.get(cacheKey, messageId));
+        this.client.messages.delete(cacheKey, messageId);
       } else {
         messages.set(messageId, null);
       }
@@ -1054,8 +1100,22 @@ export class GatewayDispatchHandler {
     }
 
     const emojiId = data.emoji.id || data.emoji.name;
-    if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(null, messageId);
+
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = channelId;
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = guildId || channelId;
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
+    if (this.client.messages.has(cacheKey, messageId)) {
+      message = <Message> this.client.messages.get(cacheKey, messageId);
       if (message.reactions.has(emojiId)) {
         reaction = <Reaction> message.reactions.get(emojiId);
       }
@@ -1111,10 +1171,23 @@ export class GatewayDispatchHandler {
     }
 
     const meUserId = (this.client.user) ? this.client.user.id : null;
-
     const emojiId = data.emoji.id || data.emoji.name;
-    if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(null, messageId);
+
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = channelId;
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = guildId || channelId;
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
+    if (this.client.messages.has(cacheKey, messageId)) {
+      message = <Message> this.client.messages.get(cacheKey, messageId);
       if (message.reactions.has(emojiId)) {
         reaction = <Reaction> message.reactions.get(emojiId);
         reaction.merge({
@@ -1160,8 +1233,21 @@ export class GatewayDispatchHandler {
     let message: Message | null = null;
     const messageId = data['message_id'];
 
-    if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(null, messageId);
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = channelId;
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = guildId || channelId;
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
+    if (this.client.messages.has(cacheKey, messageId)) {
+      message = <Message> this.client.messages.get(cacheKey, messageId);
       message.reactions.clear();
     }
 
@@ -1192,8 +1278,21 @@ export class GatewayDispatchHandler {
       isEmbedUpdate = true;
     }
 
-    if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(null, data['id']);
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = data['channel_id'];
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = data['guild_id'] || data['channel_id'];
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
+    if (this.client.messages.has(cacheKey, data['id'])) {
+      message = <Message> this.client.messages.get(cacheKey, data['id']);
       if (this.client.hasEventListener(ClientEvents.MESSAGE_UPDATE)) {
         differences = message.differences(data);
       }
