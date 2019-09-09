@@ -108,7 +108,7 @@ const keysMergeGuild = new BaseSet<string>([
 export class Guild extends BaseStructure {
   readonly _keys = keysGuild;
   readonly _keysMerge = keysMergeGuild;
-  readonly roles = new BaseCollection<string, null | Role>();
+  readonly roles = new BaseCollection<string, Role>();
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
@@ -765,11 +765,7 @@ export class Guild extends BaseStructure {
         case DiscordKeys.ROLES: {
           for (let [roleId, role] of this.roles) {
             // remove any roles that's in cache but not in this new roles array
-            if (role) {
-              if (!value.some((r: Role) => r.id === roleId)) {
-                this.roles.delete(roleId);
-              }
-            } else {
+            if (!value.some((r: Role) => r.id === roleId)) {
               this.roles.delete(roleId);
             }
           }

@@ -81,7 +81,7 @@ export class Emoji extends BaseStructure {
 
   get format(): string {
     if (this.id) {
-      return `<${(this.animated) ? 'a:' : ''}${this.name}:${this.id}>`;
+      return `<${(this.animated) ? 'a' : ''}:${this.name}:${this.id}>`;
     }
     return this.name;
   }
