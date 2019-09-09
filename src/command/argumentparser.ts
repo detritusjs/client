@@ -52,11 +52,14 @@ export class ArgumentParser {
 
     const errors: ParsedErrors = {};
     for (const {arg, info} of args) {
-      const value = attributes.content.slice(info.index + info.name.length).trim();
+      const value = attributes.content.slice(info.index + info.name.length);
+      if (value && !value.startsWith(' ')) {
+        continue;
+      }
       attributes.content = attributes.content.slice(0, info.index).trim();
 
       try {
-        parsed[arg.label] = await arg.parse(value, context);
+        parsed[arg.label] = await arg.parse(value.trim(), context);
       } catch(error) {
         errors[arg.label] = error;
         delete parsed[arg.label];

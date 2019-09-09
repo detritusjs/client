@@ -97,8 +97,14 @@ export class Argument {
 
   getName(content: string): null | string {
     for (let name of this.names) {
-      if (content.startsWith(name)) {
-        return name;
+      if (content.length === name.length) {
+        if (content === name) {
+          return name;
+        }
+      } else {
+        if (content.startsWith(name + ' ')) {
+          return name;
+        }
       }
     }
     return null;
