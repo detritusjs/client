@@ -6,6 +6,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { MessageCacheTypes } from '../constants';
 
 import {
   Application,
@@ -462,7 +463,6 @@ export class RestClient extends Client {
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
-        this.client.channels.insert(channel);
       }
       collection.set(channel.id, channel);
     }
@@ -568,6 +568,25 @@ export class RestClient extends Client {
     return collection;
   }
 
+  async fetchGuildChannels(
+    guildId: string,
+  ): Promise<BaseCollection<string, Channel>> {
+    const data = await super.fetchGuildChannels.call(this, guildId);
+    const collection = new BaseCollection<string, Channel>();
+
+    for (let raw of data) {
+      let channel: Channel;
+      if (this.client.channels.has(raw.id)) {
+        channel = <Channel> this.client.channels.get(raw.id);
+        channel.merge(raw);
+      } else {
+        channel = createChannelFromData(this.client, raw);
+      }
+      collection.set(channel.id, channel);
+    }
+    return collection;
+  }
+
   async fetchGuildEmoji(
     guildId: string,
     emojiId: string,
@@ -606,7 +625,9 @@ export class RestClient extends Client {
       } else {
         raw.guild_id = guildId;
         emoji = new Emoji(this.client, raw);
-        this.client.emojis.insert(emoji);
+        if (this.client.guilds.has(guildId)) {
+          this.client.emojis.insert(emoji);
+        }
       }
       collection.set(emoji.id || emoji.name, emoji);
     }
@@ -618,6 +639,7 @@ export class RestClient extends Client {
   ): Promise<BaseCollection<string, Integration>> {
     const data = await super.fetchGuildIntegrations.call(this, guildId);
     const collection = new BaseCollection<string, Integration>();
+
     for (let raw of data) {
       raw.guild_id = guildId;
       const integration = new Integration(this.client, raw);
@@ -631,6 +653,7 @@ export class RestClient extends Client {
   ): Promise<BaseCollection<string, Invite>> {
     const data = await super.fetchGuildInvites.call(this, guildId);
     const collection = new BaseCollection<string, Invite>();
+
     for (let raw of data) {
       const invite = new Invite(this.client, raw);
       collection.set(invite.code, invite);
@@ -659,13 +682,20 @@ export class RestClient extends Client {
     options: RequestTypes.FetchGuildMembers = {},
   ): Promise<BaseCollection<string, Member>> {
     const data = await super.fetchGuildMembers.call(this, guildId, options);
-
-    this.client.members.delete(guildId);
     const collection = new BaseCollection<string, Member>();
+
     for (let raw of data) {
-      raw.guild_id = guildId;
-      const member = new Member(this.client, raw);
-      this.client.members.insert(member);
+      let member: Member;
+      if (this.client.members.has(guildId, raw.user.id)) {
+        member = <Member> this.client.members.get(guildId, raw.user.id);
+        member.merge(raw);
+      } else {
+        raw.guild_id = guildId;
+        member = new Member(this.client, raw);
+        if (this.client.members.has(guildId)) {
+          this.client.members.insert(member);
+        }
+      }
       collection.set(member.id, member);
     }
     return collection;
@@ -687,15 +717,26 @@ export class RestClient extends Client {
     guildId: string,
   ): Promise<BaseCollection<string, Role>> {
     const data = await super.fetchGuildRoles.call(this, guildId);
-
     const collection = new BaseCollection<string, Role>();
+
     if (this.client.guilds.has(guildId)) {
       const guild = <Guild> this.client.guilds.get(guildId);
-      guild.roles.clear();
+      for (let [roleId, role] of guild.roles) {
+        if (!data.some((r: Role) => r.id === roleId)) {
+          guild.roles.delete(roleId);
+        }
+      }
+
       for (let raw of data) {
-        raw.guild_id = guildId;
-        const role = new Role(this.client, raw);
-        guild.roles.set(role.id, role);
+        let role: Role;
+        if (guild.roles.has(raw.id)) {
+          role = <Role> guild.roles.get(raw.id);
+          role.merge(raw);
+        } else {
+          raw.guild_id = guildId;
+          role = new Role(this.client, raw);
+          guild.roles.set(role.id, role);
+        }
         collection.set(role.id, role);
       }
     } else {
@@ -713,6 +754,7 @@ export class RestClient extends Client {
   ): Promise<BaseCollection<string, Webhook>> {
     const data = await super.fetchGuildWebhooks.call(this, guildId);
     const collection = new BaseCollection<string, Webhook>();
+
     for (let raw of data) {
       const webhook = new Webhook(this.client, raw);
       collection.set(webhook.id, webhook);
@@ -744,15 +786,31 @@ export class RestClient extends Client {
   ): Promise<Message> {
     const data = await super.fetchMessage.call(this, channelId, messageId);
 
+    let guildId: null | string = null;
+    if (this.client.channels.has(data.channel_id)) {
+      const channel = <Channel> this.client.channels.get(data.channel_id);
+      guildId = channel.guildId;
+    }
+
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = channelId;
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = guildId || channelId;
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
     let message: Message;
-    if (this.client.messages.has(data.id)) {
-      message = <Message> this.client.messages.get(null, data.id);
+    if (this.client.messages.has(cacheKey, data.id)) {
+      message = <Message> this.client.messages.get(cacheKey, data.id);
       message.merge(data);
     } else {
-      if (this.client.channels.has(data.channel_id)) {
-        const channel = <Channel> this.client.channels.get(data.channel_id);
-        data.guild_id = channel.guildId;
-      }
+      data.guild_id = guildId;
       message = new Message(this.client, data);
     }
     return message;
@@ -773,11 +831,24 @@ export class RestClient extends Client {
       }
     }
 
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = channelId;
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = guildId || channelId;
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
     const collection = new BaseCollection<string, Message>();
     for (let raw of data) {
       let message: Message;
-      if (this.client.messages.has(raw.id)) {
-        message = <Message> this.client.messages.get(null, raw.id);
+      if (this.client.messages.has(cacheKey, raw.id)) {
+        message = <Message> this.client.messages.get(cacheKey, raw.id);
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -845,11 +916,24 @@ export class RestClient extends Client {
       }
     }
 
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = channelId;
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = guildId || channelId;
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
     const collection = new BaseCollection<string, Message>();
     for (let raw of data) {
       let message: Message;
-      if (this.client.messages.has(raw.id)) {
-        message = <Message> this.client.messages.get(null, raw.id);
+      if (this.client.messages.has(cacheKey, raw.id)) {
+        message = <Message> this.client.messages.get(cacheKey, raw.id);
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
