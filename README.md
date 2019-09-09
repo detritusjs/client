@@ -35,13 +35,16 @@ const { CommandClient } = require('detritus-client');
 //
 // Tokens should be considered secrets and stored in a configuration file that is not
 // part of your version control system, or an environment variable.
+// By default, the CommandClient will use the ShardClient unless you use the ClusterManager to spawn processes
+// The ShardClient/ClusterClient will be under CommandClient.client as soon as you create the object
 const token = '';
-const client = new CommandClient(token, {
+const commandClient = new CommandClient(token, {
+  // Prefix `..`, if you want multiple prefixes pass in `prefixes: ['..', '...']`
   prefix: '..',
 });
 
 // Simple ping/pong command
-client.add({
+commandClient.add({
   // name describes the command trigger; in this case, ..ping
   name: 'ping',
   run: (context, args) => {
@@ -51,7 +54,7 @@ client.add({
 });
 
 // Command demonstrating command pipelines
-client.add({
+commandClient.add({
   name: 'owner',
   // onBefore should return a boolean to indicate whether or not the command should proceed
   onBefore: (context) => context.client.isOwner(context.userId),
@@ -67,9 +70,9 @@ client.add({
 // Note: Due to how Node handles tasks, the script will block until the Detritus client
 // is killed.
 (async () => {
-  await client.run();
+  const client = await commandClient.run();
   // client has received the READY payload, do stuff now
-  console.log(`Client has loaded on shard ${client.shardId}`);
+  console.log(`Client has loaded with a shard count of ${client.shardCount}`);
 })();
 ```
 
@@ -85,7 +88,7 @@ const { ShardClient } = require('detritus-client');
 const token = '';
 const client = new ShardClient(token, {
   gateway: {
-    // This will tell Discord to fill our cache if any of our guilds are larger than the large threshold (250)
+    // This will tell our client to fill our Members cache on any of our guilds that are larger than the large threshold you pass in (default 250)
     loadAllMembers: true,
   },
 });
@@ -124,6 +127,60 @@ client.on('MESSAGE_CREATE', async ({message}) => {
     // do-not-disturb us
     status: 'dnd',
   });
+})();
+```
+
+### Cluster Client Sample
+
+```js
+const { ClusterClient } = require('detritus-client');
+
+// Note: it is not advised to hard-code your bot token directly into the bot source.
+//
+// Tokens should be considered secrets and stored in a configuration file that is not
+// part of your version control system, or an environment variable.
+const token = '';
+const cluster = new ClusterClient(token, {
+  gateway: {
+    // Pass in a presence we will send with the identify payload
+    presence: {
+      activity: {
+        // What comes after our activity type, x.
+        name: 'with Detritus ClusterClient',
+        // Type 0 sets our message to `Playing x`
+        type: 0,
+      },
+      // do-not-disturb us
+      status: 'dnd',
+    },
+  },
+});
+
+// listen to our client's eventemitter
+// `shard` (which is the ShardClient the event originated from) is added onto EVERY event that you listen to on the cluster client
+cluster.on('GUILD_CREATE', async ({fromUnavailable, guild, shard}) => {
+  if (fromUnavailable) {
+    console.log(`Shard #${shard.shardId}:`, `Guild ${guild.name} has just came back from being unavailable`);
+  } else {
+    console.log(`Shard #${shard.shardId}:`, `Joined Guild ${guild.name}, bringing us up to ${client.guilds.length} guilds.`);
+  }
+});
+
+// listen to our client's eventemitter
+// `shard` (which is the ShardClient the event originated from) is added onto EVERY event that you listen to on the cluster client
+cluster.on('MESSAGE_CREATE', async ({message, shard}) => {
+  if (message.content === '!ping') {
+    const reply = await message.reply(`pong on shard #${shard.shardId}!, deleting message in 5 seconds...`);
+    setTimeout(async () => {
+      await reply.delete();
+    }, 5000);
+  }
+});
+
+(async () => {
+  // shards are made after the cluster is ran, found in `ClusterClient.shards`.
+  await cluster.run();
+  console.log(`Successfully launched shards ${cluster.shardStart} to ${cluster.shardEnd} with a shardCount of ${cluster.shardCount}`);
 })();
 ```
 
