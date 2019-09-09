@@ -6,6 +6,8 @@ import {
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
+import { EmojisOptions } from '../collections/emojis';
+import { RolesOptions } from '../collections/roles';
 import {
   DiscordKeys,
   GuildFeatures,
@@ -52,6 +54,11 @@ import { User } from './user';
 import { VoiceRegion } from './voiceregion';
 import { VoiceState } from './voicestate';
 
+
+export interface GuildCacheOptions {
+  emojis?: EmojisOptions,
+  roles?: RolesOptions,
+}
 
 const keysGuild = new BaseSet<string>([
   DiscordKeys.AFK_CHANNEL_ID,
@@ -110,7 +117,6 @@ const keysMergeGuild = new BaseSet<string>([
 export class Guild extends BaseStructure {
   readonly _keys = keysGuild;
   readonly _keysMerge = keysMergeGuild;
-  readonly roles = new BaseCollection<string, Role>();
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
@@ -121,6 +127,7 @@ export class Guild extends BaseStructure {
   embedChannelId: null | string = null;
   embedEnabled: boolean = false;
   explicitContentFilter: number = 0;
+  emojis: BaseCollection<string, Emoji>;
   features!: BaseSet<string>;
   icon: null | string = null;
   id: string = '';
@@ -137,6 +144,7 @@ export class Guild extends BaseStructure {
   premiumSubscriptionCount: number = 0;
   premiumTier: number = 0;
   region: string = '';
+  roles: BaseCollection<string, Role>;
   splash: null | string = '';
   systemChannelFlags: number = 0;
   systemChannelId: null | string = null;
@@ -146,8 +154,10 @@ export class Guild extends BaseStructure {
   widgetChannelId: null | string = null;
   widgetEnabled: boolean = false;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
+  constructor(client: ShardClient, data: BaseStructureData, cache: GuildCacheOptions = {}) {
     super(client);
+    this.emojis = new BaseCollection<string, Emoji>(cache.emojis || this.client.emojis.options);
+    this.roles = new BaseCollection<string, Role>(cache.roles || this.client.roles.options);
     this.merge(data);
   }
 
@@ -196,16 +206,6 @@ export class Guild extends BaseStructure {
 
   get defaultRole(): null | Role {
     return this.roles.get(this.id) || null;
-  }
-
-  get emojis(): BaseCollection<string, Emoji> {
-    const collection = new BaseCollection<string, Emoji>();
-    for (const [emojiId, emoji] of this.client.emojis) {
-      if (emoji.guildId === this.id) {
-        collection.set(emojiId, emoji);
-      }
-    }
-    return collection;
   }
 
   get hasSystemChannelSuppressJoinNotifications(): boolean {
@@ -706,17 +706,17 @@ export class Guild extends BaseStructure {
         }; return;
         case DiscordKeys.EMOJIS: {
           if (this.client.emojis.enabled) {
-            for (let [id, emoji] of this.emojis) {
-              if (!value.some((e: GatewayRawEvents.RawEmoji) => e.id === id)) {
-                this.client.emojis.delete(id);
+            for (let [emojiId, emoji] of this.emojis) {
+              if (!value.some((e: GatewayRawEvents.RawEmoji) => e.id === emojiId)) {
+                this.emojis.delete(emojiId);
               }
             }
             for (let raw of value) {
-              if (this.client.emojis.has(raw.id)) {
-                (<Emoji> this.client.emojis.get(raw.id)).merge(raw);
+              if (this.emojis.has(raw.id)) {
+                (<Emoji> this.emojis.get(raw.id)).merge(raw);
               } else {
                 raw.guild_id = this.id;
-                this.client.emojis.insert(new Emoji(this.client, raw));
+                this.emojis.set(raw.id, new Emoji(this.client, raw));
               }
             }
           }
@@ -781,18 +781,20 @@ export class Guild extends BaseStructure {
           }
         }; return;
         case DiscordKeys.ROLES: {
-          for (let [roleId, role] of this.roles) {
-            // remove any roles that's in cache but not in this new roles array
-            if (!value.some((r: Role) => r.id === roleId)) {
-              this.roles.delete(roleId);
+          if (this.client.roles.enabled) {
+            for (let [roleId, role] of this.roles) {
+              // remove any roles that's in cache but not in this new roles array
+              if (!value.some((r: Role) => r.id === roleId)) {
+                this.roles.delete(roleId);
+              }
             }
-          }
-          for (let raw of value) {
-            if (this.roles.has(raw.id)) {
-              (<Role> this.roles.get(raw.id)).merge(raw);
-            } else {
-              raw.guild_id = this.id;
-              this.roles.set(raw.id, new Role(this.client, raw));
+            for (let raw of value) {
+              if (this.roles.has(raw.id)) {
+                (<Role> this.roles.get(raw.id)).merge(raw);
+              } else {
+                raw.guild_id = this.id;
+                this.roles.set(raw.id, new Role(this.client, raw));
+              }
             }
           }
         }; return;

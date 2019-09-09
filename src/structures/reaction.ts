@@ -23,6 +23,10 @@ const keysReaction = new BaseSet<string>([
   DiscordKeys.ME,
 ]);
 
+const keysMergeReaction = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+]);
+
 /**
  * Reaction Structure, used in [Message]
  * we don't store the userIds since we only get them on reaction adds
@@ -30,6 +34,7 @@ const keysReaction = new BaseSet<string>([
  */
 export class Reaction extends BaseStructure {
   readonly _keys = keysReaction;
+  readonly _keysMerge = keysMergeReaction;
 
   channelId: string = '';
   count: number = 0;
@@ -95,8 +100,8 @@ export class Reaction extends BaseStructure {
           const emojiId = value.id || value.name;
 
           let emoji: Emoji;
-          if (this.client.emojis.has(emojiId)) {
-            emoji = <Emoji> this.client.emojis.get(emojiId);
+          if (this.client.emojis.has(this.guildId || null, emojiId)) {
+            emoji = <Emoji> this.client.emojis.get(this.guildId || null, emojiId);
           } else {
             emoji = new Emoji(this.client, value);
           }

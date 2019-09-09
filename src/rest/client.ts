@@ -133,9 +133,10 @@ export class RestClient extends Client {
     options: RequestTypes.CreateGuildEmoji,
   ): Promise<Emoji> {
     const data = await super.createGuildEmoji.call(this, guildId, options);
+
     let emoji: Emoji;
-    if (this.client.emojis.has(data.id)) {
-      emoji = <Emoji> this.client.emojis.get(data.id);
+    if (this.client.emojis.has(guildId, data.id)) {
+      emoji = <Emoji> this.client.emojis.get(guildId, data.id);
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -256,9 +257,10 @@ export class RestClient extends Client {
     options: RequestTypes.EditGuildEmoji = {},
   ): Promise<Emoji> {
     const data = await super.editGuildEmoji.call(this, guildId, emojiId, options);
+
     let emoji: Emoji;
-    if (this.client.emojis.has(data.id)) {
-      emoji = <Emoji> this.client.emojis.get(data.id);
+    if (this.client.emojis.has(guildId, data.id)) {
+      emoji = <Emoji> this.client.emojis.get(guildId, data.id);
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -479,12 +481,13 @@ export class RestClient extends Client {
 
   async fetchGuild(guildId: string): Promise<Guild> {
     const data = await super.fetchGuild.call(this, guildId);
+
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
       guild = <Guild> this.client.guilds.get(data.id);
       guild.merge(data);
     } else {
-      guild = new Guild(this.client, data);
+      guild = new Guild(this.client, data, {emojis: {}, roles: {}});
     }
     return guild;
   }
@@ -592,9 +595,10 @@ export class RestClient extends Client {
     emojiId: string,
   ): Promise<Emoji> {
     const data = await super.fetchGuildEmoji.call(this, guildId, emojiId);
+
     let emoji: Emoji;
-    if (this.client.emojis.has(data.id)) {
-      emoji = <Emoji> this.client.emojis.get(data.id);
+    if (this.client.emojis.has(guildId, data.id)) {
+      emoji = <Emoji> this.client.emojis.get(guildId, data.id);
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -607,31 +611,26 @@ export class RestClient extends Client {
     guildId: string,
   ): Promise<BaseCollection<string, Emoji>> {
     const data = await super.fetchGuildEmojis.call(this, guildId);
-    const collection = new BaseCollection<string, Emoji>();
 
     if (this.client.guilds.has(guildId)) {
       const guild = <Guild> this.client.guilds.get(guildId);
-      for (let [emojiId, emoji] of guild.emojis) {
-        if (!data.some((e: any) => e.id === emojiId)) {
-          this.client.emojis.delete(emojiId);
+      guild.merge({emojis: data});
+      return guild.emojis;
+    } else {
+      const collection = new BaseCollection<string, Emoji>();
+      for (let raw of data) {
+        let emoji: Emoji;
+        if (this.client.emojis.has(guildId, raw.id)) {
+          emoji = <Emoji> this.client.emojis.get(guildId, raw.id);
+          emoji.merge(raw);
+        } else {
+          raw.guild_id = guildId;
+          emoji = new Emoji(this.client, raw);
         }
+        collection.set(emoji.id || emoji.name, emoji);
       }
+      return collection;
     }
-    for (let raw of data) {
-      let emoji: Emoji;
-      if (this.client.emojis.has(raw.id)) {
-        emoji = <Emoji> this.client.emojis.get(raw.id);
-        emoji.merge(raw);
-      } else {
-        raw.guild_id = guildId;
-        emoji = new Emoji(this.client, raw);
-        if (this.client.guilds.has(guildId)) {
-          this.client.emojis.insert(emoji);
-        }
-      }
-      collection.set(emoji.id || emoji.name, emoji);
-    }
-    return collection;
   }
 
   async fetchGuildIntegrations(

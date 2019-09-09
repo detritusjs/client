@@ -129,15 +129,6 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
     return this;
   }
 
-  some(func: (v: V, k: K) => boolean): boolean {
-    for (let [key, value] of this) {
-      if (func(value, key)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   *keys(): IterableIterator<K> {
     for (let cache of this.caches.values()) {
       for (let key of cache.keys()) {
@@ -229,5 +220,162 @@ export class BaseClientCollectionCache<K, V> extends BaseCollectionCache<K, V> {
 
   setEnabled(value: boolean) {
     Object.defineProperty(this, 'enabled', {value});
+  }
+}
+
+
+export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, V> {
+  client: ShardClient;
+  enabled: boolean;
+  key: string = '';
+  options: BaseCollectionOptions = {};
+
+  constructor(
+    client: ShardClient,
+    options: BaseClientCollectionOptions = {},
+  ) {
+    super();
+    Object.assign(this.options, options);
+
+    this.client = client;
+    this.enabled = !!(options.enabled || options.enabled === undefined);
+
+    Object.defineProperties(this, {
+      client: {enumerable: false, writable: false},
+      enabled: {configurable: true, writable: false},
+      options: {enumerable: false},
+    });
+  }
+
+  get guilds() {
+    return this.client.guilds;
+  }
+
+  get size(): number {
+    let size = 0;
+    for (let [guildId, guild] of this.guilds) {
+      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      size += cache.size;
+    }
+    return size;
+  }
+
+  setEnabled(value: boolean) {
+    Object.defineProperty(this, 'enabled', {value});
+  }
+
+  clear(): void {
+    for (let [guildId, guild] of this.guilds) {
+      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      cache.clear();
+    }
+  }
+
+  delete(guildId: K | null | undefined, key: K): boolean;
+  delete(guildId?: K | null, key?: K | null): boolean {
+    if (guildId && key) {
+      const guild = this.guilds.get(<string> <unknown> guildId);
+      if (guild) {
+        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        return cache.delete(key);
+      }
+    } else if (key) {
+      let deleted = false;
+      for (let [guildId, guild] of this.guilds) {
+        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        if (cache.delete(key)) {
+          deleted = true;
+        }
+      }
+      return deleted;
+    }
+    return false;
+  }
+
+  forEach(func: (v: V, k: K, map: Map<K, V>) => void, thisArg?: any): void {
+    for (let [guildId, guild] of this.guilds) {
+      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      for (let [k, v] of cache) {
+        func.call(thisArg, v, k, cache);
+      }
+    }
+  }
+
+  get(guildId: K | null | undefined, key: K): V | undefined;
+  get(guildId?: K | null, key?: K | null): BaseCollection<K, V> | V | undefined {
+    if (guildId && key) {
+      const guild = this.guilds.get(<string> <unknown> guildId);
+      if (guild) {
+        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        return cache.get(key);
+      }
+    } else if (key) {
+      for (let [guildId, guild] of this.guilds) {
+        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        if (cache.has(key)) {
+          return cache.get(key);
+        }
+      }
+    }
+    return undefined;
+  }
+
+  has(guildId: K | null | undefined, key: K): boolean;
+  has(guildId?: K | null, key?: K | null): boolean {
+    if (guildId && key) {
+      const guild = this.guilds.get(<string> <unknown> guildId);
+      if (guild) {
+        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        return cache.has(key);
+      }
+    } else if (key) {
+      for (let [guildId, guild] of this.guilds) {
+        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        if (cache.has(key)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  set(guildId: K, key: K, value: V): this {
+    const guild = this.guilds.get(<string> <unknown> guildId);
+    if (guild) {
+      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      cache.set(key, value);
+    }
+    return this;
+  }
+
+  *keys(): IterableIterator<K> {
+    for (let guild of this.guilds.values()) {
+      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      for (let key of cache.keys()) {
+        yield key;
+      }
+    }
+  }
+
+  *values(): IterableIterator<V> {
+    for (let guild of this.guilds.values()) {
+      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      for (let value of cache.values()) {
+        yield value;
+      }
+    }
+  }
+
+  *[Symbol.iterator](): IterableIterator<[K, V]> {
+    for (let [guildId, guild] of this.guilds) {
+      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      for (let [key, value] of cache) {
+        yield [key, value];
+      }
+    }
+  }
+
+  get [Symbol.toStringTag](): string {
+    return `BaseGuildReferenceCache (${this.guilds.size.toLocaleString()} guilds, ${this.size.toLocaleString()} items)`;
   }
 }

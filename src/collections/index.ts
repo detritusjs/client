@@ -9,6 +9,7 @@ export * from './messages';
 export * from './notes';
 export * from './presences';
 export * from './relationships';
+export * from './roles';
 export * from './sessions';
 export * from './typing';
 export * from './users';

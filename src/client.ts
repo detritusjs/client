@@ -35,6 +35,8 @@ import {
   PresencesOptions,
   Relationships,
   RelationshipsOptions,
+  Roles,
+  RolesOptions,
   Sessions,
   SessionsOptions,
   TypingCollection,
@@ -75,6 +77,7 @@ export interface ShardClientOptions {
     notes?: NotesOptions,
     presences?: PresencesOptions,
     relationships?: RelationshipsOptions,
+    roles?: RolesOptions,
     sessions?: SessionsOptions,
     typing?: TypingOptions,
     users?: UsersOptions,
@@ -98,6 +101,7 @@ export interface ShardClientOptions {
     notes?: Notes,
     presences?: Presences,
     relationships?: Relationships,
+    roles?: Roles,
     sessions?: Sessions,
     typing?: TypingCollection,
     users?: Users,
@@ -175,6 +179,7 @@ export class ShardClient extends EventEmitter {
   readonly notes: Notes;
   readonly presences: Presences;
   readonly relationships: Relationships;
+  readonly roles: Roles;
   readonly sessions: Sessions;
   readonly typing: TypingCollection;
   readonly users: Users;
@@ -240,6 +245,7 @@ export class ShardClient extends EventEmitter {
         notes: {enabled},
         presences: {enabled},
         relationships: {enabled},
+        roles: {enabled},
         sessions: {enabled},
         typing: {enabled},
         users: {enabled},
@@ -258,6 +264,7 @@ export class ShardClient extends EventEmitter {
     this.notes = options.pass.notes || new Notes(this, options.cache.notes);
     this.presences = options.pass.presences || new Presences(this, options.cache.presences);
     this.relationships = options.pass.relationships || new Relationships(this, options.cache.relationships);
+    this.roles = options.pass.roles || new Roles(this, options.cache.roles);
     this.sessions = options.pass.sessions || new Sessions(this, options.cache.sessions);
     this.typing = options.pass.typing || new TypingCollection(this, options.cache.typing);
     this.users = options.pass.users || new Users(this, options.cache.users);

@@ -1,8 +1,9 @@
 import {
-  BaseClientCollection,
   BaseClientCollectionOptions,
+  BaseClientGuildReferenceCache,
 } from './basecollection';
 
+import { DetritusKeys, DiscordKeys } from '../constants';
 import { Emoji } from '../structures/emoji';
 
 
@@ -14,13 +15,18 @@ export interface EmojisOptions extends BaseClientCollectionOptions {
 };
 
 /**
- * Emojis Collection
+ * Emojis Reference Collection
  * @category Collections
  */
-export class Emojis extends BaseClientCollection<string, Emoji> {
+export class Emojis extends BaseClientGuildReferenceCache<string, Emoji> {
+  key = DetritusKeys[DiscordKeys.EMOJIS];
+
   insert(emoji: Emoji): void {
     if (this.enabled) {
-      this.set(emoji.id || emoji.name, emoji);
+      const guild = emoji.guild;
+      if (guild) {
+        guild.emojis.set(emoji.id || emoji.name, emoji);
+      }
     }
   }
 

@@ -105,6 +105,10 @@ export class Context {
     return this.client.relationships;
   }
 
+  get roles() {
+    return this.client.roles;
+  }
+
   get sessions() {
     return this.client.sessions;
   }

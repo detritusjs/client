@@ -573,11 +573,6 @@ export class GatewayDispatchHandler {
           this.client.typing.delete(channelId);
         }
       }
-      for (let [emojiId, emoji] of this.client.emojis) {
-        if (emoji.id && emoji.guildId === guildId) {
-          this.client.emojis.delete(emojiId);
-        }
-      }
       this.client.members.delete(guildId);
       this.client.messages.delete(guildId);
       this.client.presences.delete(guildId);
@@ -610,35 +605,26 @@ export class GatewayDispatchHandler {
     if (this.client.guilds.has(guildId)) {
       guild = <Guild> this.client.guilds.get(guildId);
       if (this.client.hasEventListener(ClientEvents.GUILD_EMOJIS_UPDATE)) {
-        emojisOld = guild.emojis;
+        emojisOld = guild.emojis.clone();
       }
       guild.merge({emojis: data['emojis']});
       emojis = guild.emojis;
     } else {
       emojisOld = new BaseCollection();
-      for (let [emojiId, emoji] of this.client.emojis) {
-        if (emoji.guildId === guildId) {
-          emojisOld.set(emojiId, emoji);
-
-          if (!data['emojis'].some((e) => e.id === emojiId)) {
-            this.client.emojis.delete(emojiId);
-          }
-        }
-      }
 
       emojis = new BaseCollection();
       for (let raw of data['emojis']) {
         const emojiId = <string> raw.id;
+
         let emoji: Emoji;
-        if (this.client.emojis.has(emojiId)) {
-          emoji = <Emoji> this.client.emojis.get(emojiId);
+        if (this.client.emojis.has(guildId, emojiId)) {
+          emoji = <Emoji> this.client.emojis.get(guildId, emojiId);
           emoji.merge(raw);
         } else {
+          Object.assign(raw, {guild_id: guildId});
           emoji = new Emoji(this.client, raw);
-          emoji.guildId = guildId;
-          this.client.emojis.insert(emoji);
         }
-        emojis.set(emoji.id || emoji.name, emoji);
+        emojis.set(emojiId, emoji);
       }
     }
 
