@@ -2,7 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DiscordKeys, MessageCacheTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -60,7 +60,20 @@ export class Reaction extends BaseStructure {
   }
 
   get message(): Message | null {
-    return (<Message | undefined> this.client.messages.get(this.messageId)) || null;
+    let cacheKey: null | string = null;
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        cacheKey = this.channelId;
+      }; break;
+      case MessageCacheTypes.GUILD: {
+        cacheKey = this.guildId || this.channelId;
+      }; break;
+      case MessageCacheTypes.USER: {
+        cacheKey = null;
+      }; break;
+    }
+
+    return this.client.messages.get(cacheKey, this.messageId) || null;
   }
 
   clear() {
@@ -71,9 +84,7 @@ export class Reaction extends BaseStructure {
     return this.client.rest.deleteReaction(this.channelId, this.messageId, this.emoji.endpointFormat, userId);
   }
 
-  fetchUsers(
-    options: RequestTypes.FetchReactions,
-  ) {
+  fetchUsers(options: RequestTypes.FetchReactions) {
     return this.client.rest.fetchReactions(this.channelId, this.messageId, this.emoji.endpointFormat, options);
   }
 
@@ -81,9 +92,11 @@ export class Reaction extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.EMOJI: {
+          const emojiId = value.id || value.name;
+
           let emoji: Emoji;
-          if (value.id && this.client.emojis.has(value.id)) {
-            emoji = <Emoji> this.client.emojis.get(value.id);
+          if (this.client.emojis.has(emojiId)) {
+            emoji = <Emoji> this.client.emojis.get(emojiId);
           } else {
             emoji = new Emoji(this.client, value);
           }
