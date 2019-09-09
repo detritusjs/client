@@ -106,8 +106,8 @@ export class Invite extends BaseStructure {
     return this.client.rest.acceptInvite(this.code);
   }
 
-  delete() {
-    return this.client.rest.deleteInvite(this.code);
+  delete(options: RequestTypes.DeleteInvite = {}) {
+    return this.client.rest.deleteInvite(this.code, options);
   }
 
   fetch(options: RequestTypes.FetchInvite = {}) {

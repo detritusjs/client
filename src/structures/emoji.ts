@@ -126,11 +126,11 @@ export class Emoji extends BaseStructure {
     return this.client.rest.editGuildEmoji(this.guildId, this.id, options);
   }
 
-  async delete() {
+  async delete(options: RequestTypes.DeleteGuildEmoji = {}) {
     if (!this.id || !this.guildId) {
       throw new Error('Cannot delete a standard Emoji.');
     }
-    return this.client.rest.deleteGuildEmoji(this.guildId, this.id);
+    return this.client.rest.deleteGuildEmoji(this.guildId, this.id, options);
   }
 
   async fetchData(

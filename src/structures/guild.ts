@@ -18,6 +18,8 @@ import {
   MfaLevels,
   Permissions,
   PremiumGuildLimits,
+  PremiumGuildTierNames,
+  SystemChannelFlags,
 } from '../constants';
 import { GatewayRawEvents } from '../gateway/rawevents';
 import {
@@ -204,6 +206,14 @@ export class Guild extends BaseStructure {
       }
     }
     return collection;
+  }
+
+  get hasSystemChannelSuppressJoinNotifications(): boolean {
+    return this.hasSystemChannelFlag(SystemChannelFlags.SUPPRESS_JOIN_NOTIFICATIONS);
+  }
+
+  get hasSystemChannelSuppressPremiumSubscriptions(): boolean {
+    return this.hasSystemChannelFlag(SystemChannelFlags.SUPPRESS_PREMIUM_SUBSCRIPTIONS);
   }
 
   get iconUrl(): null | string {
@@ -397,6 +407,10 @@ export class Guild extends BaseStructure {
     return this.features.has(feature);
   }
 
+  hasSystemChannelFlag(flag: number): boolean {
+    return (this.systemChannelFlags & flag) === flag;
+  }
+
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (!this.icon) {
       return null;
@@ -453,7 +467,7 @@ export class Guild extends BaseStructure {
     return this.client.rest.addGuildMemberRole(this.id, userId, roleId);
   }
 
-  async beginPrune(options: RequestTypes.BeginGuildPrune) {
+  async beginPrune(options: RequestTypes.BeginGuildPrune = {}) {
     return this.client.rest.beginGuildPrune(this.id, options);
   }
 
@@ -482,20 +496,24 @@ export class Guild extends BaseStructure {
     return this.client.rest.deleteGuild(this.id);
   }
 
-  async deleteEmoji(emojiId: string) {
-    return this.client.rest.deleteGuildEmoji(this.id, emojiId);
+  async deleteChannel(channelId: string, options: RequestTypes.DeleteChannel = {}) {
+    return this.client.rest.deleteChannel(channelId, options);
   }
 
-  async deleteIntegration(integrationId: string) {
-    return this.client.rest.deleteGuildIntegration(this.id, integrationId);
+  async deleteEmoji(emojiId: string, options: RequestTypes.DeleteGuildEmoji = {}) {
+    return this.client.rest.deleteGuildEmoji(this.id, emojiId, options);
+  }
+
+  async deleteIntegration(integrationId: string, options: RequestTypes.DeleteGuildIntegration = {}) {
+    return this.client.rest.deleteGuildIntegration(this.id, integrationId, options);
   }
 
   async deletePremiumSubscription(subscriptionId: string) {
     return this.client.rest.deleteGuildPremiumSubscription(this.id, subscriptionId);
   }
 
-  async deleteRole(roleId: string) {
-    return this.client.rest.deleteGuildRole(this.id, roleId);
+  async deleteRole(roleId: string, options: RequestTypes.DeleteGuildRole = {}) {
+    return this.client.rest.deleteGuildRole(this.id, roleId, options);
   }
 
 
@@ -507,8 +525,8 @@ export class Guild extends BaseStructure {
     return this.client.rest.editChannel(channelId, options);
   }
 
-  async editChannelPositions(options: RequestTypes.EditGuildChannels) {
-    return this.client.rest.editGuildChannels(this.id, options);
+  async editChannelPositions(channels: RequestTypes.EditGuildChannels, options: RequestTypes.EditGuildChannelsExtra = {}) {
+    return this.client.rest.editGuildChannels(this.id, channels, options);
   }
 
   async editEmbed(options: RequestTypes.EditGuildEmbed) {
@@ -531,20 +549,20 @@ export class Guild extends BaseStructure {
     return this.client.rest.editGuildMfaLevel(this.id, options);
   }
 
-  async editNick(nick: string, userId: string = '@me') {
-    return this.client.rest.editGuildNick(this.id, nick, userId);
+  async editNick(nick: string, userId: string = '@me', options: RequestTypes.EditGuildNick = {}) {
+    return this.client.rest.editGuildNick(this.id, nick, userId, options);
   }
 
   async editRole(roleId: string, options: RequestTypes.EditGuildRole) {
     return this.client.rest.editGuildRole(this.id, roleId, options);
   }
 
-  async editRolePositions(options: RequestTypes.EditGuildRolePositions) {
-    return this.client.rest.editGuildRolePositions(this.id, options);
+  async editRolePositions(roles: RequestTypes.EditGuildRolePositions, options: RequestTypes.EditGuildRolePositionsExtra = {}) {
+    return this.client.rest.editGuildRolePositions(this.id, roles, options);
   }
 
-  async editVanityUrl(code: string) {
-    return this.client.rest.editGuildVanity(this.id, code);
+  async editVanityUrl(code: string, options: RequestTypes.EditGuildVanity = {}) {
+    return this.client.rest.editGuildVanity(this.id, code, options);
   }
 
 
@@ -647,16 +665,16 @@ export class Guild extends BaseStructure {
   }
 
 
-  async removeBan(userId: string) {
-    return this.client.rest.removeGuildBan(this.id, userId);
+  async removeBan(userId: string, options: RequestTypes.RemoveGuildBan = {}) {
+    return this.client.rest.removeGuildBan(this.id, userId, options);
   }
 
-  async removeMember(userId: string) {
-    return this.client.rest.removeGuildMember(this.id, userId);
+  async removeMember(userId: string, options: RequestTypes.RemoveGuildMember = {}) {
+    return this.client.rest.removeGuildMember(this.id, userId, options);
   }
 
-  async removeMemberRole(userId: string, roleId: string) {
-    return this.client.rest.removeGuildMemberRole(this.id, userId, roleId);
+  async removeMemberRole(userId: string, roleId: string, options: RequestTypes.RemoveGuildBan = {}) {
+    return this.client.rest.removeGuildMemberRole(this.id, userId, roleId, options);
   }
 
 

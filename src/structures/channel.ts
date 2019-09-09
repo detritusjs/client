@@ -361,15 +361,15 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async delete() {
-    return this.client.rest.deleteChannel(this.id);
+  async delete(options: RequestTypes.DeleteChannel = {}) {
+    return this.client.rest.deleteChannel(this.id, options);
   }
 
-  async deleteMessage(messageId: string): Promise<any> {
+  async deleteMessage(messageId: string, options: RequestTypes.DeleteMessage = {}): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async deleteOverwrite(overwriteId: string): Promise<any> {
+  async deleteOverwrite(overwriteId: string, options: RequestTypes.DeleteChannelOverwrite = {}): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -393,7 +393,7 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  async editOverwrite(overwriteId: string): Promise<any> {
+  async editOverwrite(overwriteId: string, options: RequestTypes.EditChannelOverwrite = {}): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -561,12 +561,8 @@ export class ChannelDM extends ChannelBase {
     return this.client.rest.createReaction(this.id, messageId, emoji);
   }
 
-  async deleteMessage(messageId: string) {
-    return this.client.rest.deleteMessage(this.id, messageId);
-  }
-
-  async deleteOverwrite(overwriteId: string) {
-    return this.client.rest.deleteChannelOverwrite(this.id, overwriteId);
+  async deleteMessage(messageId: string, options: RequestTypes.DeleteMessage = {}) {
+    return this.client.rest.deleteMessage(this.id, messageId, options);
   }
 
   async deletePin(messageId: string) {
@@ -945,8 +941,8 @@ export class ChannelGuildBase extends ChannelBase {
     return PermissionTools.checkPermissions(total, permissions);
   }
 
-  async deleteOverwrite(overwriteId: string) {
-    return this.client.rest.deleteChannelOverwrite(this.id, overwriteId);
+  async deleteOverwrite(overwriteId: string, options: RequestTypes.DeleteChannelOverwrite = {}) {
+    return this.client.rest.deleteChannelOverwrite(this.id, overwriteId, options);
   }
 
   async editOverwrite(overwriteId: string, options: RequestTypes.EditChannelOverwrite = {}) {
@@ -1095,8 +1091,8 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.createWebhook(this.id, options);
   }
 
-  async deleteMessage(messageId: string) {
-    return this.client.rest.deleteMessage(this.id, messageId);
+  async deleteMessage(messageId: string, options: RequestTypes.DeleteMessage = {}) {
+    return this.client.rest.deleteMessage(this.id, messageId, options);
   }
 
   async deletePin(messageId: string) {

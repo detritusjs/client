@@ -199,8 +199,8 @@ export class RestClient extends Client {
     return new Webhook(this.client, data);
   }
 
-  async deleteChannel(channelId: string): Promise<Channel> {
-    const data = await super.deleteChannel.call(this, channelId);
+  async deleteChannel(channelId: string, options: RequestTypes.DeleteChannel = {}): Promise<Channel> {
+    const data = await super.deleteChannel.call(this, channelId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -212,8 +212,8 @@ export class RestClient extends Client {
     return channel;
   }
 
-  async deleteInvite(code: string): Promise<Invite> {
-    const data = await super.deleteInvite.call(this, code);
+  async deleteInvite(code: string, options: RequestTypes.DeleteInvite = {}): Promise<Invite> {
+    const data = await super.deleteInvite.call(this, code, options);
     return new Invite(this.client, data);
   }
 
@@ -292,9 +292,10 @@ export class RestClient extends Client {
 
   async editGuildRolePositions(
     guildId: string,
-    options: RequestTypes.EditGuildRolePositions,
+    roles: RequestTypes.EditGuildRolePositions,
+    options: RequestTypes.EditGuildRolePositionsExtra = {}
   ): Promise<BaseCollection<string, Role>> {
-    const data = await super.editGuildRolePositions.call(this, guildId, options);
+    const data = await super.editGuildRolePositions.call(this, guildId, roles, options);
 
     const collection = new BaseCollection<string, Role>();
     if (this.client.guilds.has(guildId)) {

@@ -249,8 +249,8 @@ export class Message extends BaseStructure {
     return this.client.rest.ackChannelMessage(this.channelId, this.id, token);
   }
 
-  async delete() {
-    return this.client.rest.deleteMessage(this.channelId, this.id);
+  async delete(options: RequestTypes.DeleteMessage = {}) {
+    return this.client.rest.deleteMessage(this.channelId, this.id, options);
   }
 
   async deleteReaction(emoji: string, userId: string = '@me') {

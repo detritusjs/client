@@ -78,8 +78,8 @@ export class Role extends BaseStructure {
     return `<@&${this.id}>`;
   }
 
-  delete() {
-    return this.client.rest.deleteGuildRole(this.guildId, this.id);
+  delete(options: RequestTypes.DeleteGuildRole = {}) {
+    return this.client.rest.deleteGuildRole(this.guildId, this.id, options);
   }
 
   edit(options: RequestTypes.EditGuildRole) {

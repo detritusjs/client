@@ -107,11 +107,18 @@ export class Webhook extends BaseStructure {
     return this.execute(options, compatibleType);
   }
 
-  async delete() {
+  async delete(options: RequestTypes.DeleteWebhook = {}) {
     if (this.token) {
-      return this.client.rest.deleteWebhookToken(this.id, this.token);
+      return this.client.rest.deleteWebhookToken(this.id, this.token, options);
     }
-    return this.client.rest.deleteWebhook(this.id);
+    return this.client.rest.deleteWebhook(this.id, options);
+  }
+
+  async edit(options: RequestTypes.EditWebhook = {}) {
+    if (this.token) {
+      return this.client.rest.editWebhookToken(this.id, this.token, options);
+    }
+    return this.client.rest.editWebhook(this.id, options);
   }
 
   async execute(

@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.5.17',
+  VERSION: '0.5.18',
 });
 
 export type Snowflake = number | string;
@@ -66,11 +66,12 @@ export type Snowflake = number | string;
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;
 
-export const MAX_BITRATE = 96000;
-export const MAX_EMOJI_SLOTS = 50;
-export const MAX_EMOJI_SLOTS_MORE = 200;
 export const MAX_ATTACHMENT_SIZE = 8 * 1024 * 1024;
 export const MAX_ATTACHMENT_SIZE_PREMIUM = 50 * 1024 * 1024;
+export const MAX_BITRATE = 96000;
+export const MAX_EMOJI_SIZE = 256000;
+export const MAX_EMOJI_SLOTS = 50;
+export const MAX_EMOJI_SLOTS_MORE = 200;
 export const MIN_BITRATE = 8000;
 
 
@@ -331,6 +332,12 @@ export const DistributorUrls = Tools.URIEncodeWrap({
     `https://store.ubi.com/search/?q=${skuId}`,
 });
 
+export const ExplicitContentFilterTypes = Object.freeze({
+  DISABLED: 0,
+  NON_FRIENDS: 1,
+  FRIENDS_AND_NON_FRIENDS: 2,
+});
+
 export const GuildExplicitContentFilterTypes = Object.freeze({
   DISABLED: 0,
   MEMBERS_WITHOUT_ROLES: 1,
@@ -351,6 +358,11 @@ export const GuildFeatures = Tools.normalize({
   VANITY_URL: null,
   VERIFIED: null,
   VIP_REGIONS: null,
+});
+
+export const GuildNotificationSettings = Object.freeze({
+  ALL: 0,
+  MENTIONS: 1,
 });
 
 export const ImageFormats = Object.freeze({
@@ -630,6 +642,11 @@ export const SpecialUrls = Tools.URIEncodeWrap({
 });
 
 export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
+
+export const SystemChannelFlags = Object.freeze({
+  SUPPRESS_JOIN_NOTIFICATIONS: 1 << 0,
+  SUPPRESS_PREMIUM_SUBSCRIPTIONS: 1 << 0,
+});
 
 export const SystemMessages = Object.freeze({
   CallMissed: 'You missed a call from :user:.',

@@ -1,3 +1,5 @@
+import { RequestTypes } from 'detritus-client-rest';
+
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
@@ -176,47 +178,47 @@ export class Member extends UserMixin {
     return (this.permissions & ~deny) | allow;
   }
 
-  addRole(roleId: string) {
-    return this.client.rest.addGuildMemberRole(this.guildId, this.id, roleId);
+  addRole(roleId: string, options: RequestTypes.AddGuildMemberRole = {}) {
+    return this.client.rest.addGuildMemberRole(this.guildId, this.id, roleId, options);
   }
 
-  ban(...args: any[]) {
-    return this.client.rest.createGuildBan(this.guildId, this.id, ...args);
+  ban(options: RequestTypes.CreateGuildBan = {}) {
+    return this.client.rest.createGuildBan(this.guildId, this.id, options);
   }
 
-  edit(...args: any[]) {
-    return this.client.rest.editGuildMember(this.guildId, this.id, ...args);
+  edit(options: RequestTypes.EditGuildMember = {}) {
+    return this.client.rest.editGuildMember(this.guildId, this.id, options);
   }
 
-  editNick(nick: string) {
+  editNick(nick: string, options: RequestTypes.EditGuildNick = {}) {
     if (this.isMe) {
-      return this.client.rest.editGuildNick(this.guildId, nick);
+      return this.client.rest.editGuildNick(this.guildId, nick, '@me', options);
     }
-    return this.edit({nick});
+    return this.edit({...options, nick});
   }
 
-  move(channelId: null | string) {
-    return this.edit({channelId});
+  move(channelId: null | string, options: RequestTypes.EditGuildMember = {}) {
+    return this.edit({...options, channelId});
   }
 
-  remove() {
-    return this.client.rest.removeGuildMember(this.guildId, this.id);
+  remove(options: RequestTypes.RemoveGuildMember = {}) {
+    return this.client.rest.removeGuildMember(this.guildId, this.id, options);
   }
 
-  removeBan() {
-    return this.client.rest.removeGuildBan(this.guildId, this.id);
+  removeBan(options: RequestTypes.RemoveGuildBan = {}) {
+    return this.client.rest.removeGuildBan(this.guildId, this.id, options);
   }
 
-  removeRole(roleId: string) {
-    return this.client.rest.removeGuildMemberRole(this.guildId, this.id, roleId);
+  removeRole(roleId: string, options: RequestTypes.RemoveGuildMemberRole = {}) {
+    return this.client.rest.removeGuildMemberRole(this.guildId, this.id, roleId, options);
   }
 
-  setDeaf(deaf: boolean) {
-    return this.edit({deaf});
+  setDeaf(deaf: boolean, options: RequestTypes.EditGuildMember = {}) {
+    return this.edit({...options, deaf});
   }
 
-  setMute(mute: boolean) {
-    return this.edit({mute});
+  setMute(mute: boolean, options: RequestTypes.EditGuildMember = {}) {
+    return this.edit({...options, mute});
   }
 
   mergeValue(key: string, value: any): void {

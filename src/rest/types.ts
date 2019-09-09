@@ -1,10 +1,6 @@
 import { BaseCollection } from '../collections/basecollection';
 
-import {
-  User,
-  UserWithFlags,
-  UserWithToken,
-} from '../structures';
+import { User } from '../structures';
 
 
 export namespace RestResponses {
