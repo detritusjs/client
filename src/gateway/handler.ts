@@ -781,7 +781,7 @@ export class GatewayDispatchHandler {
             members.set(member.id, member);
           }
         }
-      } else if (this.client.users.enabled) {
+      } else if (this.client.presences.enabled || this.client.users.enabled) {
         for (let value of data['members']) {
           let raw = <GatewayRawEvents.RawUser> value.user;
           let user: User;

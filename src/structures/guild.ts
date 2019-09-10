@@ -739,7 +739,7 @@ export class Guild extends BaseStructure {
           const cache = this.client.members.insertCache(this.id);
           cache.clear();
 
-          if (this.client.members.enabled || this.client.users.enabled) {
+          if (this.client.members.enabled || this.client.presences.enabled || this.client.users.enabled) {
             for (let raw of value) {
               if (this.client.members.enabled) {
                 let member: Member;
