@@ -562,6 +562,10 @@ export class GatewayDispatchHandler {
         this.client.guilds.insert(guild);
       }
     } else {
+      if (this.client.guilds.has(data['id'])) {
+        guild = <Guild> this.client.guilds.get(data['id']);
+      }
+
       for (let [channelId, channel] of this.client.channels) {
         if (channel.guildId === guildId) {
           this.client.channels.delete(channelId);
