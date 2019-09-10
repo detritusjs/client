@@ -13,10 +13,6 @@ import {
 import { GatewayHTTPError } from '../errors';
 
 import {
-  DEFAULT_PRESENCE_CACHE_KEY,
-} from '../collections';
-
-import {
   createChannelFromData,
   Channel,
   ChannelDM,
@@ -1305,21 +1301,21 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.PRESENCE_UPDATE](data: GatewayRawEvents.PresenceUpdate) {
     let differences: any = null;
-    let isGuildPresence = !!data['guild_id'];
+    const guildId = data['guild_id'];
+    let isGuildPresence = !!guildId;
     let member: Member | null = null;
     let presence: Presence;
 
     if (this.client.hasEventListener(ClientEvents.PRESENCE_UPDATE)) {
-      const cacheId = data['guild_id'] || DEFAULT_PRESENCE_CACHE_KEY;
-      if (this.client.presences.has(cacheId, data['user']['id'])) {
-        differences = (<Presence> this.client.presences.get(cacheId, data['user']['id'])).differences(data);
+      if (this.client.presences.has(data['user']['id'])) {
+        differences = (<Presence> this.client.presences.get(data['user']['id'])).differences(data);
       }
     }
     presence = this.client.presences.insert(data);
 
-    if (data['guild_id']) {
-      if (this.client.members.has(data['guild_id'], data['user']['id'])) {
-        member = <Member> this.client.members.get(data['guild_id'], data['user']['id']);
+    if (guildId) {
+      if (this.client.members.has(guildId, data['user']['id'])) {
+        member = <Member> this.client.members.get(guildId, data['user']['id']);
         member.merge(data);
       } else {
         member = new Member(this.client, data);
@@ -1329,10 +1325,10 @@ export class GatewayDispatchHandler {
 
     this.client.emit(ClientEvents.PRESENCE_UPDATE, {
       differences,
+      guildId,
       isGuildPresence,
       member,
       presence,
-      guildId: data['guild_id'],
     });
   }
 

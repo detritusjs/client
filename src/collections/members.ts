@@ -19,28 +19,12 @@ export interface MembersOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class Members extends BaseClientCollectionCache<string, Member> {
-  // default behavior since presence updates dont give us the member object if we've received it before
-  storeOffline: boolean = true;
-
-  constructor(client: ShardClient, options: MembersOptions = {}) {
-    super(client, options);
-    this.storeOffline = !!(options.storeOffline || options.storeOffline === undefined);
-    Object.defineProperties(this, {
-      client: {enumerable: false, writable: false},
-      storeOffline: {configurable: true, writable: false},
-    });
-  }
-
-  setStoreOffline(value: boolean): void {
-    Object.defineProperty(this, 'storeOffline', {value});
-  }
-
   insert(member: Member): void {
     const cache = this.insertCache(member.guildId);
     if (member.isMe) {
       cache.set(member.id, member);
     } else {
-      if (this.enabled && (this.storeOffline || !member.isOffline)) {
+      if (this.enabled) {
         cache.set(member.id, member);
       }
     }

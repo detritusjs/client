@@ -4,7 +4,6 @@ import { Endpoints } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DEFAULT_PRESENCE_CACHE_KEY } from '../collections/presences';
 import {
   ActivityFlags,
   ActivityTypes,
@@ -12,6 +11,7 @@ import {
   PlatformTypes,
   PresenceStatuses,
   SpecialUrls,
+  LOCAL_GUILD_ID,
 } from '../constants';
 import { addQuery, getFormatFromHash, UrlQuery } from '../utils';
 
@@ -42,12 +42,14 @@ const keysPresence = new BaseSet<string>([
   DiscordKeys.CLIENT_STATUS,
   DiscordKeys.GAME,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.GUILD_IDS,
   DiscordKeys.LAST_MODIFIED,
   DiscordKeys.STATUS,
   DiscordKeys.USER,
 ]);
 
 const keysMergePresence = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
   DiscordKeys.ACTIVITIES,
 ]);
 
@@ -62,7 +64,8 @@ export class Presence extends BaseStructure {
   activities = new BaseCollection<number | string, PresenceActivity>();
   clientStatus?: PresenceClientStatus;
   game?: null | PresenceActivity;
-  guildId: string = '';
+  guildIds = new BaseSet<string>();
+  lastGuildId: string = LOCAL_GUILD_ID;
   lastModified?: number;
   status: string = PresenceStatuses.OFFLINE;
   user!: User;
@@ -74,14 +77,6 @@ export class Presence extends BaseStructure {
 
   get activity(): null | PresenceActivity | undefined {
     return this.game;
-  }
-
-  get cacheId(): string {
-    return this.guildId || DEFAULT_PRESENCE_CACHE_KEY;
-  }
-
-  get fromGuild(): boolean {
-    return !!this.guildId;
   }
 
   get isDnd(): boolean {
@@ -118,6 +113,9 @@ export class Presence extends BaseStructure {
           differences = this.game.differences(value);
         }
       }; break;
+      case DiscordKeys.GUILD_IDS: {
+
+      }; break;
       case DiscordKeys.USER: {
         if (this.user) {
           differences = this.user.differences(value);
@@ -137,13 +135,28 @@ export class Presence extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.ACTIVITIES: {
-          this.activities.clear();
+          const guildId = this.lastGuildId;
+          for (let [activityId, activity] of this.activities) {
+            activity.guildIds.delete(guildId);
+          }
+
           for (let position = 0; position < value.length; position++) {
             const raw = value[position];
             raw.position = position;
 
-            const activity = new PresenceActivity(this, raw);
-            this.activities.set(activity.id || activity.position, activity);
+            if (this.activities.has(raw.id)) {
+              const activity = <PresenceActivity> this.activities.get(raw.id);
+              activity.merge(raw);
+            } else {
+              const activity = new PresenceActivity(this, raw);
+              this.activities.set(activity.id, activity);
+            }
+          }
+
+          for (let [activityId, activity] of this.activities) {
+            if (!activity.guildIds.length) {
+              this.activities.delete(activityId);
+            }
           }
         }; return;
         case DiscordKeys.CLIENT_STATUS: {
@@ -164,6 +177,10 @@ export class Presence extends BaseStructure {
             }
           }
         }; break;
+        case DiscordKeys.GUILD_ID: {
+          this.lastGuildId = value || LOCAL_GUILD_ID;
+          this.guildIds.add(this.lastGuildId);
+        }; return;
         case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
@@ -192,6 +209,8 @@ const keysPresenceActivity = new BaseSet<string>([
   DiscordKeys.CREATED_AT,
   DiscordKeys.DETAILS,
   DiscordKeys.FLAGS,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.GUILD_IDS,
   DiscordKeys.ID,
   DiscordKeys.INSTANCE,
   DiscordKeys.METADATA,
@@ -221,7 +240,8 @@ export class PresenceActivity extends BaseStructure {
   createdAt?: number;
   details?: string;
   flags: number = 0;
-  id?: string;
+  guildIds = new BaseSet<string>();
+  id: string = '';
   instance?: boolean;
   metadata?: any;
   name: string = '';
@@ -419,6 +439,11 @@ export class PresenceActivity extends BaseStructure {
   }
 
   mergeValue(key: string, value: any): void {
+    switch (key) {
+      case DiscordKeys.GUILD_ID: {
+        this.guildIds.add(value || LOCAL_GUILD_ID);
+      }; return;
+    }
     if (value !== null) {
       // just replace our objects since they're of new values
       if (typeof(value) === 'object') {

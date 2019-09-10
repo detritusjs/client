@@ -278,10 +278,13 @@ export class Guild extends BaseStructure {
   }
 
   get presences(): BaseCollection<string, Presence> {
-    if (this.client.presences.has(this.id)) {
-      return <BaseCollection<string, Presence>> this.client.presences.get(this.id);
+    const collection = new BaseCollection<string, Presence>();
+    for (let [userId, presence] of this.client.presences) {
+      if (presence.guildIds.has(this.id)) {
+        collection.set(userId, presence);
+      }
     }
-    return new BaseCollection<string, Presence>();
+    return collection;
   }
 
   get splashUrl(): null | string {
@@ -802,9 +805,7 @@ export class Guild extends BaseStructure {
           value = value || 0;
         }; break;
         case DiscordKeys.PRESENCES: {
-          const cache = this.client.presences.insertCache(this.id);
-          cache.clear();
-
+          this.client.presences.clearGuildId(this.id);
           if (this.client.presences.enabled) {
             for (let raw of value) {
               raw.guild_id = this.id;

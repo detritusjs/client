@@ -106,17 +106,7 @@ export class User extends BaseStructure {
   }
 
   get presence(): null | Presence {
-    return this.client.presences.get(null, this.id) || null;
-  }
-
-  get presences(): BaseCollection<string, Presence> {
-    const presences = new BaseCollection<string, Presence>();
-    for (let [userId, presence] of this.client.presences) {
-      if (userId === this.id) {
-        presences.set(presence.cacheId, presence);
-      }
-    }
-    return presences;
+    return this.client.presences.get(this.id) || null;
   }
 
   avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
@@ -437,8 +427,8 @@ export class UserMixin extends BaseStructure {
     return this.user.note;
   }
 
-  get presences(): BaseCollection<string, Presence> {
-    return this.user.presences;
+  get presence(): null | Presence {
+    return this.user.presence;
   }
 
   get username(): string {

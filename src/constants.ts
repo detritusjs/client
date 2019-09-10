@@ -58,10 +58,12 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.5.20',
+  VERSION: '0.5.21',
 });
 
 export type Snowflake = number | string;
+
+export const LOCAL_GUILD_ID = '@me';
 
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;
@@ -839,6 +841,7 @@ export const DiscordKeys = Object.freeze({
   GAME_ID: 'game_id',
   GUILD: 'guild',
   GUILD_ID: 'guild_id',
+  GUILD_IDS: 'guild_ids',
   HEIGHT: 'height',
   HOIST: 'hoist',
   HOISTED_ROLE: 'hoisted_role',
@@ -1099,6 +1102,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.GAME_ID]: 'gameId',
   [DiscordKeys.GUILD]: 'guild',
   [DiscordKeys.GUILD_ID]: 'guildId',
+  [DiscordKeys.GUILD_IDS]: 'guildIds',
   [DiscordKeys.HEIGHT]: 'height',
   [DiscordKeys.HOIST]: 'hoist',
   [DiscordKeys.HOISTED_ROLE]: 'hoistedRole',

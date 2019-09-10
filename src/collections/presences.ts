@@ -3,12 +3,10 @@ import { GatewayRawEvents } from '../gateway/rawevents';
 import { Presence } from '../structures';
 
 import {
-  BaseClientCollectionCache,
+  BaseClientCollection,
   BaseClientCollectionOptions,
 } from './basecollection';
 
-
-export const DEFAULT_PRESENCE_CACHE_KEY = '@me';
 
 /**
  * @category Collection Options
@@ -21,14 +19,13 @@ export interface PresencesOptions extends BaseClientCollectionOptions {
  * Presences Collection
  * @category Collections
  */
-export class Presences extends BaseClientCollectionCache<string, Presence> {
+export class Presences extends BaseClientCollection<string, Presence> {
   storeOffline: boolean = false;
 
   constructor(client: ShardClient, options: PresencesOptions = {}) {
     super(client, options);
     this.storeOffline = !!options.storeOffline;
     Object.defineProperties(this, {
-      client: {enumerable: false, writable: false},
       storeOffline: {configurable: true, writable: false},
     });
   }
@@ -38,25 +35,23 @@ export class Presences extends BaseClientCollectionCache<string, Presence> {
   }
 
   insert(value: GatewayRawEvents.RawPresence): Presence {
+    for (let activity of value.activities) {
+      Object.assign(activity, {guild_id: value.guild_id});
+    }
+
     let presence: Presence;
     if (this.enabled) {
-      const cacheKey = value['guild_id'] || DEFAULT_PRESENCE_CACHE_KEY;
-      const cache = this.insertCache(cacheKey);
-
-      if (cache.has(value.user.id)) {
-        presence = <Presence> cache.get(value.user.id);
+      if (this.has(value.user.id)) {
+        presence = <Presence> this.get(value.user.id);
         presence.merge(value);
       } else {
         presence = new Presence(this.client, value);
-        cache.set(presence.user.id, presence);
+        this.set(presence.user.id, presence);
       }
 
       if (presence.isOffline) {
-        if (presence.fromGuild && !this.client.members.storeOffline) {
-          this.client.members.delete(presence.guildId, presence.user.id);
-        }
         if (!this.storeOffline) {
-          cache.delete(presence.user.id);
+          this.delete(presence.user.id);
         }
       }
     } else {
@@ -65,7 +60,24 @@ export class Presences extends BaseClientCollectionCache<string, Presence> {
     return presence;
   }
 
+  clearGuildId(guildId: string): void {
+    for (let [userId, presence] of this) {
+      if (presence.guildIds.has(guildId)) {
+        presence.guildIds.delete(guildId);
+        if (!presence.guildIds.length) {
+          this.delete(presence.user.id);
+        }
+        for (let [activityId, activity] of presence.activities) {
+          activity.guildIds.delete(guildId);
+          if (!activity.guildIds.length) {
+            presence.activities.delete(guildId);
+          }
+        }
+      }
+    }
+  }
+
   get [Symbol.toStringTag](): string {
-    return `Presences (${this.caches.size.toLocaleString()} guilds, ${this.size.toLocaleString()} items)`;
+    return `Presences (${this.size.toLocaleString()} items)`;
   }
 }

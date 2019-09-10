@@ -111,10 +111,6 @@ export class Member extends UserMixin {
     }, Permissions.NONE);
   }
 
-  get presence(): null | Presence {
-    return this.client.presences.get(this.guildId, this.id) || null;
-  }
-
   get voiceChannel(): ChannelGuildVoice | null {
     const voiceState = this.voiceState;
     if (voiceState) {
