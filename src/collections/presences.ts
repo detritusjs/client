@@ -62,16 +62,16 @@ export class Presences extends BaseClientCollection<string, Presence> {
 
   clearGuildId(guildId: string): void {
     for (let [userId, presence] of this) {
-      if (presence.guildIds.has(guildId)) {
-        presence.guildIds.delete(guildId);
-        if (!presence.guildIds.length) {
-          this.delete(presence.user.id);
-        }
-        for (let [activityId, activity] of presence.activities) {
-          activity.guildIds.delete(guildId);
-          if (!activity.guildIds.length) {
-            presence.activities.delete(guildId);
+      if (presence.guildIds.delete(guildId)) {
+        if (presence.guildIds.length) {
+          for (let [activityId, activity] of presence.activities) {
+            activity.guildIds.delete(guildId);
+            if (!activity.guildIds.length) {
+              presence.activities.delete(guildId);
+            }
           }
+        } else {
+          this.delete(presence.user.id);
         }
       }
     }

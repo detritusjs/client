@@ -113,6 +113,9 @@ export class Presence extends BaseStructure {
           differences = this.game.differences(value);
         }
       }; break;
+      case DiscordKeys.GUILD_ID: {
+
+      }; break;
       case DiscordKeys.GUILD_IDS: {
 
       }; break;
@@ -187,8 +190,13 @@ export class Presence extends BaseStructure {
             user = <User> this.client.users.get(value.id);
             user.merge(value);
           } else {
-            user = new User(this.client, value);
-            this.client.users.insert(user);
+            if (this.user) {
+              user = this.user;
+              user.merge(value);
+            } else {
+              user = new User(this.client, value);
+              this.client.users.insert(user);
+            }
           }
           value = user;
         }; break;
@@ -227,12 +235,17 @@ const keysPresenceActivity = new BaseSet<string>([
   DiscordKeys.URL,
 ]);
 
+const keysMergePresenceActivity = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+]);
+
 /**
  * Presence Activity Structure, used in [Presence]
  * @category Structure
  */
 export class PresenceActivity extends BaseStructure {
   readonly _keys = keysPresenceActivity;
+  readonly _keysMerge = keysMergePresenceActivity;
   readonly presence: Presence;
 
   applicationId?: string;
@@ -412,6 +425,12 @@ export class PresenceActivity extends BaseStructure {
         if (this.assets) {
           differences = this.assets.differences(value);
         }
+      }; break;
+      case DiscordKeys.GUILD_ID: {
+
+      }; break;
+      case DiscordKeys.GUILD_IDS: {
+
       }; break;
       case DiscordKeys.PARTY: {
         if (this.party) {

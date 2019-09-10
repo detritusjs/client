@@ -573,9 +573,10 @@ export class GatewayDispatchHandler {
           this.client.typing.delete(channelId);
         }
       }
+
       this.client.members.delete(guildId);
       this.client.messages.delete(guildId);
-      this.client.presences.delete(guildId);
+      this.client.presences.clearGuildId(guildId);
       this.client.voiceStates.delete(guildId);
 
       if (this.client.messages.type === MessageCacheTypes.USER) {
