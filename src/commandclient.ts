@@ -558,7 +558,7 @@ export class CommandClient extends EventEmitter {
             this.replies.set(message.id, reply);
           }
         }
-        this.emit(ClientEvents.COMMAND_RUN, {args, command, context, prefix});
+        this.emit(ClientEvents.COMMAND_RAN, {args, command, context, prefix});
         if (typeof(command.onSuccess) === 'function') {
           await Promise.resolve(command.onSuccess(context, args));
         }
@@ -588,8 +588,8 @@ export class CommandClient extends EventEmitter {
   on(event: 'COMMAND_ERROR', listener: (payload: CommandEvents.CommandError) => any): this;
   on(event: 'COMMAND_FAIL', listener: (payload: CommandEvents.CommandFail) => any): this;
   on(event: 'COMMAND_NONE', listener: (payload: CommandEvents.CommandNone) => any): this;
+  on(event: 'COMMAND_RAN', listener: (payload: CommandEvents.CommandRan) => any): this;
   on(event: 'COMMAND_RATELIMIT', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
-  on(event: 'COMMAND_RUN', listener: (payload: CommandEvents.CommandRun) => any): this;
   on(event: 'COMMAND_RUN_ERROR', listener: (payload: CommandEvents.CommandRunError) => any): this;
   on(event: string, listener: Function): this {
     super.on(event, listener);

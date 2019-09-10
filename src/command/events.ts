@@ -34,7 +34,7 @@ export namespace CommandEvents {
     remaining: number,
   }
 
-  export interface CommandRun {
+  export interface CommandRan {
     args: ParsedArgs,
     command: Command,
     context: Context,
