@@ -394,8 +394,8 @@ export class Message extends BaseStructure {
             // should we merge? this event is so common
           } else {
             value.guild_id = guildId;
+            value.user = this.author;
             member = new Member(this.client, value);
-            member.user = this.author;
           }
           value = member;
         }; break;
@@ -410,8 +410,8 @@ export class Message extends BaseStructure {
                 // should we merge?
               } else {
                 raw.member.guild_id = guildId;
-                raw.member.user = raw;
                 member = new Member(this.client, raw.member);
+                member.merge({user: raw});
                 this.client.members.insert(member);
               }
               this.mentions.set(member.id, member);

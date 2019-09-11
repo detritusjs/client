@@ -1,3 +1,5 @@
+import { RequestTypes } from 'detritus-client-rest';
+
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, OverwriteTypes } from '../constants';
@@ -67,7 +69,7 @@ export class Overwrite extends BaseStructure {
   get role(): null | Role {
     if (this.isRole) {
       const guild = this.guild;
-      if (guild !== null) {
+      if (guild) {
         return guild.roles.get(this.id) || null;
       }
     }
@@ -85,15 +87,11 @@ export class Overwrite extends BaseStructure {
     return this.client.rest.deleteChannelOverwrite(this.channelId, this.id);
   }
 
-  edit(
-    options: {
-      allow?: number,
-      deny?: number,
-    } = {},
-  ) {
+  edit(options: RequestTypes.EditChannelOverwrite = {}) {
     return this.client.rest.editChannelOverwrite(this.channelId, this.id, {
       allow: options.allow,
       deny: options.deny,
+      reason: options.reason,
       type: this.type,
     });
   }

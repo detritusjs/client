@@ -106,8 +106,8 @@ const keysMergeGuild = new BaseSet<string>([
   DiscordKeys.ID,
   DiscordKeys.JOINED_AT,
   DiscordKeys.ROLES,
-  DiscordKeys.PRESENCES,
   DiscordKeys.MEMBERS,
+  DiscordKeys.PRESENCES,
 ]);
 
 /**
@@ -709,18 +709,21 @@ export class Guild extends BaseStructure {
         }; return;
         case DiscordKeys.EMOJIS: {
           if (this.client.emojis.enabled) {
-            for (let [emojiId, emoji] of this.emojis) {
-              if (!value.some((e: GatewayRawEvents.RawEmoji) => e.id === emojiId)) {
-                this.emojis.delete(emojiId);
-              }
-            }
+            const emojis: Array<Emoji> = [];
             for (let raw of value) {
+              let emoji: Emoji;
               if (this.emojis.has(raw.id)) {
-                (<Emoji> this.emojis.get(raw.id)).merge(raw);
+                emoji = <Emoji> this.emojis.get(raw.id);
+                emoji.merge(raw);
               } else {
                 raw.guild_id = this.id;
-                this.emojis.set(raw.id, new Emoji(this.client, raw));
+                emoji = new Emoji(this.client, raw);
               }
+              emojis.push(emoji);
+            }
+            this.emojis.clear();
+            for (let emoji of emojis) {
+              this.emojis.set(emoji.id || emoji.name, emoji);
             }
           }
         }; return;
@@ -739,65 +742,65 @@ export class Guild extends BaseStructure {
           const cache = this.client.members.insertCache(this.id);
           cache.clear();
 
-          if (this.client.members.enabled || this.client.presences.enabled || this.client.users.enabled) {
-            for (let raw of value) {
-              if (this.client.members.enabled) {
-                let member: Member;
-                if (this.client.members.has(this.id, raw.user.id)) {
-                  member = <Member> this.client.members.get(this.id, raw.user.id);
-                  member.merge(raw);
-                } else {
-                  raw.guild_id = this.id;
-                  member = new Member(this.client, raw);
-                  this.client.members.insert(member);
-                }
-                // now fill in the roles since they'll be null if we received this from READY (full guild object) or GUILD_CREATE so guild wasn't in cache
-                for (let [roleId, role] of member.roles) {
-                  if (!role) {
-                    member.roles.set(roleId, this.roles.get(roleId) || null);
-                  }
-                }
-              } else {
-                if (this.client.user && this.client.user.id === raw.user.id) {
-                  // is us, force into cache
-                  raw.guild_id = this.id;
-                  this.client.members.insert(new Member(this.client, raw));
-                }
-                if (this.client.users.has(raw.user.id)) {
-                  (<User> this.client.users.get(raw.user.id)).merge(raw.user);
-                } else {
-                  this.client.users.insert(new User(this.client, raw.user));
+          for (let raw of value) {
+            if (this.client.user && this.client.user.id === raw.user.id) {
+              raw.guild_id = this.id;
+              const member = new Member(this.client, raw);
+              // now fill in the roles since they'll be null if we received this from READY (full guild object) or GUILD_CREATE so guild wasn't in cache
+              for (let [roleId, role] of member.roles) {
+                if (!role) {
+                  member.roles.set(roleId, this.roles.get(roleId) || null);
                 }
               }
+              this.client.members.insert(member);
+              continue;
             }
-          } else {
-            // still need to find us and put us in cache
-            if (this.client.user) {
-              for (let raw of value) {
-                if (raw.user.id === this.client.user.id) {
-                  raw.guild_id = this.id;
-                  this.client.members.insert(new Member(this.client, raw));
-                  break;
+
+            if (this.client.members.enabled) {
+              let member: Member;
+              if (this.client.members.has(this.id, raw.user.id)) {
+                member = <Member> this.client.members.get(this.id, raw.user.id);
+                member.merge(raw);
+              } else {
+                raw.guild_id = this.id;
+                member = new Member(this.client, raw);
+                this.client.members.insert(member);
+              }
+              // now fill in the roles since they'll be null if we received this from READY (full guild object) or GUILD_CREATE so guild wasn't in cache
+              for (let [roleId, role] of member.roles) {
+                if (!role) {
+                  member.roles.set(roleId, this.roles.get(roleId) || null);
                 }
+              }
+            } else if (this.client.presences.enabled || this.client.users.enabled) {
+              let user: User;
+              if (this.client.users.has(raw.user.id)) {
+                user = <User> this.client.users.get(raw.user.id);
+                user.merge(raw.user);
+              } else {
+                user = new User(this.client, raw.user);
+                this.client.users.insert(user);
               }
             }
           }
         }; return;
         case DiscordKeys.ROLES: {
           if (this.client.roles.enabled) {
-            for (let [roleId, role] of this.roles) {
-              // remove any roles that's in cache but not in this new roles array
-              if (!value.some((r: Role) => r.id === roleId)) {
-                this.roles.delete(roleId);
-              }
-            }
+            const roles: Array<Role> = [];
             for (let raw of value) {
+              let role: Role;
               if (this.roles.has(raw.id)) {
-                (<Role> this.roles.get(raw.id)).merge(raw);
+                role = <Role> this.roles.get(raw.id);
+                role.merge(raw);
               } else {
                 raw.guild_id = this.id;
-                this.roles.set(raw.id, new Role(this.client, raw));
+                role = new Role(this.client, raw);
               }
+              roles.push(role);
+            }
+            this.roles.clear();
+            for (let role of roles) {
+              this.roles.set(role.id, role);
             }
           }
         }; return;

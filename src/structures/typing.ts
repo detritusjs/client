@@ -92,7 +92,13 @@ export class Typing extends BaseStructure {
           value *= 1000;
 
           this.timeout.start(TYPING_TIMEOUT, () => {
-            this.client.typing.delete(this.channelId, this.userId);
+            const cache = this.client.typing.get(this.channelId);
+            if (cache) {
+              cache.delete(this.userId);
+              if (!cache.length) {
+                this.client.typing.delete(this.channelId);
+              }
+            }
           });
         }; break;
       }

@@ -748,7 +748,6 @@ const keysMergeChannelGuildBase = new BaseSet<string>([
 export class ChannelGuildBase extends ChannelBase {
   readonly _keys = keysChannelGuildBase;
   readonly _keysMerge = keysMergeChannelGuildBase;
-  readonly permissionOverwrites = new BaseCollection<string, Overwrite>();
 
   guildId: string = '';
   nsfw: boolean = false;
@@ -972,11 +971,23 @@ export class ChannelGuildBase extends ChannelBase {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.PERMISSION_OVERWRITES: {
-          this.permissionOverwrites.clear();
+          const overwrites: Array<Overwrite> = [];
           for (let raw of value) {
-            raw.channel_id = this.id;
-            raw.guild_id = this.guildId;
-            this.permissionOverwrites.set(raw.id, new Overwrite(this.client, raw));
+            let overwrite: Overwrite;
+            if (this.permissionOverwrites.has(raw.id)) {
+              overwrite = <Overwrite> this.permissionOverwrites.get(raw.id);
+              overwrite.merge(raw);
+            } else {
+              raw.channel_id = this.id;
+              raw.guild_id = this.guildId;
+              overwrite = new Overwrite(this.client, raw);
+            }
+            overwrites.push(overwrite);
+          }
+
+          this.permissionOverwrites.clear();
+          for (let overwrite of overwrites) {
+            this.permissionOverwrites.set(overwrite.id, overwrite);
           }
         }; return;
       }

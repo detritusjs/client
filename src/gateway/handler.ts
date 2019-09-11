@@ -380,23 +380,22 @@ export class GatewayDispatchHandler {
     const nick = data['nick'];
     let user: User;
 
+    if (this.client.users.has(data['user']['id'])) {
+      user = <User> this.client.users.get(data['user']['id']);
+      user.merge(data);
+    } else {
+      user = new User(this.client, data);
+      this.client.users.insert(user);
+    }
+
     if (this.client.channels.has(channelId)) {
       channel = <ChannelDM> this.client.channels.get(channelId);
-      if (channel.recipients.has(data['user']['id'])) {
-        user = <User> channel.recipients.get(data['user']['id']);
-        user.merge(data);
-      } else {
-        user = new User(this.client, data['user']);
-        channel.recipients.set(user.id, user);
-      }
-      if (nick == null) {
-        channel.nicks.delete(user.id);
-      } else {
+      channel.recipients.set(user.id, user);
+      if (nick) {
         channel.nicks.set(user.id, nick);
+      } else {
+        channel.nicks.delete(user.id);
       }
-    } else {
-      user = new User(this.client, data['user']);
-      this.client.users.insert(user);
     }
 
     this.client.emit(ClientEvents.CHANNEL_RECIPIENT_ADD, {
@@ -413,17 +412,18 @@ export class GatewayDispatchHandler {
     const nick = data['nick'];
     let user: User;
 
+    if (this.client.users.has(data['user']['id'])) {
+      user = <User> this.client.users.get(data['user']['id']);
+      user.merge(data);
+    } else {
+      user = new User(this.client, data);
+      this.client.users.insert(user);
+    }
+
     if (this.client.channels.has(channelId)) {
       channel = <ChannelDM> this.client.channels.get(channelId);
-      if (channel.recipients.has(data['user']['id'])) {
-        user = <User> channel.recipients.get(data['user']['id']);
-        user.merge(data);
-        channel.recipients.delete(user.id);
-      } else {
-        user = new User(this.client, data['user']);
-      }
-    } else {
-      user = new User(this.client, data['user']);
+      channel.recipients.delete(user.id);
+      channel.nicks.delete(user.id);
     }
 
     this.client.emit(ClientEvents.CHANNEL_RECIPIENT_REMOVE, {
@@ -823,6 +823,7 @@ export class GatewayDispatchHandler {
       } else {
         data['role']['guild_id'] = guildId;
         role = new Role(this.client, data['role']);
+        guild.roles.set(role.id, role);
       }
     } else {
       data['role']['guild_id'] = guildId;
