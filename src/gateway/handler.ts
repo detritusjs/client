@@ -149,12 +149,12 @@ export class GatewayDispatchHandler {
     this.client.reset();
 
     let me: UserMe;
-    if (this.client.user == null) {
-      me = new UserMe(this.client, data['user']);
-      this.client.user = me;
-    } else {
+    if (this.client.user) {
       me = this.client.user;
       me.merge(data['user']);
+    } else {
+      me = new UserMe(this.client, data['user']);
+      this.client.user = me;
     }
     this.client.users.insert(me); // since we reset the cache
 

@@ -71,6 +71,14 @@ const keysMergeMessage = new BaseSet<string>([
   DiscordKeys.WEBHOOK_ID,
 ]);
 
+const keysSkipDifferenceMessage = new BaseSet<string>([
+  DiscordKeys.AUTHOR,
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.MEMBER,
+]);
+
 /**
  * Channel Message Structure
  * @category Structure
@@ -78,6 +86,7 @@ const keysMergeMessage = new BaseSet<string>([
 export class Message extends BaseStructure {
   readonly _keys = keysMessage;
   readonly _keysMerge = keysMergeMessage;
+  readonly _keysSkipDifference = keysSkipDifferenceMessage;
   _content = '';
 
   activity?: MessageActivity;
@@ -300,32 +309,6 @@ export class Message extends BaseStructure {
 
   async unpin() {
     return this.client.rest.deletePinnedMessage(this.channelId, this.id);
-  }
-
-  difference(key: string, value: any): [boolean, any] {
-    let differences: any;
-    switch (key) {
-      case DiscordKeys.APPLICATION: break;
-      case DiscordKeys.AUTHOR: break;
-      case DiscordKeys.ATTACHMENTS:
-      case DiscordKeys.EMBEDS:
-      case DiscordKeys.MENTIONS:
-      case DiscordKeys.MENTION_CHANNELS:
-      case DiscordKeys.MENTION_ROLES: {
-        key = convertKey(key);
-        const old = (<any> this)[key];
-        if (old && old.size && old.size !== value.length) {
-          differences = old.clone();
-        }
-      }; break;
-      default: {
-        return super.difference.call(this, key, value);
-      };
-    }
-    if (differences) {
-      return [true, differences];
-    }
-    return [false, null];
   }
 
   mergeValue(key: string, value: any): void {

@@ -1,5 +1,5 @@
 import { ShardClient } from '../client';
-import { BaseSet } from '../collections';
+import { BaseCollection, BaseSet } from '../collections';
 import { DetritusKeys } from '../constants';
 import { toCamelCase } from '../utils';
 
@@ -25,6 +25,8 @@ export class Structure {
   readonly _keys?: BaseSet<string>;
   /** @ignore */
   readonly _keysMerge?: BaseSet<string>;
+  /** @ignore */
+  readonly _keysSkipDifference?: BaseSet<string>;
 
   constructor() {
     Object.defineProperties(this, {
@@ -45,8 +47,31 @@ export class Structure {
     if (value !== undefined) {
       const camelKey = convertKey(key);
       const old = (<any> this)[camelKey];
-      if (old !== undefined && old !== value) {
-        return [true, old];
+      if (old !== undefined) {
+        if (old instanceof BaseStructure) {
+          let differences = old.differences(value);
+          if (differences) {
+            return [true, differences];
+          }
+        } else if (old instanceof BaseCollection) {
+          if (old.size !== value.length) {
+            return [true, old.clone()];
+          } else if (old.size) {
+            return [true, old.clone()];
+          }
+        } else if (old instanceof BaseSet) {
+          if (old.size !== value.length) {
+            return [true, old.clone()];
+          } else if (old.size) {
+            return [true, old.clone()];
+          }
+        } else if (Array.isArray(old)) {
+
+        } else {
+          if (old !== value) {
+            return [true, old];
+          }
+        }
       }
     }
     return [false, null];
@@ -56,6 +81,9 @@ export class Structure {
     let hasDifferences = false;
     const obj: BaseStructureData = {};
     for (let key in data) {
+      if (this._keysSkipDifference && this._keysSkipDifference.has(key)) {
+        continue;
+      }
       const [hasDifference, difference] = this.difference(key, data[key]);
       if (hasDifference) {
         obj[convertKey(key)] = difference;

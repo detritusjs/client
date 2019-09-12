@@ -53,6 +53,11 @@ const keysMergePresence = new BaseSet<string>([
   DiscordKeys.ACTIVITIES,
 ]);
 
+const keysSkipDifferencePresence = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.GUILD_IDS,
+]);
+
 /**
  * Presence Structure, used to detail a user's presence in a guild (or general if you have them added (non-bots only))
  * @category Structure
@@ -60,6 +65,7 @@ const keysMergePresence = new BaseSet<string>([
 export class Presence extends BaseStructure {
   readonly _keys = keysPresence;
   readonly _keysMerge = keysMergePresence;
+  readonly _keysSkipDifference = keysSkipDifferencePresence;
 
   activities = new BaseCollection<number | string, PresenceActivity>();
   clientStatus?: PresenceClientStatus;
@@ -95,45 +101,6 @@ export class Presence extends BaseStructure {
     return this.status === PresenceStatuses.ONLINE;
   }
 
-  difference(key: string, value: any): [boolean, any] {
-    let differences: any;
-    switch (key) {
-      case DiscordKeys.ACTIVITIES: {
-        // sift through all the activities and compare each
-        // compare lengths
-        // return {activities: []};
-      }; break;
-      case DiscordKeys.CLIENT_STATUS: {
-        if (this.clientStatus) {
-          differences = this.clientStatus.differences(value);
-        }
-      }; break;
-      case DiscordKeys.GAME: {
-        if (this.game) {
-          differences = this.game.differences(value);
-        }
-      }; break;
-      case DiscordKeys.GUILD_ID: {
-
-      }; break;
-      case DiscordKeys.GUILD_IDS: {
-
-      }; break;
-      case DiscordKeys.USER: {
-        if (this.user) {
-          differences = this.user.differences(value);
-        }
-      }; break;
-      default: {
-        return super.difference.call(this, key, value);
-      };
-    }
-    if (differences) {
-      return [true, differences];
-    }
-    return [false, null];
-  }
-
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
@@ -163,20 +130,22 @@ export class Presence extends BaseStructure {
           }
         }; return;
         case DiscordKeys.CLIENT_STATUS: {
-          value = new PresenceClientStatus(this, value);
-        }; break;
+          if (this.clientStatus) {
+            this.clientStatus.merge(value);
+          } else {
+            this.clientStatus = new PresenceClientStatus(this, value);
+          }
+        }; return;
         case DiscordKeys.GAME: {
           if (value) {
-            if (Object.keys(value).length) {
-              if (value.id) {
-                if (this.activities.has(value.id)) {
-                  value = <PresenceActivity> this.activities.get(value.id);
-                } else {
-                  value = new PresenceActivity(this, value);
-                }
+            if (value.id) {
+              if (this.activities.has(value.id)) {
+                value = <PresenceActivity> this.activities.get(value.id);
+              } else {
+                // should we make the activity? this should never happen
               }
-            } else {
-              value = undefined;
+            } else if (!Object.keys(value).length) {
+              value = null;
             }
           }
         }; break;
@@ -239,6 +208,11 @@ const keysMergePresenceActivity = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
 ]);
 
+const keysSkipDifferencePresenceActivity = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.GUILD_IDS,
+]);
+
 /**
  * Presence Activity Structure, used in [Presence]
  * @category Structure
@@ -246,6 +220,7 @@ const keysMergePresenceActivity = new BaseSet<string>([
 export class PresenceActivity extends BaseStructure {
   readonly _keys = keysPresenceActivity;
   readonly _keysMerge = keysMergePresenceActivity;
+  readonly _keysSkipDifference = keysSkipDifferencePresenceActivity;
   readonly presence: Presence;
 
   applicationId?: string;
@@ -418,72 +393,50 @@ export class PresenceActivity extends BaseStructure {
     );
   }
 
-  difference(key: string, value: any): [boolean, any] {
-    let differences: any;
-    switch (key) {
-      case DiscordKeys.ASSETS: {
-        if (this.assets) {
-          differences = this.assets.differences(value);
-        }
-      }; break;
-      case DiscordKeys.GUILD_ID: {
-
-      }; break;
-      case DiscordKeys.GUILD_IDS: {
-
-      }; break;
-      case DiscordKeys.PARTY: {
-        if (this.party) {
-          differences = this.party.differences(value);
-        }
-      }; break;
-      case DiscordKeys.SECRETS: {
-        if (this.secrets) {
-          differences = this.secrets.differences(value);
-        }
-      }; break;
-      case DiscordKeys.TIMESTAMPS: {
-        if (this.timestamps) {
-          differences = this.timestamps.differences(value);
-        }
-      }; break;
-      default: {
-        return super.difference.call(this, key, value);
-      };
-    }
-    if (differences) {
-      return [true, differences];
-    }
-    return [false, differences];
-  }
-
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.GUILD_ID: {
         this.guildIds.add(value || LOCAL_GUILD_ID);
       }; return;
     }
-    if (value !== null) {
+    if (value !== undefined && value !== null) {
       // just replace our objects since they're of new values
       if (typeof(value) === 'object') {
         if (Object.keys(value).length) {
           switch (key) {
             case DiscordKeys.ASSETS: {
-              value = new PresenceActivityAssets(this, value);
-            }; break;
+              if (this.assets) {
+                this.assets.merge(value);
+              } else {
+                this.assets = new PresenceActivityAssets(this, value);
+              }
+            }; return;
             case DiscordKeys.PARTY: {
-              value = new PresenceActivityParty(this, value);
-            }; break;
+              if (this.party) {
+                this.party.merge(value);
+              } else {
+                this.party = new PresenceActivityParty(this, value);
+              }
+            }; return;
             case DiscordKeys.SECRETS: {
-              value = new PresenceActivitySecrets(this, value);
-            }; break;
+              if (this.secrets) {
+                this.secrets.merge(value);
+              } else {
+                this.secrets = new PresenceActivitySecrets(this, value);
+              }
+            }; return;
             case DiscordKeys.TIMESTAMPS: {
-              value = new PresenceActivityTimestamps(this, value);
-            }; break;
+              if (this.timestamps) {
+                this.timestamps.merge(value);
+              } else {
+                this.timestamps = new PresenceActivityTimestamps(this, value);
+              }
+            }; return;
           }
         } else {
           value = undefined;
         }
+        return this._setFromSnake(key, value);
       }
     }
     return super.mergeValue.call(this, key, value);
@@ -502,12 +455,15 @@ const keysPresenceActivityAssets = new BaseSet<string>([
   DiscordKeys.SMALL_TEXT,
 ]);
 
+const keysMergePresenceActivityAssets = keysPresenceActivityAssets;
+
 /**
  * Presence Activity Assets Structure, used in [PresenceActivity]
  * @category Structure
  */
 export class PresenceActivityAssets extends BaseStructure {
   readonly _keys = keysPresenceActivityAssets;
+  readonly _keysMerge = keysMergePresenceActivityAssets;
   readonly activity: PresenceActivity;
 
   largeImage?: string;
@@ -592,6 +548,10 @@ export class PresenceActivityAssets extends BaseStructure {
   smallImageUrlFormat(format?: null | string, query?: UrlQuery) {
     return this.imageUrlFormat(format, query, this.smallImage || null);
   }
+
+  mergeValue(key: string, value: any): void {
+    return this._setFromSnake(key, value);
+  }
 }
 
 
@@ -600,6 +560,8 @@ const keysPresenceActivityParty = new BaseSet<string>([
   DiscordKeys.SIZE,
 ]);
 
+const keysMergePresenceActivityParty = keysPresenceActivityParty;
+
 /**
  * Presence Activity Party Structure, used in [PresenceActivity]
  * describe's the user's current party (listening party, game party, etc..)
@@ -607,6 +569,7 @@ const keysPresenceActivityParty = new BaseSet<string>([
  */
 export class PresenceActivityParty extends BaseStructure {
   readonly _keys = keysPresenceActivityParty;
+  readonly _keysMerge = keysMergePresenceActivityParty;
   readonly activity: PresenceActivity;
 
   id?: string;
@@ -666,6 +629,10 @@ export class PresenceActivityParty extends BaseStructure {
     }
     return null;
   }
+
+  mergeValue(key: string, value: any): void {
+    return this._setFromSnake(key, value);
+  }
 }
 
 
@@ -675,6 +642,8 @@ const keysPresenceActivitySecrets = new BaseSet<string>([
   DiscordKeys.SPECTATE,
 ]);
 
+const keysMergePresenceActivitySecrets = keysPresenceActivitySecrets;
+
 /**
  * Presence Activity Secrets Structure
  * used to join someone's game
@@ -682,6 +651,7 @@ const keysPresenceActivitySecrets = new BaseSet<string>([
  */
 export class PresenceActivitySecrets extends BaseStructure {
   readonly _keys = keysPresenceActivitySecrets;
+  readonly _keysMerge = keysMergePresenceActivitySecrets;
   readonly activity: PresenceActivity;
 
   join?: string;
@@ -694,6 +664,10 @@ export class PresenceActivitySecrets extends BaseStructure {
     this.merge(data);
     Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
+
+  mergeValue(key: string, value: any): void {
+    return this._setFromSnake(key, value);
+  }
 }
 
 
@@ -702,6 +676,8 @@ const keysPresenceActivityTimestamps = new BaseSet<string>([
   DiscordKeys.START,
 ]);
 
+const keysMergePresenceActivityTimestamps = keysPresenceActivityTimestamps;
+
 /**
  * Presence Activity Timestamp Structure
  * used to describe when they started doing an activity and if they ended it or not
@@ -709,6 +685,7 @@ const keysPresenceActivityTimestamps = new BaseSet<string>([
  */
 export class PresenceActivityTimestamps extends BaseStructure {
   readonly _keys = keysPresenceActivityTimestamps;
+  readonly _keysMerge = keysMergePresenceActivityTimestamps;
   readonly activity: PresenceActivity;
 
   end?: number;
@@ -736,6 +713,10 @@ export class PresenceActivityTimestamps extends BaseStructure {
     }
     return 0;
   }
+
+  mergeValue(key: string, value: any): void {
+    return this._setFromSnake(key, value);
+  }
 }
 
 
@@ -745,6 +726,8 @@ const keysPresenceClientStatus = new BaseSet<string>([
   DiscordKeys.WEB,
 ]);
 
+const keysMergePresenceClientStatus = keysPresenceClientStatus;
+
 /**
  * Presence Client Status Structure, used in [Presence]
  * used to describe if a person is on desktop, mobile, web, etc..
@@ -752,6 +735,7 @@ const keysPresenceClientStatus = new BaseSet<string>([
  */
 export class PresenceClientStatus extends BaseStructure {
   readonly _keys = keysPresenceClientStatus;
+  readonly _keysMerge = keysMergePresenceClientStatus;
   readonly presence: Presence;
 
   desktop?: string;
@@ -787,5 +771,9 @@ export class PresenceClientStatus extends BaseStructure {
 
   get isOnlineOnWeb(): boolean {
     return this.web === PresenceStatuses.ONLINE;
+  }
+
+  mergeValue(key: string, value: any): void {
+    return this._setFromSnake(key, value);
   }
 }

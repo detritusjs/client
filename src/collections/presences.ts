@@ -49,7 +49,7 @@ export class Presences extends BaseClientCollection<string, Presence> {
         this.set(presence.user.id, presence);
       }
 
-      if (presence.isOffline && !this.storeOffline) {
+      if (!this.storeOffline && presence.isOffline) {
         this.delete(presence.user.id);
       }
     } else {
