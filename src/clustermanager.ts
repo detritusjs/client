@@ -78,6 +78,10 @@ export class ClusterManager extends EventEmitter {
     process.env.CLUSTER_TOKEN = this.token;
   }
 
+  get clusterCount(): number {
+    return Math.ceil(this.shardCount / this.shardsPerCluster);
+  }
+
   async run(
     options: ClusterManagerRunOptions = {},
   ): Promise<ClusterManager> {

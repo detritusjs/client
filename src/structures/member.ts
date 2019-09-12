@@ -139,14 +139,14 @@ export class Member extends UserMixin {
 
   permissionsFor(channelId: ChannelGuildBase | string): number {
     let channel: ChannelGuildBase;
-    if (typeof(channelId) === 'string') {
+    if (channelId instanceof ChannelGuildBase) {
+      channel = channelId;
+    } else {
       if (this.client.channels.has(channelId)) {
         channel = <ChannelGuildBase> this.client.channels.get(channelId);
       } else {
         return Permissions.NONE;
       }
-    } else {
-      channel = channelId;
     }
 
     let allow = 0;
@@ -229,15 +229,17 @@ export class Member extends UserMixin {
           }
         }; break;
         case DiscordKeys.ROLES: {
-          this.roles.clear();
+          if (value.length + 1 !== this.roles.length || !value.every((roleId: string) => this.roles.has(roleId))) {
+            this.roles.clear();
 
-          const guild = this.guild;
-          this.roles.set(this.guildId, (guild) ? guild.defaultRole : null);
-          for (let roleId of value) {
-            if (guild && guild.roles.has(roleId)) {
-              this.roles.set(roleId, <Role> guild.roles.get(roleId));
-            } else {
-              this.roles.set(roleId, null);
+            const guild = this.guild;
+            this.roles.set(this.guildId, (guild) ? guild.defaultRole : null);
+            for (let roleId of value) {
+              if (guild) {
+                this.roles.set(roleId, guild.roles.get(roleId) || null);
+              } else {
+                this.roles.set(roleId, null);
+              }
             }
           }
         }; return;
@@ -253,7 +255,7 @@ export class Member extends UserMixin {
           value = user;
         }; break;
       }
-      super.mergeValue.call(this, key, value);
+      return super.mergeValue.call(this, key, value);
     }
   }
 }

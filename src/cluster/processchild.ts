@@ -9,12 +9,15 @@ import { ClusterIPCTypes } from './ipctypes';
 
 
 export class ClusterProcessChild extends EventEmitter {
-  cluster: ClusterClient;
+  readonly cluster: ClusterClient;
+
+  clusterCount: number = 1;
   clusterId: number = -1;
 
   constructor(cluster: ClusterClient) {
     super();
     this.cluster = cluster;
+    this.clusterCount = +((<string> process.env.CLUSTER_COUNT) || this.clusterCount);
     this.clusterId = +((<string> process.env.CLUSTER_ID) || this.clusterId);
 
     process.on('message', this.onMessage.bind(this));

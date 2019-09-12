@@ -363,7 +363,7 @@ export class Guild extends BaseStructure {
 
   can(
     permissions: PermissionTools.PermissionChecks,
-    member?: Member,
+    member?: Member | null,
     options: {
       ignoreAdministrator?: boolean,
       ignoreOwner?: boolean,
@@ -374,36 +374,30 @@ export class Guild extends BaseStructure {
 
     if (!ignoreOwner) {
       let memberId: string;
-      if (member == undefined) {
+      if (member) {
+        memberId = member.id;
+      } else {
         if (!this.client.user) {
           throw new Error('Provide a member object please');
         }
         memberId = this.client.user.id;
-      } else {
-        memberId = member.id;
       }
       if (this.isOwner(memberId)) {
         return true;
       }
     }
 
-    if (member == undefined) {
-      const me = this.me;
-      if (!me) {
-        throw new Error('Provide a member object please');
-      }
-      member = me;
-    }
-
     if (!member) {
-      return false;
+      member = this.me;
     }
-
-    const total = member.permissions;
-    if (!ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
-      return true;
+    if (member) {
+      const total = member.permissions;
+      if (!ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+        return true;
+      }
+      return PermissionTools.checkPermissions(total, permissions);
     }
-    return PermissionTools.checkPermissions(total, permissions);
+    return false;
   }
 
   hasFeature(feature: string): boolean {

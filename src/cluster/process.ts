@@ -29,10 +29,10 @@ export class ClusterProcess extends EventEmitter {
     resolve: Function,
     reject: Function,
   }>();
+  readonly clusterId: number = -1;
+  readonly manager: ClusterManager;
 
-  clusterId: number = -1;
   env: {[key: string]: string | undefined} = {};
-  manager: ClusterManager;
   process: ChildProcess | null = null;
 
   constructor(
@@ -44,6 +44,7 @@ export class ClusterProcess extends EventEmitter {
     this.clusterId = options.clusterId;
 
     Object.assign(this.env, process.env, options.env, {
+      CLUSTER_COUNT: String(this.manager.clusterCount),
       CLUSTER_ID: String(this.clusterId),
       CLUSTER_SHARD_COUNT: String(options.shardCount),
       CLUSTER_SHARD_END: String(options.shardEnd),

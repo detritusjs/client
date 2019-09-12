@@ -13,8 +13,8 @@ export {
 };
 
 export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
-  caches = new BaseCollection<K, BaseCollection<K, V>>();
-  options: BaseCollectionOptions = {};
+  readonly caches = new BaseCollection<K, BaseCollection<K, V>>();
+  readonly options: BaseCollectionOptions = {};
 
   constructor(options?: BaseCollectionOptions) {
     super();
@@ -35,6 +35,9 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
   }
 
   clear(): void {
+    for (let [cacheKey, cache] of this.caches) {
+      cache.clear();
+    }
     return this.caches.clear();
   }
 

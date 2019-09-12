@@ -830,6 +830,16 @@ export class GatewayDispatchHandler {
       role = new Role(this.client, data['role']);
     }
 
+    // Bots join with the managed role id already inside it, but we get the role afterwards
+    const members = this.client.members.get(guildId);
+    if (members) {
+      for (let [userId, member] of members) {
+        if (member.roles.has(role.id)) {
+          member.roles.set(role.id, role);
+        }
+      }
+    }
+
     this.client.emit(ClientEvents.GUILD_ROLE_CREATE, {
       guild,
       guildId,

@@ -69,8 +69,8 @@ export class Typing extends BaseStructure {
     return this.timestamp + TYPING_TIMEOUT;
   }
 
-  get user(): undefined | User {
-    return this.client.users.get(this.userId);
+  get user(): null | User {
+    return this.client.users.get(this.userId) || null;
   }
 
   mergeValue(key: string, value: any): void {

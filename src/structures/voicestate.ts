@@ -119,8 +119,8 @@ export class VoiceState extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.MEMBER: {
+          const guildId = <string> this.guildId;
           let member: Member;
-          const guildId: string = this.guildId || value.guild_id;
           if (this.client.members.has(guildId, value.user.id)) {
             member = <Member> this.client.members.get(guildId, value.user.id);
             member.merge(value);
