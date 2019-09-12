@@ -693,6 +693,9 @@ export class ChannelDMGroup extends ChannelDM {
   }
 
   get owner(): User | null {
+    if (this.recipients.has(this.ownerId)) {
+      return this.recipients.get(this.ownerId) || null;
+    }
     return this.client.users.get(this.ownerId) || null;
   }
 

@@ -29,6 +29,7 @@ import {
   Profile,
   Role,
   StoreApplicationAsset,
+  StoreListing,
   Team,
   TeamMember,
   User,
@@ -429,6 +430,18 @@ export class RestClient extends Client {
     return new Application(this.client, data);
   }
 
+  async fetchChannel(channelId: string): Promise<Channel> {
+    const data = await super.fetchChannel.call(this, channelId);
+    let channel: Channel;
+    if (this.client.channels.has(data.id)) {
+      channel = <Channel> this.client.channels.get(data.id);
+      channel.merge(data);
+    } else {
+      channel = createChannelFromData(this.client, data);
+    }
+    return channel;
+  }
+
   async fetchChannelInvites(
     channelId: string,
   ): Promise<BaseCollection<string, Invite>> {
@@ -439,6 +452,11 @@ export class RestClient extends Client {
       collection.set(invite.code, invite);
     }
     return collection;
+  }
+
+  async fetchChannelStoreListing(channelId: string): Promise<StoreListing> {
+    const data = await super.fetchChannelStoreListing.call(this, channelId);
+    return new StoreListing(this.client, data);
   }
 
   async fetchChannelWebhooks(
@@ -455,13 +473,13 @@ export class RestClient extends Client {
 
   async fetchDms(
     userId: string = '@me',
-  ): Promise<BaseCollection<string, ChannelDM>> {
+  ): Promise<BaseCollection<string, Channel>> {
     const data: Array<any> = await super.fetchDms.call(this, userId);
-    const collection = new BaseCollection<string, ChannelDM>();
+    const collection = new BaseCollection<string, Channel>();
     for (let raw of data) {
-      let channel: ChannelDM;
+      let channel: Channel;
       if (this.client.channels.has(raw.id)) {
-        channel = <ChannelDM> this.client.channels.get(raw.id);
+        channel = <Channel> this.client.channels.get(raw.id);
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);

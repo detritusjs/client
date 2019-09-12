@@ -1,6 +1,7 @@
 import { Endpoints } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys } from '../constants';
 import {
@@ -17,9 +18,21 @@ import { Application } from './application';
 
 
 const keysStore = new BaseSet<string>([
+  DiscordKeys.ASSETS,
+  DiscordKeys.BOX_ART,
+  DiscordKeys.CAROUSEL_ITEMS,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.ENTITLEMENT_BRANCH_ID,
+  DiscordKeys.HEADER_BACKGROUND,
+  DiscordKeys.HEADER_LOGO_DARK_THEME,
+  DiscordKeys.HEADER_LOGO_LIGHT_THEME,
+  DiscordKeys.HERO_BACKGROUND,
+  DiscordKeys.HERO_VIDEO,
   DiscordKeys.ID,
+  DiscordKeys.PREVIEW_VIDEO,
   DiscordKeys.SKU,
   DiscordKeys.SUMMARY,
+  DiscordKeys.TAGLINE,
   DiscordKeys.THUMBNAIL,
 ]);
 
@@ -31,24 +44,52 @@ const keysStore = new BaseSet<string>([
 export class StoreListing extends BaseStructure {
   readonly _keys = keysStore;
 
+  assets = new BaseCollection<string, StoreListingAsset>();
+  boxArt?: StoreListingAsset;
+  carouselItems?: Array<{asset_id?: string, youtube_video_id?: string}>;
+  description?: string;
+  entitlementBranchId?: string;
+  headerBackground?: StoreListingAsset;
+  headerLogoDarkTheme?: StoreListingAsset;
+  heroBackground?: StoreListingAsset;
+  heroVideo?: StoreListingAsset;
   id: string = '';
+  previewVideo?: StoreListingAsset;
   sku!: Sku;
   summary: string = '';
-  thumbnail!: StoreListingThumbnail;
+  tagline?: string;
+  thumbnail!: StoreListingAsset;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
   }
 
+  get url(): string {
+    return this.sku.url;
+  }
+
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case DiscordKeys.ASSETS: {
+          this.assets.clear();
+          for (let raw of value) {
+            this.assets.set(raw.id, new StoreListingAsset(this, raw));
+          }
+        }; return;
         case DiscordKeys.SKU: {
           value = new Sku(this.client, value);
         }; break;
+        case DiscordKeys.BOX_ART:
+        case DiscordKeys.HEADER_BACKGROUND:
+        case DiscordKeys.HEADER_LOGO_DARK_THEME:
+        case DiscordKeys.HEADER_LOGO_LIGHT_THEME:
+        case DiscordKeys.HERO_BACKGROUND:
+        case DiscordKeys.HERO_VIDEO:
+        case DiscordKeys.PREVIEW_VIDEO:
         case DiscordKeys.THUMBNAIL: {
-          value = new StoreListingThumbnail(this, value);
+          value = new StoreListingAsset(this, value);
         }; break;
       }
       return super.mergeValue.call(this, key, value);
@@ -57,7 +98,7 @@ export class StoreListing extends BaseStructure {
 }
 
 
-const keysStoreListingThumbnail = new BaseSet<string>([
+const keysStoreListingAsset = new BaseSet<string>([
   DiscordKeys.HEIGHT,
   DiscordKeys.ID,
   DiscordKeys.MIME_TYPE,
@@ -66,11 +107,11 @@ const keysStoreListingThumbnail = new BaseSet<string>([
 ]);
 
 /**
- * Store Listing Thumbnail Structure, used in [StoreListing]
+ * Store Listing Asset Structure, used in [StoreListing]
  * @category Structure
  */
-export class StoreListingThumbnail extends BaseStructure {
-  readonly _keys = keysStoreListingThumbnail;
+export class StoreListingAsset extends BaseStructure {
+  readonly _keys = keysStoreListingAsset;
   readonly storeListing: StoreListing;
 
   height: number = 0;
@@ -130,6 +171,10 @@ export class Sku extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get url(): string {
+    return Endpoints.Routes.URL + Endpoints.Routes.APPLICATION_STORE_LISTING_SKU(this.id, this.slug);
   }
 
   mergeValue(key: string, value: any): void {
