@@ -66,8 +66,8 @@ export class Presence extends BaseStructure {
   readonly _keys = keysPresence;
   readonly _keysMerge = keysMergePresence;
   readonly _keysSkipDifference = keysSkipDifferencePresence;
+  _activities?: BaseCollection<string, PresenceActivity>;
 
-  activities = new BaseCollection<number | string, PresenceActivity>();
   clientStatus?: PresenceClientStatus;
   game?: null | PresenceActivity;
   guildIds = new BaseSet<string>();
@@ -79,10 +79,18 @@ export class Presence extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+    Object.defineProperty(this, '_activities', {enumerable: false, writable: true});
   }
 
   get activity(): null | PresenceActivity | undefined {
     return this.game;
+  }
+
+  get activities(): BaseCollection<string, PresenceActivity> {
+    if (this._activities) {
+      return this._activities;
+    }
+    return new BaseCollection<string, PresenceActivity>();
   }
 
   get isDnd(): boolean {
@@ -106,26 +114,40 @@ export class Presence extends BaseStructure {
       switch (key) {
         case DiscordKeys.ACTIVITIES: {
           const guildId = this.lastGuildId;
-          for (let [activityId, activity] of this.activities) {
-            activity.guildIds.delete(guildId);
-          }
-
-          for (let position = 0; position < value.length; position++) {
-            const raw = value[position];
-            raw.position = position;
-
-            if (this.activities.has(raw.id)) {
-              const activity = <PresenceActivity> this.activities.get(raw.id);
-              activity.merge(raw);
-            } else {
-              const activity = new PresenceActivity(this, raw);
-              this.activities.set(activity.id, activity);
+          if (this._activities) {
+            for (let [activityId, activity] of this._activities) {
+              activity.guildIds.delete(guildId);
             }
           }
 
-          for (let [activityId, activity] of this.activities) {
-            if (!activity.guildIds.length) {
-              this.activities.delete(activityId);
+          let isNew = false;
+          if (value.length) {
+            if (!this._activities) {
+              this._activities = new BaseCollection<string, PresenceActivity>();
+              isNew = true;
+            }
+            for (let position = 0; position < value.length; position++) {
+              const raw = value[position];
+              raw.position = position;
+
+              if (this._activities.has(raw.id)) {
+                const activity = <PresenceActivity> this._activities.get(raw.id);
+                activity.merge(raw);
+              } else {
+                const activity = new PresenceActivity(this, raw);
+                this._activities.set(activity.id, activity);
+              }
+            }
+          }
+
+          if (this._activities && !isNew) {
+            for (let [activityId, activity] of this._activities) {
+              if (!activity.guildIds.length) {
+                this._activities.delete(activityId);
+              }
+            }
+            if (!this._activities.length) {
+              this._activities = undefined;
             }
           }
         }; return;

@@ -41,7 +41,7 @@ const keysMergeEmoji = new BaseSet<string>([
 export class Emoji extends BaseStructure {
   readonly _keys = keysEmoji;
   readonly _keysMerge = keysMergeEmoji;
-  readonly roles = new BaseCollection<string, null | Role>();
+  _roles?: BaseCollection<string, null | Role>;
 
   animated: boolean = false;
   available: boolean = true;
@@ -55,6 +55,7 @@ export class Emoji extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+    Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
   }
 
   get createdAt(): Date | null {
@@ -91,6 +92,13 @@ export class Emoji extends BaseStructure {
       return this.client.guilds.get(this.guildId) || null;
     }
     return null;
+  }
+
+  get roles(): BaseCollection<string, null | Role> {
+    if (this._roles) {
+      return this._roles;
+    }
+    return new BaseCollection<string, null | Role>();
   }
 
   get url(): string {
@@ -148,13 +156,23 @@ export class Emoji extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.ROLES: {
-          this.roles.clear();
-          const guild = this.guild;
-          for (let roleId of (<Array<string>> value)) {
-            if (guild) {
-              this.roles.set(roleId, <Role> guild.roles.get(roleId));
-            } else {
-              this.roles.set(roleId, null);
+          if (value.length) {
+            if (!this._roles) {
+              this._roles = new BaseCollection<string, null | Role>();
+            }
+            this._roles.clear();
+            const guild = this.guild;
+            for (let roleId of (<Array<string>> value)) {
+              if (guild) {
+                this._roles.set(roleId, <Role> guild.roles.get(roleId));
+              } else {
+                this._roles.set(roleId, null);
+              }
+            }
+          } else {
+            if (this._roles) {
+              this._roles.clear();
+              this._roles = undefined;
             }
           }
         }; return;
