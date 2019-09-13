@@ -18,7 +18,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { ChannelDM } from './channel';
+import { Channel } from './channel';
 import { Presence } from './presence';
 
 
@@ -68,6 +68,10 @@ export class User extends BaseStructure {
 
   get defaultAvatarUrl(): string {
     return Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DEFAULT(this.discriminator);
+  }
+
+  get dm(): Channel | null {
+    return this.client.channels.find((channel) => channel.isDmSingle && channel.recipients.has(this.id)) || null;
   }
 
   get isClientOwner(): boolean {
@@ -137,12 +141,17 @@ export class User extends BaseStructure {
     return this.client.rest.createDm({recipientId: this.id});
   }
 
-  async createMessage(options: RequestTypes.CreateMessage) {
-    let channel = this.client.channels.find((c: ChannelDM) => c.isDmSingle && c.recipients.has(this.id));
-    if (!channel) {
-      channel = await this.createDm();
+  async createOrGetDm() {
+    const channel = this.dm;
+    if (channel) {
+      return channel;
     }
-    return (<ChannelDM> channel).createMessage(options);
+    return this.createDm();
+  }
+
+  async createMessage(options: RequestTypes.CreateMessage | string = {}) {
+    const channel = await this.createOrGetDm();
+    return channel.createMessage(options);
   }
 
   deleteRelationship() {
@@ -451,7 +460,11 @@ export class UserMixin extends BaseStructure {
     return this.user.createDm();
   }
 
-  createMessage(options: RequestTypes.CreateMessage) {
+  createOrGetDm() {
+    return this.user.createOrGetDm();
+  }
+
+  createMessage(options: RequestTypes.CreateMessage | string = {}) {
     return this.user.createMessage(options);
   }
 
