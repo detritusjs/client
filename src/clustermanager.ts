@@ -6,7 +6,7 @@ import { EventEmitter, Timers } from 'detritus-utils';
 
 import { ClusterProcess } from './cluster/process';
 import { BaseCollection } from './collections/basecollection';
-import { AuthTypes, ClusterManagerEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
+import { AuthTypes, ClientEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { ClusterIPCError } from './errors';
 import { Snowflake } from './utils';
 
@@ -124,7 +124,7 @@ export class ClusterManager extends EventEmitter {
         shardStart,
       });
       this.processes.set(clusterId, clusterProcess);
-      this.emit(ClusterManagerEvents.CLUSTER_PROCESS, {clusterProcess});
+      this.emit(ClientEvents.CLUSTER_PROCESS, {clusterProcess});
 
       await clusterProcess.run();
       if (shardEnd < this.shardEnd) {
@@ -145,11 +145,10 @@ export class ClusterManager extends EventEmitter {
 
   async broadcastEvalRaw(
     code: Function | string,
-    shard?: number,
     nonce: string = Snowflake.generate().id,
   ): Promise<Array<[any, boolean]>> {
     const promises = this.processes.map((clusterProcess) => {
-      return clusterProcess.eval(code, nonce, shard);
+      return clusterProcess.eval(code, nonce);
     });
     const results: Array<[any, boolean]> = await Promise.all(promises);
     return results.filter((item) => item);
@@ -157,10 +156,9 @@ export class ClusterManager extends EventEmitter {
 
   async broadcastEval(
     code: Function | string,
-    shard?: number,
     nonce: string = Snowflake.generate().id,
   ): Promise<Array<any>> {
-    const results = await this.broadcastEvalRaw(code, shard, nonce);
+    const results = await this.broadcastEvalRaw(code, nonce);
     return results.map(([result, isError]) => {
       if (isError) {
         return new ClusterIPCError(result);

@@ -133,16 +133,23 @@ const keysSku = new BaseSet<string>([
   DiscordKeys.ACCESS_TYPE,
   DiscordKeys.APPLICATION,
   DiscordKeys.APPLICATION_ID,
+  DiscordKeys.CONTENT_RATING,
+  DiscordKeys.CONTENT_RATING_AGENCY,
   DiscordKeys.DEPENDENT_SKU_ID,
   DiscordKeys.FEATURES,
   DiscordKeys.FLAGS,
+  DiscordKeys.GENRES,
   DiscordKeys.ID,
+  DiscordKeys.LEGAL_NOTICE,
+  DiscordKeys.LOCALES,
   DiscordKeys.MANIFEST_LABELS,
   DiscordKeys.NAME,
   DiscordKeys.PREMIUM,
+  DiscordKeys.PRICE,
   DiscordKeys.RELEASE_DATE,
   DiscordKeys.SHOW_AGE_GATE,
   DiscordKeys.SLUG,
+  DiscordKeys.SYSTEM_REQUIREMENTS,
   DiscordKeys.TYPE,
 ]);
 
@@ -156,15 +163,22 @@ export class Sku extends BaseStructure {
   accessType: number = 0;
   application?: Application;
   applicationId: string = '';
+  contentRating?: {descriptors: Array<number>, rating: number};
+  contentRatingAgency: number = 0;
   dependentSkuId: null | string = null;
-  features: Array<string> = [];
+  features?: Array<number>;
   flags: number = 0;
+  genres?: Array<number>;
   id: string = '';
+  legalNotice: string = '';
+  locales?: Array<string>;
   manifestLabels?: Array<any> | null;
   name: string = '';
   premium?: null;
+  price?: {amount: number, currency: string};
   releaseDate?: null | string;
   showAgeGate: boolean = false;
+  systemRequirements?: {[key: string]: {recommended: any, minimum: any}};
   slug: string = '';
   type: number = 0;
 

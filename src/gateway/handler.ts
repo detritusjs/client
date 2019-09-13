@@ -31,6 +31,7 @@ import {
   VoiceState,
 } from '../structures';
 
+import { GatewayClientEvents } from './clientevents';
 import { GatewayRawEvents } from './rawevents';
 
 
@@ -111,7 +112,6 @@ export class GatewayHandler {
         handler.call(this.dispatchHandler, payload.data);
       } else {
         this.client.emit(ClientEvents.UNKNOWN, payload);
-        this.client.emit(payload.name, payload.data);
       }
     }
   }
@@ -243,7 +243,7 @@ export class GatewayDispatchHandler {
       try {
         await this.client.rest.fetchOauth2Application();
       } catch(error) {
-        this.client.emit('warn', new GatewayHTTPError('Failed to fetch OAuth2 Application Information', error));
+        this.client.emit(ClientEvents.WARN, new GatewayHTTPError('Failed to fetch OAuth2 Application Information', error));
       }
     } else {
       this.client.owners.set(me.id, me);
@@ -252,15 +252,18 @@ export class GatewayDispatchHandler {
     try {
       await this.client.applications.fill();
     } catch(error) {
-      this.client.emit('warn', new GatewayHTTPError('Failed to fetch Applications', error));
+      this.client.emit(ClientEvents.WARN, new GatewayHTTPError('Failed to fetch Applications', error));
     }
 
-    this.client.emit(ClientEvents.GATEWAY_READY, {raw: data});
+    const payload: GatewayClientEvents.GatewayReady = {raw: data};
+    this.client.emit(ClientEvents.GATEWAY_READY, payload);
   }
 
   [GatewayDispatchEvents.RESUMED](data: GatewayRawEvents.Resumed) {
     this.client.gateway.discordTrace = data['_trace'];
-    this.client.emit(ClientEvents.GATEWAY_RESUMED, {raw: data});
+
+    const payload: GatewayClientEvents.GatewayResumed = {raw: data};
+    this.client.emit(ClientEvents.GATEWAY_RESUMED, payload);
   }
 
   [GatewayDispatchEvents.ACTIVITY_JOIN_INVITE](data: GatewayRawEvents.ActivityJoinInvite) {
@@ -288,19 +291,25 @@ export class GatewayDispatchHandler {
       call = new VoiceCall(this.client, data);
       this.client.voiceCalls.insert(call);
     }
-    this.client.emit(ClientEvents.CALL_CREATE, {call});
+
+    const payload: GatewayClientEvents.CallCreate = {call};
+    this.client.emit(ClientEvents.CALL_CREATE, payload);
   }
 
   [GatewayDispatchEvents.CALL_DELETE](data: GatewayRawEvents.CallDelete) {
-    if (this.client.voiceCalls.has(data['channel_id'])) {
-      const call = <VoiceCall> this.client.voiceCalls.get(data['channel_id']);
+    let channelId: string = data['channel_id'];
+    if (this.client.voiceCalls.has(channelId)) {
+      const call = <VoiceCall> this.client.voiceCalls.get(channelId);
       call.kill();
     }
-    this.client.emit(ClientEvents.CALL_DELETE, {channelId: data['channel_id']});
+
+    const payload: GatewayClientEvents.CallDelete = {channelId};
+    this.client.emit(ClientEvents.CALL_DELETE, payload);
   }
 
   [GatewayDispatchEvents.CALL_UPDATE](data: GatewayRawEvents.CallUpdate) {
     let call: VoiceCall;
+    let channelId: string = data['channel_id'];
     let differences: any = null;
     if (this.client.voiceCalls.has(data['channel_id'])) {
       call = <VoiceCall> this.client.voiceCalls.get(data['channel_id']);
@@ -312,7 +321,9 @@ export class GatewayDispatchHandler {
       call = new VoiceCall(this.client, data);
       this.client.voiceCalls.insert(call);
     }
-    this.client.emit(ClientEvents.CALL_UPDATE, {call, differences});
+
+    const payload: GatewayClientEvents.CallUpdate = {call, channelId, differences};
+    this.client.emit(ClientEvents.CALL_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.CHANNEL_CREATE](data: GatewayRawEvents.ChannelCreate) {
@@ -324,7 +335,9 @@ export class GatewayDispatchHandler {
       channel = createChannelFromData(this.client, data);
       this.client.channels.insert(channel);
     }
-    this.client.emit(ClientEvents.CHANNEL_CREATE, {channel});
+
+    const payload: GatewayClientEvents.ChannelCreate = {channel};
+    this.client.emit(ClientEvents.CHANNEL_CREATE, payload);
   }
 
   [GatewayDispatchEvents.CHANNEL_DELETE](data: GatewayRawEvents.ChannelDelete) {
@@ -335,7 +348,9 @@ export class GatewayDispatchHandler {
     } else {
       channel = createChannelFromData(this.client, data);
     }
-    this.client.emit(ClientEvents.CHANNEL_DELETE, {channel});
+
+    const payload: GatewayClientEvents.ChannelDelete = {channel};
+    this.client.emit(ClientEvents.CHANNEL_DELETE, payload);
   }
 
   [GatewayDispatchEvents.CHANNEL_PINS_ACK](data: GatewayRawEvents.ChannelPinsAck) {
@@ -350,12 +365,14 @@ export class GatewayDispatchHandler {
         last_pin_timestamp: data['last_pin_timestamp'],
       });
     }
-    this.client.emit(ClientEvents.CHANNEL_PINS_UPDATE, {
+
+    const payload: GatewayClientEvents.ChannelPinsUpdate = {
       channel,
       channelId: data['channel_id'],
       guildId: data['guild_id'],
       lastPinTimestamp: data['last_pin_timestamp'],
-    });
+    };
+    this.client.emit(ClientEvents.CHANNEL_PINS_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.CHANNEL_UPDATE](data: GatewayRawEvents.ChannelUpdate) {
@@ -371,13 +388,15 @@ export class GatewayDispatchHandler {
       channel = createChannelFromData(this.client, data);
       this.client.channels.insert(channel);
     }
-    this.client.emit(ClientEvents.CHANNEL_UPDATE, {channel, differences});
+
+    const payload: GatewayClientEvents.ChannelUpdate = {channel, differences};
+    this.client.emit(ClientEvents.CHANNEL_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.CHANNEL_RECIPIENT_ADD](data: GatewayRawEvents.ChannelRecipientAdd) {
     let channel: ChannelDM | null = null;
     const channelId = data['channel_id'];
-    const nick = data['nick'];
+    const nick = data['nick'] || null;
     let user: User;
 
     if (this.client.users.has(data['user']['id'])) {
@@ -398,18 +417,19 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.emit(ClientEvents.CHANNEL_RECIPIENT_ADD, {
+    const payload: GatewayClientEvents.ChannelRecipientAdd = {
       channel,
       channelId,
       nick,
       user,
-    });
+    };
+    this.client.emit(ClientEvents.CHANNEL_RECIPIENT_ADD, payload);
   }
 
   [GatewayDispatchEvents.CHANNEL_RECIPIENT_REMOVE](data: GatewayRawEvents.ChannelRecipientRemove) {
     let channel: ChannelDM | null = null;
     const channelId = data['channel_id'];
-    const nick = data['nick'];
+    const nick = data['nick'] || null;
     let user: User;
 
     if (this.client.users.has(data['user']['id'])) {

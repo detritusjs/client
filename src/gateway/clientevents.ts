@@ -46,6 +46,7 @@ export namespace GatewayClientEvents {
 
   export interface CallUpdate {
     call: VoiceCall,
+    channelId: string,
     differences: any | null,
   }
 
@@ -435,5 +436,13 @@ export namespace GatewayClientEvents {
   export interface WebhooksUpdate {
     channelId: string,
     guildId: string,
+  }
+
+  export interface RawEvent extends GatewayRawEvents.GatewayPacket {
+
+  }
+
+  export interface Unknown extends GatewayRawEvents.GatewayPacket {
+
   }
 }

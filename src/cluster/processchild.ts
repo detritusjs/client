@@ -102,10 +102,7 @@ export class ClusterProcessChild extends EventEmitter {
     return this.send({op, data, request, shard});
   }
 
-  async broadcastEval(
-    code: Function | string,
-    shard?: number,
-  ): Promise<any> {
+  async broadcastEval(code: Function | string, ...args: any[]): Promise<any> {
     const parent = <any> process;
     const nonce = Snowflake.generate().id;
     return new Promise(async (resolve, reject) => {
@@ -141,10 +138,22 @@ export class ClusterProcessChild extends EventEmitter {
       parent.addListener('message', listener);
 
       if (typeof(code) === 'function') {
-        code = `(${String(code)})(this)`;
+        const evalArgs = ['this'];
+        for (let arg of args) {
+          switch (typeof(arg)) {
+            case 'boolean':
+            case 'number': {
+              evalArgs.push(`${arg}`);
+            }; break;
+            default: {
+              evalArgs.push(`'${arg}'`);
+            };
+          }
+        }
+        code = `(${String(code)})(${evalArgs.join(', ')})`;
       }
       try {
-        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true, shard);
+        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
       } catch(error) {
         parent.removeListener('message', listener);
         reject(error);

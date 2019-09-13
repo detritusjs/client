@@ -387,7 +387,7 @@ export class CommandClient extends EventEmitter {
   /* Kill/Run */
   kill(): void {
     this.client.kill();
-    this.emit('killed');
+    this.emit(ClientEvents.KILLED);
     this.clearListeners();
   }
 
@@ -576,21 +576,18 @@ export class CommandClient extends EventEmitter {
     }
   }
 
-  async handleDelete(
-    name: string,
-    {raw}: {raw: any},
-  ): Promise<void> {
-    this.replies.delete(raw.id);
+  async handleDelete(name: string, payload: {raw: {id: string}}): Promise<void> {
+    this.replies.delete(payload.raw.id);
   }
 
   on(event: string, listener: Function): this;
+  on(event: 'commandError', listener: (payload: CommandEvents.CommandError) => any): this;
+  on(event: 'commandFail', listener: (payload: CommandEvents.CommandFail) => any): this;
+  on(event: 'commandNone', listener: (payload: CommandEvents.CommandNone) => any): this;
+  on(event: 'commandRan', listener: (payload: CommandEvents.CommandRan) => any): this;
+  on(event: 'commandRatelimit', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
+  on(event: 'commandRunError', listener: (payload: CommandEvents.CommandRunError) => any): this;
   on(event: 'killed', listener: () => any): this;
-  on(event: 'COMMAND_ERROR', listener: (payload: CommandEvents.CommandError) => any): this;
-  on(event: 'COMMAND_FAIL', listener: (payload: CommandEvents.CommandFail) => any): this;
-  on(event: 'COMMAND_NONE', listener: (payload: CommandEvents.CommandNone) => any): this;
-  on(event: 'COMMAND_RAN', listener: (payload: CommandEvents.CommandRan) => any): this;
-  on(event: 'COMMAND_RATELIMIT', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
-  on(event: 'COMMAND_RUN_ERROR', listener: (payload: CommandEvents.CommandRunError) => any): this;
   on(event: string, listener: Function): this {
     super.on(event, listener);
     return this;

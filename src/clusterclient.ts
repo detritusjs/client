@@ -11,7 +11,7 @@ import {
 import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
-import { AuthTypes, ClusterClientEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
+import { AuthTypes, ClientEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 
 
 export type ShardsCollection = BaseCollection<number, ShardClient>;
@@ -128,7 +128,7 @@ export class ClusterClient extends EventEmitter {
       }
       this.shards.clear();
       Object.defineProperty(this, 'ran', {value: false});
-      this.emit(ClusterClientEvents.KILLED);
+      this.emit(ClientEvents.KILLED);
       this.clearListeners();
     }
   }
@@ -138,7 +138,7 @@ export class ClusterClient extends EventEmitter {
   }
 
   hookedEmit(shard: ShardClient, name: string, event: any): boolean {
-    if (name !== ClusterClientEvents.READY) {
+    if (name !== ClientEvents.READY) {
       if (this.hasEventListener(name)) {
         const clusterEvent = Object.assign({}, event, {shard});
         this.emit(name, clusterEvent);
@@ -187,7 +187,7 @@ export class ClusterClient extends EventEmitter {
         emit: {value: this.hookedEmit.bind(this, shard)},
       });
       this.shards.set(shardId, shard);
-      this.emit(ClusterClientEvents.SHARD, {shard});
+      this.emit(ClientEvents.SHARD, {shard});
 
       await shard.run(options);
       if (shardId < this.shardEnd) {
@@ -195,14 +195,14 @@ export class ClusterClient extends EventEmitter {
       }
     }
     Object.defineProperty(this, 'ran', {value: true});
-    this.emit(ClusterClientEvents.READY);
+    this.emit(ClientEvents.READY);
     return this;
   }
 
   on(event: string, listener: Function): this;
   on(event: 'killed', listener: () => any): this;
   on(event: 'ready', listener: () => any): this;
-  on(event: 'shard', listener: ({shard}: {shard: ShardClient}) => any): this;
+  on(event: 'shard', listener: (payload: {shard: ShardClient}) => any): this;
   on(event: 'warn', listener: (error: Error) => any): this;
   on(event: string, listener: Function): this {
     super.on(event, listener);

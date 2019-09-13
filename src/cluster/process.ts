@@ -79,7 +79,7 @@ export class ClusterProcess extends EventEmitter {
             this.emit('shardReconnecting');
           }; return;
           case ClusterIPCOpCodes.RESPAWN_ALL: {
-            
+
           }; return;
           case ClusterIPCOpCodes.EVAL: {
             if (message.request) {
@@ -87,7 +87,6 @@ export class ClusterProcess extends EventEmitter {
               try {
                 const results = await this.manager.broadcastEvalRaw(
                   data.code,
-                  message.shard,
                   data.nonce,
                 );
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
@@ -136,7 +135,6 @@ export class ClusterProcess extends EventEmitter {
   async eval(
     code: Function | string,
     nonce: string,
-    shard?: number,
   ): Promise<[any, boolean] | null> {
     if (this.process === null) {
       throw new Error('Cannot eval without a child!');
@@ -180,7 +178,7 @@ export class ClusterProcess extends EventEmitter {
           code = `(${String(code)})(this)`;
         }
         try {
-          await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true, shard);
+          await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
         } catch(error) {
           child.removeListener('message', listener);
           rej(error);

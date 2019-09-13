@@ -17,7 +17,7 @@ export interface ArgumentOptions {
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
-  type?: ArgumentConverter | string,
+  type?: ArgumentConverter | Boolean | Number | String | string,
 }
 
 
@@ -61,7 +61,20 @@ export class Argument {
     this.default = (options.default === undefined) ? '' : options.default;
     this.label = (options.label || options.name).toLowerCase();
     this.name = options.name.toLowerCase();
-    this.type = options.type || this.type;
+
+    switch (options.type) {
+      case Boolean: {
+        options.type = CommandArgumentTypes.BOOL;
+      }; break;
+      case Number: {
+        options.type = CommandArgumentTypes.NUMBER;
+      }; break;
+      case String: {
+        options.type = CommandArgumentTypes.STRING;
+      }; break;
+    }
+
+    this.type = <ArgumentConverter | string> (options.type || this.type);
   }
 
   get names(): Array<string> {
