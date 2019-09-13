@@ -400,6 +400,10 @@ export class UserMixin extends BaseStructure {
     return this.user.discriminator;
   }
 
+  get dm(): Channel | null {
+    return this.user.dm;
+  }
+
   get id(): string {
     return this.user.id;
   }
