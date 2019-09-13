@@ -17,9 +17,7 @@ import { Role } from './role';
 
 const keysOverwrite = new BaseSet<string>([
   DiscordKeys.ALLOW,
-  DiscordKeys.CHANNEL_ID,
   DiscordKeys.DENY,
-  DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.TYPE,
 ]);
@@ -30,25 +28,30 @@ const keysOverwrite = new BaseSet<string>([
  */
 export class Overwrite extends BaseStructure {
   readonly _keys = keysOverwrite;
+  readonly channel: Channel;
 
   allow: number = 0;
-  channelId: string = '';
   deny: number = 0;
-  guildId: string = '';
   id: string = '';
   type: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(channel: Channel, data: BaseStructureData) {
+    super(channel.client);
+    this.channel = channel;
     this.merge(data);
+    Object.defineProperty(this, 'channel', {enumerable: false});
   }
 
-  get channel(): Channel | null {
-    return this.client.channels.get(this.channelId) || null;
+  get channelId(): string {
+    return this.channel.id;
   }
 
   get guild(): Guild | null {
-    return this.client.guilds.get(this.guildId) || null;
+    return this.channel.guild;
+  }
+
+  get guildId(): string {
+    return <string> this.channel.guildId;
   }
 
   get isMember(): boolean {

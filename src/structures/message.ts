@@ -88,25 +88,25 @@ export class Message extends BaseStructure {
   readonly _keysMerge = keysMergeMessage;
   readonly _keysSkipDifference = keysSkipDifferenceMessage;
   _content = '';
+  _attachments?: BaseCollection<string, Attachment>;
+  _embeds?: BaseCollection<number, MessageEmbed>;
+  _mentions?: BaseCollection<string, Member | User>;
+  _mentionChannels?: BaseCollection<string, Channel>;
+  _mentionRoles?: BaseCollection<string, null | Role>;
 
   activity?: MessageActivity;
   application?: Application;
-  attachments = new BaseCollection<number, Attachment>();
   author!: User;
   call?: MessageCall;
   channelId: string = '';
   content: string = '';
   editedTimestamp?: Date | null;
-  embeds = new BaseCollection<number, MessageEmbed>();
   flags: number = 0;
   guildId?: string;
   id: string = '';
   member?: Member;
-  mentions = new BaseCollection<string, Member | User>();
-  mentionChannels?: BaseCollection<string, Channel>;
   mentionEveryone: boolean = false;
   messageReference?: MessageReference;
-  mentionRoles = new BaseCollection<string, null | Role>();
   nonce?: string;
   pinned: boolean = false;
   reactions = new BaseCollection<string, Reaction>();
@@ -127,6 +127,13 @@ export class Message extends BaseStructure {
     if (this.guildId && !this.member) {
       this.member = this.client.members.get(this.guildId, this.author.id);
     }
+  }
+
+  get attachments(): BaseCollection<string, Attachment> {
+    if (this._attachments) {
+      return this._attachments;
+    }
+    return new BaseCollection<string, Attachment>();
   }
 
   get canDelete(): boolean {
@@ -157,21 +164,6 @@ export class Message extends BaseStructure {
     return this.client.channels.get(this.channelId) || null;
   }
 
-  get contentFormatted(): string {
-    switch (this.type) {
-      case MessageTypes.BASE:
-      case MessageTypes.DEFAULT: {
-        return this.content;
-      };
-      default: {
-        Object.defineProperty(this, '_content', {
-          value: messageContentFormat(this),
-        });
-      };
-    }
-    return this._content;
-  }
-
   get createdAt(): Date {
     return new Date(this.createdAtUnix);
   }
@@ -192,6 +184,13 @@ export class Message extends BaseStructure {
       return this.editedTimestamp.getTime();
     }
     return null;
+  }
+
+  get embeds(): BaseCollection<number, MessageEmbed> {
+    if (this._embeds) {
+      return this._embeds;
+    }
+    return new BaseCollection<number, MessageEmbed>();
   }
 
   get fromBot(): boolean {
@@ -244,6 +243,42 @@ export class Message extends BaseStructure {
 
   get jumpLink(): string {
     return Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(this.guildId, this.channelId, this.id);
+  }
+
+  get mentions(): BaseCollection<string, Member | User> {
+    if (this._mentions) {
+      return this._mentions;
+    }
+    return new BaseCollection<string, Member | User>();
+  }
+
+  get mentionChannels(): BaseCollection<string, Channel> {
+    if (this._mentionChannels) {
+      return this._mentionChannels;
+    }
+    return new BaseCollection<string, Channel>();
+  }
+
+  get mentionRoles(): BaseCollection<string, null | Role> {
+    if (this._mentionRoles) {
+      return this._mentionRoles;
+    }
+    return new BaseCollection<string, null | Role>();
+  }
+
+  get systemContent(): string {
+    switch (this.type) {
+      case MessageTypes.BASE:
+      case MessageTypes.DEFAULT: {
+        return this.content;
+      };
+      default: {
+        Object.defineProperty(this, '_content', {
+          value: messageContentFormat(this),
+        });
+      };
+    }
+    return this._content;
   }
 
   get timestampUnix(): number {
@@ -328,9 +363,19 @@ export class Message extends BaseStructure {
           value = application;
         }; break;
         case DiscordKeys.ATTACHMENTS: {
-          this.attachments.clear();
-          for (let raw of value) {
-            this.attachments.set(raw.id, new Attachment(this, raw));
+          if (value.length) {
+            if (!this._attachments) {
+              this._attachments = new BaseCollection<string, Attachment>();
+            }
+            this._attachments.clear();
+            for (let raw of value) {
+              this._attachments.set(raw.id, new Attachment(this, raw));
+            }
+          } else {
+            if (this._attachments) {
+              this._attachments.clear();
+              this._attachments = undefined;
+            }
           }
         }; return;
         case DiscordKeys.AUTHOR: {
@@ -364,9 +409,19 @@ export class Message extends BaseStructure {
           }
         }; break;
         case DiscordKeys.EMBEDS: {
-          this.embeds.clear();
-          for (let i = 0; i < value.length; i++) {
-            this.embeds.set(i, new MessageEmbed(this.client, value[i]));
+          if (value.length) {
+            if (!this._embeds) {
+              this._embeds = new BaseCollection<number, MessageEmbed>();
+            }
+            this._embeds.clear();
+            for (let i = 0; i < value.length; i++) {
+              this._embeds.set(i, new MessageEmbed(this.client, value[i]));
+            }
+          } else {
+            if (this._embeds) {
+              this._embeds.clear();
+              this._embeds = undefined;
+            }
           }
         }; return;
         case DiscordKeys.MEMBER: {
@@ -383,65 +438,89 @@ export class Message extends BaseStructure {
           value = member;
         }; break;
         case DiscordKeys.MENTIONS: {
-          const guildId = <string> this.guildId;
-          this.mentions.clear();
-          for (let raw of value) {
-            if (raw.member) {
-              let member: Member;
-              if (this.client.members.has(guildId, raw.id)) {
-                member = <Member> this.client.members.get(guildId, raw.id);
-                // should we merge?
-              } else {
-                raw.member.guild_id = guildId;
-                member = new Member(this.client, raw.member);
-                member.merge({user: raw});
-                this.client.members.insert(member);
-              }
-              this.mentions.set(member.id, member);
-            } else {
-              if (guildId && this.client.members.has(guildId, raw.id)) {
-                const member = <Member> this.client.members.get(guildId, raw.id);
-                member.merge({user: raw});
-                this.mentions.set(member.id, member);
-              } else {
-                let user: User;
-                if (this.client.users.has(raw.id)) {
-                  user = <User> this.client.users.get(raw.id);
-                  user.merge(raw);
+          if (value.length) {
+            if (!this._mentions) {
+              this._mentions = new BaseCollection<string, Member | User>();
+            }
+            this._mentions.clear();
+
+            const guildId = <string> this.guildId;
+            for (let raw of value) {
+              if (raw.member) {
+                let member: Member;
+                if (this.client.members.has(guildId, raw.id)) {
+                  member = <Member> this.client.members.get(guildId, raw.id);
+                  // should we merge?
                 } else {
-                  user = new User(this.client, raw);
-                  this.client.users.insert(user);
+                  raw.member.guild_id = guildId;
+                  member = new Member(this.client, raw.member);
+                  member.merge({user: raw});
+                  this.client.members.insert(member);
                 }
-                this.mentions.set(user.id, user);
+                this._mentions.set(member.id, member);
+              } else {
+                if (guildId && this.client.members.has(guildId, raw.id)) {
+                  const member = <Member> this.client.members.get(guildId, raw.id);
+                  member.merge({user: raw});
+                  this._mentions.set(member.id, member);
+                } else {
+                  let user: User;
+                  if (this.client.users.has(raw.id)) {
+                    user = <User> this.client.users.get(raw.id);
+                    user.merge(raw);
+                  } else {
+                    user = new User(this.client, raw);
+                    this.client.users.insert(user);
+                  }
+                  this._mentions.set(user.id, user);
+                }
               }
+            }
+          } else {
+            if (this._mentions) {
+              this._mentions.clear();
+              this._mentions = undefined;
             }
           }
         }; return;
         case DiscordKeys.MENTION_CHANNELS: {
-          if (!this.mentionChannels) {
-            this.mentionChannels = new BaseCollection<string, Channel>();
-          }
-          this.mentionChannels.clear();
-          for (let raw of value) {
-            let channel: Channel;
-            if (this.client.channels.has(raw.id)) {
-              channel = <Channel> this.client.channels.get(raw.id);
-              channel.merge(raw);
-            } else {
-              channel = createChannelFromData(this.client, raw);
+          if (value.length) {
+            if (!this._mentionChannels) {
+              this._mentionChannels = new BaseCollection<string, Channel>();
             }
-            this.mentionChannels.set(channel.id, channel);
+            this._mentionChannels.clear();
+            for (let raw of value) {
+              let channel: Channel;
+              if (this.client.channels.has(raw.id)) {
+                channel = <Channel> this.client.channels.get(raw.id);
+                channel.merge(raw);
+              } else {
+                channel = createChannelFromData(this.client, raw);
+              }
+              this._mentionChannels.set(channel.id, channel);
+            }
+          } else {
+            if (this._mentionChannels) {
+              this._mentionChannels.clear();
+              this._mentionChannels = undefined;
+            }
           }
         }; return;
         case DiscordKeys.MENTION_ROLES: {
-          this.mentionRoles.clear();
+          if (value.length) {
+            if (!this._mentionRoles) {
+              this._mentionRoles = new BaseCollection<string, null | Role>();
+            }
+            this._mentionRoles.clear();
 
-          const guild = this.guild;
-          for (let roleId of value) {
-            if (guild && guild.roles.has(roleId)) {
-              this.mentionRoles.set(roleId, <Role> guild.roles.get(roleId));
-            } else {
-              this.mentionRoles.set(roleId, null);
+            const guild = this.guild;
+            for (let roleId of value) {
+              this._mentionRoles.set(roleId, (guild) ? guild.roles.get(roleId) || null : null);
+            }
+          } else {
+            if (this._mentionRoles) {
+              this._mentionRoles.clear();
+              this._mentionRoles = undefined;
             }
           }
         }; return;

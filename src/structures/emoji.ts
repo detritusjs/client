@@ -161,13 +161,10 @@ export class Emoji extends BaseStructure {
               this._roles = new BaseCollection<string, null | Role>();
             }
             this._roles.clear();
+
             const guild = this.guild;
-            for (let roleId of (<Array<string>> value)) {
-              if (guild) {
-                this._roles.set(roleId, <Role> guild.roles.get(roleId));
-              } else {
-                this._roles.set(roleId, null);
-              }
+            for (let roleId of value) {
+              this._roles.set(roleId, (guild) ? guild.roles.get(roleId) || null : null);
             }
           } else {
             if (this._roles) {

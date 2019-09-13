@@ -162,10 +162,6 @@ export class Context {
     return this.message.content;
   }
 
-  get contentFormatted() {
-    return this.message.contentFormatted;
-  }
-
   get fromBot() {
     return this.message.fromBot;
   }
@@ -200,6 +196,10 @@ export class Context {
 
   get messageId() {
     return this.message.id;
+  }
+
+  get systemContent() {
+    return this.message.systemContent;
   }
 
   get user() {

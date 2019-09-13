@@ -86,9 +86,9 @@ const keysMergeChannelBase = new BaseSet<string>();
 export class ChannelBase extends BaseStructure {
   readonly _keys = keysChannelBase;
   readonly _keysMerge = keysMergeChannelBase;
-  readonly nicks = new BaseCollection<string, string>();
-  readonly permissionOverwrites = new BaseCollection<string, Overwrite>();
-  readonly recipients = new BaseCollection<string, User>();
+  _nicks?: BaseCollection<string, string>;
+  _permissionOverwrites?: BaseCollection<string, Overwrite>;
+  _recipients?: BaseCollection<string, User>;
  
   applicationId?: string;
   bitrate: number = 0;
@@ -210,7 +210,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get children(): BaseCollection<string, ChannelGuildBase> {
-    return new BaseCollection();
+    return new BaseCollection<string, ChannelGuildBase>();
   }
 
   get createdAt(): Date {
@@ -295,15 +295,22 @@ export class ChannelBase extends BaseStructure {
   }
 
   get members(): BaseCollection<string, Member> {
-    return new BaseCollection();
+    return new BaseCollection<string, Member>();
   }
 
   get messages(): BaseCollection<string, Message> {
-    return new BaseCollection();
+    return new BaseCollection<string, Message>();
   }
 
   get mention(): string {
     return `<#${this.id}>`;
+  }
+
+  get nicks(): BaseCollection<string, string> {
+    if (this._nicks) {
+      return this._nicks;
+    }
+    return new BaseCollection<string, string>();
   }
 
   get owner(): User | null {
@@ -314,8 +321,22 @@ export class ChannelBase extends BaseStructure {
     return null;
   }
 
-  get voiceStates(): BaseCollection<string, VoiceState> | null {
-    return new BaseCollection();
+  get permissionOverwrites(): BaseCollection<string, Overwrite> {
+    if (this._permissionOverwrites) {
+      return this._permissionOverwrites;
+    }
+    return new BaseCollection<string, Overwrite>();
+  }
+
+  get recipients(): BaseCollection<string, User> {
+    if (this._recipients) {
+      return this._recipients;
+    }
+    return new BaseCollection<string, User>();
+  }
+
+  get voiceStates(): BaseCollection<string, VoiceState> {
+    return new BaseCollection<string, VoiceState>();
   }
 
   can(
@@ -638,30 +659,53 @@ export class ChannelDM extends ChannelBase {
           value = new Date(value);
         }; break;
         case DiscordKeys.NICKS: {
-          this.nicks.clear();
-          for (let userId in value) {
-            this.nicks.set(userId, value[userId]);
+          if (value.length) {
+            if (!this._nicks) {
+              this._nicks = new BaseCollection<string, string>();
+            }
+            this._nicks.clear();
+            for (let userId in value) {
+              this._nicks.set(userId, value[userId]);
+            }
+          } else {
+            if (this._nicks) {
+              this._nicks.clear();
+              this._nicks = undefined;
+            }
           }
         }; return;
         case DiscordKeys.RECIPIENTS: {
-          this.recipients.clear();
-          for (let raw of value) {
-            let user: User;
-            if (this.client.users.has(raw.id)) {
-              user = <User> this.client.users.get(raw.id);
-              user.merge(raw);
-            } else {
-              user = new User(this.client, raw);
-              this.client.users.insert(user);
+          if (value.length) {
+            if (!this._recipients) {
+              this._recipients = new BaseCollection<string, User>();
             }
-            this.recipients.set(user.id, user);
-            if (DiscordKeys.NICK in raw) {
-              this.nicks.set(user.id, raw.nick);
+            this._recipients.clear();
+            for (let raw of value) {
+              let user: User;
+              if (this.client.users.has(raw.id)) {
+                user = <User> this.client.users.get(raw.id);
+                user.merge(raw);
+              } else {
+                user = new User(this.client, raw);
+                this.client.users.insert(user);
+              }
+              this._recipients.set(user.id, user);
+              if (DiscordKeys.NICK in raw) {
+                if (!this._nicks) {
+                  this._nicks = new BaseCollection<string, string>();
+                }
+                this._nicks.set(user.id, raw.nick);
+              }
+            }
+          } else {
+            if (this._recipients) {
+              this._recipients.clear();
+              this._recipients = undefined;
             }
           }
         }; return;
       }
-      super.mergeValue.call(this, key, value);
+      return super.mergeValue.call(this, key, value);
     }
   }
 }
@@ -693,8 +737,8 @@ export class ChannelDMGroup extends ChannelDM {
   }
 
   get owner(): User | null {
-    if (this.recipients.has(this.ownerId)) {
-      return this.recipients.get(this.ownerId) || null;
+    if (this._recipients && this._recipients.has(this.ownerId)) {
+      return this._recipients.get(this.ownerId) || null;
     }
     return this.client.users.get(this.ownerId) || null;
   }
@@ -951,46 +995,36 @@ export class ChannelGuildBase extends ChannelBase {
     return this.client.rest.editChannelOverwrite(this.id, overwriteId, options);
   }
 
-  difference(key: string, value: any): [boolean, any] {
-    let differences: any;
-    switch (key) {
-      case DiscordKeys.PERMISSION_OVERWRITES: {
-        const old = this.permissionOverwrites;
-        if (old.size || old.size !== value.length) {
-          differences = old.clone();
-        }
-      }; break;
-      default: {
-        return super.difference.call(this, key, value);
-      };
-    }
-    if (differences) {
-      return [true, differences];
-    }
-    return [false, null];
-  }
-
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.PERMISSION_OVERWRITES: {
-          const overwrites: Array<Overwrite> = [];
-          for (let raw of value) {
-            let overwrite: Overwrite;
-            if (this.permissionOverwrites.has(raw.id)) {
-              overwrite = <Overwrite> this.permissionOverwrites.get(raw.id);
-              overwrite.merge(raw);
-            } else {
-              raw.channel_id = this.id;
-              raw.guild_id = this.guildId;
-              overwrite = new Overwrite(this.client, raw);
+          if (value.length) {
+            if (!this._permissionOverwrites) {
+              this._permissionOverwrites = new BaseCollection<string, Overwrite>();
             }
-            overwrites.push(overwrite);
-          }
 
-          this.permissionOverwrites.clear();
-          for (let overwrite of overwrites) {
-            this.permissionOverwrites.set(overwrite.id, overwrite);
+            const overwrites: Array<Overwrite> = [];
+            for (let raw of value) {
+              let overwrite: Overwrite;
+              if (this._permissionOverwrites.has(raw.id)) {
+                overwrite = <Overwrite> this._permissionOverwrites.get(raw.id);
+                overwrite.merge(raw);
+              } else {
+                overwrite = new Overwrite(this, raw);
+              }
+              overwrites.push(overwrite);
+            }
+
+            this._permissionOverwrites.clear();
+            for (let overwrite of overwrites) {
+              this._permissionOverwrites.set(overwrite.id, overwrite);
+            }
+          } else {
+            if (this._permissionOverwrites) {
+              this._permissionOverwrites.clear();
+              this._permissionOverwrites = undefined;
+            }
           }
         }; return;
       }
@@ -1174,31 +1208,6 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.unAckChannel(this.id);
   }
 
-  difference(key: string, value: any): [boolean, any] {
-    let differences: any;
-    switch (key) {
-      case DiscordKeys.LAST_PIN_TIMESTAMP: {
-        const old = this.lastPinTimestamp;
-        if (old && value) {
-          if (old.getTime() !== (new Date(value)).getTime()) {
-            differences = old;
-          }
-        } else {
-          if (old !== value) {
-            differences = old;
-          }
-        }
-      }; break;
-      default: {
-        return super.difference.call(this, key, value);
-      };
-    }
-    if (differences) {
-      return [true, differences];
-    }
-    return [false, null];
-  }
-
   mergeValue(key: string, value: any) {
     switch (key) {
       case DiscordKeys.LAST_PIN_TIMESTAMP: {
@@ -1250,7 +1259,7 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     return collection;
   }
 
-  get voiceStates(): BaseCollection<string, VoiceState> | null {
+  get voiceStates(): BaseCollection<string, VoiceState> {
     const collection = new BaseCollection<string, VoiceState>();
 
     const voiceStates = this.client.voiceStates.get(this.guildId);

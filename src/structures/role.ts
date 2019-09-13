@@ -60,6 +60,10 @@ export class Role extends BaseStructure {
     return this.client.guilds.get(this.guildId) || null;
   }
 
+  get isDefault(): boolean {
+    return this.id === this.guildId;
+  }
+
   get members(): BaseCollection<string, Member> {
     const collection = new BaseCollection<string, Member>();
     const guild = this.guild;
