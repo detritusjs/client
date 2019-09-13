@@ -4,7 +4,7 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { BaseCollection } from '../collections/basecollection';
+import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
   DiscordKeys,
@@ -133,7 +133,7 @@ export class Message extends BaseStructure {
     if (this._attachments) {
       return this._attachments;
     }
-    return new BaseCollection<string, Attachment>();
+    return emptyBaseCollection;
   }
 
   get canDelete(): boolean {
@@ -190,7 +190,7 @@ export class Message extends BaseStructure {
     if (this._embeds) {
       return this._embeds;
     }
-    return new BaseCollection<number, MessageEmbed>();
+    return emptyBaseCollection;
   }
 
   get fromBot(): boolean {
@@ -249,21 +249,21 @@ export class Message extends BaseStructure {
     if (this._mentions) {
       return this._mentions;
     }
-    return new BaseCollection<string, Member | User>();
+    return emptyBaseCollection;
   }
 
   get mentionChannels(): BaseCollection<string, Channel> {
     if (this._mentionChannels) {
       return this._mentionChannels;
     }
-    return new BaseCollection<string, Channel>();
+    return emptyBaseCollection;
   }
 
   get mentionRoles(): BaseCollection<string, null | Role> {
     if (this._mentionRoles) {
       return this._mentionRoles;
     }
-    return new BaseCollection<string, null | Role>();
+    return emptyBaseCollection;
   }
 
   get systemContent(): string {

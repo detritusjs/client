@@ -7,7 +7,7 @@ import {
   ShardClient,
   VoiceConnectOptions,
 } from '../client';
-import { BaseCollection } from '../collections/basecollection';
+import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, ChannelTypes, Permissions } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
@@ -89,7 +89,7 @@ export class ChannelBase extends BaseStructure {
   _nicks?: BaseCollection<string, string>;
   _permissionOverwrites?: BaseCollection<string, Overwrite>;
   _recipients?: BaseCollection<string, User>;
- 
+
   applicationId?: string;
   bitrate: number = 0;
   guildId: string = '';
@@ -210,7 +210,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get children(): BaseCollection<string, ChannelGuildBase> {
-    return new BaseCollection<string, ChannelGuildBase>();
+    return emptyBaseCollection;
   }
 
   get createdAt(): Date {
@@ -295,11 +295,11 @@ export class ChannelBase extends BaseStructure {
   }
 
   get members(): BaseCollection<string, Member> {
-    return new BaseCollection<string, Member>();
+    return emptyBaseCollection;
   }
 
   get messages(): BaseCollection<string, Message> {
-    return new BaseCollection<string, Message>();
+    return emptyBaseCollection;
   }
 
   get mention(): string {
@@ -310,7 +310,7 @@ export class ChannelBase extends BaseStructure {
     if (this._nicks) {
       return this._nicks;
     }
-    return new BaseCollection<string, string>();
+    return emptyBaseCollection;
   }
 
   get owner(): User | null {
@@ -325,18 +325,18 @@ export class ChannelBase extends BaseStructure {
     if (this._permissionOverwrites) {
       return this._permissionOverwrites;
     }
-    return new BaseCollection<string, Overwrite>();
+    return emptyBaseCollection;
   }
 
   get recipients(): BaseCollection<string, User> {
     if (this._recipients) {
       return this._recipients;
     }
-    return new BaseCollection<string, User>();
+    return emptyBaseCollection;
   }
 
   get voiceStates(): BaseCollection<string, VoiceState> {
-    return new BaseCollection<string, VoiceState>();
+    return emptyBaseCollection;
   }
 
   can(

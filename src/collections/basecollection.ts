@@ -382,3 +382,12 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
     return `BaseGuildReferenceCache (${this.guilds.size.toLocaleString()} guilds, ${this.size.toLocaleString()} items)`;
   }
 }
+
+
+const emptyBaseCollection = new BaseCollection<any, any>();
+emptyBaseCollection.delete = () => false;
+emptyBaseCollection.has = () => false;
+emptyBaseCollection.set = () => emptyBaseCollection;
+emptyBaseCollection.get = () => undefined;
+Object.freeze(emptyBaseCollection);
+export { emptyBaseCollection };

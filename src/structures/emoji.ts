@@ -3,7 +3,7 @@ import {
   RequestTypes,
 } from 'detritus-client-rest';
 
-import { BaseCollection } from '../collections/basecollection';
+import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { ShardClient } from '../client';
 import { DiscordKeys, ImageFormats } from '../constants';
@@ -98,7 +98,7 @@ export class Emoji extends BaseStructure {
     if (this._roles) {
       return this._roles;
     }
-    return new BaseCollection<string, null | Role>();
+    return emptyBaseCollection;
   }
 
   get url(): string {

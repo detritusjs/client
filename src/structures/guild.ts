@@ -4,7 +4,7 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { BaseCollection } from '../collections/basecollection';
+import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { EmojisOptions } from '../collections/emojis';
 import { RolesOptions } from '../collections/roles';
@@ -332,7 +332,7 @@ export class Guild extends BaseStructure {
     if (this.client.voiceStates.has(this.id)) {
       return <BaseCollection<string, VoiceState>> this.client.voiceStates.get(this.id);
     }
-    return new BaseCollection<string, VoiceState>();
+    return emptyBaseCollection;
   }
 
   get widgetImageUrl(): string {

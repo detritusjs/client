@@ -1,7 +1,7 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { BaseCollection } from '../collections/basecollection';
+import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, Permissions } from '../constants';
 import { PermissionTools } from '../utils';
