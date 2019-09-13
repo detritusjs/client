@@ -146,7 +146,7 @@ export class ClusterProcessChild extends EventEmitter {
               evalArgs.push(`${arg}`);
             }; break;
             default: {
-              evalArgs.push(`'${arg}'`);
+              evalArgs.push(`"${arg}"`);
             };
           }
         }
