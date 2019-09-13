@@ -94,7 +94,7 @@ const client = new ShardClient(token, {
 });
 
 // listen to our client's eventemitter
-client.on('GUILD_CREATE', async ({fromUnavailable, guild}) => {
+client.on('guildCreate', async ({fromUnavailable, guild}) => {
   if (fromUnavailable) {
     console.log(`Guild ${guild.name} has just came back from being unavailable`);
   } else {
@@ -103,7 +103,7 @@ client.on('GUILD_CREATE', async ({fromUnavailable, guild}) => {
 });
 
 // listen to our client's eventemitter
-client.on('MESSAGE_CREATE', async ({message}) => {
+client.on('messageCreate', async ({message}) => {
   if (message.content === '!ping') {
     const reply = await message.reply('pong!, deleting message in 5 seconds...');
     setTimeout(async () => {
@@ -158,7 +158,7 @@ const cluster = new ClusterClient(token, {
 
 // listen to our client's eventemitter
 // `shard` (which is the ShardClient the event originated from) is added onto EVERY event that you listen to on the cluster client
-cluster.on('GUILD_CREATE', async ({fromUnavailable, guild, shard}) => {
+cluster.on('guildCreate', async ({fromUnavailable, guild, shard}) => {
   if (fromUnavailable) {
     console.log(`Shard #${shard.shardId}:`, `Guild ${guild.name} has just came back from being unavailable`);
   } else {
@@ -168,7 +168,7 @@ cluster.on('GUILD_CREATE', async ({fromUnavailable, guild, shard}) => {
 
 // listen to our client's eventemitter
 // `shard` (which is the ShardClient the event originated from) is added onto EVERY event that you listen to on the cluster client
-cluster.on('MESSAGE_CREATE', async ({message, shard}) => {
+cluster.on('messageCreate', async ({message, shard}) => {
   if (message.content === '!ping') {
     const reply = await message.reply(`pong on shard #${shard.shardId}!, deleting message in 5 seconds...`);
     setTimeout(async () => {
