@@ -7,6 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { EmojisOptions } from '../collections/emojis';
+import { MembersOptions } from '../collections/members';
 import { RolesOptions } from '../collections/roles';
 import {
   DiscordKeys,
@@ -129,6 +130,7 @@ export class Guild extends BaseStructure {
   explicitContentFilter: number = 0;
   emojis: BaseCollection<string, Emoji>;
   features!: BaseSet<string>;
+  hasMetadata: boolean = false;
   icon: null | string = null;
   id: string = '';
   joinedAt: Date | null = null;
@@ -257,7 +259,7 @@ export class Guild extends BaseStructure {
     if (this.client.members.has(this.id)) {
       return <BaseCollection<string, Member>> this.client.members.get(this.id);
     }
-    return new BaseCollection<string, Member>();
+    return emptyBaseCollection;
   }
 
   get messages(): BaseCollection<string, Message> {

@@ -21,17 +21,20 @@ const keysOauth2Application = new BaseSet<string>([
   DiscordKeys.BOT,
   DiscordKeys.BOT_PUBLIC,
   DiscordKeys.BOT_REQUIRE_CODE_GRANT,
+  DiscordKeys.COVER_IMAGE,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.FLAGS,
-  DiscordKeys.DESCRIPTION,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ICON,
   DiscordKeys.ID,
   DiscordKeys.NAME,
   DiscordKeys.OWNER,
+  DiscordKeys.PRIMARY_SKU_ID,
   DiscordKeys.REDIRECT_URIS,
   DiscordKeys.RPC_APPLICATION_STATE,
+  DiscordKeys.RPC_ORIGINS,
   DiscordKeys.SECRET,
+  DiscordKeys.SLUG,
   DiscordKeys.STORE_APPLICATION_STATE,
   DiscordKeys.SUMMARY,
   DiscordKeys.TEAM,
@@ -48,16 +51,22 @@ export class Oauth2Application extends BaseStructure {
   bot?: UserWithToken;
   botPublic: boolean = false;
   botRequireCodeGrant: boolean = false;
+  coverImage?: string;
   description: string = '';
   flags: number = 0;
   guildId?: string;
   icon: null | string = null;
   id: string = '';
   name: string = '';
-  owner?: UserWithFlags;
-  redirectUris: Array<string> = [];
+  owner!: UserWithFlags;
+  primarySkuId?: string;
+  redirectUris?: Array<string> = [];
   rpcApplicationState: number = 0;
+  rpcOrigins?: Array<string> = [];
   secret?: string;
+  slug?: string;
+  storeApplicationState?: number;
+  summary: string = '';
   team?: Team;
   verifyKey: string = '';
 

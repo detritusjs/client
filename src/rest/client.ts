@@ -507,6 +507,7 @@ export class RestClient extends Client {
     } else {
       guild = new Guild(this.client, data, {emojis: {}, roles: {}});
     }
+    guild.hasMetadata = true;
     return guild;
   }
 

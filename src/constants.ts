@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.6.4',
+  VERSION: '0.6.5',
 });
 
 export type Snowflake = number | string;
@@ -328,6 +328,17 @@ export const CommandRatelimitTypes = Object.freeze({
 });
 
 export const COMMAND_RATELIMIT_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(CommandRatelimitTypes));
+
+export const DEFAULT_GROUP_DM_AVATARS: ReadonlyArray<string> = Object.freeze([
+  '861ab526aa1fabb04c6b7da8074e3e21',
+  'b8912961ea6ab32f0655d583bbc26b4f',
+  '773616c3c8a7e21f8a774eb0d5625436',
+  'f810dc5fedb7175c43a3389aa890534f',
+  'e1fb24a120bdd003a84e021b16ec3bef',
+  'b3150d5cef84b9e82128a1131684f287',
+  '485a854d5171c8dc98088041626e6fea',
+  '1531b79c2f2927945582023e1edaaa11',
+]);
 
 export const DISCORD_EPOCH = 1420070400000;
 

@@ -9,7 +9,7 @@ import {
 } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, ChannelTypes, Permissions } from '../constants';
+import { DiscordKeys, ChannelTypes, Permissions, DEFAULT_GROUP_DM_AVATARS } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 import {
   addQuery,
@@ -219,6 +219,10 @@ export class ChannelBase extends BaseStructure {
 
   get createdAtUnix(): number {
     return Snowflake.timestamp(this.id);
+  }
+
+  get defaultIconUrl(): null | string {
+    return null;
   }
 
   get guild(): Guild | null {
@@ -557,7 +561,8 @@ export class ChannelDM extends ChannelBase {
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.recipients.size) {
-      return (<User> this.recipients.first()).avatarUrlFormat(format, query);
+      const user = <User> this.recipients.first();
+      return user.avatarUrlFormat(format, query);
     }
     return null;
   }
@@ -736,6 +741,11 @@ export class ChannelDMGroup extends ChannelDM {
     this.merge(data);
   }
 
+  get defaultIconUrl(): string {
+    const hash = DEFAULT_GROUP_DM_AVATARS[this.createdAtUnix % DEFAULT_GROUP_DM_AVATARS.length];
+    return Endpoints.Assets.URL + Endpoints.Assets.ICON(hash);
+  }
+
   get owner(): User | null {
     if (this._recipients && this._recipients.has(this.ownerId)) {
       return this._recipients.get(this.ownerId) || null;
@@ -743,9 +753,9 @@ export class ChannelDMGroup extends ChannelDM {
     return this.client.users.get(this.ownerId) || null;
   }
 
-  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+  iconUrlFormat(format?: null | string, query?: UrlQuery): string {
     if (!this.icon) {
-      return null;
+      return this.defaultIconUrl;
     }
     const hash = this.icon;
     format = getFormatFromHash(

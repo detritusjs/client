@@ -3,7 +3,6 @@ import {
   BaseClientCollectionOptions,
 } from './basecollection';
 
-import { ShardClient } from '../client';
 import { Member } from '../structures';
 
 
@@ -11,7 +10,7 @@ import { Member } from '../structures';
  * @category Collection Options
  */
 export interface MembersOptions extends BaseClientCollectionOptions {
-  storeOffline?: boolean,
+
 };
 
 /**

@@ -180,6 +180,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildMembersChunk {
+    guild: Guild | null,
     guildId: string,
     members: BaseCollection<string, Member> | null,
     notFound: Array<string> | null,

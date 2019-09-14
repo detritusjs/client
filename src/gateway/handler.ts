@@ -349,6 +349,35 @@ export class GatewayDispatchHandler {
       channel = createChannelFromData(this.client, data);
     }
 
+    if (channel.isText) {
+      switch (this.client.messages.type) {
+        case MessageCacheTypes.CHANNEL: {
+          this.client.messages.delete(channel.id);
+        }; break;
+        case MessageCacheTypes.GUILD: {
+          if (channel.isGuildChannel) {
+            const cache = this.client.messages.get(channel.guildId);
+            if (cache) {
+              for (let [messageId, message] of cache) {
+                if (message.channelId === channel.id) {
+                  cache.delete(messageId);
+                }
+              }
+            }
+          } else {
+            this.client.messages.delete(channel.id);
+          }
+        }; break;
+        case MessageCacheTypes.USER: {
+          for (let [messageId, message] of this.client.messages) {
+            if (message.channelId === channel.id) {
+              this.client.messages.delete(message.author.id, messageId);
+            }
+          }
+        }; break;
+      }
+    }
+
     const payload: GatewayClientEvents.ChannelDelete = {channel};
     this.client.emit(ClientEvents.CHANNEL_DELETE, payload);
   }
@@ -446,12 +475,13 @@ export class GatewayDispatchHandler {
       channel.nicks.delete(user.id);
     }
 
-    this.client.emit(ClientEvents.CHANNEL_RECIPIENT_REMOVE, {
+    const payload: GatewayClientEvents.ChannelRecipientRemove = {
       channel,
       channelId,
       nick,
       user,
-    });
+    };
+    this.client.emit(ClientEvents.CHANNEL_RECIPIENT_REMOVE, payload);
   }
 
   [GatewayDispatchEvents.ENTITLEMENT_CREATE](data: GatewayRawEvents.EntitlementCreate) {
@@ -588,6 +618,7 @@ export class GatewayDispatchHandler {
 
       for (let [channelId, channel] of this.client.channels) {
         if (channel.guildId === guildId) {
+          channel.permissionOverwrites.clear();
           this.client.channels.delete(channelId);
           this.client.messages.delete(channelId);
           this.client.typing.delete(channelId);
@@ -762,6 +793,7 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK](data: GatewayRawEvents.GuildMembersChunk) {
     const guildId = data['guild_id'];
+    let guild: Guild | null = this.client.guilds.get(guildId) || null;
     let members: BaseCollection<string, Member> | null = null;
     let notFound: Array<string> | null = null;
     let presences: BaseCollection<string, Presence> | null = null;
@@ -822,12 +854,14 @@ export class GatewayDispatchHandler {
       notFound = data['not_found'].map((userId) => String(userId));
     }
 
-    this.client.emit(ClientEvents.GUILD_MEMBERS_CHUNK, {
+    const payload: GatewayClientEvents.GuildMembersChunk = {
+      guild,
       guildId,
       members,
       notFound,
       presences,
-    });
+    };
+    this.client.emit(ClientEvents.GUILD_MEMBERS_CHUNK, payload);
   }
 
   [GatewayDispatchEvents.GUILD_ROLE_CREATE](data: GatewayRawEvents.GuildRoleCreate) {
@@ -942,6 +976,7 @@ export class GatewayDispatchHandler {
       guild = new Guild(this.client, data);
       this.client.guilds.insert(guild);
     }
+    guild.hasMetadata = true;
 
     this.client.emit(ClientEvents.GUILD_UPDATE, {
       differences,
