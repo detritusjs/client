@@ -94,7 +94,7 @@ export class Role extends BaseStructure {
     return PermissionTools.checkPermissions(this.permissions, permissions);
   }
 
-  permissionsFor(channelId: ChannelGuildBase | string): number {
+  permissionsIn(channelId: ChannelGuildBase | string): number {
     let channel: ChannelGuildBase;
     if (channelId instanceof ChannelGuildBase) {
       channel = channelId;
@@ -106,14 +106,12 @@ export class Role extends BaseStructure {
       }
     }
 
-    let allow = 0;
-    let deny = 0;
+    let allow = 0, deny = 0;
     if (channel.permissionOverwrites.has(this.id)) {
       const overwrite = <Overwrite> channel.permissionOverwrites.get(this.id);
       allow |= overwrite.allow;
       deny |= overwrite.deny;
     }
-
     return (this.permissions & ~deny) | allow;
   }
 

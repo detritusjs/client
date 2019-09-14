@@ -987,6 +987,11 @@ export class ChannelGuildBase extends ChannelBase {
     let total = Permissions.NONE;
     if (memberOrRole instanceof Role) {
       total = memberOrRole.permissions;
+      if (!ignoreAdministrator) {
+        if (PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+          return true;
+        }
+      }
     } else {
       if (!memberOrRole) {
         if (!this.client.user) {
@@ -1004,12 +1009,15 @@ export class ChannelGuildBase extends ChannelBase {
           return true;
         }
       }
-      total = memberOrRole.permissionsFor(this);
+
+      if (!ignoreAdministrator) {
+        if (PermissionTools.checkPermissions(memberOrRole.permissions, Permissions.ADMINISTRATOR)) {
+          return true;
+        }
+      }
+      total = memberOrRole.permissionsIn(this);
     }
 
-    if (!ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
-      return true;
-    }
     return PermissionTools.checkPermissions(total, permissions);
   }
 
