@@ -48,7 +48,7 @@ export class Member extends UserMixin {
   deaf: boolean = false;
   guildId: string = '';
   hoistedRole?: string;
-  joinedAt!: Date;
+  joinedAt: Date | null = null;
   mute: boolean = false;
   nick: null | string = null;
   premiumSince: null | Date = null;
@@ -84,8 +84,15 @@ export class Member extends UserMixin {
     return false;
   }
 
+  get isPartial(): boolean {
+    return !!this.joinedAt;
+  }
+
   get joinedAtUnix(): number {
-    return this.joinedAt.getTime();
+    if (this.joinedAt) {
+      return this.joinedAt.getTime();
+    }
+    return 0;
   }
 
   get mention(): string {
@@ -231,7 +238,9 @@ export class Member extends UserMixin {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.JOINED_AT: {
-          value = new Date(value);
+          if (value) {
+            value = new Date(value);
+          }
         }; break;
         case DiscordKeys.PREMIUM_SINCE: {
           if (value) {

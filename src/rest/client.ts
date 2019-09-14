@@ -691,6 +691,9 @@ export class RestClient extends Client {
     } else {
       data.guild_id = guildId;
       member = new Member(this.client, data);
+      if (this.client.members.has(guildId)) {
+        this.client.members.insert(member);
+      }
     }
     return member;
   }
