@@ -413,7 +413,7 @@ export class CommandClient extends EventEmitter {
     }
     switch (name) {
       case ClientEvents.MESSAGE_UPDATE: {
-        if (!this.activateOnEdits || !!(differences && differences.content)) {
+        if (!this.activateOnEdits || !(differences && differences.content)) {
           return;
         }
       }; break;
@@ -435,7 +435,7 @@ export class CommandClient extends EventEmitter {
       }
 
       attributes = await this.getAttributes(context);
-      if (attributes === null) {
+      if (!attributes) {
         throw new Error('Does not start with any allowed prefixes');
       }
     } catch(error) {
@@ -522,7 +522,7 @@ export class CommandClient extends EventEmitter {
       }
     }
 
-    const prefix = attributes.prefix;
+    const prefix = context.prefix = attributes.prefix;
     const {errors, parsed: args} = await command.getArgs(attributes, context);
     if (Object.keys(errors).length) {
       if (typeof(command.onTypeError) === 'function') {

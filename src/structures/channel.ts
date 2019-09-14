@@ -27,6 +27,7 @@ import { Guild } from './guild';
 import { Member } from './member';
 import { Message } from './message';
 import { Overwrite } from './overwrite';
+import { Role } from './role';
 import { User } from './user';
 import { VoiceState } from './voicestate';
 
@@ -115,6 +116,11 @@ export class ChannelBase extends BaseStructure {
     if (merge) {
       this.merge(data);
     }
+    Object.defineProperties(this, {
+      _nicks: {enumerable: false, writable: true},
+      _permissionOverwrites: {enumerable: false, writable: true},
+      _recipients: {enumerable: false, writable: true},
+    });
   }
 
   get canAddReactions(): boolean {
@@ -345,7 +351,7 @@ export class ChannelBase extends BaseStructure {
 
   can(
     permissions: PermissionTools.PermissionChecks,
-    member?: Member,
+    memberOrRole?: Member | Role,
   ): boolean {
     return false;
   }
@@ -975,23 +981,33 @@ export class ChannelGuildBase extends ChannelBase {
 
   can(
     permissions: PermissionTools.PermissionChecks,
-    member?: Member,
+    memberOrRole?: Member | Role,
+    {ignoreAdministrator, ignoreOwner}: {ignoreAdministrator?: boolean, ignoreOwner?: boolean} = {},
   ): boolean {
-    if (!member) {
-      if (!this.client.user) {
-        return false;
+    let total = Permissions.NONE;
+    if (memberOrRole instanceof Role) {
+      total = memberOrRole.permissions;
+    } else {
+      if (!memberOrRole) {
+        if (!this.client.user) {
+          return false;
+        }
+        if (!this.client.members.has(this.guildId, this.client.user.id)) {
+          return false;
+        }
+        memberOrRole = <Member> this.client.members.get(this.guildId, this.client.user.id);
       }
-      if (!this.client.members.has(this.guildId, this.client.user.id)) {
-        return false;
+  
+      if (!ignoreOwner) {
+        const guild = this.guild;
+        if (guild && guild.isOwner(memberOrRole.id)) {
+          return true;
+        }
       }
-      member = <Member> this.client.members.get(this.guildId, this.client.user.id);
+      total = memberOrRole.permissionsFor(this);
     }
-    const guild = this.guild;
-    if (guild && guild.isOwner(member.id)) {
-      return true;
-    }
-    const total = member.permissionsFor(this);
-    if (PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+
+    if (!ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
       return true;
     }
     return PermissionTools.checkPermissions(total, permissions);

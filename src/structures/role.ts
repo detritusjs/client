@@ -3,15 +3,17 @@ import { RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
-import { Snowflake } from '../utils';
+import { DiscordKeys, Permissions } from '../constants';
+import { PermissionTools, Snowflake } from '../utils';
 
 import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
+import { ChannelGuildBase } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
+import { Overwrite } from './overwrite';
 
 
 const keysRole = new BaseSet<string>([
@@ -80,6 +82,39 @@ export class Role extends BaseStructure {
 
   get mention(): string {
     return `<@&${this.id}>`;
+  }
+
+  can(
+    permissions: PermissionTools.PermissionChecks,
+    {ignoreAdministrator}: {ignoreAdministrator?: boolean} = {},
+  ): boolean {
+    if (!ignoreAdministrator && PermissionTools.checkPermissions(this.permissions, Permissions.ADMINISTRATOR)) {
+      return true;
+    }
+    return PermissionTools.checkPermissions(this.permissions, permissions);
+  }
+
+  permissionsFor(channelId: ChannelGuildBase | string): number {
+    let channel: ChannelGuildBase;
+    if (channelId instanceof ChannelGuildBase) {
+      channel = channelId;
+    } else {
+      if (this.client.channels.has(channelId)) {
+        channel = <ChannelGuildBase> this.client.channels.get(channelId);
+      } else {
+        return Permissions.NONE;
+      }
+    }
+
+    let allow = 0;
+    let deny = 0;
+    if (channel.permissionOverwrites.has(this.id)) {
+      const overwrite = <Overwrite> channel.permissionOverwrites.get(this.id);
+      allow |= overwrite.allow;
+      deny |= overwrite.deny;
+    }
+
+    return (this.permissions & ~deny) | allow;
   }
 
   delete(options: RequestTypes.DeleteGuildRole = {}) {

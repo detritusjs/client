@@ -32,6 +32,7 @@ export class Structure {
     Object.defineProperties(this, {
       _keys: {enumerable: false, writable: true},
       _keysMerge: {enumerable: false, writable: true},
+      _keysSkipDifference: {enumerable: false, writable: true},
     });
   }
 

@@ -20,6 +20,7 @@ export class Context {
   readonly message: Message;
 
   command?: Command;
+  prefix?: string;
 
   constructor(
     message: Message,

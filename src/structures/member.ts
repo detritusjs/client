@@ -57,6 +57,7 @@ export class Member extends UserMixin {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+    Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
   }
 
   get guild(): Guild | null {

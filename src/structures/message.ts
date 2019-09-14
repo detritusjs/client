@@ -8,6 +8,7 @@ import { BaseCollection, emptyBaseCollection } from '../collections/basecollecti
 import { BaseSet } from '../collections/baseset';
 import {
   DiscordKeys,
+  MessageCacheTypes,
   MessageFlags,
   MessageTypes,
   MessageTypesDeletable,
@@ -118,10 +119,13 @@ export class Message extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
-    Object.defineProperty(this, '_content', {
-      configurable: true,
-      enumerable: false,
-      writable: false,
+    Object.defineProperties(this, {
+      _content: {configurable: true, enumerable: false, writable: false},
+      _attachments: {enumerable: false, writable: true},
+      _embeds: {enumerable: false, writable: true},
+      _mentions: {enumerable: false, writable: true},
+      _mentionChannels: {enumerable: false, writable: true},
+      _mentionRoles: {enumerable: false, writable: true},
     });
 
     if (this.guildId && !this.member) {
@@ -134,6 +138,21 @@ export class Message extends BaseStructure {
       return this._attachments;
     }
     return emptyBaseCollection;
+  }
+
+  get cacheKey(): null | string {
+    switch (this.client.messages.type) {
+      case MessageCacheTypes.CHANNEL: {
+        return this.channelId;
+      };
+      case MessageCacheTypes.GUILD: {
+        return this.guildId || this.channelId;
+      };
+      case MessageCacheTypes.USER: {
+        return this.author.id;
+      };
+    }
+    return null;
   }
 
   get canDelete(): boolean {
