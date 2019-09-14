@@ -530,7 +530,6 @@ export class CommandClient extends EventEmitter {
         if (this.maxEditDuration && reply instanceof Message) {
           this.replies.set(message.id, reply);
         }
-        
       }
       const error = new Error('Command errored out while converting args');
       this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: errors});

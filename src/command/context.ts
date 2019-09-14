@@ -27,15 +27,14 @@ export class Context {
     commandClient: CommandClient,
   ) {
     this.message = message;
-    this.commandClient = commandClient;
     this.client = message.client;
+    this.commandClient = commandClient;
 
     Object.defineProperties(this, {
       client: {enumerable: false, writable: false},
       command: {enumerable: false, writable: true},
       commandClient: {enumerable: false, writable: false},
       message: {writable: false},
-      response: {enumerable: false, writable: true},
     });
   }
 
