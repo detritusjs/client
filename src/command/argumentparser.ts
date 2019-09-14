@@ -24,18 +24,14 @@ export type ParsedErrors = {[key: string]: Error};
  */
 export class ArgumentParser {
   args: Array<Argument> = [];
-  defaults: ParsedArgs = {};
 
   constructor(args: Array<ArgumentOptions> = []) {
     for (let arg of args) {
-      const argument = new Argument(arg);
-      this.defaults[argument.label] = argument.default;
-      this.args.push(argument);
+      this.args.push(new Argument(arg));
     }
 
     Object.defineProperties(this, {
       args: {writable: false},
-      defaults: {writable: false},
     });
   }
 
@@ -43,7 +39,7 @@ export class ArgumentParser {
     attributes: CommandAttributes,
     context: Context,
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
-    const parsed: ParsedArgs = Object.assign({}, this.defaults);
+    const parsed: ParsedArgs = {};
 
     const args = this.args
       .map((arg) => ({arg, info: arg.getInfo(attributes.content)}))
@@ -62,7 +58,21 @@ export class ArgumentParser {
         parsed[arg.label] = await arg.parse(value.trim(), context);
       } catch(error) {
         errors[arg.label] = error;
-        delete parsed[arg.label];
+      }
+    }
+
+    for (let arg of this.args) {
+      if (!(arg.label in parsed)) {
+        const value = arg.default;
+        if (typeof(value) === 'string') {
+          try {
+            parsed[arg.label] = await arg.parse(value, context);
+          } catch(error) {
+            errors[arg.label] = error;
+          }
+        } else {
+          parsed[arg.label] = value;
+        }
       }
     }
 

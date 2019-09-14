@@ -75,6 +75,12 @@ export class Argument {
     }
 
     this.type = <ArgumentConverter | string> (options.type || this.type);
+
+    switch (this.type) {
+      case CommandArgumentTypes.BOOL: {
+        this.default = !!this.default;
+      }; break;
+    }
   }
 
   get names(): Array<string> {
