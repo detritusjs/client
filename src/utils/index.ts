@@ -2,7 +2,7 @@ import { URLSearchParams } from 'url';
 
 import { Snowflake, Tools } from 'detritus-utils';
 
-const { guildIdtoShardId } = Tools;
+const { guildIdToShardId } = Tools;
 
 import {
   DiscordRegex,
@@ -14,7 +14,7 @@ import {
 import * as PermissionTools from './permissions';
 
 export {
-  guildIdtoShardId,
+  guildIdToShardId,
   PermissionTools,
   Snowflake,
 };
