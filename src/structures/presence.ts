@@ -69,7 +69,6 @@ export class Presence extends BaseStructure {
   _activities?: BaseCollection<string, PresenceActivity>;
 
   clientStatus?: PresenceClientStatus;
-  game?: null | PresenceActivity;
   guildIds = new BaseSet<string>();
   lastGuildId: string = LOCAL_GUILD_ID;
   lastModified?: number;
@@ -82,7 +81,7 @@ export class Presence extends BaseStructure {
     Object.defineProperty(this, '_activities', {enumerable: false, writable: true});
   }
 
-  get activity(): null | PresenceActivity | undefined {
+  get activity(): null | PresenceActivity {
     return this.game;
   }
 
@@ -91,6 +90,15 @@ export class Presence extends BaseStructure {
       return this._activities;
     }
     return emptyBaseCollection;
+  }
+
+  get game(): null | PresenceActivity {
+    for (let [activityId, activity] of this.activities) {
+      if (activity.position === 0) {
+        return activity;
+      }
+    }
+    return this.activities.first() || null;
   }
 
   get isDnd(): boolean {
@@ -107,6 +115,26 @@ export class Presence extends BaseStructure {
 
   get isOnline(): boolean {
     return this.status === PresenceStatuses.ONLINE;
+  }
+
+  activitiesFor(guildId: string): BaseCollection<string, PresenceActivity> {
+    const collection = new BaseCollection<string, PresenceActivity>();
+    for (let [activityId, activity] of this.activities) {
+      if (activity.guildIds.has(guildId)) {
+        collection.set(activity.id, activity);
+      }
+    }
+    return collection;
+  }
+
+  activityFor(guildId: string): null | PresenceActivity {
+    const activities = this.activitiesFor(guildId);
+    for (let [activityId, activity] of activities) {
+      if (activity.position === 0) {
+        return activity;
+      }
+    }
+    return activities.first() || null;
   }
 
   mergeValue(key: string, value: any): void {
@@ -159,19 +187,10 @@ export class Presence extends BaseStructure {
           }
         }; return;
         case DiscordKeys.GAME: {
-          if (value) {
-            if (value.id) {
-              if (this.activities.has(value.id)) {
-                value = <PresenceActivity> this.activities.get(value.id);
-              } else {
-                value = null;
-                // should we make the activity? this should never happen
-              }
-            } else if (!Object.keys(value).length) {
-              value = null;
-            }
+          if (value && value.id && !this.activities.has(value.id)) {
+            // shouldnt happen (maybe merge?)
           }
-        }; break;
+        }; return;
         case DiscordKeys.GUILD_ID: {
           this.lastGuildId = value || LOCAL_GUILD_ID;
           this.guildIds.add(this.lastGuildId);
