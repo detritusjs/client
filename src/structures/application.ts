@@ -29,6 +29,9 @@ import {
 export const SpecialThirdPartySkus: {[key: string]: string} = Object.freeze({
   'Call of Duty Black Ops 4': 'call-of-duty',
   'Call of Duty Modern Warfare': 'call-of-duty-mw',
+  'StarCraft': 'starcraft-remastered',
+  'World of Warcraft Classic': 'world-of-warcraft',
+  'World of Warcraft Public Test': 'world-of-warcraft',
 });
 
 
@@ -81,7 +84,7 @@ const keysApplication = new BaseSet<string>([
 export class Application extends BaseStructure {
   readonly _keys = keysApplication;
 
-  aliases?: Array<string>;
+  aliases?: BaseSet<string>;
   botPublic?: boolean;
   botRequireCodeGrant?: boolean;
   coverImage: null | string = null;
@@ -174,17 +177,20 @@ export class Application extends BaseStructure {
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.icon) {
       const hash = this.icon;
-      format = getFormatFromHash(
-        hash,
-        format,
-        this.client.imageFormat,
-      );
-      return addQuery(
-        Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
-        query,
-      );
+      format = getFormatFromHash(hash, format, this.client.imageFormat);
+      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
     }
     return null;
+  }
+
+  matches(name: string): boolean {
+    if (this.name === name) {
+      return true;
+    }
+    if (this.aliases && this.aliases.some((alias) => alias === name)) {
+      return true;
+    }
+    return false;
   }
 
   async createAsset(options: RequestTypes.CreateOauth2ApplicationAsset) {
@@ -225,15 +231,8 @@ export class Application extends BaseStructure {
   splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.splash) {
       const hash = this.splash;
-      format = getFormatFromHash(
-        hash,
-        format,
-        this.client.imageFormat,
-      );
-      return addQuery(
-        Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
-        query,
-      );
+      format = getFormatFromHash(hash, format, this.client.imageFormat);
+      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
     }
     return null;
   }
@@ -241,6 +240,18 @@ export class Application extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case DiscordKeys.ALIASES: {
+          if (this.aliases) {
+            this.aliases.clear();
+            for (let raw of value) {
+              this.aliases.add(raw);
+            }
+          } else {
+            if (value.length) {
+              this.aliases = new BaseSet(value);
+            }
+          }
+        }; return;
         case DiscordKeys.RPC_ORIGINS: {
           if (this.rpcOrigins) {
             this.rpcOrigins.clear();
@@ -333,7 +344,7 @@ export class ApplicationThirdPartySku extends BaseStructure {
         case Distributors.ORIGIN: {
           let skuId: string;
           if (this.application.aliases && this.application.aliases.length) {
-            skuId = this.application.aliases[0];
+            skuId = <string> this.application.aliases.first();
           } else {
             skuId = this.application.name;
           }

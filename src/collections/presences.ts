@@ -33,10 +33,15 @@ export class Presences extends BaseClientCollection<string, Presence> {
         if (value.status === PresenceStatuses.OFFLINE) {
           presence.guildIds.delete(guildId);
           if (presence.guildIds.length) {
-            for (let [activityId, activity] of presence.activities) {
-              activity.guildIds.delete(guildId);
-              if (!activity.guildIds.length) {
-                presence.activities.delete(activityId);
+            if (presence._activities) {
+              for (let [activityId, activity] of presence._activities) {
+                activity.guildIds.delete(guildId);
+                if (!activity.guildIds.length) {
+                  presence._activities.delete(activityId);
+                }
+              }
+              if (!presence._activities.length) {
+                presence._activities = undefined;
               }
             }
           } else {
@@ -62,10 +67,15 @@ export class Presences extends BaseClientCollection<string, Presence> {
     for (let [userId, presence] of this) {
       if (presence.guildIds.delete(guildId)) {
         if (presence.guildIds.length) {
-          for (let [activityId, activity] of presence.activities) {
-            activity.guildIds.delete(guildId);
-            if (!activity.guildIds.length) {
-              presence.activities.delete(guildId);
+          if (presence._activities) {
+            for (let [activityId, activity] of presence._activities) {
+              activity.guildIds.delete(guildId);
+              if (!activity.guildIds.length) {
+                presence._activities.delete(activityId);
+              }
+            }
+            if (!presence._activities.length) {
+              presence._activities = undefined;
             }
           }
         } else {

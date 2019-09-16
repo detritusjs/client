@@ -306,10 +306,12 @@ export class PresenceActivity extends BaseStructure {
     if (this.applicationId && this.client.applications.has(this.applicationId)) {
       return <Application> this.client.applications.get(this.applicationId);
     }
-    if (!this.presence.user.bot && this.name) {
-      return this.client.applications.find((application) => {
-        return application.name === this.name;
-      }) || null;
+    if (!this.presence.user.bot && this.name && this.isPlaying) {
+      for (let [applicationId, application] of this.client.applications) {
+        if (application.matches(this.name)) {
+          return application;
+        }
+      }
     }
     return null;
   }
