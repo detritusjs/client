@@ -28,6 +28,7 @@ import { Member } from './member';
 import { Message } from './message';
 import { Overwrite } from './overwrite';
 import { Role } from './role';
+import { Typing } from './typing';
 import { User } from './user';
 import { VoiceState } from './voicestate';
 
@@ -341,6 +342,13 @@ export class ChannelBase extends BaseStructure {
   get recipients(): BaseCollection<string, User> {
     if (this._recipients) {
       return this._recipients;
+    }
+    return emptyBaseCollection;
+  }
+
+  get typing(): BaseCollection<string, Typing> {
+    if (this.client.typings.has(this.id)) {
+      return <BaseCollection<string, Typing>> this.client.typings.get(this.id);
     }
     return emptyBaseCollection;
   }

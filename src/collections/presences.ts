@@ -1,4 +1,4 @@
-import { ShardClient } from '../client';
+import { LOCAL_GUILD_ID, PresenceStatuses } from '../constants';
 import { GatewayRawEvents } from '../gateway/rawevents';
 import { Presence } from '../structures';
 
@@ -12,7 +12,7 @@ import {
  * @category Collection Options
  */
 export interface PresencesOptions extends BaseClientCollectionOptions {
-  storeOffline?: boolean,
+
 };
 
 /**
@@ -20,37 +20,37 @@ export interface PresencesOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class Presences extends BaseClientCollection<string, Presence> {
-  storeOffline: boolean = false;
-
-  constructor(client: ShardClient, options: PresencesOptions = {}) {
-    super(client, options);
-    this.storeOffline = !!options.storeOffline;
-    Object.defineProperties(this, {
-      storeOffline: {configurable: true, writable: false},
-    });
-  }
-
-  setStoreOffline(value: boolean): void {
-    Object.defineProperty(this, 'storeOffline', {value});
-  }
-
   insert(value: GatewayRawEvents.RawPresence): Presence {
+    const guildId = value.guild_id || LOCAL_GUILD_ID;
     for (let activity of value.activities) {
-      Object.assign(activity, {guild_id: value.guild_id});
+      Object.assign(activity, {guild_id: guildId});
     }
 
     let presence: Presence;
     if (this.enabled) {
       if (this.has(value.user.id)) {
         presence = <Presence> this.get(value.user.id);
-        presence.merge(value);
+        if (value.status === PresenceStatuses.OFFLINE) {
+          presence.guildIds.delete(guildId);
+          if (presence.guildIds.length) {
+            for (let [activityId, activity] of presence.activities) {
+              activity.guildIds.delete(guildId);
+              if (!activity.guildIds.length) {
+                presence.activities.delete(activityId);
+              }
+            }
+          } else {
+            this.delete(presence.user.id);
+            presence.merge(value);
+          }
+        } else {
+          presence.merge(value);
+        }
       } else {
         presence = new Presence(this.client, value);
-        this.set(presence.user.id, presence);
-      }
-
-      if (!this.storeOffline && presence.isOffline) {
-        this.delete(presence.user.id);
+        if (!presence.isOffline) {
+          this.set(presence.user.id, presence);
+        }
       }
     } else {
       presence = new Presence(this.client, value);

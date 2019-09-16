@@ -1,8 +1,9 @@
 import { EventEmitter } from 'detritus-utils';
 
 import { ClusterClient } from '../clusterclient';
-import { ClusterIPCOpCodes } from '../constants';
+import { ClientEvents, ClusterIPCOpCodes } from '../constants';
 import { ClusterIPCError } from '../errors';
+import { GatewayClientEvents } from '../gateway/clientevents';
 import { Snowflake } from '../utils';
 
 import { ClusterIPCTypes } from './ipctypes';
@@ -28,7 +29,8 @@ export class ClusterProcessChild extends EventEmitter {
         try {
           await this.sendIPC(ClusterIPCOpCodes.CLOSE, payload, false, shard.shardId);
         } catch(error) {
-          this.cluster.emit('warn', error);
+          const payload: GatewayClientEvents.Warn = {error};
+          this.cluster.emit(ClientEvents.WARN, payload);
         }
       });
     });
@@ -76,14 +78,15 @@ export class ClusterProcessChild extends EventEmitter {
         }; return;
       }
     } catch(error) {
-      this.cluster.emit('warn', error);
+      const payload: GatewayClientEvents.Warn = {error};
+      this.cluster.emit(ClientEvents.WARN, payload);
     }
   }
 
   async send(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {
     const parent = <any> process;
     return new Promise((resolve, reject) => {
-      parent.send(message, (error: any) => {
+      parent.send(message, (error: Error | null) => {
         if (error) {
           reject(error);
         } else {
@@ -102,7 +105,7 @@ export class ClusterProcessChild extends EventEmitter {
     return this.send({op, data, request, shard});
   }
 
-  async broadcastEval(code: Function | string, ...args: any[]): Promise<any> {
+  async broadcastEval(code: Function | string, ...args: any[]): Promise<Array<any>> {
     const parent = <any> process;
     const nonce = Snowflake.generate().id;
     return new Promise(async (resolve, reject) => {

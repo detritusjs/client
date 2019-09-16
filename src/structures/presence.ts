@@ -164,6 +164,7 @@ export class Presence extends BaseStructure {
               if (this.activities.has(value.id)) {
                 value = <PresenceActivity> this.activities.get(value.id);
               } else {
+                value = null;
                 // should we make the activity? this should never happen
               }
             } else if (!Object.keys(value).length) {

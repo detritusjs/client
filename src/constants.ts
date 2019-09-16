@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.6.9',
+  VERSION: '0.6.10',
 });
 
 export type Snowflake = number | string;
@@ -267,6 +267,7 @@ export const ClientEvents = Object.freeze({
   STREAM_SERVER_UPDATE: 'streamServerUpdate',
   STREAM_UPDATE: 'streamUpdate',
   TYPING_START: 'typingStart',
+  TYPING_STOP: 'typingStop',
   USER_ACHIEVEMENT_UPDATE: 'userAchievementUpdate',
   USER_CONNECTIONS_UPDATE: 'userConnectionsUpdate',
   USER_FEED_SETTINGS_UPDATE: 'userFeedSettingsUpdate',
@@ -1065,8 +1066,10 @@ export const DiscordKeys = Object.freeze({
   SPECTATE: 'spectate',
   SPLASH: 'splash',
   START: 'start',
+  STARTED: 'started',
   STATE: 'state',
   STATUS: 'status',
+  STOPPED: 'stopped',
   STORE_APPLICATION_STATE: 'store_application_state',
   STORE_LISTING: 'store_listing',
   SUBSCRIPTION_PLAN: 'subscription_plan',
@@ -1342,8 +1345,10 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SPECTATE]: 'spectate',
   [DiscordKeys.SPLASH]: 'splash',
   [DiscordKeys.START]: 'start',
+  [DiscordKeys.STARTED]: 'started',
   [DiscordKeys.STATE]: 'state',
   [DiscordKeys.STATUS]: 'status',
+  [DiscordKeys.STOPPED]: 'stopped',
   [DiscordKeys.STORE_APPLICATION_STATE]: 'storeApplicationState',
   [DiscordKeys.STORE_LISTING]: 'storeListing',
   [DiscordKeys.SUBSCRIPTION_PLAN]: 'subscriptionPlan',

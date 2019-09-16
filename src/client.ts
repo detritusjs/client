@@ -79,7 +79,7 @@ export interface ShardClientOptions {
     relationships?: RelationshipsOptions,
     roles?: RolesOptions,
     sessions?: SessionsOptions,
-    typing?: TypingOptions,
+    typings?: TypingOptions,
     users?: UsersOptions,
     voiceCalls?: VoiceCallsOptions,
     voiceConnections?: VoiceConnectionsOptions,
@@ -103,7 +103,7 @@ export interface ShardClientOptions {
     relationships?: Relationships,
     roles?: Roles,
     sessions?: Sessions,
-    typing?: TypingCollection,
+    typings?: TypingCollection,
     users?: Users,
     voiceCalls?: VoiceCalls,
     voiceConnections?: VoiceConnections,
@@ -181,7 +181,7 @@ export class ShardClient extends EventEmitter {
   readonly relationships: Relationships;
   readonly roles: Roles;
   readonly sessions: Sessions;
-  readonly typing: TypingCollection;
+  readonly typings: TypingCollection;
   readonly users: Users;
   readonly voiceCalls: VoiceCalls;
   readonly voiceConnections: VoiceConnections;
@@ -247,7 +247,7 @@ export class ShardClient extends EventEmitter {
         relationships: {enabled},
         roles: {enabled},
         sessions: {enabled},
-        typing: {enabled},
+        typings: {enabled},
         users: {enabled},
         voiceCalls: {enabled},
         voiceConnections: {enabled},
@@ -266,7 +266,7 @@ export class ShardClient extends EventEmitter {
     this.relationships = options.pass.relationships || new Relationships(this, options.cache.relationships);
     this.roles = options.pass.roles || new Roles(this, options.cache.roles);
     this.sessions = options.pass.sessions || new Sessions(this, options.cache.sessions);
-    this.typing = options.pass.typing || new TypingCollection(this, options.cache.typing);
+    this.typings = options.pass.typings || new TypingCollection(this, options.cache.typings);
     this.users = options.pass.users || new Users(this, options.cache.users);
     this.voiceCalls = options.pass.voiceCalls || new VoiceCalls(this, options.cache.voiceCalls);
     this.voiceConnections = options.pass.voiceConnections || new VoiceConnections(this, options.cache.voiceConnections);
@@ -484,6 +484,7 @@ export class ShardClient extends EventEmitter {
   on(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.StreamServerUpdate) => any): this;
   on(event: 'streamUpdate', listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
   on(event: 'typingStart', listener: (payload: GatewayClientEvents.TypingStart) => any): this;
+  on(event: 'typingStop', listener: (payload: GatewayClientEvents.TypingStop) => any): this;
   on(event: 'userAchievementUpdate', listener: (payload: GatewayClientEvents.UserAchievementUpdate) => any): this;
   on(event: 'userConnectionsUpdate', listener: (payload: GatewayClientEvents.UserConnectionsUpdate) => any): this;
   on(event: 'userFeedSettingsUpdate', listener: (payload: GatewayClientEvents.UserFeedSettingsUpdate) => any): this;
@@ -495,10 +496,10 @@ export class ShardClient extends EventEmitter {
   on(event: 'voiceServerUpdate', listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): this;
   on(event: 'voiceStateUpdate', listener: (payload: GatewayClientEvents.VoiceStateUpdate) => any): this;
   on(event: 'webhooksUpdate', listener: (payload: GatewayClientEvents.WebhooksUpdate) => any): this;
-  on(event: 'killed', listener: () => any): this;
   on(event: 'rawEvent', listener: (payload: GatewayClientEvents.RawEvent) => any): this;
   on(event: 'unknown', listener: (payload: GatewayClientEvents.Unknown) => any): this;
-  on(event: 'warn', listener: (payload: Error) => any): this;
+  on(event: 'warn', listener: (payload: GatewayClientEvents.Warn) => any): this;
+  on(event: 'killed', listener: () => any): this;
   on(event: string, listener: Function): this {
     super.on(event, listener);
     return this;

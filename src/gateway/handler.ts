@@ -9,6 +9,7 @@ import {
   GatewayDispatchEvents,
   GatewayOpCodes,
   MessageCacheTypes,
+  PresenceStatuses,
 } from '../constants';
 import { GatewayHTTPError } from '../errors';
 
@@ -243,7 +244,8 @@ export class GatewayDispatchHandler {
       try {
         await this.client.rest.fetchOauth2Application();
       } catch(error) {
-        this.client.emit(ClientEvents.WARN, new GatewayHTTPError('Failed to fetch OAuth2 Application Information', error));
+        const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch OAuth2 Application Information', error)};
+        this.client.emit(ClientEvents.WARN, payload);
       }
     } else {
       this.client.owners.set(me.id, me);
@@ -252,7 +254,8 @@ export class GatewayDispatchHandler {
     try {
       await this.client.applications.fill();
     } catch(error) {
-      this.client.emit(ClientEvents.WARN, new GatewayHTTPError('Failed to fetch Applications', error));
+      const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Applications', error)};
+      this.client.emit(ClientEvents.WARN, payload);
     }
 
     const payload: GatewayClientEvents.GatewayReady = {raw: data};
@@ -621,7 +624,15 @@ export class GatewayDispatchHandler {
           channel.permissionOverwrites.clear();
           this.client.channels.delete(channelId);
           this.client.messages.delete(channelId);
-          this.client.typing.delete(channelId);
+
+          const typings = this.client.typings.get(channelId);
+          if (typings) {
+            for (let [userId, typing] of typings) {
+              typing.timeout.stop();
+              typings.delete(userId);
+            }
+            typings.clear();
+          }
         }
       }
 
@@ -1030,6 +1041,7 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.MESSAGE_CREATE](data: GatewayRawEvents.MessageCreate) {
     let message: Message;
+    let typing: null | Typing = null;
 
     let cacheKey: null | string = null;
     switch (this.client.messages.type) {
@@ -1057,9 +1069,16 @@ export class GatewayDispatchHandler {
       channel.merge({last_message_id: message.id});
     }
 
-    this.client.emit(ClientEvents.MESSAGE_CREATE, {
-      message,
-    });
+    const cache = this.client.typings.get(message.channelId);
+    if (cache) {
+      if (cache.has(message.author.id)) {
+        typing = <Typing> cache.get(message.author.id);
+        typing._stop();
+      }
+    }
+
+    const payload: GatewayClientEvents.MessageCreate = {message, typing};
+    this.client.emit(ClientEvents.MESSAGE_CREATE, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_DELETE](data: GatewayRawEvents.MessageDelete) {
@@ -1372,10 +1391,11 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.PRESENCE_UPDATE](data: GatewayRawEvents.PresenceUpdate) {
     let differences: any = null;
-    const guildId = data['guild_id'];
+    const guildId = data['guild_id'] || null;
     let isGuildPresence = !!guildId;
     let member: Member | null = null;
     let presence: Presence;
+    let wentOffline: boolean = data['status'] === PresenceStatuses.OFFLINE;
 
     if (this.client.hasEventListener(ClientEvents.PRESENCE_UPDATE)) {
       if (this.client.presences.has(data['user']['id'])) {
@@ -1394,13 +1414,8 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.emit(ClientEvents.PRESENCE_UPDATE, {
-      differences,
-      guildId,
-      isGuildPresence,
-      member,
-      presence,
-    });
+    const payload: GatewayClientEvents.PresenceUpdate = {differences, guildId, isGuildPresence, member, presence, wentOffline};
+    this.client.emit(ClientEvents.PRESENCE_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.PRESENCES_REPLACE](data: GatewayRawEvents.PresencesReplace) {
@@ -1506,20 +1521,16 @@ export class GatewayDispatchHandler {
     let typing: Typing;
     const userId = data['user_id'];
 
-    if (this.client.typing.has(channelId, userId)) {
-      typing = <Typing> this.client.typing.get(channelId, userId);
+    if (this.client.typings.has(channelId, userId)) {
+      typing = <Typing> this.client.typings.get(channelId, userId);
       typing.merge(data);
     } else {
       typing = new Typing(this.client, data);
-      this.client.typing.insert(typing);
+      this.client.typings.insert(typing);
     }
 
-    this.client.emit(ClientEvents.TYPING_START, {
-      channelId,
-      guildId,
-      typing,
-      userId,
-    });
+    const payload: GatewayClientEvents.TypingStart = {channelId, guildId, typing, userId};
+    this.client.emit(ClientEvents.TYPING_START, payload);
   }
 
   [GatewayDispatchEvents.USER_ACHIEVEMENT_UPDATE](data: GatewayRawEvents.UserAchievementUpdate) {

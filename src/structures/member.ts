@@ -60,6 +60,50 @@ export class Member extends UserMixin {
     Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
   }
 
+  get canBanMembers(): boolean {
+    return this.can([Permissions.BAN_MEMBERS]);
+  }
+
+  get canChangeNickname(): boolean {
+    return this.can([Permissions.CHANGE_NICKNAME]);
+  }
+
+  get canChangeNicknames(): boolean {
+    return this.can([Permissions.CHANGE_NICKNAMES]);
+  }
+
+  get canKickMembers(): boolean {
+    return this.can([Permissions.KICK_MEMBERS]);
+  }
+
+  get canManageChannels(): boolean {
+    return this.can([Permissions.MANAGE_CHANNELS]);
+  }
+
+  get canManageEmojis(): boolean {
+    return this.can([Permissions.MANAGE_EMOJIS]);
+  }
+
+  get canManageGuild(): boolean {
+    return this.can([Permissions.MANAGE_GUILD]);
+  }
+
+  get canManageMessages(): boolean {
+    return this.can([Permissions.MANAGE_MESSAGES]);
+  }
+
+  get canManageRoles(): boolean {
+    return this.can([Permissions.MANAGE_ROLES]);
+  }
+
+  get canManageWebhooks(): boolean {
+    return this.can([Permissions.MANAGE_WEBHOOKS]);
+  }
+
+  get canViewAuditLogs(): boolean {
+    return this.can([Permissions.VIEW_AUDIT_LOG]);
+  }
+
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
   }
@@ -143,10 +187,7 @@ export class Member extends UserMixin {
 
   can(
     permissions: PermissionTools.PermissionChecks,
-    options: {
-      ignoreAdministrator?: boolean,
-      ignoreOwner?: boolean,
-    } = {},
+    options: {ignoreAdministrator?: boolean, ignoreOwner?: boolean} = {},
   ): boolean {
     const guild = this.guild;
     if (guild) {

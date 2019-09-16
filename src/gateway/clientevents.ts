@@ -1,5 +1,6 @@
 import { GatewayRawEvents } from './rawevents';
 
+import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import {
   Channel,
@@ -20,6 +21,14 @@ import {
 
 
 export namespace GatewayClientEvents {
+  export interface ClusterEvent {
+    shard: ShardClient,
+  }
+
+  export interface Warn {
+    error: Error,
+  }
+
   export interface ActivityJoinInvite {
 
   }
@@ -258,6 +267,7 @@ export namespace GatewayClientEvents {
 
   export interface MessageCreate {
     message: Message,
+    typing: null | Typing,
   }
 
   export interface MessageDelete {
@@ -322,9 +332,11 @@ export namespace GatewayClientEvents {
 
   export interface PresenceUpdate {
     differences: any | null,
+    guildId: string | null,
     isGuildPresence: boolean,
     member: Member | null,
     presence: Presence,
+    wentOffline: boolean,
   }
 
   export interface PresencesReplace {
@@ -380,6 +392,10 @@ export namespace GatewayClientEvents {
     guildId: string | undefined,
     typing: Typing,
     userId: string,
+  }
+
+  export interface TypingStop {
+    typing: Typing,
   }
 
   export interface UserAchievementUpdate {

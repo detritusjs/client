@@ -5,7 +5,7 @@ import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
 import { CommandClient } from '../commandclient';
 
-import { Message } from '../structures';
+import { Message, Typing } from '../structures';
 
 import { Command } from './command';
 
@@ -18,18 +18,21 @@ export class Context {
   readonly client: ShardClient;
   readonly commandClient: CommandClient;
   readonly message: Message;
+  readonly typing: Typing | null;
 
   command?: Command;
   prefix?: string;
 
   constructor(
     message: Message,
+    typing: Typing | null,
     commandClient: CommandClient,
   ) {
     this.message = message;
-    this.client = message.client;
+    this.typing = typing;
     this.commandClient = commandClient;
 
+    this.client = message.client;
     Object.defineProperties(this, {
       client: {enumerable: false, writable: false},
       command: {enumerable: false, writable: true},
@@ -42,6 +45,10 @@ export class Context {
 
   get cluster(): ClusterClient | null {
     return this.client.cluster;
+  }
+
+  get gateway() {
+    return this.client.gateway;
   }
 
   get manager(): ClusterProcessChild | null {
@@ -113,8 +120,8 @@ export class Context {
     return this.client.sessions;
   }
 
-  get typing() {
-    return this.client.typing;
+  get typings() {
+    return this.client.typings;
   }
 
   get users() {

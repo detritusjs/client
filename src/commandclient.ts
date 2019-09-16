@@ -21,10 +21,7 @@ import { Context } from './command/context';
 import { CommandEvents } from './command/events';
 
 import { BaseCollection } from './collections';
-import {
-  Message,
-  User,
-} from './structures';
+import { Message, Typing, User } from './structures';
 
 
 export interface CommandClientOptions extends ClusterClientOptions {
@@ -406,20 +403,26 @@ export class CommandClient extends EventEmitter {
   /* Handler */
   async handle(
     name: string,
-    {differences, message}: {differences: any, message: Message},
+    event: {
+      differences: any | null | undefined,
+      message: Message | null,
+      typing: Typing | null | undefined,
+    },
   ): Promise<void> {
+    const { differences, message, typing } = event;
     if (!message || (this.ignoreMe && message.fromMe)) {
       return;
     }
-    switch (name) {
-      case ClientEvents.MESSAGE_UPDATE: {
-        if (!this.activateOnEdits || !(differences && differences.content)) {
-          return;
-        }
-      }; break;
+    if (name === ClientEvents.MESSAGE_UPDATE) {
+      if (!this.activateOnEdits) {
+        return;
+      }
+      if (!differences || !differences.content) {
+        return;
+      }
     }
 
-    const context = new Context(message, this);
+    const context = new Context(message, typing || null, this);
 
     let attributes: CommandAttributes | null = null;
     try {

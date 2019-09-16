@@ -2,7 +2,8 @@ import { Timers } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, TYPING_TIMEOUT } from '../constants';
+import { ClientEvents, DiscordKeys, TYPING_TIMEOUT } from '../constants';
+import { GatewayClientEvents } from '../gateway/clientevents';
 
 import {
   BaseStructure,
@@ -18,6 +19,8 @@ const keysTyping = new BaseSet<string>([
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.GUILD_ID,
   DiscordKeys.MEMBER,
+  DiscordKeys.STARTED,
+  DiscordKeys.STOPPED,
   DiscordKeys.TIMESTAMP,
   DiscordKeys.USER,
   DiscordKeys.USER_ID,
@@ -40,6 +43,8 @@ export class Typing extends BaseStructure {
   channelId: string = '';
   guildId?: string;
   member?: Member;
+  started: number = 0;
+  stopped: number = 0;
   timestamp: number = 0;
   userId: string = '';
 
@@ -61,16 +66,30 @@ export class Typing extends BaseStructure {
     return null;
   }
 
-  get startedTypingAt(): number {
-    return this.timestamp;
-  }
-
-  get stoppedTypingAt(): number {
+  get shouldStopAt(): number {
     return this.timestamp + TYPING_TIMEOUT;
   }
 
   get user(): null | User {
     return this.client.users.get(this.userId) || null;
+  }
+
+  _stop(): void {
+    if (!this.stopped) {
+      this.stopped = Date.now();
+      this.timeout.stop();
+
+      const cache = this.client.typings.get(this.channelId);
+      if (cache) {
+        cache.delete(this.userId);
+        if (!cache.length) {
+          this.client.typings.delete(this.channelId);
+        }
+      }
+
+      const payload: GatewayClientEvents.TypingStop = {typing: this};
+      this.client.emit(ClientEvents.TYPING_STOP, payload);
+    }
   }
 
   mergeValue(key: string, value: any): void {
@@ -91,15 +110,11 @@ export class Typing extends BaseStructure {
         case DiscordKeys.TIMESTAMP: {
           value *= 1000;
 
-          this.timeout.start(TYPING_TIMEOUT, () => {
-            const cache = this.client.typing.get(this.channelId);
-            if (cache) {
-              cache.delete(this.userId);
-              if (!cache.length) {
-                this.client.typing.delete(this.channelId);
-              }
-            }
-          });
+          if (!this.started) {
+            this.started = value;
+          }
+
+          this.timeout.start(TYPING_TIMEOUT, () => this._stop());
         }; break;
       }
       return super.mergeValue.call(this, key, value);

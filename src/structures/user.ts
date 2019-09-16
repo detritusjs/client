@@ -4,10 +4,11 @@ import {
 } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { BaseCollection } from '../collections/basecollection';
+import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
   DiscordKeys,
+  MessageCacheTypes,
   PremiumTypes,
   RelationshipTypes,
   UserFlags,
@@ -19,6 +20,7 @@ import {
   BaseStructureData,
 } from './basestructure';
 import { Channel } from './channel';
+import { Message } from './message';
 import { Presence } from './presence';
 
 
@@ -85,6 +87,11 @@ export class User extends BaseStructure {
     return false
   }
 
+  // https://github.com/discordapp/discord-api-docs/issues/1107
+  get isPartial(): boolean {
+    return !!this.username;
+  }
+
   get isWebhook(): boolean {
     return this.bot && this.discriminator === '0000';
   }
@@ -95,6 +102,23 @@ export class User extends BaseStructure {
 
   get mention(): string {
     return `<@${this.id}>`;
+  }
+
+  get messages(): BaseCollection<string, Message> {
+    if (this.client.messages.type === MessageCacheTypes.USER) {
+      if (this.client.messages.has(this.id)) {
+        return <BaseCollection<string, Message>> this.client.messages.get(this.id);
+      } else {
+        return emptyBaseCollection;
+      }
+    }
+    const collection = new BaseCollection<string, Message>();
+    for (let [messageId, message] of this.client.messages) {
+      if (message.author.id === this.id) {
+        collection.set(messageId, message);
+      }
+    }
+    return collection;
   }
 
   get name(): string {
@@ -118,15 +142,8 @@ export class User extends BaseStructure {
       return addQuery(this.defaultAvatarUrl, query);
     }
     const hash = this.avatar;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
-    return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.AVATAR(this.id, hash, format),
-      query,
-    );
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.AVATAR(this.id, hash, format), query);
   }
 
   add() {
@@ -426,6 +443,10 @@ export class UserMixin extends BaseStructure {
 
   get mention(): string {
     return this.user.mention;
+  }
+
+  get messages(): BaseCollection<string, Message> {
+    return this.user.messages;
   }
 
   get name(): string {
