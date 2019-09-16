@@ -93,12 +93,15 @@ export class Presence extends BaseStructure {
   }
 
   get game(): null | PresenceActivity {
-    for (let [activityId, activity] of this.activities) {
-      if (activity.position === 0) {
-        return activity;
+    if (this._activities) {
+      for (let [activityId, activity] of this._activities) {
+        if (activity.position === 0) {
+          return activity;
+        }
       }
+      return this._activities.first() || null;
     }
-    return this.activities.first() || null;
+    return null;
   }
 
   get isDnd(): boolean {
@@ -117,24 +120,30 @@ export class Presence extends BaseStructure {
     return this.status === PresenceStatuses.ONLINE;
   }
 
-  activitiesFor(guildId: string): BaseCollection<string, PresenceActivity> {
-    const collection = new BaseCollection<string, PresenceActivity>();
-    for (let [activityId, activity] of this.activities) {
-      if (activity.guildIds.has(guildId)) {
-        collection.set(activity.id, activity);
+  activityFor(guildId: string): null | PresenceActivity {
+    if (this._activities) {
+      const activities = this.activitiesFor(guildId);
+      for (let [activityId, activity] of activities) {
+        if (activity.position === 0) {
+          return activity;
+        }
       }
+      return activities.first() || null;
     }
-    return collection;
+    return null;
   }
 
-  activityFor(guildId: string): null | PresenceActivity {
-    const activities = this.activitiesFor(guildId);
-    for (let [activityId, activity] of activities) {
-      if (activity.position === 0) {
-        return activity;
+  activitiesFor(guildId: string): BaseCollection<string, PresenceActivity> {
+    if (this._activities) {
+      const collection = new BaseCollection<string, PresenceActivity>();
+      for (let [activityId, activity] of this._activities) {
+        if (activity.guildIds.has(guildId)) {
+          collection.set(activity.id, activity);
+        }
       }
+      return collection;
     }
-    return activities.first() || null;
+    return emptyBaseCollection;
   }
 
   mergeValue(key: string, value: any): void {
