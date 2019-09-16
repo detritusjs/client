@@ -514,6 +514,7 @@ export class Message extends BaseStructure {
                 channel = <Channel> this.client.channels.get(raw.id);
                 channel.merge(raw);
               } else {
+                raw.is_partial = true;
                 channel = createChannelFromData(this.client, raw);
               }
               this._mentionChannels.set(channel.id, channel);

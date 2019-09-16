@@ -75,6 +75,7 @@ export function createChannelFromData(client: ShardClient, data: any): Channel {
 
 const keysChannelBase = new BaseSet<string>([
   DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
   DiscordKeys.NAME,
   DiscordKeys.TYPE,
 ]);
@@ -97,6 +98,7 @@ export class ChannelBase extends BaseStructure {
   guildId: string = '';
   id: string = '';
   icon?: null | string;
+  isPartial: boolean = false;
   lastMessageId?: null | string;
   lastPinTimestamp?: Date;
   name: string = '';

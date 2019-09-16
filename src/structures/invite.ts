@@ -126,6 +126,7 @@ export class Invite extends BaseStructure {
             if (this.guild) {
               value.guild_id = this.guild.id;
             }
+            value.is_partial = true;
             channel = createChannelFromData(this.client, value);
           }
           value = channel;
@@ -141,6 +142,7 @@ export class Invite extends BaseStructure {
             guild = <Guild> this.client.guilds.get(value.id);
             guild.merge(value);
           } else {
+            value.is_partial = true;
             guild = new Guild(this.client, value);
           }
           value = guild;

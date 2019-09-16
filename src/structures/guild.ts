@@ -76,6 +76,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.FEATURES,
   DiscordKeys.ICON,
   DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
   DiscordKeys.JOINED_AT,
   DiscordKeys.LARGE,
   DiscordKeys.LAZY,
@@ -133,6 +134,7 @@ export class Guild extends BaseStructure {
   hasMetadata: boolean = false;
   icon: null | string = null;
   id: string = '';
+  isPartial: boolean = false;
   joinedAt: Date | null = null;
   large: boolean = false;
   lazy: boolean = false;
