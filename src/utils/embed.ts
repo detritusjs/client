@@ -229,6 +229,10 @@ export class Embed extends Structure {
     }
     return super.mergeValue.call(this, key, value);
   }
+
+  toJSON(): GatewayRawEvents.RawMessageEmbed {
+    return super.toJSON();
+  }
 }
 
 
