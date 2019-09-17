@@ -57,6 +57,7 @@ import {
 } from './media/voiceconnection';
 
 import {
+  Oauth2Application,
   User,
   UserMe,
 } from './structures';
@@ -139,6 +140,7 @@ export class ShardClient extends EventEmitter {
    */
   _isBot: boolean = true;
 
+  application: Oauth2Application | null = null;
   cluster: ClusterClient | null = null;
   commandClient: CommandClient | null = null;
 
@@ -273,11 +275,18 @@ export class ShardClient extends EventEmitter {
     this.voiceStates = options.pass.voiceStates || new VoiceStates(this, options.cache.voiceStates);
   }
 
-  get isBot(): boolean {
-    if (this.user == null) {
-      return this._isBot;
+  get clientId(): string {
+    if (this.application) {
+      return this.application.id;
     }
-    return this.user.bot;
+    return this.userId;
+  }
+
+  get isBot(): boolean {
+    if (this.user) {
+      return this.user.bot;
+    }
+    return this._isBot;
   }
 
   get killed(): boolean {
@@ -290,6 +299,10 @@ export class ShardClient extends EventEmitter {
 
   get shardId(): number {
     return this.gateway.shardId;
+  }
+
+  get userId(): string {
+    return this.gateway.userId || '';
   }
 
   isOwner(userId: string): boolean {

@@ -161,15 +161,8 @@ export class Application extends BaseStructure {
   coverImageUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.coverImage) {
       const hash = this.coverImage;
-      format = getFormatFromHash(
-        hash,
-        format,
-        this.client.imageFormat,
-      );
-      return addQuery(
-        Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format),
-        query,
-      );
+      format = getFormatFromHash(hash, format, this.client.imageFormat);
+      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
     }
     return null;
   }
@@ -191,6 +184,15 @@ export class Application extends BaseStructure {
       return true;
     }
     return false;
+  }
+
+  splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (this.splash) {
+      const hash = this.splash;
+      format = getFormatFromHash(hash, format, this.client.imageFormat);
+      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
+    }
+    return null;
   }
 
   async createAsset(options: RequestTypes.CreateOauth2ApplicationAsset) {
@@ -221,20 +223,11 @@ export class Application extends BaseStructure {
     return this.client.rest.fetchStoreApplicationAssets(this.id);
   }
 
-  async joinGuild(options: RequestTypes.JoinGuild) {
+  async joinGuild(options: RequestTypes.JoinGuild = {}) {
     if (!this.guildId) {
       throw new Error('Application doesn\'t have a guildId to join');
     }
     return this.client.rest.joinGuild(this.guildId, options);
-  }
-
-  splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (this.splash) {
-      const hash = this.splash;
-      format = getFormatFromHash(hash, format, this.client.imageFormat);
-      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
-    }
-    return null;
   }
 
   mergeValue(key: string, value: any): void {

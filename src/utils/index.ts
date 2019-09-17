@@ -25,11 +25,19 @@ export type UrlQuery = {[key: string]: any};
 
 export function addQuery(url: string, query?: UrlQuery): string {
   if (query) {
-    const params = new URLSearchParams(query);
-    if (url.includes('?')) {
-      url += '&' + params.toString();
-    } else {
-      url += '?' + params.toString();
+    const params = new URLSearchParams();
+    for (let key in query) {
+      if (query[key] !== undefined) {
+        params.append(key, query[key]);
+      }
+    }
+    const string = params.toString();
+    if (string) {
+      if (url.includes('?')) {
+        url += '&' + string;
+      } else {
+        url += '?' + string;
+      }
     }
   }
   return url;

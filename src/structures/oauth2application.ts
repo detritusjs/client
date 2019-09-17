@@ -6,6 +6,7 @@ import { DiscordKeys, Oauth2AssetTypes } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
+  Snowflake,
   UrlQuery,
 } from '../utils';
 
@@ -51,7 +52,7 @@ export class Oauth2Application extends BaseStructure {
   bot?: UserWithToken;
   botPublic: boolean = false;
   botRequireCodeGrant: boolean = false;
-  coverImage?: string;
+  coverImage?: string | null;
   description: string = '';
   flags: number = 0;
   guildId?: string;
@@ -60,9 +61,9 @@ export class Oauth2Application extends BaseStructure {
   name: string = '';
   owner!: UserWithFlags;
   primarySkuId?: string;
-  redirectUris?: Array<string> = [];
-  rpcApplicationState: number = 0;
-  rpcOrigins?: Array<string> = [];
+  redirectUris?: Array<string>;
+  rpcApplicationState?: number;
+  rpcOrigins?: Array<string>;
   secret?: string;
   slug?: string;
   storeApplicationState?: number;
@@ -73,6 +74,81 @@ export class Oauth2Application extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get coverImageUrl(): null | string {
+    return this.coverImageUrlFormat();
+  }
+
+  get createdAt(): Date {
+    return new Date(this.createdAtUnix);
+  }
+
+  get createdAtUnix(): number {
+    return Snowflake.timestamp(this.id);
+  }
+
+  get jumpLink(): null | string {
+    return this.platformDiscordUrl;
+  }
+
+  get iconUrl(): null | string {
+    return this.iconUrlFormat();
+  }
+
+  get isOnDiscord(): boolean {
+    return !!this.primarySkuId;
+  }
+
+  get oauth2Url(): string {
+    return this.oauth2UrlFormat();
+  }
+
+  get platformDiscordUrl(): null | string {
+    if (this.primarySkuId) {
+      return (
+        Endpoints.Routes.URL +
+        Endpoints.Routes.APPLICATION_STORE_LISTING_SKU(this.primarySkuId, this.slug)
+      );
+    }
+    return null;
+  }
+
+  coverImageUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (this.coverImage) {
+      const hash = this.coverImage;
+      format = getFormatFromHash(hash, format, this.client.imageFormat);
+      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
+    }
+    return null;
+  }
+
+  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (this.icon) {
+      const hash = this.icon;
+      format = getFormatFromHash(hash, format, this.client.imageFormat);
+      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
+    }
+    return null;
+  }
+
+  oauth2UrlFormat(options: UrlQuery = {}): string {
+    const query = {
+      ...options,
+      channel_id: options.channelId,
+      client_id: this.id,
+      disable_guild_select: options.disableGuildSelect,
+      guild_id: options.guildId,
+      permissions: options.permissions,
+      prompt: options.prompt,
+      redirect_uri: options.redirectUri,
+      response_type: options.responseType,
+      scope: options.scope,
+    };
+    if (Array.isArray(options.scope)) {
+      query.scope = options.scope.join(' ');
+    }
+    return addQuery(Endpoints.Routes.URL + Endpoints.Routes.OAUTH2_AUTHORIZE, query);
   }
 
   async createAsset(options: RequestTypes.CreateOauth2ApplicationAsset) {
@@ -103,7 +179,7 @@ export class Oauth2Application extends BaseStructure {
     return this.client.rest.fetchStoreApplicationAssets(this.id);
   }
 
-  async joinGuild(options: RequestTypes.JoinGuild) {
+  async joinGuild(options: RequestTypes.JoinGuild = {}) {
     if (!this.guildId) {
       throw new Error('Application doesn\'t have a guildId to join');
     }

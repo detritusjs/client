@@ -896,17 +896,28 @@ export class RestClient extends Client {
   ): Promise<Oauth2Application> {
     const data = await super.fetchOauth2Application.call(this, userId);
 
-    const oauth2Application = new Oauth2Application(this.client, data);
-    if (userId === '@me' && oauth2Application.owner) {
-      this.client.owners.clear();
-      this.client.owners.set(oauth2Application.owner.id, oauth2Application.owner);
-      if (oauth2Application.team) {
-        for (let [userId, member] of oauth2Application.team.members) {
-          this.client.owners.set(userId, member.user);
+    let oauth2Application: Oauth2Application;
+    if (userId === '@me') {
+      if (this.client.application) {
+        oauth2Application = this.client.application;
+        oauth2Application.merge(data);
+      } else {
+        oauth2Application = new Oauth2Application(this.client, data);
+        this.client.application = oauth2Application;
+      }
+      if (oauth2Application.owner) {
+        this.client.owners.clear();
+        this.client.owners.set(oauth2Application.owner.id, oauth2Application.owner);
+        if (oauth2Application.team) {
+          for (let [userId, member] of oauth2Application.team.members) {
+            this.client.owners.set(userId, member.user);
+          }
         }
       }
+    } else {
+      oauth2Application = new Oauth2Application(this.client, data);
     }
-    return data;
+    return oauth2Application;
   }
 
   async fetchOauth2ApplicationAssets(
