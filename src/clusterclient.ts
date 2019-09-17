@@ -122,16 +122,14 @@ export class ClusterClient extends EventEmitter {
     return eval(code);
   }
 
-  kill(): void {
-    if (this.ran) {
-      for (let [shardId, shard] of this.shards) {
-        shard.kill();
-      }
-      this.shards.clear();
-      Object.defineProperty(this, 'ran', {value: false});
-      this.emit(ClientEvents.KILLED);
-      this.clearListeners();
+  kill(error?: Error): void {
+    for (let [shardId, shard] of this.shards) {
+      shard.kill(error);
     }
+    this.shards.clear();
+    Object.defineProperty(this, 'ran', {value: false});
+    this.emit(ClientEvents.KILLED, {error});
+    this.removeAllListeners();
   }
 
   hookedHasEventListener(shard: ShardClient, name: string): boolean {
@@ -283,7 +281,7 @@ export class ClusterClient extends EventEmitter {
   on(event: 'rawEvent', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RawEvent) => any): this;
   on(event: 'unknown', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Unknown) => any): this;
   on(event: 'warn', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Warn | GatewayClientEvents.Warn) => any): this;
-  on(event: 'killed', listener: (payload: GatewayClientEvents.ClusterEvent | undefined) => any): this;
+  on(event: 'killed', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Killed | GatewayClientEvents.Killed) => any): this;
   on(event: 'ready', listener: () => any): this;
   on(event: 'shard', listener: (payload: GatewayClientEvents.ClusterEvent) => any): this;
   on(event: string, listener: Function): this {

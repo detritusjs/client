@@ -280,6 +280,10 @@ export class ShardClient extends EventEmitter {
     return this.user.bot;
   }
 
+  get killed(): boolean {
+    return this.gateway.killed;
+  }
+
   get shardCount(): number {
     return this.gateway.shardCount;
   }
@@ -292,16 +296,18 @@ export class ShardClient extends EventEmitter {
     return this.owners.has(userId);
   }
 
-  kill(): void {
-    this.gateway.kill();
-    this.reset();
-    if (this.cluster) {
-      // must be a better way to handle this
-      // maybe kill the entire cluster?
-      this.cluster.shards.delete(this.shardId);
+  kill(error?: Error): void {
+    if (!this.killed) {
+      this.gateway.kill(error);
+      this.reset();
+      if (this.cluster) {
+        // must be a better way to handle this
+        // maybe kill the entire cluster?
+        this.cluster.shards.delete(this.shardId);
+      }
+      this.emit(ClientEvents.KILLED, {error});
+      this.removeAllListeners();
     }
-    this.emit(ClientEvents.KILLED);
-    this.clearListeners();
   }
 
   async ping(): Promise<{gateway: number, rest: number}> {
@@ -499,7 +505,7 @@ export class ShardClient extends EventEmitter {
   on(event: 'rawEvent', listener: (payload: GatewayClientEvents.RawEvent) => any): this;
   on(event: 'unknown', listener: (payload: GatewayClientEvents.Unknown) => any): this;
   on(event: 'warn', listener: (payload: GatewayClientEvents.Warn) => any): this;
-  on(event: 'killed', listener: () => any): this;
+  on(event: 'killed', listener: (payload: GatewayClientEvents.Killed) => any): this;
   on(event: string, listener: Function): this {
     super.on(event, listener);
     return this;

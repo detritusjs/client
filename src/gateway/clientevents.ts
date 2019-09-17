@@ -25,6 +25,10 @@ export namespace GatewayClientEvents {
     shard: ShardClient,
   }
 
+  export interface Killed {
+    error?: Error,
+  }
+
   export interface Warn {
     error: Error,
   }

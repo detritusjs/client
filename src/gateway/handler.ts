@@ -73,6 +73,7 @@ export class GatewayHandler {
     options: GatewayHandlerOptions = {},
   ) {
     this.client = client;
+    this.client.gateway.on('killed', this.onKilled.bind(this));
     this.client.gateway.on('packet', this.onPacket.bind(this));
 
     this.emitRawEvent = !!options.emitRawEvent;
@@ -96,6 +97,12 @@ export class GatewayHandler {
 
   get shouldLoadAllMembers(): boolean {
     return this.loadAllMembers && this.client.gateway.guildSubscriptions;
+  }
+
+  onKilled(payload: {error?: Error}): void {
+    if (!this.client.killed) {
+      this.client.kill(payload.error);
+    }
   }
 
   onPacket(packet: GatewayRawEvents.GatewayPacket): void {
