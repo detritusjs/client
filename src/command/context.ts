@@ -43,6 +43,10 @@ export class Context {
 
   /* Generic Client Properties */
 
+  get application() {
+    return this.client.application;
+  }
+
   get cluster(): ClusterClient | null {
     return this.client.cluster;
   }
