@@ -14,7 +14,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { User } from './user';
+import { User, UserMixin } from './user';
 
 
 const keysTeam = new BaseSet<string>([
@@ -54,12 +54,11 @@ export class Team extends BaseStructure {
     return Snowflake.timestamp(this.id);
   }
 
-  get owner(): null | User {
-    const member = this.members.find((member: TeamMember) => {
-      return member.user.id === this.ownerUserId;
-    });
-    if (member) {
-      return member.user;
+  get owner(): null | TeamMember {
+    for (let [userId, member] of this.members) {
+      if (member.user.id === this.ownerUserId) {
+        return member;
+      }
     }
     return null;
   }
@@ -135,7 +134,7 @@ const keysTeamMember = new BaseSet<string>([
  * an application's team member
  * @category Structure
  */
-export class TeamMember extends BaseStructure {
+export class TeamMember extends UserMixin {
   readonly _keys = keysTeamMember;
 
   membershipState: number = TeamMembershipStates.BASE;
@@ -158,7 +157,7 @@ export class TeamMember extends BaseStructure {
 
   async fetch() {
     const member = await this.client.rest.fetchTeamMember(this.teamId, this.user.id);
-    this.merge(member);
+    this.merge(member.toJSON());
     return this;
   }
 
