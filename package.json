@@ -1,6 +1,6 @@
 {
   "name": "detritus-client",
-  "version": "0.6.20",
+  "version": "0.6.21",
   "description": "A Typescript NodeJS library to interact with Discord's API, both Rest and Gateway.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -31,11 +31,11 @@
     "url": "git+https://github.com/detritusjs/client.git"
   },
   "keywords": [
-    "typescript",
-    "nodejs",
     "discord",
+    "full",
     "library",
-    "full"
+    "nodejs",
+    "typescript"
   ],
   "author": "cakedan",
   "license": "MIT",

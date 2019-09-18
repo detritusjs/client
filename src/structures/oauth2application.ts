@@ -134,7 +134,6 @@ export class Oauth2Application extends BaseStructure {
 
   oauth2UrlFormat(options: UrlQuery = {}): string {
     const query = {
-      ...options,
       channel_id: options.channelId,
       client_id: this.id,
       disable_guild_select: options.disableGuildSelect,

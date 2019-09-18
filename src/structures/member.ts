@@ -14,7 +14,6 @@ import {
 } from './channel';
 import { Guild } from './guild';
 import { Overwrite } from './overwrite';
-import { Presence } from './presence';
 import { Role } from './role';
 import { User, UserMixin } from './user';
 import { VoiceState } from './voicestate';
@@ -47,7 +46,7 @@ export class Member extends UserMixin {
 
   deaf: boolean = false;
   guildId: string = '';
-  hoistedRole?: string;
+  hoistedRole: null | string = null;
   joinedAt: Date | null = null;
   mute: boolean = false;
   nick: null | string = null;
@@ -60,6 +59,10 @@ export class Member extends UserMixin {
     Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
   }
 
+  get canAdministrator(): boolean {
+    return this.can([Permissions.ADMINISTRATOR]);
+  }
+
   get canBanMembers(): boolean {
     return this.can([Permissions.BAN_MEMBERS]);
   }
@@ -70,6 +73,10 @@ export class Member extends UserMixin {
 
   get canChangeNicknames(): boolean {
     return this.can([Permissions.CHANGE_NICKNAMES]);
+  }
+
+  get canCreateInstantInvite(): boolean {
+    return this.can([Permissions.CREATE_INSTANT_INVITE]);
   }
 
   get canKickMembers(): boolean {
@@ -106,6 +113,22 @@ export class Member extends UserMixin {
 
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
+  }
+
+  get highestRole(): null | Role {
+    let highestRole: null | Role = null;
+    for (let [roleId, role] of this.roles) {
+      if (role) {
+        if (highestRole) {
+          if (highestRole.position < role.position) {
+            highestRole = role;
+          }
+        } else {
+          highestRole = role;
+        }
+      }
+    }
+    return highestRole;
   }
 
   get isBoosting(): boolean {
@@ -195,6 +218,8 @@ export class Member extends UserMixin {
     }
     return PermissionTools.checkPermissions(this.permissions, permissions);
   }
+
+  // canEdit(member: Member) (check the heirarchy)
 
   permissionsIn(channelId: ChannelGuildBase | string): number {
     let channel: ChannelGuildBase;

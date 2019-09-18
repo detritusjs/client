@@ -130,7 +130,7 @@ export class Guild extends BaseStructure {
   embedEnabled: boolean = false;
   explicitContentFilter: number = 0;
   emojis: BaseCollection<string, Emoji>;
-  features!: BaseSet<string>;
+  features = new BaseSet<string>();
   hasMetadata: boolean = false;
   icon: null | string = null;
   id: string = '';
@@ -149,7 +149,7 @@ export class Guild extends BaseStructure {
   premiumTier: number = 0;
   region: string = '';
   roles: BaseCollection<string, Role>;
-  splash: null | string = '';
+  splash: null | string = null;
   systemChannelFlags: number = 0;
   systemChannelId: null | string = null;
   unavailable: boolean = false;
@@ -417,15 +417,8 @@ export class Guild extends BaseStructure {
       return null;
     }
     const hash = this.icon;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
-    return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.GUILD_ICON(this.id, hash, format),
-      query,
-    );
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_ICON(this.id, hash, format), query);
   }
 
   isOwner(userId: string): boolean {
@@ -437,15 +430,8 @@ export class Guild extends BaseStructure {
       return null;
     }
     const hash = this.splash;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
-    return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format),
-      query,
-    );
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
   }
 
   widgetImageUrlFormat(query?: UrlQuery): string {
@@ -726,8 +712,15 @@ export class Guild extends BaseStructure {
           }
         }; return;
         case DiscordKeys.FEATURES: {
-          value = new BaseSet(value);
-        }; break;
+          if (this.features) {
+            this.features.clear():
+            for (let raw of value) {
+              this.features.add(raw);
+            }
+          } else {
+            this.features = new BaseSet(value);
+          }
+        }; return;
         case DiscordKeys.JOINED_AT: {
           value = new Date(value);
         }; break;

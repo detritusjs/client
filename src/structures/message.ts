@@ -293,7 +293,7 @@ export class Message extends BaseStructure {
       };
       default: {
         Object.defineProperty(this, '_content', {
-          value: messageContentFormat(this),
+          value: messageSystemContent(this),
         });
       };
     }
@@ -418,7 +418,7 @@ export class Message extends BaseStructure {
         case DiscordKeys.CONTENT: {
           if (this._content) {
             Object.defineProperty(this, '_content', {
-              value: messageContentFormat(this, value),
+              value: messageSystemContent(this, value),
             });
           }
         }; break;
@@ -680,7 +680,7 @@ export class MessageReference extends BaseStructure {
 }
 
 
-export function messageContentFormat(
+export function messageSystemContent(
   message: Message,
   content?: string,
 ): string {

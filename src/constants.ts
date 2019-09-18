@@ -58,15 +58,16 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.6.20',
+  VERSION: '0.6.21',
 });
 
 export type Snowflake = number | string;
 
-export const LOCAL_GUILD_ID = '@me';
 
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;
+
+export const LOCAL_GUILD_ID = '@me';
 
 export const MAX_ATTACHMENT_SIZE = 8 * 1024 * 1024;
 export const MAX_ATTACHMENT_SIZE_PREMIUM = 50 * 1024 * 1024;
@@ -76,6 +77,7 @@ export const MAX_EMOJI_SLOTS = 50;
 export const MAX_EMOJI_SLOTS_MORE = 200;
 export const MIN_BITRATE = 8000;
 
+export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
 
 export const ApplicationNewsFlags = Object.freeze({
   PATCH_NOTES: 1 << 1,
@@ -140,53 +142,53 @@ export const AuditLogTargetTypes = Tools.normalize({
 });
 
 export const AuditLogChangeKeys = Object.freeze({
-  NAME: 'name',
-  DESCRIPTION: 'description',
-  ICON_HASH: 'icon_hash',
-  SPLASH_HASH: 'splash_hash',
-  BANNER_HASH: 'banner_hash',
-  OWNER_ID: 'owner_id',
-  REGION: 'region',
   AFK_CHANNEL_ID: 'afk_channel_id',
   AFK_TIMEOUT: 'afk_timeout',
-  SYSTEM_CHANNEL_ID: 'system_channel_id',
-  MFA_LEVEL: 'mfa_level',
-  WIDGET_ENABLED: 'widget_enabled',
-  WIDGET_CHANNEL_ID: 'widget_channel_id',
-  VERIFICATION_LEVEL: 'verification_level',
-  EXPLICIT_CONTENT_FILTER: 'explicit_content_filter',
-  DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
-  VANITY_URL_CODE: 'vanity_url_code',
-  POSITION: 'position',
-  TOPIC: 'topic',
-  TYPE: 'type',
-  BITRATE: 'bitrate',
-  PERMISSION_OVERWRITES: 'permission_overwrites',
-  ROLES_ADD: '$add',
-  ROLES_REMOVE: '$remove',
-  NICK: 'nick',
-  DEAF: 'deaf',
-  MUTE: 'mute',
-  PERMISSIONS: 'permissions',
-  COLOR: 'color',
-  HOIST: 'hoist',
-  MENTIONABLE: 'mentionable',
-  CODE: 'code',
-  CHANNEL_ID: 'channel_id',
-  INVITER_ID: 'inviter_id',
-  MAX_USES: 'max_uses',
-  USES: 'uses',
-  MAX_AGE: 'max_age',
-  TEMPORARY: 'temporary',
   APPLICATION_ID: 'application_id',
   AVATAR_HASH: 'avatar_hash',
+  BANNER_HASH: 'banner_hash',
+  BITRATE: 'bitrate',
+  CHANNEL_ID: 'channel_id',
+  CODE: 'code',
+  COLOR: 'color',
+  DEAF: 'deaf',
+  DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
+  DESCRIPTION: 'description',
+  EXPLICIT_CONTENT_FILTER: 'explicit_content_filter',
+  HOIST: 'hoist',
+  ICON_HASH: 'icon_hash',
   ID: 'id',
-  PERMISSIONS_GRANTED: 'allow',
-  PERMISSIONS_DENIED: 'deny',
-  REASON: 'reason',
-  PRUNE_DELETE_DAYS: 'prune_delete_days',
+  INVITER_ID: 'inviter_id',
+  MAX_AGE: 'max_age',
+  MAX_USES: 'max_uses',
+  MENTIONABLE: 'mentionable',
+  MFA_LEVEL: 'mfa_level',
+  MUTE: 'mute',
+  NAME: 'name',
+  NICK: 'nick',
   NSFW: 'nsfw',
+  OWNER_ID: 'owner_id',
+  PERMISSION_OVERWRITES: 'permission_overwrites',
+  PERMISSIONS: 'permissions',
+  PERMISSIONS_DENIED: 'deny',
+  PERMISSIONS_GRANTED: 'allow',
+  POSITION: 'position',
+  PRUNE_DELETE_DAYS: 'prune_delete_days',
   RATE_LIMIT_PER_USER: 'rate_limit_per_user',
+  REASON: 'reason',
+  REGION: 'region',
+  ROLES_ADD: '$add',
+  ROLES_REMOVE: '$remove',
+  SPLASH_HASH: 'splash_hash',
+  SYSTEM_CHANNEL_ID: 'system_channel_id',
+  WIDGET_CHANNEL_ID: 'widget_channel_id',
+  WIDGET_ENABLED: 'widget_enabled',
+  VANITY_URL_CODE: 'vanity_url_code',
+  VERIFICATION_LEVEL: 'verification_level',
+  TEMPORARY: 'temporary',
+  TOPIC: 'topic',
+  TYPE: 'type',
+  USES: 'uses',
 });
 
 export const ChannelTypes = Object.freeze({
@@ -328,21 +330,6 @@ export const CommandRatelimitTypes = Object.freeze({
   USER: 'user',
 });
 
-export const COMMAND_RATELIMIT_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(CommandRatelimitTypes));
-
-export const DEFAULT_GROUP_DM_AVATARS: ReadonlyArray<string> = Object.freeze([
-  '861ab526aa1fabb04c6b7da8074e3e21',
-  'b8912961ea6ab32f0655d583bbc26b4f',
-  '773616c3c8a7e21f8a774eb0d5625436',
-  'f810dc5fedb7175c43a3389aa890534f',
-  'e1fb24a120bdd003a84e021b16ec3bef',
-  'b3150d5cef84b9e82128a1131684f287',
-  '485a854d5171c8dc98088041626e6fea',
-  '1531b79c2f2927945582023e1edaaa11',
-]);
-
-export const DISCORD_EPOCH = 1420070400000;
-
 export const DiscordOpusFormat = Object.freeze({
   CHANNELS: 2,
   SAMPLE_RATE: 48000,
@@ -443,6 +430,7 @@ export const GuildFeatures = Tools.normalize({
   MORE_EMOJI: null,
   NEWS: null,
   PARTNERED: null,
+  PUBLIC: null,
   VANITY_URL: null,
   VERIFIED: null,
   VIP_REGIONS: null,
@@ -460,8 +448,6 @@ export const ImageFormats = Object.freeze({
   PNG: 'png',
   WEBP: 'webp',
 });
-
-export const IMAGE_FORMATS: ReadonlyArray<string> = Object.freeze(Object.values(ImageFormats));
 
 export const InviteTargetUserTypes = Object.freeze({
   STREAM: 1,
@@ -488,8 +474,6 @@ export const MessageCacheTypes = Object.freeze({
   GUILD: 'guild',
   USER: 'user',
 });
-
-export const MESSAGE_CACHE_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(MessageCacheTypes));
 
 export const MessageEmbedTypes = Object.freeze({
   APPLICATION_NEWS: 'application_news',
@@ -523,6 +507,11 @@ export const MessageTypes = Object.freeze({
   GUILD_PREMIUM_SUBSCRIPTION_TIER_2: 10,
   GUILD_PREMIUM_SUBSCRIPTION_TIER_3: 11,
   CHANNEL_FOLLOW_ADD: 12,
+  LFG_DELIST_EXPIRED: 13,
+  LFG_DELIST_COMPLETED: 14,
+  LFG_DELIST_INACTIVE: 15,
+  LFG_DELIST_UNKNOWN: 16,
+  LFG_RELIST: 17,
 });
 
 export const MessageTypesDeletable = Object.freeze({
@@ -728,8 +717,6 @@ export const SpecialUrls = Tools.URIEncodeWrap({
   YOUTUBE_VIDEO: (videoId: string): string =>
     `https://youtu.be/${videoId}`,
 });
-
-export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
 
 export const SystemChannelFlags = Object.freeze({
   SUPPRESS_JOIN_NOTIFICATIONS: 1 << 0,
@@ -1406,3 +1393,21 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.WIDTH]: 'width',
   [DiscordKeys.YOUTUBE_TRAILER_VIDEO_ID]: 'youtubeTrailerVideoId',
 });
+
+
+export const COMMAND_RATELIMIT_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(CommandRatelimitTypes));
+
+export const DEFAULT_GROUP_DM_AVATARS: ReadonlyArray<string> = Object.freeze([
+  '861ab526aa1fabb04c6b7da8074e3e21',
+  'b8912961ea6ab32f0655d583bbc26b4f',
+  '773616c3c8a7e21f8a774eb0d5625436',
+  'f810dc5fedb7175c43a3389aa890534f',
+  'e1fb24a120bdd003a84e021b16ec3bef',
+  'b3150d5cef84b9e82128a1131684f287',
+  '485a854d5171c8dc98088041626e6fea',
+  '1531b79c2f2927945582023e1edaaa11',
+]);
+
+export const IMAGE_FORMATS: ReadonlyArray<string> = Object.freeze(Object.values(ImageFormats));
+
+export const MESSAGE_CACHE_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(MessageCacheTypes));
