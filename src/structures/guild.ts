@@ -713,7 +713,7 @@ export class Guild extends BaseStructure {
         }; return;
         case DiscordKeys.FEATURES: {
           if (this.features) {
-            this.features.clear():
+            this.features.clear();
             for (let raw of value) {
               this.features.add(raw);
             }
