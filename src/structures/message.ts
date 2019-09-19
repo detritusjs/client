@@ -361,6 +361,10 @@ export class Message extends BaseStructure {
     return this.client.rest.messageSuppressEmbeds(this.channelId, this.id, {suppress});
   }
 
+  async triggerTyping() {
+    return this.client.rest.triggerTyping(this.channelId);
+  }
+
   async unpin() {
     return this.client.rest.deletePinnedMessage(this.channelId, this.id);
   }

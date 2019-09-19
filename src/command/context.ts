@@ -253,6 +253,10 @@ export class Context {
     return this.message.reply(options);
   }
 
+  triggerTyping() {
+    return this.message.triggerTyping();
+  }
+
   toJSON() {
     return this.message;
   }
