@@ -304,6 +304,7 @@ export namespace GatewayRawEvents {
     guild_id?: string,
     id: string,
     member?: RawMemberWithoutUser,
+    mention_channels?: Array<RawChannel>,
     mention_everyone: boolean,
     mention_roles: Array<string>,
     mentions: Array<{

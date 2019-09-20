@@ -384,10 +384,25 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
 }
 
 
-const emptyBaseCollection = new BaseCollection<any, any>();
-emptyBaseCollection.delete = () => false;
-emptyBaseCollection.has = () => false;
-emptyBaseCollection.set = () => emptyBaseCollection;
-emptyBaseCollection.get = () => undefined;
+export class EmptyBaseCollection extends BaseCollection<any, any> {
+  delete(): boolean {
+    return false;
+  }
+
+  has(): boolean {
+    return false;
+  }
+
+  set(): this {
+    return this;
+  }
+
+  get(): any {
+    return undefined;
+  }
+}
+
+
+const emptyBaseCollection = new EmptyBaseCollection();
 Object.freeze(emptyBaseCollection);
 export { emptyBaseCollection };

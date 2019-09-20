@@ -35,6 +35,10 @@ const keysMergeVoiceState = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
 ]);
 
+const keysSkipDifferenceVoiceState = new BaseSet<string>([
+  DiscordKeys.MEMBER,
+]);
+
 /**
  * Voice State Structure
  * @category Structure
@@ -42,6 +46,7 @@ const keysMergeVoiceState = new BaseSet<string>([
 export class VoiceState extends BaseStructure {
   readonly _keys = keysVoiceState;
   readonly _keysMerge = keysMergeVoiceState;
+  readonly _keysSkipDifference = keysSkipDifferenceVoiceState;
 
   channelId?: null | string;
   deaf: boolean = false;
@@ -99,20 +104,6 @@ export class VoiceState extends BaseStructure {
 
   setMute(mute: boolean) {
     return this.edit({mute});
-  }
-
-  difference(key: string, value: any): [boolean, any] {
-    let differences: any;
-    switch (key) {
-      case DiscordKeys.MEMBER: break;
-      default: {
-        return super.difference.call(this, key, value);
-      };
-    }
-    if (differences) {
-      return [true, differences];
-    }
-    return [false, null];
   }
 
   mergeValue(key: string, value: any): void {

@@ -46,11 +46,11 @@ export class Member extends UserMixin {
 
   deaf: boolean = false;
   guildId: string = '';
-  hoistedRole: null | string = null;
-  joinedAt: Date | null = null;
+  hoistedRoleId: null | string = null;
+  joinedAtUnix: number = 0;
   mute: boolean = false;
   nick: null | string = null;
-  premiumSince: null | Date = null;
+  premiumSinceUnix: number = 0;
   user!: User;
 
   constructor(client: ShardClient, data: BaseStructureData) {
@@ -111,6 +111,27 @@ export class Member extends UserMixin {
     return this.can([Permissions.VIEW_AUDIT_LOG]);
   }
 
+  get color(): number {
+    const role = this.colorRole;
+    return (role) ? role.color : 0;
+  }
+
+  get colorRole(): null | Role {
+    let highestRole: null | Role = null;
+    for (let [roleId, role] of this.roles) {
+      if (role && role.color) {
+        if (highestRole) {
+          if (highestRole.position < role.position) {
+            highestRole = role;
+          }
+        } else {
+          highestRole = role;
+        }
+      }
+    }
+    return highestRole;
+  }
+
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
   }
@@ -131,8 +152,15 @@ export class Member extends UserMixin {
     return highestRole;
   }
 
+  get hoistedRole(): null | Role {
+    if (this.hoistedRoleId) {
+      return this.roles.get(this.hoistedRoleId) || null;
+    }
+    return null;
+  }
+
   get isBoosting(): boolean {
-    return !!this.premiumSince;
+    return !!this.premiumSinceUnix;
   }
 
   get isOffline(): boolean {
@@ -152,14 +180,14 @@ export class Member extends UserMixin {
   }
 
   get isPartial(): boolean {
-    return !!this.joinedAt;
+    return !!this.joinedAtUnix;
   }
 
-  get joinedAtUnix(): number {
-    if (this.joinedAt) {
-      return this.joinedAt.getTime();
+  get joinedAt(): Date | null {
+    if (this.joinedAtUnix) {
+      return new Date(this.joinedAtUnix);
     }
-    return 0;
+    return null;
   }
 
   get mention(): string {
@@ -184,6 +212,13 @@ export class Member extends UserMixin {
       }
       return total;
     }, Permissions.NONE);
+  }
+
+  get premiumSince(): Date | null {
+    if (this.premiumSinceUnix) {
+      return new Date(this.premiumSinceUnix);
+    }
+    return null;
   }
 
   get roles(): BaseCollection<string, null | Role> {
@@ -300,19 +335,36 @@ export class Member extends UserMixin {
     return this.edit({...options, mute});
   }
 
+  difference(key: string, value: any): [boolean, any] {
+    let differences: any;
+    switch (key) {
+      case DiscordKeys.HOISTED_ROLE: {
+        if (this.hoistedRoleId !== value) {
+          differences = this.hoistedRoleId;
+        }
+      }; break;
+      default: {
+        return super.difference.call(this, key, value);
+      };
+    }
+    if (differences !== undefined) {
+      return [true, differences];
+    }
+    return [false, null];
+  }
+
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case DiscordKeys.HOISTED_ROLE: {
+          this.hoistedRoleId = value;
+        }; return;
         case DiscordKeys.JOINED_AT: {
-          if (value) {
-            value = new Date(value);
-          }
-        }; break;
+          this.joinedAtUnix = (value) ? (new Date(value).getTime()) : 0;
+        }; return;
         case DiscordKeys.PREMIUM_SINCE: {
-          if (value) {
-            value = new Date(value);
-          }
-        }; break;
+          this.premiumSinceUnix = (value) ? (new Date(value).getTime()) : 0;
+        }; return;
         case DiscordKeys.ROLES: {
           if (value.length) {
             if (!this._roles) {

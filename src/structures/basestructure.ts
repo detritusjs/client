@@ -1,3 +1,5 @@
+import { inspect } from 'util';
+
 import { ShardClient } from '../client';
 import { BaseCollection, BaseSet } from '../collections';
 import { DetritusKeys } from '../constants';
@@ -140,6 +142,18 @@ export class Structure {
       }
     }
     return obj;
+  }
+
+  [inspect.custom](): object {
+    // https://github.com/abalabahaha/eris/blob/master/lib/structures/Base.js#L59
+    const copy = <any> new ({[this.constructor.name]: class {}})[this.constructor.name]();
+    if (this._keys) {
+      for (let key of this._keys) {
+        key = convertKey(key)
+        copy[key] = (<any> this)[key];
+      }
+    }
+    return copy;
   }
 }
 

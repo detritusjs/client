@@ -101,7 +101,7 @@ export class Message extends BaseStructure {
   call?: MessageCall;
   channelId: string = '';
   content: string = '';
-  editedTimestamp?: Date | null;
+  editedTimestampUnix: number = 0;
   flags: number = 0;
   guildId?: string;
   id: string = '';
@@ -111,7 +111,7 @@ export class Message extends BaseStructure {
   nonce?: string;
   pinned: boolean = false;
   reactions = new BaseCollection<string, Reaction>();
-  timestamp!: Date;
+  timestampUnix: number = 0;
   tts: boolean = false;
   type = MessageTypes.BASE;
   webhookId?: string;
@@ -192,15 +192,16 @@ export class Message extends BaseStructure {
   }
 
   get editedAt(): Date | null {
-    if (this.editedTimestamp) {
-      return this.editedTimestamp;
-    }
-    return null;
+    return this.editedTimestamp;
   }
 
   get editedAtUnix(): null | number {
-    if (this.editedTimestamp) {
-      return this.editedTimestamp.getTime();
+    return this.editedTimestampUnix;
+  }
+
+  get editedTimestamp(): Date | null {
+    if (this.editedTimestampUnix) {
+      return new Date(this.editedTimestampUnix);
     }
     return null;
   }
@@ -257,7 +258,7 @@ export class Message extends BaseStructure {
   }
 
   get isEdited(): boolean {
-    return !!this.editedTimestamp;
+    return !!this.editedTimestampUnix;
   }
 
   get jumpLink(): string {
@@ -300,8 +301,8 @@ export class Message extends BaseStructure {
     return this._content;
   }
 
-  get timestampUnix(): number {
-    return this.timestamp.getTime();
+  get timestamp(): Date {
+    return new Date(this.timestampUnix);
   }
 
   hasFlag(flag: number): boolean {
@@ -427,10 +428,8 @@ export class Message extends BaseStructure {
           }
         }; break;
         case DiscordKeys.EDITED_TIMESTAMP: {
-          if (value) {
-            value = new Date(value);
-          }
-        }; break;
+          this.editedTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
+        }; return;
         case DiscordKeys.EMBEDS: {
           if (value.length) {
             if (!this._embeds) {
@@ -563,8 +562,8 @@ export class Message extends BaseStructure {
           }
         }; return;
         case DiscordKeys.TIMESTAMP: {
-          value = new Date(value);
-        }; break;
+          this.timestampUnix = (new Date(value)).getTime();
+        }; return;
       }
       return super.mergeValue.call(this, key, value);
     }
