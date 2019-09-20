@@ -38,14 +38,8 @@ import { GatewayRawEvents } from './rawevents';
 
 export interface GatewayHandlerOptions {
   disabledEvents?: Array<string>,
-  emitRawEvent?: boolean,
   loadAllMembers?: boolean,
   whitelistedEvents?: Array<string>,
-}
-
-export interface GatewayHandlerPayload {
-  data: any,
-  name: string,
 }
 
 
@@ -54,10 +48,9 @@ export interface GatewayHandlerPayload {
  * @category Handler
  */
 export class GatewayHandler {
-  client: ShardClient;
+  readonly client: ShardClient;
   disabledEvents: BaseSet<string>;
   dispatchHandler: GatewayDispatchHandler;
-  emitRawEvent: boolean = false;
   loadAllMembers: boolean = false;
 
   memberChunks = {
@@ -76,7 +69,6 @@ export class GatewayHandler {
     this.client.gateway.on('killed', this.onKilled.bind(this));
     this.client.gateway.on('packet', this.onPacket.bind(this));
 
-    this.emitRawEvent = !!options.emitRawEvent;
     this.dispatchHandler = new GatewayDispatchHandler(this);
     this.disabledEvents = new BaseSet((options.disabledEvents || []).map((v) => {
       return v.toUpperCase();
@@ -109,17 +101,17 @@ export class GatewayHandler {
     if (packet.op !== GatewayOpCodes.DISPATCH) {
       return;
     }
+    const { d: data, t: name} = packet;
 
-    const payload: GatewayHandlerPayload = {name: packet.t, data: packet.d};
-    if (this.emitRawEvent) {
-      this.client.emit(ClientEvents.RAW_EVENT, payload);
+    if (this.client.hasEventListener(ClientEvents.RAW)) {
+      this.client.emit(ClientEvents.RAW, packet);
     }
-    if (!this.disabledEvents.has(payload.name)) {
-      const handler = this.dispatchHandler.getHandler(payload.name);
-      if (handler !== undefined) {
-        handler.call(this.dispatchHandler, payload.data);
+    if (!this.disabledEvents.has(name)) {
+      const handler = this.dispatchHandler.getHandler(name);
+      if (handler) {
+        handler.call(this.dispatchHandler, data);
       } else {
-        this.client.emit(ClientEvents.UNKNOWN, payload);
+        this.client.emit(ClientEvents.UNKNOWN, packet);
       }
     }
   }

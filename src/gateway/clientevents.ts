@@ -459,7 +459,7 @@ export namespace GatewayClientEvents {
     guildId: string,
   }
 
-  export interface RawEvent extends GatewayRawEvents.GatewayPacket {
+  export interface Raw extends GatewayRawEvents.GatewayPacket {
 
   }
 

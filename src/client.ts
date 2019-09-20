@@ -515,7 +515,7 @@ export class ShardClient extends EventEmitter {
   on(event: 'voiceServerUpdate', listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): this;
   on(event: 'voiceStateUpdate', listener: (payload: GatewayClientEvents.VoiceStateUpdate) => any): this;
   on(event: 'webhooksUpdate', listener: (payload: GatewayClientEvents.WebhooksUpdate) => any): this;
-  on(event: 'rawEvent', listener: (payload: GatewayClientEvents.RawEvent) => any): this;
+  on(event: 'raw', listener: (payload: GatewayClientEvents.Raw) => any): this;
   on(event: 'unknown', listener: (payload: GatewayClientEvents.Unknown) => any): this;
   on(event: 'warn', listener: (payload: GatewayClientEvents.Warn) => any): this;
   on(event: 'killed', listener: (payload: GatewayClientEvents.Killed) => any): this;

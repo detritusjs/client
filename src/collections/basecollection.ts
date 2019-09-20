@@ -86,9 +86,9 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
         return cache;
       }
     } else if (key) {
-      for (let [k, v] of this) {
-        if (k === key) {
-          return v;
+      for (let [ck, cache] of this.caches) {
+        if (cache.has(key)) {
+          return cache.get(key);
         }
       }
     }
@@ -108,8 +108,8 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
         return this.caches.has(cacheKey);
       }
     } else if (key) {
-      for (let [k, v] of this) {
-        if (k === key) {
+      for (let [ck, cache] of this.caches) {
+        if (cache.has(key)) {
           return true;
         }
       }
