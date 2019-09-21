@@ -690,12 +690,8 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.emit(ClientEvents.GUILD_EMOJIS_UPDATE, {
-      emojis,
-      emojisOld,
-      guild,
-      guildId,
-    });
+    const payload: GatewayClientEvents.GuildEmojisUpdate = {emojis, emojisOld, guild, guildId};
+    this.client.emit(ClientEvents.GUILD_EMOJIS_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_INTEGRATIONS_UPDATE](data: GatewayRawEvents.GuildIntegrationsUpdate) {
@@ -723,10 +719,8 @@ export class GatewayDispatchHandler {
       });
     }
 
-    this.client.emit(ClientEvents.GUILD_MEMBER_ADD, {
-      guildId,
-      member,
-    });
+    const payload: GatewayClientEvents.GuildMemberAdd = {guildId, member};
+    this.client.emit(ClientEvents.GUILD_MEMBER_ADD, payload);
   }
 
   [GatewayDispatchEvents.GUILD_MEMBER_LIST_UPDATE](data: GatewayRawEvents.GuildMemberListUpdate) {
@@ -738,10 +732,6 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.GUILD_MEMBER_REMOVE](data: GatewayRawEvents.GuildMemberRemove) {
     const guildId = data['guild_id'];
     let user: User;
-
-    if (this.client.members.has(guildId, data['user']['id'])) {
-      this.client.members.delete(guildId, data['user']['id']);
-    }
 
     if (this.client.users.has(data['user']['id'])) {
       user = <User> this.client.users.get(data['user']['id']);
@@ -757,10 +747,36 @@ export class GatewayDispatchHandler {
       });
     }
 
-    this.client.emit(ClientEvents.GUILD_MEMBER_REMOVE, {
-      guildId,
-      user,
-    });
+    if (this.client.presences.has(user.id)) {
+      const presence = <Presence> this.client.presences.get(user.id);
+      presence._deleteGuildId(guildId);
+      if (!presence.guildIds.length) {
+        this.client.presences.delete(user.id);
+      }
+    }
+
+    for (let [cacheId, cache] of this.client.typings.caches) {
+      if (cache.has(user.id)) {
+        const typing = <Typing> cache.get(user.id);
+        typing._stop(false);
+      }
+    }
+
+    this.client.members.delete(guildId, user.id);
+    this.client.voiceStates.delete(guildId, user.id);
+
+    // do a guild sweep for mutual guilds
+    const sharesGuilds = this.client.guilds.some((guild) => this.client.members.has(guild.id, user.id));
+    if (!sharesGuilds) {
+      // do a channel sweep for mutual dms
+      const sharesDms = this.client.channels.some((channel) => channel.recipients.has(user.id));
+      if (!sharesDms) {
+        this.client.users.delete(user.id);
+      }
+    }
+
+    const payload: GatewayClientEvents.GuildMemberRemove = {guildId, user};
+    this.client.emit(ClientEvents.GUILD_MEMBER_REMOVE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_MEMBER_UPDATE](data: GatewayRawEvents.GuildMemberUpdate) {
@@ -771,17 +787,19 @@ export class GatewayDispatchHandler {
     const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE);
     if (this.client.members.has(guildId, data['user']['id'])) {
       member = <Member> this.client.members.get(guildId, data['user']['id']);
-      if (isListening || this.client.guilds.has(guildId)) {
+      if (isListening) {
         differences = member.differences(data);
-        if ('premiumSince' in differences && this.client.guilds.has(guildId)) {
+      }
+      if (!!member.premiumSinceUnix !== !!data['premium_since']) {
+        if (this.client.guilds.has(guildId)) {
           const guild = <Guild> this.client.guilds.get(guildId);
-          if (differences.premiumSince) {
-            // just boosted
+          if (data['premium_since']) {
+            // they just boosted since `member.premiumSince` is null
             guild.merge({
               'premium_subscription_count': guild.premiumSubscriptionCount + 1,
             });
           } else {
-            // just unboosted
+            // they just unboosted since `data['premium_since'] is null
             guild.merge({
               'premium_subscription_count': guild.premiumSubscriptionCount - 1,
             });

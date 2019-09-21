@@ -31,20 +31,8 @@ export class Presences extends BaseClientCollection<string, Presence> {
       if (this.has(value.user.id)) {
         presence = <Presence> this.get(value.user.id);
         if (value.status === PresenceStatuses.OFFLINE) {
-          presence.guildIds.delete(guildId);
-          if (presence.guildIds.length) {
-            if (presence._activities) {
-              for (let [activityId, activity] of presence._activities) {
-                activity.guildIds.delete(guildId);
-                if (!activity.guildIds.length) {
-                  presence._activities.delete(activityId);
-                }
-              }
-              if (!presence._activities.length) {
-                presence._activities = undefined;
-              }
-            }
-          } else {
+          presence._deleteGuildId(guildId);
+          if (!presence.guildIds.length) {
             this.delete(presence.user.id);
             presence.merge(value);
           }
@@ -65,22 +53,9 @@ export class Presences extends BaseClientCollection<string, Presence> {
 
   clearGuildId(guildId: string): void {
     for (let [userId, presence] of this) {
-      if (presence.guildIds.delete(guildId)) {
-        if (presence.guildIds.length) {
-          if (presence._activities) {
-            for (let [activityId, activity] of presence._activities) {
-              activity.guildIds.delete(guildId);
-              if (!activity.guildIds.length) {
-                presence._activities.delete(activityId);
-              }
-            }
-            if (!presence._activities.length) {
-              presence._activities = undefined;
-            }
-          }
-        } else {
-          this.delete(presence.user.id);
-        }
+      presence._deleteGuildId(guildId);
+      if (!presence.guildIds.length) {
+        this.delete(userId);
       }
     }
   }

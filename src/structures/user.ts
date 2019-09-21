@@ -20,6 +20,7 @@ import {
   BaseStructureData,
 } from './basestructure';
 import { Channel } from './channel';
+import { Guild } from './guild';
 import { Message } from './message';
 import { Presence } from './presence';
 
@@ -74,6 +75,16 @@ export class User extends BaseStructure {
 
   get dm(): Channel | null {
     return this.client.channels.find((channel) => channel.isDmSingle && channel.recipients.has(this.id)) || null;
+  }
+
+  get guilds(): BaseCollection<string, Guild> {
+    const collection = new BaseCollection<string, Guild>();
+    for (let [guildId, guild] of this.client.guilds) {
+      if (this.client.members.has(guildId, this.id)) {
+        collection.set(guildId, guild);
+      }
+    }
+    return collection;
   }
 
   get isClientOwner(): boolean {

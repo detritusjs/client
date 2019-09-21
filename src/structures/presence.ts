@@ -146,6 +146,23 @@ export class Presence extends BaseStructure {
     return emptyBaseCollection;
   }
 
+  _deleteGuildId(guildId: string): void {
+    this.guildIds.delete(guildId);
+    if (this.guildIds.length) {
+      if (this._activities) {
+        for (let [activityId, activity] of this._activities) {
+          activity.guildIds.delete(guildId);
+          if (!activity.guildIds.length) {
+            this._activities.delete(activityId);
+          }
+        }
+        if (!this._activities.length) {
+          this._activities = undefined;
+        }
+      }
+    }
+  }
+
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {

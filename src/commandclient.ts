@@ -330,8 +330,9 @@ export class CommandClient extends EventEmitter {
 
   getCommand(attributes: CommandAttributes): Command | null {
     if (attributes.content) {
+      const insensitive = attributes.content.toLowerCase();
       for (let command of this.commands) {
-        const name = command.getName(attributes.content);
+        const name = command.getName(insensitive);
         if (name) {
           attributes.content = attributes.content.substring(name.length).trim();
           return command;

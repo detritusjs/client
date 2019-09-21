@@ -74,7 +74,7 @@ export class Typing extends BaseStructure {
     return this.client.users.get(this.userId) || null;
   }
 
-  _stop(): void {
+  _stop(emit: boolean = true): void {
     if (!this.stopped) {
       this.stopped = Date.now();
       this.timeout.stop();
@@ -87,8 +87,10 @@ export class Typing extends BaseStructure {
         }
       }
 
-      const payload: GatewayClientEvents.TypingStop = {typing: this};
-      this.client.emit(ClientEvents.TYPING_STOP, payload);
+      if (emit) {
+        const payload: GatewayClientEvents.TypingStop = {typing: this};
+        this.client.emit(ClientEvents.TYPING_STOP, payload);
+      }
     }
   }
 
@@ -96,12 +98,14 @@ export class Typing extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.MEMBER: {
+          const guildId = <string> this.guildId;
+
           let member: Member;
-          if (this.guildId && this.client.members.has(this.guildId, value.user.id)) {
-            member = <Member> this.client.members.get(this.guildId, value.user.id);
+          if (this.client.members.has(guildId, value.user.id)) {
+            member = <Member> this.client.members.get(guildId, value.user.id);
             member.merge(value);
           } else {
-            value.guild_id = this.guildId;
+            value.guild_id = guildId;
             member = new Member(this.client, value);
             this.client.members.insert(member);
           }

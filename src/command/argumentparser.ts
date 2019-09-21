@@ -41,8 +41,9 @@ export class ArgumentParser {
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
     const parsed: ParsedArgs = {};
 
+    const insensitive = attributes.content.toLowerCase();
     const args = this.args
-      .map((arg) => ({arg, info: arg.getInfo(attributes.content)}))
+      .map((arg) => ({arg, info: arg.getInfo(insensitive)}))
       .filter((x) => x.info.index !== -1)
       .sort((x, y) => +(x.info.index < y.info.index));
 
