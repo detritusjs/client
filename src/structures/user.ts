@@ -432,6 +432,10 @@ export class UserMixin extends BaseStructure {
     return this.user.dm;
   }
 
+  get guilds(): BaseCollection<string, Guild> {
+    return this.user.guilds;
+  }
+
   get id(): string {
     return this.user.id;
   }
