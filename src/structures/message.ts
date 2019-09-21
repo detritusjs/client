@@ -94,6 +94,7 @@ export class Message extends BaseStructure {
   _mentions?: BaseCollection<string, Member | User>;
   _mentionChannels?: BaseCollection<string, Channel>;
   _mentionRoles?: BaseCollection<string, null | Role>;
+  _reactions?: BaseCollection<string, Reaction>;
 
   activity?: MessageActivity;
   application?: Application;
@@ -110,7 +111,6 @@ export class Message extends BaseStructure {
   messageReference?: MessageReference;
   nonce?: string;
   pinned: boolean = false;
-  reactions = new BaseCollection<string, Reaction>();
   timestampUnix: number = 0;
   tts: boolean = false;
   type = MessageTypes.BASE;
@@ -282,6 +282,13 @@ export class Message extends BaseStructure {
   get mentionRoles(): BaseCollection<string, null | Role> {
     if (this._mentionRoles) {
       return this._mentionRoles;
+    }
+    return emptyBaseCollection;
+  }
+
+  get reactions(): BaseCollection<string, Reaction> {
+    if (this._reactions) {
+      return this._reactions;
     }
     return emptyBaseCollection;
   }
@@ -551,14 +558,24 @@ export class Message extends BaseStructure {
           value = new MessageReference(this, value);
         }; break;
         case DiscordKeys.REACTIONS: {
-          this.reactions.clear();
-          for (let raw of value) {
-            raw.channel_id = this.channelId;
-            raw.guild_id = this.guildId;
-            raw.message_id = this.id;
+          if (value.length) {
+            if (!this._reactions) {
+              this._reactions = new BaseCollection<string, Reaction>();
+            }
+            this._reactions.clear();
+            for (let raw of value) {
+              raw.channel_id = this.channelId;
+              raw.guild_id = this.guildId;
+              raw.message_id = this.id;
 
-            const emojiId = raw.emoji.id || raw.emoji.name;
-            this.reactions.set(emojiId, new Reaction(this.client, raw));
+              const emojiId = raw.emoji.id || raw.emoji.name;
+              this.reactions.set(emojiId, new Reaction(this.client, raw));
+            }
+          } else {
+            if (this._reactions) {
+              this._reactions.clear();
+              this._reactions = undefined;
+            }
           }
         }; return;
         case DiscordKeys.TIMESTAMP: {

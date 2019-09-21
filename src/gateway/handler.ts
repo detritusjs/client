@@ -1187,15 +1187,18 @@ export class GatewayDispatchHandler {
 
     if (this.client.messages.has(cacheKey, messageId)) {
       message = <Message> this.client.messages.get(cacheKey, messageId);
-      if (message.reactions.has(emojiId)) {
-        reaction = <Reaction> message.reactions.get(emojiId);
+      if (message._reactions && message._reactions.has(emojiId)) {
+        reaction = <Reaction> message._reactions.get(emojiId);
       }
     }
 
     if (!reaction) {
       reaction = new Reaction(this.client, data);
       if (message) {
-        message.reactions.set(emojiId, reaction);
+        if (!message._reactions) {
+          message._reactions = new BaseCollection<string, Reaction>();
+        }
+        message._reactions.set(emojiId, reaction);
       }
     }
 
@@ -1259,14 +1262,17 @@ export class GatewayDispatchHandler {
 
     if (this.client.messages.has(cacheKey, messageId)) {
       message = <Message> this.client.messages.get(cacheKey, messageId);
-      if (message.reactions.has(emojiId)) {
-        reaction = <Reaction> message.reactions.get(emojiId);
+      if (message._reactions && message._reactions.has(emojiId)) {
+        reaction = <Reaction> message._reactions.get(emojiId);
         reaction.merge({
           count: Math.min(reaction.count - 1, 0),
           me: reaction.me && userId !== meUserId,
         });
         if (reaction.count <= 0) {
-          message.reactions.delete(emojiId);
+          message._reactions.delete(emojiId);
+          if (!message._reactions.length) {
+            message._reactions = undefined;
+          }
         }
       }
     }
@@ -1319,7 +1325,10 @@ export class GatewayDispatchHandler {
 
     if (this.client.messages.has(cacheKey, messageId)) {
       message = <Message> this.client.messages.get(cacheKey, messageId);
-      message.reactions.clear();
+      if (message._reactions) {
+        message._reactions.clear();
+        message._reactions = undefined;
+      }
     }
 
     if (this.client.channels.has(channelId)) {

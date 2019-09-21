@@ -30,14 +30,6 @@ export class Structure {
   /** @ignore */
   readonly _keysSkipDifference?: BaseSet<string>;
 
-  constructor() {
-    Object.defineProperties(this, {
-      _keys: {enumerable: false, writable: true},
-      _keysMerge: {enumerable: false, writable: true},
-      _keysSkipDifference: {enumerable: false, writable: true},
-    });
-  }
-
   _getFromSnake(key: string): any {
     return (<any> this)[convertKey(key)];
   }
@@ -69,7 +61,11 @@ export class Structure {
             return [true, old.clone()];
           }
         } else if (old instanceof Date) {
-          if (String(old) !== value) {
+          if (value) {
+            if (old.getTime() !== (new Date(value)).getTime()) {
+              return [true, old];
+            }
+          } else {
             return [true, old];
           }
         } else if (Array.isArray(old)) {
@@ -168,7 +164,6 @@ export class BaseStructure extends Structure {
   constructor(client: ShardClient) {
     super();
     this.client = client;
-    Object.defineProperty(this, 'client', {enumerable: false, writable: false});
   }
 
   get shardId(): number {

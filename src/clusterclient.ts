@@ -279,6 +279,8 @@ export class ClusterClient extends EventEmitter {
   on(event: 'voiceStateUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.VoiceStateUpdate) => any): this;
   on(event: 'webhooksUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.WebhooksUpdate) => any): this;
   on(event: 'raw', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Raw) => any): this;
+  on(event: 'restRequest', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestRequest) => any): this;
+  on(event: 'restResponse', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestResponse) => any): this;
   on(event: 'unknown', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Unknown) => any): this;
   on(event: 'warn', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Warn | GatewayClientEvents.Warn) => any): this;
   on(event: 'killed', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Killed | GatewayClientEvents.Killed) => any): this;

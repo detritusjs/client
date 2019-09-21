@@ -1,12 +1,16 @@
 import {
   Client,
   ClientOptions,
+  Constants,
   RequestTypes,
+  RestClientEvents,
 } from 'detritus-client-rest';
+
+const { RestEvents } = Constants;
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { MessageCacheTypes } from '../constants';
+import { ClientEvents, MessageCacheTypes } from '../constants';
 
 import {
   Application,
@@ -52,10 +56,10 @@ export class RestClient extends Client {
     super(token, options);
 
     this.client = client;
-    Object.defineProperty(this, 'client', {
-      enumerable: false,
-      writable: false,
-    });
+    Object.defineProperty(this, 'client', {enumerable: false, writable: false});
+
+    this.on(RestEvents.REQUEST, (payload: RestClientEvents.RequestPayload) => this.client.emit(ClientEvents.REST_REQUEST, payload));
+    this.on(RestEvents.RESPONSE, (payload: RestClientEvents.ResponsePayload) => this.client.emit(ClientEvents.REST_RESPONSE, payload));
   }
 
   async createChannelInvite(

@@ -1,3 +1,5 @@
+import { RestClientEvents } from 'detritus-client-rest';
+
 import { GatewayRawEvents } from './rawevents';
 
 import { ShardClient } from '../client';
@@ -27,6 +29,14 @@ export namespace GatewayClientEvents {
 
   export interface Killed {
     error?: Error,
+  }
+
+  export interface RestRequest extends RestClientEvents.RequestPayload {
+
+  }
+
+  export interface RestResponse extends RestClientEvents.ResponsePayload {
+
   }
 
   export interface Warn {

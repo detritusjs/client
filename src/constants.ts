@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.6.24',
+  VERSION: '0.7.0',
 });
 
 export type Snowflake = number | string;
@@ -296,6 +296,8 @@ export const ClientEvents = Object.freeze({
   KILLED: 'killed',
   RAW: 'raw',
   READY: 'ready',
+  REST_REQUEST: 'restRequest',
+  REST_RESPONSE: 'restResponse',
   SHARD: 'shard',
   UNKNOWN: 'unknown',
   WARN: 'warn',
