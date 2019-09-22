@@ -26,6 +26,7 @@ export class Relationship extends BaseStructure {
 
   id: string = '';
   type: number = RelationshipTypes.NONE;
+  user!: User;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -56,20 +57,20 @@ export class Relationship extends BaseStructure {
     return this.type === RelationshipTypes.PENDING_OUTGOING;
   }
 
-  get user(): undefined | User {
-    return this.client.users.get(this.id);
-  }
-
   mergeValue(key: string, value: any) {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.USER: {
+          let user: User;
           if (this.client.users.has(value.id)) {
-            (<User> this.client.users.get(value.id)).merge(value);
+            user = <User> this.client.users.get(value.id);
+            user.merge(value);
           } else {
-            this.client.users.insert(new User(this.client, value));
+            user = new User(this.client, value);
+            this.client.users.insert(user);
           }
-        }; return;
+          value = user;
+        }; break;
       }
       return super.mergeValue.call(this, key, value);
     }

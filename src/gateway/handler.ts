@@ -162,16 +162,9 @@ export class GatewayDispatchHandler {
     const authType = (this.client.isBot) ? AuthTypes.BOT : AuthTypes.USER;
     this.client.rest.setAuthType(authType);
 
-    if (this.client.channels.enabled) {
-      if (data['private_channels']) {
-        for (let raw of data['private_channels']) {
-          if (this.client.channels.has(raw.id)) {
-            (<Channel> this.client.channels.get(raw.id)).merge(raw);
-          } else {
-            this.client.channels.insert(createChannelFromData(this.client, raw));
-          }
-        }
-      }
+    // data['analytics_token']
+    if (data['connected_accounts']) {
+      // make a cache for this?
     }
 
     if (this.client.guilds.enabled) {
@@ -217,6 +210,16 @@ export class GatewayDispatchHandler {
       }
     }
 
+    if (this.client.channels.enabled && data['private_channels']) {
+      for (let raw of data['private_channels']) {
+        if (this.client.channels.has(raw.id)) {
+          (<Channel> this.client.channels.get(raw.id)).merge(raw);
+        } else {
+          this.client.channels.insert(createChannelFromData(this.client, raw));
+        }
+      }
+    }
+
     if (this.client.relationships.enabled && data['relationships']) {
       for (let raw of data['relationships']) {
         if (this.client.relationships.has(raw.id)) {
@@ -236,8 +239,6 @@ export class GatewayDispatchHandler {
     if (data['user_settings']) {
 
     }
-
-    this.client.gateway.discordTrace = data['_trace'];
 
     if (this.client.isBot) {
       try {
@@ -771,7 +772,10 @@ export class GatewayDispatchHandler {
       // do a channel sweep for mutual dms
       const sharesDms = this.client.channels.some((channel) => channel.recipients.has(user.id));
       if (!sharesDms) {
-        this.client.users.delete(user.id);
+        // relationship check
+        if (!this.client.relationships.has(user.id)) {
+          this.client.users.delete(user.id);
+        }
       }
     }
 

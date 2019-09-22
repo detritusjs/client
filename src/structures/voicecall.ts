@@ -11,6 +11,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
+import { Channel } from './channel';
 import { User } from './user';
 import { VoiceState } from './voicestate';
 
@@ -57,12 +58,16 @@ export class VoiceCall extends BaseStructure {
     return false;
   }
 
+  get channel(): Channel | null {
+    return this.client.channels.get(this.channelId) || null;
+  }
+
   get joined(): boolean {
     return this.client.voiceConnections.has(this.channelId);
   }
 
-  get voiceConnection(): undefined | VoiceConnection {
-    return this.client.voiceConnections.get(this.channelId);
+  get voiceConnection(): null | VoiceConnection {
+    return this.client.voiceConnections.get(this.channelId) || null;
   }
 
   get voiceStates(): BaseCollection<string, VoiceState> {
@@ -100,7 +105,7 @@ export class VoiceCall extends BaseStructure {
       switch (key) {
         case DiscordKeys.RINGING: {
           this.ringing.clear();
-          for (let userId of value.ringing) {
+          for (let userId of value) {
             if (this.client.users.has(userId)) {
               this.ringing.set(userId, <User> this.client.users.get(userId));
             } else {
