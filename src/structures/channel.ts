@@ -76,7 +76,6 @@ export function createChannelFromData(client: ShardClient, data: any): Channel {
 const keysChannelBase = new BaseSet<string>([
   DiscordKeys.ID,
   DiscordKeys.IS_PARTIAL,
-  DiscordKeys.NAME,
   DiscordKeys.TYPE,
 ]);
 
@@ -100,7 +99,7 @@ export class ChannelBase extends BaseStructure {
   icon?: null | string;
   isPartial: boolean = false;
   lastMessageId?: null | string;
-  lastPinTimestamp?: Date;
+  lastPinTimestampUnix: number = 0;
   name: string = '';
   nsfw: boolean = false;
   parentId?: null | string;
@@ -305,6 +304,13 @@ export class ChannelBase extends BaseStructure {
 
   get jumpLink(): string {
     return Endpoints.Routes.URL + Endpoints.Routes.CHANNEL(null, this.id);
+  }
+
+  get lastPinTimestamp(): Date | null {
+    if (this.lastPinTimestampUnix) {
+      return new Date(this.lastPinTimestampUnix);
+    }
+    return null;
   }
 
   get members(): BaseCollection<string, Member> {
@@ -526,11 +532,13 @@ export interface CallOptions extends VoiceConnectOptions {
 }
 
 const keysChannelDm = new BaseSet<string>([
-  ...keysChannelBase,
+  DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.LAST_PIN_TIMESTAMP,
   DiscordKeys.NICKS,
   DiscordKeys.RECIPIENTS,
+  DiscordKeys.TYPE,
 ]);
 
 /**
@@ -541,7 +549,6 @@ export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
 
   lastMessageId?: null | string;
-  lastPinTimestamp?: Date;
 
   constructor(
     client: ShardClient,
@@ -677,10 +684,10 @@ export class ChannelDM extends ChannelBase {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.LAST_PIN_TIMESTAMP: {
-          value = new Date(value);
-        }; break;
+          this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
+        }; return;
         case DiscordKeys.NICKS: {
-          if (value.length) {
+          if (Object.keys(value).length) {
             if (!this._nicks) {
               this._nicks = new BaseCollection<string, string>();
             }
@@ -701,6 +708,10 @@ export class ChannelDM extends ChannelBase {
               this._recipients = new BaseCollection<string, User>();
             }
             this._recipients.clear();
+            if (this.client.user) {
+              this._recipients.set(this.client.user.id, this.client.user);
+            }
+
             for (let raw of value) {
               let user: User;
               if (this.client.users.has(raw.id)) {
@@ -711,6 +722,8 @@ export class ChannelDM extends ChannelBase {
                 this.client.users.insert(user);
               }
               this._recipients.set(user.id, user);
+
+              // unsure of this
               if (DiscordKeys.NICK in raw) {
                 if (!this._nicks) {
                   this._nicks = new BaseCollection<string, string>();
@@ -800,13 +813,16 @@ export class ChannelDMGroup extends ChannelDM {
 
 
 const keysChannelGuildBase = new BaseSet<string>([
-  ...keysChannelBase,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
+  DiscordKeys.NAME,
   DiscordKeys.NSFW,
   DiscordKeys.PARENT_ID,
   DiscordKeys.PERMISSION_OVERWRITES,
   DiscordKeys.POSITION,
   DiscordKeys.RATE_LIMIT_PER_USER,
+  DiscordKeys.TYPE,
 ]);
 
 const keysMergeChannelGuildBase = new BaseSet<string>([
@@ -1127,7 +1143,6 @@ export class ChannelGuildText extends ChannelGuildBase {
   readonly _keys = keysChannelGuildText;
 
   lastMessageId?: null | string;
-  lastPinTimestamp?: Date;
   topic?: string = '';
 
   constructor(client: ShardClient, data: BaseStructureData) {
@@ -1253,12 +1268,14 @@ export class ChannelGuildText extends ChannelGuildBase {
   }
 
   mergeValue(key: string, value: any) {
-    switch (key) {
-      case DiscordKeys.LAST_PIN_TIMESTAMP: {
-        value = new Date(value);
-      }; break;
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.LAST_PIN_TIMESTAMP: {
+          this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
+        }; return;
+      }
+      return super.mergeValue.call(this, key, value);
     }
-    return super.mergeValue.call(this, key, value);
   }
 }
 

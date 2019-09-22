@@ -182,7 +182,7 @@ export class GatewayDispatchHandler {
           if (guild.unavailable) {
             this.handler.memberChunks.left.add(guild.id);
           } else {
-            if (guild.large && guild.members.length !== guild.memberCount) {
+            if (guild.members.length !== guild.memberCount) {
               requestChunksNow.push(guild.id);
               this.handler.memberChunks.done.add(guild.id);
             }
@@ -578,16 +578,18 @@ export class GatewayDispatchHandler {
       }
 
       if (this.handler.memberChunks.left.has(guild.id)) {
-        if (guild.large && guild.members.length !== guild.memberCount) {
+        if (guild.members.length !== guild.memberCount) {
           this.handler.memberChunks.sending.add(guild.id);
           this.handler.memberChunks.timer.start(this.handler.memberChunks.delay, () => {
             const guildIds = this.handler.memberChunks.sending.toArray();
             this.handler.memberChunks.sending.clear();
-            this.client.gateway.requestGuildMembers(guildIds, {
-              limit: 0,
-              presences: true,
-              query: '',
-            });
+            if (guildIds.length) {
+              this.client.gateway.requestGuildMembers(guildIds, {
+                limit: 0,
+                presences: true,
+                query: '',
+              });
+            }
           });
         }
         this.handler.memberChunks.done.add(guild.id);
@@ -606,6 +608,7 @@ export class GatewayDispatchHandler {
     const guildId = data['id'];
     const isUnavailable = !!data['unavailable'];
 
+    this.handler.memberChunks.sending.delete(guildId);
     if (isUnavailable) {
       if (this.client.guilds.has(data['id'])) {
         guild = <Guild> this.client.guilds.get(data['id']);
@@ -767,7 +770,7 @@ export class GatewayDispatchHandler {
     this.client.voiceStates.delete(guildId, user.id);
 
     // do a guild sweep for mutual guilds
-    const sharesGuilds = this.client.guilds.some((guild) => this.client.members.has(guild.id, user.id));
+    const sharesGuilds = this.client.guilds.some((guild) => guild.members.has(user.id));
     if (!sharesGuilds) {
       // do a channel sweep for mutual dms
       const sharesDms = this.client.channels.some((channel) => channel.recipients.has(user.id));
@@ -1614,7 +1617,7 @@ export class GatewayDispatchHandler {
     let differences: any = null;
     let user: UserMe;
 
-    if (this.client.user != null) {
+    if (this.client.user) {
       user = this.client.user;
       if (this.client.hasEventListener(ClientEvents.USER_UPDATE)) {
         differences = user.differences(data);

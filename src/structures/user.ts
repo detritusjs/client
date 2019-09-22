@@ -80,7 +80,7 @@ export class User extends BaseStructure {
   get guilds(): BaseCollection<string, Guild> {
     const collection = new BaseCollection<string, Guild>();
     for (let [guildId, guild] of this.client.guilds) {
-      if (this.client.members.has(guildId, this.id)) {
+      if (guild.members.has(this.id)) {
         collection.set(guildId, guild);
       }
     }

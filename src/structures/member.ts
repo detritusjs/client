@@ -1,9 +1,9 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
+import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, Permissions } from '../constants';
+import { DiscordKeys, Permissions, PERMISSIONS_ALL } from '../constants';
 import { PermissionTools } from '../utils';
 
 import { BaseStructureData } from './basestructure';
@@ -206,6 +206,9 @@ export class Member extends UserMixin {
   }
 
   get permissions(): number {
+    if (this.isOwner) {
+      return PERMISSIONS_ALL;
+    }
     return this.roles.reduce((total: number, role: null | Role) => {
       if (role) {
         return total | role.permissions;

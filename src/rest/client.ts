@@ -811,10 +811,12 @@ export class RestClient extends Client {
   ): Promise<Message> {
     const data = await super.fetchMessage.call(this, channelId, messageId);
 
-    let guildId: null | string = null;
+    let guildId: string | undefined;
     if (this.client.channels.has(data.channel_id)) {
       const channel = <Channel> this.client.channels.get(data.channel_id);
-      guildId = channel.guildId;
+      if (channel.guildId) {
+        guildId = channel.guildId;
+      }
     }
 
     let cacheKey: null | string = null;
@@ -847,12 +849,14 @@ export class RestClient extends Client {
   ): Promise<BaseCollection<string, Message>> {
     const data = await super.fetchMessages.call(this, channelId, options);
 
-    let guildId: null | string = null;
+    let guildId: string | undefined;
     if (data.length) {
       const raw = data[0];
       if (this.client.channels.has(raw.channel_id)) {
         const channel = <Channel> this.client.channels.get(raw.channel_id);
-        guildId = channel.guildId;
+        if (channel.guildId) {
+          guildId = channel.guildId;
+        }
       }
     }
 
