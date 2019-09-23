@@ -608,20 +608,21 @@ export class GatewayDispatchHandler {
     const guildId = data['id'];
     const isUnavailable = !!data['unavailable'];
 
+    this.handler.memberChunks.done.delete(guildId);
     this.handler.memberChunks.sending.delete(guildId);
-    if (isUnavailable) {
-      if (this.client.guilds.has(data['id'])) {
-        guild = <Guild> this.client.guilds.get(data['id']);
-        guild.merge(data);
-      } else {
-        guild = new Guild(this.client, data);
-        this.client.guilds.insert(guild);
-      }
-    } else {
-      if (this.client.guilds.has(data['id'])) {
-        guild = <Guild> this.client.guilds.get(data['id']);
-      }
 
+    let isNew: boolean;
+    if (this.client.guilds.has(data['id'])) {
+      guild = <Guild> this.client.guilds.get(data['id']);
+      guild.merge(data);
+      isNew = false;
+    } else {
+      guild = new Guild(this.client, data);
+      this.client.guilds.insert(guild);
+      isNew = true;
+    }
+
+    if (!isNew || !this.client.guilds.enabled) {
       for (let [channelId, channel] of this.client.channels) {
         if (channel.guildId === guildId) {
           channel.permissionOverwrites.clear();
@@ -639,7 +640,7 @@ export class GatewayDispatchHandler {
         }
       }
 
-      this.client.members.delete(guildId);
+      this.client.members.delete(guildId); // check each member and see if we should clear the user obj from cache too
       this.client.messages.delete(guildId);
       this.client.presences.clearGuildId(guildId);
       this.client.voiceStates.delete(guildId);
@@ -651,15 +652,14 @@ export class GatewayDispatchHandler {
           }
         }
       }
+    }
 
+    if (!isUnavailable) {
       this.client.guilds.delete(guildId);
     }
-  
-    this.client.emit(ClientEvents.GUILD_DELETE, {
-      guild,
-      guildId,
-      isUnavailable,
-    });
+
+    const payload: GatewayClientEvents.GuildDelete = {guild, guildId, isUnavailable};
+    this.client.emit(ClientEvents.GUILD_DELETE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_EMOJIS_UPDATE](data: GatewayRawEvents.GuildEmojisUpdate) {
@@ -718,9 +718,7 @@ export class GatewayDispatchHandler {
 
     if (this.client.guilds.has(guildId)) {
       const guild = <Guild> this.client.guilds.get(guildId);
-      guild.merge({
-        member_count: guild.memberCount + 1,
-      });
+      guild.memberCount++;
     }
 
     const payload: GatewayClientEvents.GuildMemberAdd = {guildId, member};
@@ -746,9 +744,7 @@ export class GatewayDispatchHandler {
 
     if (this.client.guilds.has(guildId)) {
       const guild = <Guild> this.client.guilds.get(guildId);
-      guild.merge({
-        member_count: guild.memberCount - 1,
-      });
+      guild.memberCount--;
     }
 
     if (this.client.presences.has(user.id)) {
@@ -802,14 +798,10 @@ export class GatewayDispatchHandler {
           const guild = <Guild> this.client.guilds.get(guildId);
           if (data['premium_since']) {
             // they just boosted since `member.premiumSince` is null
-            guild.merge({
-              'premium_subscription_count': guild.premiumSubscriptionCount + 1,
-            });
+            guild.premiumSubscriptionCount++;
           } else {
             // they just unboosted since `data['premium_since'] is null
-            guild.merge({
-              'premium_subscription_count': guild.premiumSubscriptionCount - 1,
-            });
+            guild.premiumSubscriptionCount--;
           }
         }
       }
@@ -836,7 +828,7 @@ export class GatewayDispatchHandler {
     const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBERS_CHUNK);
 
     // do presences first since the members cache might depend on it (storeOffline = false)
-    if (data['presences'] !== undefined) {
+    if (data['presences']) {
       presences = new BaseCollection<string, Presence>();
       if (this.client.presences.enabled || isListening) {
         for (let value of data['presences']) {
@@ -849,7 +841,7 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (data['members'] !== undefined) {
+    if (data['members']) {
       // we (the bot user) won't be in the chunk anyways, right?
       if (this.client.members.enabled || isListening) {
         members = new BaseCollection<string, Member>();
@@ -883,7 +875,7 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (data['not_found'] !== undefined) {
+    if (data['not_found']) {
       // user ids
       // if the userId is not a big int, it'll be an integer..
       notFound = data['not_found'].map((userId) => String(userId));
