@@ -10,6 +10,7 @@ import {
   ClusterClientRunOptions,
 } from './clusterclient';
 import { ClientEvents, CommandRatelimitTypes } from './constants';
+import { ImportedCommandsError } from './errors';
 
 import {
   Command,
@@ -242,24 +243,36 @@ export class CommandClient extends EventEmitter {
         }
       });
     });
+
+    const errors: {[key: string]: Error} = {};
     for (let file of files) {
       if (!file.endsWith('.js')) {
         continue;
       }
       const filepath = path.resolve(directory, file);
-      let importedCommand: any = require(filepath);
-      if (typeof(importedCommand) === 'function') {
-        this.add({_file: filepath, _class: importedCommand, name: ''});
-      } else if (importedCommand instanceof Command) {
-        Object.defineProperty(importedCommand, '_file', {value: filepath});
-        this.add(importedCommand);
-      } else if (typeof(importedCommand) === 'object') {
-        if ('default' in importedCommand) {
-          importedCommand = importedCommand.default;
+
+      try {
+        let importedCommand: any = require(filepath);
+        if (typeof(importedCommand) === 'function') {
+          this.add({_file: filepath, _class: importedCommand, name: ''});
+        } else if (importedCommand instanceof Command) {
+          Object.defineProperty(importedCommand, '_file', {value: filepath});
+          this.add(importedCommand);
+        } else if (typeof(importedCommand) === 'object') {
+          if ('default' in importedCommand) {
+            importedCommand = importedCommand.default;
+          }
+          this.add({...importedCommand, _file: filepath});
         }
-        this.add({...importedCommand, _file: filepath});
+      } catch(error) {
+        errors[filepath] = error;
       }
     }
+
+    if (Object.keys(errors).length) {
+      throw new ImportedCommandsError(errors);
+    }
+
     return this;
   }
 
