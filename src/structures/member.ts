@@ -405,4 +405,15 @@ export class Member extends UserMixin {
       return super.mergeValue.call(this, key, value);
     }
   }
+
+  toJSON() {
+    const data = <any> super.toJSON();
+    if (DiscordKeys.HOISTED_ROLE in data) {
+      data[DiscordKeys.HOISTED_ROLE] = this.hoistedRoleId;
+    }
+    if (DiscordKeys.ROLES in data) {
+      data[DiscordKeys.ROLES] = Array.from(data.roles.keys());
+    }
+    return data;
+  }
 }
