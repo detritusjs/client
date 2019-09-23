@@ -8,15 +8,6 @@ class BaseError extends Error {
   }
 }
 
-export class GatewayHTTPError extends BaseError {
-  httpError: any;
-
-  constructor(message: string, httpError: any) {
-    super(message);
-    this.httpError = httpError;
-  }
-}
-
 export class ClusterIPCError extends BaseError {
   name: string;
   stack: string;
@@ -31,6 +22,15 @@ export class ClusterIPCError extends BaseError {
     super(error.message);
     this.name = error.name;
     this.stack = error.stack;
+  }
+}
+
+export class GatewayHTTPError extends BaseError {
+  httpError: any;
+
+  constructor(message: string, httpError: any) {
+    super(message);
+    this.httpError = httpError;
   }
 }
 
