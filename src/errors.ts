@@ -33,3 +33,12 @@ export class ClusterIPCError extends BaseError {
     this.stack = error.stack;
   }
 }
+
+export class ImportedCommandsError extends BaseError {
+  errors: {[key: string]: Error};
+
+  constructor(errors: {[key: string]: Error}) {
+    super('Error while importing multiple commands');
+    this.errors = errors;
+  }
+}
