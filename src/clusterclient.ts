@@ -79,6 +79,7 @@ export class ClusterClient extends EventEmitter {
 
     this.rest = new DetritusRestClient(token, this.shardOptions.rest);
     this.shardOptions.rest.globalBucket = this.rest.globalBucket;
+    this.shardOptions.rest.routesCollection = this.rest.routes;
 
     this.shardOptions.pass = Object.assign({}, this.shardOptions.pass);
     this.shardOptions.pass.cluster = this;
