@@ -5,11 +5,18 @@ import { Snowflake, Tools } from 'detritus-utils';
 const { guildIdToShardId } = Tools;
 
 import {
+  CommandRatelimit,
+  CommandRatelimitItem,
+} from '../command/ratelimit';
+import {
+  CommandRatelimitTypes,
   DiscordRegex,
   DiscordRegexNames,
   ImageFormats,
   IMAGE_FORMATS,
 } from '../constants';
+import { Message } from '../structures/message';
+
 
 import * as PermissionTools from './permissions';
 
@@ -74,6 +81,39 @@ export function getAcronym(name?: string): string {
     return name.replace(/\w+/g, match => match[0]).replace(/\s/g, '');
   }
   return '';
+}
+
+export function getExceededRatelimits(
+  ratelimits: Array<CommandRatelimit>,
+  message: Message,
+  now: number = Date.now(),
+): Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}> {
+  const exceeded: Array<{
+    item: CommandRatelimitItem,
+    ratelimit: CommandRatelimit,
+    remaining: number,
+  }> = [];
+  for (const ratelimit of ratelimits) {
+    let cacheId: string;
+    switch (ratelimit.type) {
+      case CommandRatelimitTypes.CHANNEL: {
+        cacheId = message.channelId;
+      }; break;
+      case CommandRatelimitTypes.GUILD: {
+        cacheId = message.guildId || message.channelId;
+      }; break;
+      default: {
+        cacheId = message.author.id;
+      };
+    }
+
+    const item = <CommandRatelimitItem> ratelimit.get(cacheId);
+    if (ratelimit.limit <= item.usages++) {
+      const remaining = (item.start + ratelimit.duration) - now;
+      exceeded.push({item, ratelimit, remaining});
+    }
+  }
+  return exceeded;
 }
 
 export function getFormatFromHash(

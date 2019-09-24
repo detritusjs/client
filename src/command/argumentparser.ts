@@ -11,12 +11,12 @@ import { Context } from './context';
 /**
  * @category Command
  */
-export type ParsedArgs = {[key: string]: any};
+export type ParsedArgs = {[key: string]: any} | any;
 
 /**
  * @category Command
  */
-export type ParsedErrors = {[key: string]: Error};
+export type ParsedErrors = {[key: string]: Error} | any;
 
 /**
  * Command Argument

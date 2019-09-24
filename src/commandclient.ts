@@ -11,15 +11,20 @@ import {
 } from './clusterclient';
 import { ClientEvents, CommandRatelimitTypes } from './constants';
 import { ImportedCommandsError } from './errors';
+import { getExceededRatelimits } from './utils';
 
 import {
   Command,
   CommandCallbackRun,
   CommandOptions,
-  CommandRatelimitItem,
 } from './command/command';
 import { Context } from './command/context';
 import { CommandEvents } from './command/events';
+import {
+  CommandRatelimit,
+  CommandRatelimitItem,
+  CommandRatelimitOptions,
+} from './command/ratelimit';
 
 import { BaseCollection } from './collections';
 import { Message, Typing, User } from './structures';
@@ -34,6 +39,8 @@ export interface CommandClientOptions extends ClusterClientOptions {
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
+  ratelimit?: CommandRatelimitOptions,
+  ratelimits?: Array<CommandRatelimitOptions>,
   useClusterClient?: boolean,
 }
 
@@ -60,6 +67,7 @@ export interface CommandAttributes {
  */
 export class CommandClient extends EventEmitter {
   readonly _clientListeners: {[key: string]: Function | null} = {};
+
   activateOnEdits: boolean = false;
   client: ClusterClient | ShardClient;
   commands: Array<Command>;
@@ -71,6 +79,7 @@ export class CommandClient extends EventEmitter {
     mention: Set<string>,
   };
   ran: boolean;
+  ratelimits: Array<CommandRatelimit> = [];
   replies: BaseCollection<string, Message>;
 
   onPrefixCheck?: CommandClientPrefixCheck;
@@ -136,6 +145,19 @@ export class CommandClient extends EventEmitter {
 
     if (this.ran) {
       this.addMentionPrefixes();
+    }
+
+    if (options.ratelimit) {
+      this.ratelimits.push(new CommandRatelimit(options.ratelimit));
+    }
+    if (options.ratelimits) {
+      for (let rOptions of options.ratelimits) {
+        const rType = (rOptions.type || '').toLowerCase();
+        if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
+          throw new Error(`Ratelimit with type ${rType} already exists`);
+        }
+        this.ratelimits.push(new CommandRatelimit(rOptions));
+      }
     }
 
     if (!this.prefixes.custom.size && !this.mentionsEnabled) {
@@ -475,31 +497,44 @@ export class CommandClient extends EventEmitter {
       return;
     }
 
-    if (command.ratelimit !== null) {
-      let cacheId: string;
-      switch (command.ratelimit.type) {
-        case CommandRatelimitTypes.CHANNEL: {
-          cacheId = message.channelId;
-        }; break;
-        case CommandRatelimitTypes.GUILD: {
-          cacheId = message.guildId || message.channelId;
-        }; break;
-        default: {
-          cacheId = message.author.id;
-        };
-      }
-      const ratelimit = <CommandRatelimitItem> command.getRatelimit(cacheId);
-      if (command.ratelimit.limit <= ratelimit.usages++) {
-        const remaining = (ratelimit.start + command.ratelimit.duration) - Date.now();
-        this.emit(ClientEvents.COMMAND_RATELIMIT, {command, context, ratelimit, remaining});
-        if (typeof(command.onRatelimit) === 'function') {
-          try {
-            await Promise.resolve(command.onRatelimit(context, ratelimit, remaining));
-          } catch(error) {
-            // do something with this error?
+    if (this.ratelimits.length || command.ratelimits.length) {
+      const now = Date.now();
+      {
+        const ratelimits = getExceededRatelimits(this.ratelimits, message, now);
+        if (ratelimits.length) {
+          const global = true;
+
+          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(command.onRatelimit) === 'function') {
+            try {
+              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+            } catch(error) {
+              // do something with this error?
+            }
           }
+          return;
         }
-        return;
+      }
+
+      {
+        const ratelimits = getExceededRatelimits(command.ratelimits, message, now);
+        if (ratelimits.length) {
+          const global = false;
+
+          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(command.onRatelimit) === 'function') {
+            try {
+              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
       }
     }
 

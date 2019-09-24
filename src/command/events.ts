@@ -1,8 +1,9 @@
 import { Message } from '../structures';
 
 import { ParsedArgs, ParsedErrors } from './argumentparser';
-import { Command, CommandRatelimitItem } from './command';
+import { Command } from './command';
 import { Context } from './context';
+import { CommandRatelimit as CommandRatelimitCache, CommandRatelimitItem } from './ratelimit';
 
 
 export namespace CommandEvents {
@@ -30,8 +31,13 @@ export namespace CommandEvents {
   export interface CommandRatelimit {
     command: Command,
     context: Context,
-    ratelimit: CommandRatelimitItem,
-    remaining: number,
+    global: boolean,
+    now: number,
+    ratelimits: Array<{
+      item: CommandRatelimitItem
+      ratelimit: CommandRatelimitCache,
+      remaining: number,
+    }>,
   }
 
   export interface CommandRan {
