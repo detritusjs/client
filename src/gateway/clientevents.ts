@@ -299,9 +299,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface MessageReactionAdd {
-    channel: Channel | null,
     channelId: string,
-    guild: Guild | null,
     guildId: string | undefined,
     message: Message | null,
     messageId: string,
@@ -312,9 +310,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface MessageReactionRemove {
-    channel: Channel | null,
     channelId: string,
-    guild: Guild | null,
     guildId: string | undefined,
     message: Message | null,
     messageId: string,
@@ -325,9 +321,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface MessageReactionRemoveAll {
-    channel: Channel | null,
     channelId: string,
-    guild: Guild | null,
     guildId: string | undefined,
     message: Message | null,
     messageId: string,

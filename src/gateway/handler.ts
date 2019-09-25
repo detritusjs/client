@@ -1173,9 +1173,7 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_ADD](data: GatewayRawEvents.MessageReactionAdd) {
-    let channel: Channel | null = null;
     const channelId = data['channel_id'];
-    let guild: Guild | null = null;
     const guildId = data['guild_id'];
     let message: Message | null = null;
     const messageId = data['message_id'];
@@ -1210,6 +1208,8 @@ export class GatewayDispatchHandler {
     }
 
     if (!reaction) {
+      // https://github.com/discordapp/discord-api-docs/issues/812
+      Object.assign(data, {is_partial: true});
       reaction = new Reaction(this.client, data);
       if (message) {
         if (!message._reactions) {
@@ -1219,23 +1219,11 @@ export class GatewayDispatchHandler {
       }
     }
 
-    const meUserId = (this.client.user) ? this.client.user.id : null;
-    reaction.merge({
-      count: reaction.count + 1,
-      me: (userId === meUserId) || reaction.me,
-    });
+    reaction.count += 1;
+    reaction.me = (userId === this.client.userId) || reaction.me;
 
-    if (this.client.channels.has(channelId)) {
-      channel = <Channel> this.client.channels.get(channelId);
-    }
-    if (guildId && this.client.guilds.has(guildId)) {
-      guild = <Guild> this.client.guilds.get(guildId);
-    }
-
-    this.client.emit(ClientEvents.MESSAGE_REACTION_ADD, {
-      channel,
+    const payload: GatewayClientEvents.MessageReactionAdd = {
       channelId,
-      guild,
       guildId,
       message,
       messageId,
@@ -1243,13 +1231,12 @@ export class GatewayDispatchHandler {
       user,
       userId,
       raw: data,
-    });
+    };
+    this.client.emit(ClientEvents.MESSAGE_REACTION_ADD, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE](data: GatewayRawEvents.MessageReactionRemove) {
-    let channel: Channel | null = null;
     const channelId = data['channel_id'];
-    let guild: Guild | null = null;
     const guildId = data['guild_id'];
     let message: Message | null = null;
     const messageId = data['message_id'];
@@ -1260,9 +1247,6 @@ export class GatewayDispatchHandler {
     if (this.client.users.has(userId)) {
       user = <User> this.client.users.get(userId);
     }
-
-    const meUserId = (this.client.user) ? this.client.user.id : null;
-    const emojiId = data.emoji.id || data.emoji.name;
 
     let cacheKey: null | string = null;
     switch (this.client.messages.type) {
@@ -1277,14 +1261,14 @@ export class GatewayDispatchHandler {
       }; break;
     }
 
+    const emojiId = data.emoji.id || data.emoji.name;
     if (this.client.messages.has(cacheKey, messageId)) {
       message = <Message> this.client.messages.get(cacheKey, messageId);
       if (message._reactions && message._reactions.has(emojiId)) {
         reaction = <Reaction> message._reactions.get(emojiId);
-        reaction.merge({
-          count: Math.min(reaction.count - 1, 0),
-          me: reaction.me && userId !== meUserId,
-        });
+        reaction.count = Math.min(reaction.count - 1, 0);
+        reaction.me = reaction.me && userId !== this.client.userId;
+
         if (reaction.count <= 0) {
           message._reactions.delete(emojiId);
           if (!message._reactions.length) {
@@ -1295,20 +1279,13 @@ export class GatewayDispatchHandler {
     }
 
     if (!reaction) {
+      // https://github.com/discordapp/discord-api-docs/issues/812
+      Object.assign(data, {is_partial: true});
       reaction = new Reaction(this.client, data);
     }
 
-    if (this.client.channels.has(channelId)) {
-      channel = <Channel> this.client.channels.get(channelId);
-    }
-    if (guildId && this.client.guilds.has(guildId)) {
-      guild = <Guild> this.client.guilds.get(guildId);
-    }
-
-    this.client.emit(ClientEvents.MESSAGE_REACTION_REMOVE, {
-      channel,
+    const payload: GatewayClientEvents.MessageReactionRemove = {
       channelId,
-      guild,
       guildId,
       message,
       messageId,
@@ -1316,13 +1293,12 @@ export class GatewayDispatchHandler {
       user,
       userId,
       raw: data,
-    });
+    };
+    this.client.emit(ClientEvents.MESSAGE_REACTION_REMOVE, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE_ALL](data: GatewayRawEvents.MessageReactionRemoveAll) {
-    let channel: Channel | null = null;
     const channelId = data['channel_id'];
-    let guild: Guild | null = null;
     const guildId = data['guild_id'];
     let message: Message | null = null;
     const messageId = data['message_id'];
@@ -1348,22 +1324,13 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (this.client.channels.has(channelId)) {
-      channel = <Channel> this.client.channels.get(channelId);
-    }
-    if (guildId !== undefined && this.client.guilds.has(guildId)) {
-      guild = <Guild> this.client.guilds.get(guildId);
-    }
-
-    this.client.emit(ClientEvents.MESSAGE_REACTION_REMOVE_ALL, {
-      channel,
+    const payload: GatewayClientEvents.MessageReactionRemoveAll = {
       channelId,
-      guild,
       guildId,
       message,
       messageId,
-      raw: data,
-    });
+    };
+    this.client.emit(ClientEvents.MESSAGE_REACTION_REMOVE_ALL, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_UPDATE](data: GatewayRawEvents.MessageUpdate) {

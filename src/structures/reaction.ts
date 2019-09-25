@@ -19,6 +19,7 @@ const keysReaction = new BaseSet<string>([
   DiscordKeys.COUNT,
   DiscordKeys.EMOJI,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.IS_PARTIAL,
   DiscordKeys.MESSAGE_ID,
   DiscordKeys.ME,
 ]);
@@ -40,6 +41,7 @@ export class Reaction extends BaseStructure {
   count: number = 0;
   emoji!: Emoji;
   guildId?: string;
+  isPartial: boolean = false;
   messageId: string = '';
   me: boolean = false;
 
@@ -81,6 +83,10 @@ export class Reaction extends BaseStructure {
     return this.client.messages.get(cacheKey, this.messageId) || null;
   }
 
+  add() {
+    return this.client.rest.createReaction(this.channelId, this.messageId, this.emoji.endpointFormat);
+  }
+
   clear() {
     return this.client.rest.deleteReactions(this.channelId, this.messageId);
   }
@@ -89,7 +95,7 @@ export class Reaction extends BaseStructure {
     return this.client.rest.deleteReaction(this.channelId, this.messageId, this.emoji.endpointFormat, userId);
   }
 
-  fetchUsers(options: RequestTypes.FetchReactions) {
+  fetchUsers(options: RequestTypes.FetchReactions = {}) {
     return this.client.rest.fetchReactions(this.channelId, this.messageId, this.emoji.endpointFormat, options);
   }
 
