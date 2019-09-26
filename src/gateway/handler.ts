@@ -53,6 +53,7 @@ export class GatewayHandler {
   dispatchHandler: GatewayDispatchHandler;
   loadAllMembers: boolean = false;
 
+  duplicateMemberEventsCache = new BaseCollection<string, string>({expire: 500});
   memberChunks = {
     delay: 2000,
     done: new BaseSet<string>(),
@@ -705,23 +706,29 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_MEMBER_ADD](data: GatewayRawEvents.GuildMemberAdd) {
-    const guildId = data['guild_id'];
+    const guildId: string = data['guild_id'];
     let member: Member;
+    const userId: string = data['user']['id'];
 
-    if (this.client.members.has(guildId, data['user']['id'])) {
-      member = <Member> this.client.members.get(guildId, data['user']['id']);
+    if (this.client.members.has(guildId, userId)) {
+      member = <Member> this.client.members.get(guildId, userId);
       member.merge(data);
     } else {
       member = new Member(this.client, data);
       this.client.members.insert(member);
     }
 
-    if (this.client.guilds.has(guildId)) {
-      const guild = <Guild> this.client.guilds.get(guildId);
-      guild.memberCount++;
+    // Discord can send us a duplicate `GUILD_MEMBER_ADD` event sometimes, like during a guild raid
+    const event = this.handler.duplicateMemberEventsCache.get(userId);
+    if (!event || event !== GatewayDispatchEvents.GUILD_MEMBER_ADD) {
+      if (this.client.guilds.has(guildId)) {
+        const guild = <Guild> this.client.guilds.get(guildId);
+        guild.memberCount++;
+      }
     }
+    this.handler.duplicateMemberEventsCache.set(userId, GatewayDispatchEvents.GUILD_MEMBER_ADD);
 
-    const payload: GatewayClientEvents.GuildMemberAdd = {guildId, member};
+    const payload: GatewayClientEvents.GuildMemberAdd = {guildId, member, userId};
     this.client.emit(ClientEvents.GUILD_MEMBER_ADD, payload);
   }
 
@@ -734,58 +741,65 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.GUILD_MEMBER_REMOVE](data: GatewayRawEvents.GuildMemberRemove) {
     const guildId = data['guild_id'];
     let user: User;
+    const userId: string = data['user']['id'];
 
-    if (this.client.users.has(data['user']['id'])) {
-      user = <User> this.client.users.get(data['user']['id']);
+    if (this.client.users.has(userId)) {
+      user = <User> this.client.users.get(userId);
       user.merge(data['user']);
     } else {
       user = new User(this.client, data['user']);
     }
 
-    if (this.client.guilds.has(guildId)) {
-      const guild = <Guild> this.client.guilds.get(guildId);
-      guild.memberCount--;
+    // Discord can send us a duplicate `GUILD_MEMBER_ADD` event sometimes, just in case check _REMOVE too
+    const event = this.handler.duplicateMemberEventsCache.get(userId);
+    if (!event || event !== GatewayDispatchEvents.GUILD_MEMBER_REMOVE) {
+      if (this.client.guilds.has(guildId)) {
+        const guild = <Guild> this.client.guilds.get(guildId);
+        guild.memberCount--;
+      }
     }
+    this.handler.duplicateMemberEventsCache.set(userId, GatewayDispatchEvents.GUILD_MEMBER_REMOVE);
 
-    if (this.client.presences.has(user.id)) {
-      const presence = <Presence> this.client.presences.get(user.id);
+    if (this.client.presences.has(userId)) {
+      const presence = <Presence> this.client.presences.get(userId);
       presence._deleteGuildId(guildId);
       if (!presence.guildIds.length) {
-        this.client.presences.delete(user.id);
+        this.client.presences.delete(userId);
       }
     }
 
     for (let [cacheId, cache] of this.client.typings.caches) {
-      if (cache.has(user.id)) {
-        const typing = <Typing> cache.get(user.id);
+      if (cache.has(userId)) {
+        const typing = <Typing> cache.get(userId);
         typing._stop(false);
       }
     }
 
-    this.client.members.delete(guildId, user.id);
-    this.client.voiceStates.delete(guildId, user.id);
+    this.client.members.delete(guildId,userId);
+    this.client.voiceStates.delete(guildId, userId);
 
     // do a guild sweep for mutual guilds
-    const sharesGuilds = this.client.guilds.some((guild) => guild.members.has(user.id));
+    const sharesGuilds = this.client.guilds.some((guild) => guild.members.has(userId));
     if (!sharesGuilds) {
       // do a channel sweep for mutual dms
-      const sharesDms = this.client.channels.some((channel) => channel.recipients.has(user.id));
+      const sharesDms = this.client.channels.some((channel) => channel.recipients.has(userId));
       if (!sharesDms) {
         // relationship check
-        if (!this.client.relationships.has(user.id)) {
-          this.client.users.delete(user.id);
+        if (!this.client.relationships.has(userId)) {
+          this.client.users.delete(userId);
         }
       }
     }
 
-    const payload: GatewayClientEvents.GuildMemberRemove = {guildId, user};
+    const payload: GatewayClientEvents.GuildMemberRemove = {guildId, user, userId};
     this.client.emit(ClientEvents.GUILD_MEMBER_REMOVE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_MEMBER_UPDATE](data: GatewayRawEvents.GuildMemberUpdate) {
     let differences: any = null;
-    const guildId = data['guild_id'];
+    const guildId: string = data['guild_id'];
     let member: Member;
+    const userId: string = data['user']['id'];
 
     const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE);
     if (this.client.members.has(guildId, data['user']['id'])) {
@@ -811,11 +825,8 @@ export class GatewayDispatchHandler {
       this.client.members.insert(member);
     }
 
-    this.client.emit(ClientEvents.GUILD_MEMBER_UPDATE, {
-      differences,
-      guildId,
-      member,
-    });
+    const payload: GatewayClientEvents.GuildMemberUpdate = {differences, guildId, member, userId};
+    this.client.emit(ClientEvents.GUILD_MEMBER_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK](data: GatewayRawEvents.GuildMembersChunk) {

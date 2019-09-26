@@ -185,6 +185,7 @@ export namespace GatewayClientEvents {
   export interface GuildMemberAdd {
     guildId: string,
     member: Member,
+    userId: string,
   }
 
   export interface GuildMemberListUpdate {
@@ -194,12 +195,14 @@ export namespace GatewayClientEvents {
   export interface GuildMemberRemove {
     guildId: string,
     user: User,
+    userId: string,
   }
 
   export interface GuildMemberUpdate {
     differences: any | null,
     guildId: string,
     member: Member,
+    userId: string,
   }
 
   export interface GuildMembersChunk {
