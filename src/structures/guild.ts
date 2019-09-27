@@ -135,7 +135,7 @@ export class Guild extends BaseStructure {
   icon: null | string = null;
   id: string = '';
   isPartial: boolean = false;
-  joinedAt: Date | null = null;
+  joinedAtUnix: number = 0;
   large: boolean = false;
   lazy: boolean = false;
   maxMembers: number = DEFAULT_MAX_MEMBERS;
@@ -224,9 +224,9 @@ export class Guild extends BaseStructure {
     return this.iconUrlFormat();
   }
 
-  get joinedAtUnix(): null | number {
-    if (this.joinedAt) {
-      return this.joinedAt.getTime();
+  get joinedAt(): Date | null {
+    if (this.joinedAtUnix) {
+      return new Date(this.joinedAtUnix);
     }
     return null;
   }
@@ -722,8 +722,8 @@ export class Guild extends BaseStructure {
           }
         }; return;
         case DiscordKeys.JOINED_AT: {
-          value = new Date(value);
-        }; break;
+          this.joinedAtUnix = (value) ? (new Date(value)).getTime() : 0;
+        }; return;
         case DiscordKeys.MAX_PRESENCES: {
           if (value === null) {
             value = DEFAULT_MAX_PRESENCES;

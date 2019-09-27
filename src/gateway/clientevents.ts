@@ -31,11 +31,19 @@ export namespace GatewayClientEvents {
     error?: Error,
   }
 
+  export interface Raw extends GatewayRawEvents.GatewayPacket {
+
+  }
+
   export interface RestRequest extends RestClientEvents.RequestPayload {
 
   }
 
   export interface RestResponse extends RestClientEvents.ResponsePayload {
+
+  }
+
+  export interface Unknown extends GatewayRawEvents.GatewayPacket {
 
   }
 
@@ -184,6 +192,7 @@ export namespace GatewayClientEvents {
 
   export interface GuildMemberAdd {
     guildId: string,
+    isDuplicate: boolean,
     member: Member,
     userId: string,
   }
@@ -194,6 +203,7 @@ export namespace GatewayClientEvents {
 
   export interface GuildMemberRemove {
     guildId: string,
+    isDuplicate: boolean,
     user: User,
     userId: string,
   }
@@ -294,11 +304,10 @@ export namespace GatewayClientEvents {
 
   export interface MessageDeleteBulk {
     amount: number,
-    channel: Channel | null,
     channelId: string,
-    guild: Guild | null,
     guildId: string | undefined,
     messages: BaseCollection<string, Message | null>,
+    raw: GatewayRawEvents.MessageDeleteBulk,
   }
 
   export interface MessageReactionAdd {
@@ -361,10 +370,12 @@ export namespace GatewayClientEvents {
   export interface RelationshipAdd {
     differences: any | null,
     relationship: Relationship,
+    userId: string,
   }
 
   export interface RelationshipRemove {
     relationship: Relationship,
+    userId: string,
   }
 
   export interface SessionsUpdate {
@@ -427,7 +438,7 @@ export namespace GatewayClientEvents {
 
   export interface UserNoteUpdate {
     note: string,
-    user: User,
+    user: null | User,
     userId: string,
   }
 
@@ -464,13 +475,5 @@ export namespace GatewayClientEvents {
   export interface WebhooksUpdate {
     channelId: string,
     guildId: string,
-  }
-
-  export interface Raw extends GatewayRawEvents.GatewayPacket {
-
-  }
-
-  export interface Unknown extends GatewayRawEvents.GatewayPacket {
-
   }
 }

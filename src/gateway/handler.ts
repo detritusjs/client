@@ -53,7 +53,10 @@ export class GatewayHandler {
   dispatchHandler: GatewayDispatchHandler;
   loadAllMembers: boolean = false;
 
-  duplicateMemberEventsCache = new BaseCollection<string, string>({expire: 500});
+  // I've witnessed some duplicate events happening with almost a second in between
+  // Some member add/remove events might not even happen due to "State Repair"
+  duplicateMemberEventsCache = new BaseCollection<string, string>({expire: 2000});
+
   memberChunks = {
     delay: 2000,
     done: new BaseSet<string>(),
@@ -598,10 +601,8 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.emit(ClientEvents.GUILD_CREATE, {
-      fromUnavailable,
-      guild,
-    });
+    const payload: GatewayClientEvents.GuildCreate = {fromUnavailable, guild};
+    this.client.emit(ClientEvents.GUILD_CREATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_DELETE](data: GatewayRawEvents.GuildDelete) {
@@ -707,6 +708,7 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.GUILD_MEMBER_ADD](data: GatewayRawEvents.GuildMemberAdd) {
     const guildId: string = data['guild_id'];
+    let isDuplicate: boolean = false;
     let member: Member;
     const userId: string = data['user']['id'];
 
@@ -719,16 +721,22 @@ export class GatewayDispatchHandler {
     }
 
     // Discord can send us a duplicate `GUILD_MEMBER_ADD` event sometimes, like during a guild raid
-    const event = this.handler.duplicateMemberEventsCache.get(userId);
-    if (!event || event !== GatewayDispatchEvents.GUILD_MEMBER_ADD) {
-      if (this.client.guilds.has(guildId)) {
-        const guild = <Guild> this.client.guilds.get(guildId);
-        guild.memberCount++;
+    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_ADD);
+    if (isListening || this.client.guilds.has(guildId)) {
+      const key = `${guildId}.${userId}`;
+      const event = this.handler.duplicateMemberEventsCache.get(key);
+      if (event === GatewayDispatchEvents.GUILD_MEMBER_ADD) {
+        isDuplicate = true;
+      } else {
+        if (this.client.guilds.has(guildId)) {
+          const guild = <Guild> this.client.guilds.get(guildId);
+          guild.memberCount++;
+        }
       }
+      this.handler.duplicateMemberEventsCache.set(key, GatewayDispatchEvents.GUILD_MEMBER_ADD);
     }
-    this.handler.duplicateMemberEventsCache.set(userId, GatewayDispatchEvents.GUILD_MEMBER_ADD);
 
-    const payload: GatewayClientEvents.GuildMemberAdd = {guildId, member, userId};
+    const payload: GatewayClientEvents.GuildMemberAdd = {guildId, isDuplicate, member, userId};
     this.client.emit(ClientEvents.GUILD_MEMBER_ADD, payload);
   }
 
@@ -740,6 +748,7 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.GUILD_MEMBER_REMOVE](data: GatewayRawEvents.GuildMemberRemove) {
     const guildId = data['guild_id'];
+    let isDuplicate: boolean = false;
     let user: User;
     const userId: string = data['user']['id'];
 
@@ -750,15 +759,23 @@ export class GatewayDispatchHandler {
       user = new User(this.client, data['user']);
     }
 
+    this.client.members.delete(guildId, userId);
+
     // Discord can send us a duplicate `GUILD_MEMBER_ADD` event sometimes, just in case check _REMOVE too
-    const event = this.handler.duplicateMemberEventsCache.get(userId);
-    if (!event || event !== GatewayDispatchEvents.GUILD_MEMBER_REMOVE) {
-      if (this.client.guilds.has(guildId)) {
-        const guild = <Guild> this.client.guilds.get(guildId);
-        guild.memberCount--;
+    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_REMOVE);
+    if (isListening || this.client.guilds.has(guildId)) {
+      const key = `${guildId}.${userId}`;
+      const event = this.handler.duplicateMemberEventsCache.get(key);
+      if (event === GatewayDispatchEvents.GUILD_MEMBER_REMOVE) {
+        isDuplicate = true;
+      } else {
+        if (this.client.guilds.has(guildId)) {
+          const guild = <Guild> this.client.guilds.get(guildId);
+          guild.memberCount--;
+        }
       }
+      this.handler.duplicateMemberEventsCache.set(key, GatewayDispatchEvents.GUILD_MEMBER_REMOVE);
     }
-    this.handler.duplicateMemberEventsCache.set(userId, GatewayDispatchEvents.GUILD_MEMBER_REMOVE);
 
     if (this.client.presences.has(userId)) {
       const presence = <Presence> this.client.presences.get(userId);
@@ -775,7 +792,7 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.members.delete(guildId,userId);
+    this.client.members.delete(guildId, userId);
     this.client.voiceStates.delete(guildId, userId);
 
     // do a guild sweep for mutual guilds
@@ -791,7 +808,7 @@ export class GatewayDispatchHandler {
       }
     }
 
-    const payload: GatewayClientEvents.GuildMemberRemove = {guildId, user, userId};
+    const payload: GatewayClientEvents.GuildMemberRemove = {guildId, isDuplicate, user, userId};
     this.client.emit(ClientEvents.GUILD_MEMBER_REMOVE, payload);
   }
 
@@ -852,7 +869,9 @@ export class GatewayDispatchHandler {
       }
     }
 
+    const g = <Guild> this.client.guilds.get(guildId);
     if (data['members']) {
+      let old = g.members.length;
       // we (the bot user) won't be in the chunk anyways, right?
       if (this.client.members.enabled || isListening) {
         members = new BaseCollection<string, Member>();
@@ -932,11 +951,8 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.emit(ClientEvents.GUILD_ROLE_CREATE, {
-      guild,
-      guildId,
-      role,
-    });
+    const payload: GatewayClientEvents.GuildRoleCreate = {guild, guildId, role};
+    this.client.emit(ClientEvents.GUILD_ROLE_CREATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_ROLE_DELETE](data: GatewayRawEvents.GuildRoleDelete) {
@@ -960,12 +976,8 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.emit(ClientEvents.GUILD_ROLE_DELETE, {
-      guild,
-      guildId,
-      role,
-      roleId,
-    });
+    const payload: GatewayClientEvents.GuildRoleDelete = {guild, guildId, role, roleId};
+    this.client.emit(ClientEvents.GUILD_ROLE_DELETE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_ROLE_UPDATE](data: GatewayRawEvents.GuildRoleUpdate) {
@@ -992,12 +1004,8 @@ export class GatewayDispatchHandler {
       role = new Role(this.client, data['role']);
     }
 
-    this.client.emit(ClientEvents.GUILD_ROLE_UPDATE, {
-      differences,
-      guild,
-      guildId,
-      role,
-    });
+    const payload: GatewayClientEvents.GuildRoleUpdate = {differences, guild, guildId, role};
+    this.client.emit(ClientEvents.GUILD_ROLE_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_UPDATE](data: GatewayRawEvents.GuildUpdate) {
@@ -1016,10 +1024,8 @@ export class GatewayDispatchHandler {
     }
     guild.hasMetadata = true;
 
-    this.client.emit(ClientEvents.GUILD_UPDATE, {
-      differences,
-      guild,
-    });
+    const payload: GatewayClientEvents.GuildUpdate = {differences, guild};
+    this.client.emit(ClientEvents.GUILD_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.LIBRARY_APPLICATION_UPDATE](data: GatewayRawEvents.LibraryApplicationUpdate) {
@@ -1129,17 +1135,13 @@ export class GatewayDispatchHandler {
       this.client.messages.delete(cacheKey, data['id']);
     }
 
-    this.client.emit(ClientEvents.MESSAGE_DELETE, {
-      message,
-      raw: data,
-    });
+    const payload: GatewayClientEvents.MessageDelete = {message, raw: data};
+    this.client.emit(ClientEvents.MESSAGE_DELETE, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_DELETE_BULK](data: GatewayRawEvents.MessageDeleteBulk) {
     const amount = data['ids'].length;
-    let channel: Channel | null = null;
     const channelId = data['channel_id'];
-    let guild: Guild | null = null;
     const guildId = data['guild_id'];
     const messages = new BaseCollection<string, Message | null>();
 
@@ -1165,22 +1167,8 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (this.client.channels.has(channelId)) {
-      channel = <Channel> this.client.channels.get(channelId);
-    }
-    if (guildId !== undefined && this.client.guilds.has(guildId)) {
-      guild = <Guild> this.client.guilds.get(guildId);
-    }
-
-    this.client.emit(ClientEvents.MESSAGE_DELETE_BULK, {
-      amount,
-      channel,
-      channelId,
-      guild,
-      guildId,
-      messages,
-      raw: data,
-    });
+    const payload: GatewayClientEvents.MessageDeleteBulk = {amount, channelId, guildId, messages, raw: data};
+    this.client.emit(ClientEvents.MESSAGE_DELETE_BULK, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_ADD](data: GatewayRawEvents.MessageReactionAdd) {
@@ -1380,12 +1368,13 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.emit(ClientEvents.MESSAGE_UPDATE, {
+    const payload: GatewayClientEvents.MessageUpdate = {
       differences,
       isEmbedUpdate,
       message,
       raw: data,
-    });
+    };
+    this.client.emit(ClientEvents.MESSAGE_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.OAUTH2_TOKEN_REVOKE](data: GatewayRawEvents.Oauth2TokenRevoke) {
@@ -1424,7 +1413,7 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.PRESENCES_REPLACE](data: GatewayRawEvents.PresencesReplace) {
     const presences = new BaseCollection<string, Presence>();
 
-    if (data['presences'] != null) {
+    if (data['presences']) {
       for (let raw of data['presences']) {
         // guildId is empty, use default presence cache id
         const presence = this.client.presences.insert(raw);
@@ -1432,9 +1421,8 @@ export class GatewayDispatchHandler {
       }
     }
 
-    this.client.emit(ClientEvents.PRESENCES_REPLACE, {
-      presences,
-    });
+    const payload: GatewayClientEvents.PresencesReplace = {presences};
+    this.client.emit(ClientEvents.PRESENCES_REPLACE, payload);
   }
 
   [GatewayDispatchEvents.RECENT_MENTION_DELETE](data: GatewayRawEvents.RecentMentionDelete) {
@@ -1444,9 +1432,10 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.RELATIONSHIP_ADD](data: GatewayRawEvents.RelationshipAdd) {
     let differences: any = null;
     let relationship: Relationship;
+    const userId = data['id'];
 
-    if (this.client.relationships.has(data['id'])) {
-      relationship = <Relationship> this.client.relationships.get(data['id']);
+    if (this.client.relationships.has(userId)) {
+      relationship = <Relationship> this.client.relationships.get(userId);
       if (this.client.hasEventListener(ClientEvents.RELATIONSHIP_ADD)) {
         differences = relationship.differences(data);
       }
@@ -1456,14 +1445,13 @@ export class GatewayDispatchHandler {
       this.client.relationships.insert(relationship);
     }
 
-    this.client.emit(ClientEvents.RELATIONSHIP_ADD, {
-      differences,
-      relationship,
-    });
+    const payload: GatewayClientEvents.RelationshipAdd = {differences, relationship, userId};
+    this.client.emit(ClientEvents.RELATIONSHIP_ADD, payload);
   }
 
   [GatewayDispatchEvents.RELATIONSHIP_REMOVE](data: GatewayRawEvents.RelationshipRemove) {
     let relationship: Relationship;
+    const userId = data['id'];
 
     if (this.client.relationships.has(data['id'])) {
       relationship = <Relationship> this.client.relationships.get(data['id']);
@@ -1472,11 +1460,8 @@ export class GatewayDispatchHandler {
       relationship = new Relationship(this.client, data);
     }
 
-    this.client.emit(ClientEvents.RELATIONSHIP_REMOVE, {
-      id: data['id'],
-      relationship,
-      type: data['type'],
-    });
+    const payload: GatewayClientEvents.RelationshipRemove = {relationship, userId};
+    this.client.emit(ClientEvents.RELATIONSHIP_REMOVE, payload);
   }
 
   [GatewayDispatchEvents.SESSIONS_UPDATE](data: GatewayRawEvents.SessionsUpdate) {
@@ -1553,17 +1538,17 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.USER_NOTE_UPDATE](data: GatewayRawEvents.UserNoteUpdate) {
+    const note = data['note'];
     let user: null | User = null;
-    if (this.client.users.has(data.id)) {
-      user = <User> this.client.users.get(data.id);
-    }
-    this.client.notes.insert(data.id, data.note);
+    const userId = data['id'];
 
-    this.client.emit(ClientEvents.USER_NOTE_UPDATE, {
-      note: data.note,
-      user,
-      userId: data.id,
-    });
+    if (this.client.users.has(userId)) {
+      user = <User> this.client.users.get(userId);
+    }
+    this.client.notes.insert(userId, note);
+
+    const payload: GatewayClientEvents.UserNoteUpdate = {note, user, userId};
+    this.client.emit(ClientEvents.USER_NOTE_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.USER_PAYMENT_SOURCES_UPDATE](data: GatewayRawEvents.UserPaymentSourcesUpdate) {
@@ -1598,7 +1583,9 @@ export class GatewayDispatchHandler {
       this.client.user = user;
       this.client.users.insert(user);
     }
-    this.client.emit(ClientEvents.USER_UPDATE, {differences, user});
+
+    const payload: GatewayClientEvents.UserUpdate = {differences, user};
+    this.client.emit(ClientEvents.USER_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.VOICE_SERVER_UPDATE](data: GatewayRawEvents.VoiceServerUpdate) {
@@ -1630,17 +1617,16 @@ export class GatewayDispatchHandler {
       voiceState = new VoiceState(this.client, data);
       this.client.voiceStates.insert(voiceState);
     }
-    this.client.emit(ClientEvents.VOICE_STATE_UPDATE, {
-      differences,
-      leftChannel,
-      voiceState,
-    });
+
+    const payload: GatewayClientEvents.VoiceStateUpdate = {differences, leftChannel, voiceState};
+    this.client.emit(ClientEvents.VOICE_STATE_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.WEBHOOKS_UPDATE](data: GatewayRawEvents.WebhooksUpdate) {
-    this.client.emit(ClientEvents.WEBHOOKS_UPDATE, {
-      channelId: data['channel_id'],
-      guildId: data['guild_id'],
-    });
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
+
+    const payload: GatewayClientEvents.WebhooksUpdate = {channelId, guildId};
+    this.client.emit(ClientEvents.WEBHOOKS_UPDATE, payload);
   }
 }
