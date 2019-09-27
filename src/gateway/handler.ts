@@ -25,6 +25,7 @@ import {
   Reaction,
   Relationship,
   Role,
+  Session,
   Typing,
   User,
   UserMe,
@@ -236,7 +237,7 @@ export class GatewayDispatchHandler {
 
     if (this.client.sessions.enabled && data['sessions']) {
       for (let raw of data['sessions']) {
-
+        this.client.sessions.insert(new Session(this.client, raw));
       }
     }
 
@@ -1464,8 +1465,19 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.RELATIONSHIP_REMOVE, payload);
   }
 
-  [GatewayDispatchEvents.SESSIONS_UPDATE](data: GatewayRawEvents.SessionsUpdate) {
+  [GatewayDispatchEvents.SESSIONS_REPLACE](data: GatewayRawEvents.SessionsReplace) {
+    const old = this.client.sessions.clone();
 
+    // maybe return an array of differences instead?
+    if (this.client.sessions.enabled) {
+      this.client.sessions.clear();
+      for (let raw of data) {
+        this.client.sessions.insert(new Session(this.client, raw));
+      }
+    }
+
+    const payload: GatewayClientEvents.SessionsReplace = {old, raw: data};
+    this.client.emit(ClientEvents.SESSIONS_REPLACE, payload);
   }
 
   [GatewayDispatchEvents.STREAM_CREATE](data: GatewayRawEvents.StreamCreate) {

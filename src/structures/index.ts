@@ -21,6 +21,7 @@ export * from './profile';
 export * from './reaction';
 export * from './relationship';
 export * from './role';
+export * from './session';
 export * from './store';
 export * from './team';
 export * from './typing';

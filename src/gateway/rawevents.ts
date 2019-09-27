@@ -445,7 +445,7 @@ export namespace GatewayRawEvents {
     _trace: Array<string>,
   }
 
-  export interface SessionsUpdate extends Array<RawSession> {
+  export interface SessionsReplace extends Array<RawSession> {
 
   }
 

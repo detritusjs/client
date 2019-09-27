@@ -261,7 +261,7 @@ export class ClusterClient extends EventEmitter {
   on(event: 'recentMentionDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RecentMentionDelete) => any): this;
   on(event: 'relationshipAdd', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RelationshipAdd) => any): this;
   on(event: 'relationshipRemove', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RelationshipRemove) => any): this;
-  on(event: 'sessionsUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.SessionsUpdate) => any): this;
+  on(event: 'sessionsReplace', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.SessionsReplace) => any): this;
   on(event: 'streamCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamCreate) => any): this;
   on(event: 'streamDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamDelete) => any): this;
   on(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamServerUpdate) => any): this;

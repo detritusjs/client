@@ -49,6 +49,7 @@ const keysPresence = new BaseSet<string>([
 ]);
 
 const keysMergePresence = new BaseSet<string>([
+  DiscordKeys.USER,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ACTIVITIES,
 ]);
@@ -78,7 +79,6 @@ export class Presence extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
-    Object.defineProperty(this, '_activities', {enumerable: false, writable: true});
   }
 
   get activity(): null | PresenceActivity {
@@ -188,7 +188,7 @@ export class Presence extends BaseStructure {
                 const activity = <PresenceActivity> this._activities.get(raw.id);
                 activity.merge(raw);
               } else {
-                const activity = new PresenceActivity(this, raw);
+                const activity = new PresenceActivity(this.user, raw);
                 this._activities.set(activity.id, activity);
               }
             }
@@ -213,9 +213,7 @@ export class Presence extends BaseStructure {
           }
         }; return;
         case DiscordKeys.GAME: {
-          if (value && value.id && !this.activities.has(value.id)) {
-            // shouldnt happen (maybe merge?)
-          }
+          // itll always be in the activities array
         }; return;
         case DiscordKeys.GUILD_ID: {
           this.lastGuildId = value || LOCAL_GUILD_ID;
@@ -289,7 +287,7 @@ export class PresenceActivity extends BaseStructure {
   readonly _keys = keysPresenceActivity;
   readonly _keysMerge = keysMergePresenceActivity;
   readonly _keysSkipDifference = keysSkipDifferencePresenceActivity;
-  readonly presence: Presence;
+  readonly user: User;
 
   applicationId?: string;
   assets?: PresenceActivityAssets;
@@ -312,18 +310,17 @@ export class PresenceActivity extends BaseStructure {
   type: number = 0;
   url?: string;
 
-  constructor(presence: Presence, data: BaseStructureData) {
-    super(presence.client);
-    this.presence = presence;
+  constructor(user: User, data: BaseStructureData) {
+    super(user.client);
+    this.user = user;
     this.merge(data);
-    Object.defineProperty(this, 'presence', {enumerable: false, writable: false});
   }
 
   get application(): Application | null {
     if (this.applicationId && this.client.applications.has(this.applicationId)) {
       return <Application> this.client.applications.get(this.applicationId);
     }
-    if (!this.presence.user.bot && this.name && this.isPlaying) {
+    if (!this.user.bot && this.name && this.isPlaying) {
       for (let [applicationId, application] of this.client.applications) {
         if (application.matches(this.name)) {
           return application;
@@ -457,7 +454,7 @@ export class PresenceActivity extends BaseStructure {
       throw new Error('Activity has no Session Id');
     }
     return this.client.rest.fetchUserActivityMetadata(
-      this.presence.user.id,
+      this.user.id,
       this.sessionId,
       String(this.position),
     );
@@ -545,7 +542,6 @@ export class PresenceActivityAssets extends BaseStructure {
     super(activity.client);
     this.activity = activity;
     this.merge(data);
-    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
 
   get imageUrl() {
@@ -649,7 +645,6 @@ export class PresenceActivityParty extends BaseStructure {
     super(activity.client);
     this.activity = activity;
     this.merge(data);
-    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
 
   get currentSize(): number | null {
@@ -662,7 +657,7 @@ export class PresenceActivityParty extends BaseStructure {
   get group(): BaseCollection<string, User> {
     const group = new BaseCollection<string, User>();
     if (this.id) {
-      const me = this.activity.presence.user;
+      const me = this.activity.user;
       group.set(me.id, me);
 
       for (let [userId, presence] of this.client.presences) {
@@ -732,7 +727,6 @@ export class PresenceActivitySecrets extends BaseStructure {
     super(activity.client);
     this.activity = activity;
     this.merge(data);
-    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
 
   mergeValue(key: string, value: any): void {
@@ -765,7 +759,6 @@ export class PresenceActivityTimestamps extends BaseStructure {
     super(activity.client);
     this.activity = activity;
     this.merge(data);
-    Object.defineProperty(this, 'activity', {enumerable: false, writable: false});
   }
 
   get elapsedTime(): number {
@@ -816,7 +809,6 @@ export class PresenceClientStatus extends BaseStructure {
     super(presence.client);
     this.presence = presence;
     this.merge(data);
-    Object.defineProperty(this, 'presence', {enumerable: false, writable: false});
   }
 
   get isOnDesktop(): boolean {

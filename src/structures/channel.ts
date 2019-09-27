@@ -291,7 +291,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get isSyncedWithParent(): boolean {
-    return false;
+    return this.isSyncedWith(this.parent);
   }
 
   get isText(): boolean {
@@ -378,6 +378,10 @@ export class ChannelBase extends BaseStructure {
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     return null;
+  }
+
+  isSyncedWith(parent: ChannelGuildCategory | null): boolean {
+    return false;
   }
 
   async addPinnedMessage(messageId: string): Promise<any> {
@@ -998,27 +1002,6 @@ export class ChannelGuildBase extends ChannelBase {
     return this.client.guilds.get(this.guildId) || null;
   }
 
-  get isSyncedWithParent(): boolean {
-    const parent = this.parent;
-    if (parent) {
-      const overwrites = this._permissionOverwrites;
-      const parentOverwrites = parent._permissionOverwrites;
-      if (overwrites && parentOverwrites) {
-        if (overwrites.length !== parentOverwrites.length) {
-          return false;
-        }
-        return overwrites.every((overwrite) => {
-          if (parentOverwrites.has(overwrite.id)) {
-            const parentOverwrite = <Overwrite> parentOverwrites.get(overwrite.id);
-            return overwrite.allow === parentOverwrite.allow && overwrite.deny === parentOverwrite.deny;
-          }
-          return false;
-        });
-      }
-    }
-    return false;
-  }
-
   get jumpLink(): string {
     return Endpoints.Routes.URL + Endpoints.Routes.CHANNEL(this.guildId, this.id);
   }
@@ -1070,6 +1053,24 @@ export class ChannelGuildBase extends ChannelBase {
     }
 
     return PermissionTools.checkPermissions(total, permissions);
+  }
+
+  isSyncedWith(parent: ChannelGuildCategory | null): boolean {
+    if (parent) {
+      const overwrites = this.permissionOverwrites;
+      const parentOverwrites = parent.permissionOverwrites;
+      if (overwrites.length !== parentOverwrites.length) {
+        return false;
+      }
+      return overwrites.every((overwrite) => {
+        if (parentOverwrites.has(overwrite.id)) {
+          const parentOverwrite = <Overwrite> parentOverwrites.get(overwrite.id);
+          return overwrite.allow === parentOverwrite.allow && overwrite.deny === parentOverwrite.deny;
+        }
+        return false;
+      });
+    }
+    return false;
   }
 
   async deleteOverwrite(overwriteId: string, options: RequestTypes.DeleteChannelOverwrite = {}) {

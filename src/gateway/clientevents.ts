@@ -14,6 +14,7 @@ import {
   Reaction,
   Relationship,
   Role,
+  Session,
   Typing,
   User,
   UserMe,
@@ -378,8 +379,9 @@ export namespace GatewayClientEvents {
     userId: string,
   }
 
-  export interface SessionsUpdate {
-
+  export interface SessionsReplace {
+    old: BaseCollection<string, Session>,
+    raw: GatewayRawEvents.SessionsReplace,
   }
 
   export interface StreamCreate {

@@ -498,7 +498,7 @@ export class ShardClient extends EventEmitter {
   on(event: 'recentMentionDelete', listener: (payload: GatewayClientEvents.RecentMentionDelete) => any): this;
   on(event: 'relationshipAdd', listener: (payload: GatewayClientEvents.RelationshipAdd) => any): this;
   on(event: 'relationshipRemove', listener: (payload: GatewayClientEvents.RelationshipRemove) => any): this;
-  on(event: 'sessionsUpdate', listener: (payload: GatewayClientEvents.SessionsUpdate) => any): this;
+  on(event: 'sessionsReplace', listener: (payload: GatewayClientEvents.SessionsReplace) => any): this;
   on(event: 'streamCreate', listener: (payload: GatewayClientEvents.StreamCreate) => any): this;
   on(event: 'streamDelete', listener: (payload: GatewayClientEvents.StreamDelete) => any): this;
   on(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.StreamServerUpdate) => any): this;
