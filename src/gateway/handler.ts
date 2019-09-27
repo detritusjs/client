@@ -163,7 +163,7 @@ export class GatewayDispatchHandler {
     }
     this.client.users.insert(me); // since we reset the cache
 
-    Object.defineProperty(this.client, '_isBot', {value: data['user']['bot']});
+    Object.defineProperty(this.client, '_isBot', {value: me.bot});
     const authType = (this.client.isBot) ? AuthTypes.BOT : AuthTypes.USER;
     this.client.rest.setAuthType(authType);
 
