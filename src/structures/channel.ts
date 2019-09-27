@@ -290,6 +290,10 @@ export class ChannelBase extends BaseStructure {
     return !!this.applicationId;
   }
 
+  get isSyncedWithParent(): boolean {
+    return false;
+  }
+
   get isText(): boolean {
     return this.isDm || this.isGuildText || this.isGuildNews;
   }
@@ -992,6 +996,27 @@ export class ChannelGuildBase extends ChannelBase {
 
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
+  }
+
+  get isSyncedWithParent(): boolean {
+    const parent = this.parent;
+    if (parent) {
+      const overwrites = this._permissionOverwrites;
+      const parentOverwrites = parent._permissionOverwrites;
+      if (overwrites && parentOverwrites) {
+        if (overwrites.length !== parentOverwrites.length) {
+          return false;
+        }
+        return overwrites.every((overwrite) => {
+          if (parentOverwrites.has(overwrite.id)) {
+            const parentOverwrite = <Overwrite> parentOverwrites.get(overwrite.id);
+            return overwrite.allow === parentOverwrite.allow && overwrite.deny === parentOverwrite.deny;
+          }
+          return false;
+        });
+      }
+    }
+    return false;
   }
 
   get jumpLink(): string {
