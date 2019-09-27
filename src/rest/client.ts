@@ -799,8 +799,8 @@ export class RestClient extends Client {
     const data = await super.fetchMeConnections.call(this);
     const collection = new BaseCollection<string, ConnectedAccount>();
     for (let raw of data) {
-      const connectedAccount = new ConnectedAccount(this.client, raw);
-      collection.set(connectedAccount.id, connectedAccount);
+      const account = new ConnectedAccount(this.client, raw);
+      collection.set(account.key, account);
     }
     return collection;
   }

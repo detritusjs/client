@@ -17,6 +17,7 @@ import {
   createChannelFromData,
   Channel,
   ChannelDM,
+  ConnectedAccount,
   Emoji,
   Guild,
   Member,
@@ -168,8 +169,11 @@ export class GatewayDispatchHandler {
     this.client.rest.setAuthType(authType);
 
     // data['analytics_token']
-    if (data['connected_accounts']) {
-      // make a cache for this?
+    if (this.client.connectedAccounts.enabled && data['connected_accounts']) {
+      for (let raw of data['connected_accounts']) {
+        const account = new ConnectedAccount(this.client, raw);
+        this.client.connectedAccounts.insert(account);
+      }
     }
 
     if (this.client.guilds.enabled) {
@@ -1537,8 +1541,18 @@ export class GatewayDispatchHandler {
 
   }
 
-  [GatewayDispatchEvents.USER_CONNECTIONS_UPDATE](data: GatewayRawEvents.UserConnectionsUpdate) {
+  async [GatewayDispatchEvents.USER_CONNECTIONS_UPDATE](data: GatewayRawEvents.UserConnectionsUpdate) {
     // maybe fetch from rest api when this happens to keep cache up to date?
+
+    try {
+      await this.client.connectedAccounts.fill();
+    } catch(error) {
+      const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Connected Accounts', error)};
+      this.client.emit(ClientEvents.WARN, payload);
+    }
+
+    const payload: GatewayClientEvents.UserConnectionsUpdate = {};
+    this.client.emit(ClientEvents.USER_CONNECTIONS_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.USER_FEED_SETTINGS_UPDATE](data: GatewayRawEvents.UserFeedSettingsUpdate) {

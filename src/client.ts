@@ -21,6 +21,8 @@ import {
   ApplicationsOptions,
   Channels,
   ChannelsOptions,
+  ConnectedAccounts,
+  ConnectedAccountsOptions,
   Emojis,
   EmojisOptions,
   Guilds,
@@ -71,6 +73,7 @@ export interface ShardClientOptions {
   cache?: {
     applications?: ApplicationsOptions,
     channels?: ChannelsOptions,
+    connectedAccounts?: ConnectedAccountsOptions,
     emojis?: EmojisOptions,
     guilds?: GuildsOptions,
     members?: MembersOptions,
@@ -95,6 +98,7 @@ export interface ShardClientOptions {
     commandClient?: CommandClient,
     applications?: Applications,
     channels?: Channels,
+    connectedAccounts?: ConnectedAccounts,
     emojis?: Emojis,
     guilds?: Guilds,
     members?: Members,
@@ -174,6 +178,7 @@ export class ShardClient extends EventEmitter {
 
   readonly applications: Applications;
   readonly channels: Channels;
+  readonly connectedAccounts: ConnectedAccounts;
   readonly emojis: Emojis;
   readonly guilds: Guilds;
   readonly members: Members;
@@ -240,6 +245,7 @@ export class ShardClient extends EventEmitter {
       options.cache = {
         applications: {enabled},
         channels: {enabled},
+        connectedAccounts: {enabled},
         emojis: {enabled},
         guilds: {enabled},
         members: {enabled},
@@ -259,6 +265,7 @@ export class ShardClient extends EventEmitter {
 
     this.applications = options.pass.applications || new Applications(this, options.cache.applications);
     this.channels = options.pass.channels || new Channels(this, options.cache.channels);
+    this.connectedAccounts = options.pass.connectedAccounts || new ConnectedAccounts(this, options.cache.connectedAccounts);
     this.emojis = options.pass.emojis || new Emojis(this, options.cache.emojis);
     this.guilds = options.pass.guilds || new Guilds(this, options.cache.guilds);
     this.members = options.pass.members || new Members(this, options.cache.members);
@@ -339,9 +346,10 @@ export class ShardClient extends EventEmitter {
 
   reset(): void {
     this.owners.clear();
+
     this.applications.clear();
     this.channels.clear();
-    this.emojis.clear();
+    this.connectedAccounts.clear();
     this.guilds.clear();
     this.members.clear();
     this.messages.clear();
@@ -350,6 +358,7 @@ export class ShardClient extends EventEmitter {
     this.relationships.clear();
     this.sessions.clear();
     this.users.clear();
+    this.voiceCalls.clear();
     this.voiceConnections.clear();
     this.voiceStates.clear();
   }

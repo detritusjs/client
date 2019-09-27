@@ -46,8 +46,8 @@ export class Profile extends BaseStructure {
         case DiscordKeys.CONNECTED_ACCOUNTS: {
           this.connectedAccounts.clear();
           for (let raw of value) {
-            const connectedAccount = new ConnectedAccount(this.client, raw);
-            this.connectedAccounts.set(connectedAccount.id, connectedAccount);
+            const account = new ConnectedAccount(this.client, raw);
+            this.connectedAccounts.set(account.key, account);
           }
         }; return;
         case DiscordKeys.MUTUAL_GUILDS: {

@@ -2,6 +2,7 @@ export * from './applications';
 export * from './basecollection';
 export * from './baseset';
 export * from './channels';
+export * from './connectedaccounts';
 export * from './emojis';
 export * from './guilds';
 export * from './members';

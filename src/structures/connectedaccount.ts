@@ -28,6 +28,7 @@ const keysConnectedAccount = new BaseSet<string>([
 export class ConnectedAccount extends BaseStructure {
   readonly _keys = keysConnectedAccount;
 
+  accessToken?: string;
   friendSync?: boolean;
   id: string = '';
   integrations?: Array<any>;
@@ -41,5 +42,9 @@ export class ConnectedAccount extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get key(): string {
+    return `${this.type}.${this.id}`;
   }
 }
