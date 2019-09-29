@@ -5,13 +5,15 @@ import { Context } from './context';
 
 export type ArgumentConverter = (value: string, context: Context) => Promise<any> | any;
 
+export type ArgumentDefault = any | ((context: Context) => Promise<any> | any);
+
 /**
  * Command Argument Options
  * @category Command Options
  */
 export interface ArgumentOptions {
   aliases?: Array<string>,
-  default?: any,
+  default?: ArgumentDefault,
   label?: string,
   name: string,
   prefix?: string,
@@ -29,7 +31,7 @@ const blankPrefixes = Object.freeze(['']);
  */
 export class Argument {
   aliases: Array<string>;
-  default: any;
+  default: ArgumentDefault = undefined;
   label: string;
   name: string;
   prefixes: Set<string> = new Set(['-']);
@@ -58,7 +60,7 @@ export class Argument {
     }
 
     this.aliases = (options.aliases || []).map((alias) => alias.toLowerCase());
-    this.default = (options.default === undefined) ? '' : options.default;
+    this.default = options.default;
     this.label = (options.label || options.name).toLowerCase();
     this.name = options.name.toLowerCase();
 

@@ -45,7 +45,7 @@ export class ArgumentParser {
     const args = this.args
       .map((arg) => ({arg, info: arg.getInfo(insensitive)}))
       .filter((x) => x.info.index !== -1)
-      .sort((x, y) => +(x.info.index < y.info.index));
+      .sort((x, y) => y.info.index - x.info.index);
 
     const errors: ParsedErrors = {};
     for (const {arg, info} of args) {
@@ -64,7 +64,18 @@ export class ArgumentParser {
 
     for (let arg of this.args) {
       if (!(arg.label in parsed)) {
-        const value = arg.default;
+        let value: any;
+        if (typeof(arg.default) === 'function') {
+          try {
+            value = await Promise.resolve(value(context));
+          } catch(error) {
+            errors[arg.label] = error;
+            continue;
+          }
+        } else {
+          value = arg.default;
+        }
+
         if (typeof(value) === 'string') {
           try {
             parsed[arg.label] = await arg.parse(value, context);

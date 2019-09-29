@@ -149,6 +149,7 @@ export namespace GatewayRawEvents {
     guild_id: string,
     id: string,
     member_count: number,
+    online_count: number,
     ops: Array<{
       op: 'DELETE' | 'INSERT' | 'SYNC' | 'UPDATE',
       index?: number,
