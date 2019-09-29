@@ -5,7 +5,7 @@ import { Context } from './context';
 
 export type ArgumentConverter = (value: string, context: Context) => Promise<any> | any;
 
-export type ArgumentDefault = any | ((context: Context) => Promise<any> | any);
+export type ArgumentDefault = ((context: Context) => Promise<any> | any) | any;
 
 /**
  * Command Argument Options

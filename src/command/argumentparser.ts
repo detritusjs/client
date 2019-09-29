@@ -67,7 +67,7 @@ export class ArgumentParser {
         let value: any;
         if (typeof(arg.default) === 'function') {
           try {
-            value = await Promise.resolve(value(context));
+            value = await Promise.resolve(arg.default(context));
           } catch(error) {
             errors[arg.label] = error;
             continue;
