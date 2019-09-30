@@ -1220,6 +1220,7 @@ export class GatewayDispatchHandler {
           message._reactions = new BaseCollection<string, Reaction>();
         }
         message._reactions.set(emojiId, reaction);
+        reaction.isPartial = false;
       }
     }
 

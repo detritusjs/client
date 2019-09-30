@@ -17,7 +17,7 @@ import {
   MfaLevels,
   Permissions,
   PremiumGuildLimits,
-  PremiumGuildTierNames,
+  PremiumGuildTiers,
   SystemChannelFlags,
   DEFAULT_MAX_MEMBERS,
   DEFAULT_MAX_PRESENCES,
@@ -182,6 +182,30 @@ export class Guild extends BaseStructure {
     return this.bannerUrlFormat();
   }
 
+  get canHaveBanner(): boolean {
+    return this.isVerified || this.hasFeature(GuildFeatures.BANNER);
+  }
+
+  get canHaveNews(): boolean {
+    return this.hasFeature(GuildFeatures.NEWS);
+  }
+
+  get canHaveSplash(): boolean {
+    return this.hasFeature(GuildFeatures.INVITE_SPLASH);
+  }
+
+  get canHaveStore(): boolean {
+    return this.hasFeature(GuildFeatures.COMMERCE);
+  }
+
+  get canHaveVanityUrl(): boolean {
+    return this.hasFeature(GuildFeatures.VANITY_URL);
+  }
+
+  get canHaveVipRegions(): boolean {
+    return this.hasFeature(GuildFeatures.VIP_REGIONS);
+  }
+
   get categoryChannels(): BaseCollection<string, ChannelGuildCategory> {
     const collection = new BaseCollection<string, ChannelGuildCategory>();
     for (const [channelId, channel] of this.client.channels) {
@@ -226,6 +250,14 @@ export class Guild extends BaseStructure {
     return this.iconUrlFormat();
   }
 
+  get isPartnered(): boolean {
+    return this.hasFeature(GuildFeatures.PARTNERED);
+  }
+
+  get isVerified(): boolean {
+    return this.hasFeature(GuildFeatures.VERIFIED);
+  }
+
   get joinedAt(): Date | null {
     if (this.joinedAtUnix) {
       return new Date(this.joinedAtUnix);
@@ -243,7 +275,10 @@ export class Guild extends BaseStructure {
   }
 
   get maxBitrate(): number {
-    const max = MAX_BITRATE;
+    let max = MAX_BITRATE;
+    if (this.canHaveVipRegions) {
+      max = (<any> PremiumGuildLimits)[PremiumGuildTiers.TIER_3].bitrate;
+    }
     return Math.max(max, (<any> PremiumGuildLimits)[this.premiumTier].bitrate);
   }
 
