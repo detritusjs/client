@@ -186,6 +186,7 @@ export function regex(
   if (regex === undefined) {
     throw new Error(`Unknown regex type: ${type}`);
   }
+  regex.lastIndex = 0;
 
   const payload: DiscordRegexPayload = {
     match: {regex, type},
@@ -233,6 +234,7 @@ export function regex(
       break;
     }
   }
+  regex.lastIndex = 0;
   return payload;
 }
 
