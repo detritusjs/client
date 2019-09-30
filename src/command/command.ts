@@ -70,7 +70,7 @@ export interface CommandOptions extends ArgumentOptions {
   args?: Array<ArgumentOptions>,
   disableDm?: boolean,
   disableDmReply?: boolean,
-  extras?: {[key: string]: any},
+  metadata?: {[key: string]: any},
   name: string,
   priority?: number,
   ratelimit?: boolean | CommandRatelimitOptions | null,
@@ -102,7 +102,7 @@ export class Command {
   args: ArgumentParser;
   disableDm: boolean = false;
   disableDmReply: boolean = false;
-  extras: {[key: string]: any};
+  metadata: {[key: string]: any} = {};
   priority: number = 0;
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
@@ -128,7 +128,7 @@ export class Command {
     this.args = new ArgumentParser(options.args);
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
-    this.extras = Object.assign({}, options.extras);
+    this.metadata = Object.assign(this.metadata, options.metadata);
     this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;
 
@@ -155,16 +155,16 @@ export class Command {
       commandClient: {enumerable: false, writable: false},
     });
 
-    this.onBefore = options.onBefore;
-    this.onBeforeRun = options.onBeforeRun;
-    this.onCancel = options.onCancel;
-    this.onCancelRun = options.onCancelRun;
-    this.onError = options.onError;
-    this.run = options.run;
-    this.onRatelimit = options.onRatelimit;
-    this.onRunError = options.onRunError;
-    this.onSuccess = options.onSuccess;
-    this.onTypeError = options.onTypeError;
+    this.onBefore = options.onBefore || this.onBefore;
+    this.onBeforeRun = options.onBeforeRun || this.onBeforeRun;
+    this.onCancel = options.onCancel || this.onCancel;
+    this.onCancelRun = options.onCancelRun || this.onCancelRun;
+    this.onError = options.onError || this.onError;
+    this.run = options.run || this.run;
+    this.onRatelimit = options.onRatelimit || this.onRatelimit;
+    this.onRunError = options.onRunError || this.onRunError;
+    this.onSuccess = options.onSuccess || this.onSuccess;
+    this.onTypeError = options.onTypeError || this.onTypeError;
   }
 
   get aliases(): Array<string> {
