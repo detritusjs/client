@@ -244,6 +244,11 @@ export class Context {
   editOrReply(options: RequestTypes.EditMessage | string = {}) {
     const message = this.response;
     if (message) {
+      if (typeof(options) === 'string') {
+        options = {content: options, embed: null};
+      } else {
+        options = Object.assign({content: '', embed: null}, options);
+      }
       return message.edit(options);
     }
     return this.message.reply(options);
