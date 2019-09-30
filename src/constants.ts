@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.7.19',
+  VERSION: '0.7.20',
 });
 
 export type Snowflake = number | string;
@@ -469,6 +469,72 @@ export const LobbyErrors = Object.freeze({
 export const LobbyTypes = Object.freeze({
   PRIVATE: 1,
   PUBLIC: 2,
+});
+
+export const Locales = Object.freeze({
+  BULGARIAN: 'bg',
+  CHINESE_SIMPLIFIED: 'zh-CN',
+  CHINESE_TRADITIONAL: 'zh-TW',
+  CROATIAN: 'hr',
+  CZECH: 'cs',
+  DANISH: 'da',
+  DUTCH: 'nl',
+  ENGLISH_USA: 'en-US',
+  FINNISH: 'fi',
+  FRENCH: 'fr',
+  GERMAN: 'de',
+  GREEK: 'el',
+  HUNGARIAN: 'hu',
+  ITALIAN: 'it',
+  KOREAN: 'ko',
+  JAPANESE: 'ja',
+  LITHUANIAN: 'lt',
+  NORWEGIAN: 'no',
+  POLISH: 'pl',
+  PORTUGUESE: 'pt-PT',
+  PORTUGUESE_BRAZILIAN: 'pt-BR',
+  ROMANIAN: 'ro',
+  RUSSIAN: 'ru',
+  SLOVAK: 'sk',
+  SPANISH: 'es-ES',
+  SWEDISH: 'sv-SE',
+  THAI: 'th',
+  TURKISH: 'tr',
+  UKRAINIAN: 'uk',
+  VIETNAMESE: 'vi',
+});
+
+export const LocalesText = Object.freeze({
+  [Locales.BULGARIAN]: 'Bulgarian',
+  [Locales.CHINESE_SIMPLIFIED]: 'Chinese Simplified',
+  [Locales.CHINESE_TRADITIONAL]: 'Traditional Chinese',
+  [Locales.CROATIAN]: 'Croatian',
+  [Locales.CZECH]: 'Czech',
+  [Locales.DANISH]: 'Danish',
+  [Locales.DUTCH]: 'Dutch',
+  [Locales.ENGLISH_USA]: 'English, USA',
+  [Locales.FINNISH]: 'Finnish',
+  [Locales.FRENCH]: 'French',
+  [Locales.GERMAN]: 'German',
+  [Locales.GREEK]: 'Greek',
+  [Locales.HUNGARIAN]: 'Hungarian',
+  [Locales.ITALIAN]: 'Italian',
+  [Locales.JAPANESE]: 'Japanese',
+  [Locales.KOREAN]: 'Korean',
+  [Locales.LITHUANIAN]: 'Lithuanian',
+  [Locales.NORWEGIAN]: 'Norwegian',
+  [Locales.POLISH]: 'Polish',
+  [Locales.PORTUGUESE]: 'Portuguese',
+  [Locales.PORTUGUESE_BRAZILIAN]: 'Portuguese, Brazilian',
+  [Locales.ROMANIAN]: 'Romanian',
+  [Locales.RUSSIAN]: 'Russian',
+  [Locales.SLOVAK]: 'Slovak',
+  [Locales.SPANISH]: 'Spanish',
+  [Locales.SWEDISH]: 'Swedish',
+  [Locales.THAI]: 'Thai',
+  [Locales.TURKISH]: 'Turkish',
+  [Locales.UKRAINIAN]: 'Ukrainian',
+  [Locales.VIETNAMESE]: 'Vietnamese',
 });
 
 export const MessageCacheTypes = Object.freeze({

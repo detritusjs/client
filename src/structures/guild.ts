@@ -12,17 +12,19 @@ import { RolesOptions } from '../collections/roles';
 import {
   DiscordKeys,
   GuildFeatures,
+  Locales,
+  LocalesText,
+  MfaLevels,
+  Permissions,
+  PremiumGuildLimits,
+  PremiumGuildTierNames,
+  SystemChannelFlags,
   DEFAULT_MAX_MEMBERS,
   DEFAULT_MAX_PRESENCES,
   MAX_ATTACHMENT_SIZE,
   MAX_BITRATE,
   MAX_EMOJI_SLOTS,
   MAX_EMOJI_SLOTS_MORE,
-  MfaLevels,
-  Permissions,
-  PremiumGuildLimits,
-  PremiumGuildTierNames,
-  SystemChannelFlags,
 } from '../constants';
 import { GatewayRawEvents } from '../gateway/rawevents';
 import {
@@ -144,7 +146,7 @@ export class Guild extends BaseStructure {
   mfaLevel: number = 0;
   name: string = '';
   ownerId: string = '';
-  preferredLocale: string = 'en-US';
+  preferredLocale: string = Locales.ENGLISH_USA;
   premiumSubscriptionCount: number = 0;
   premiumTier: number = 0;
   region: string = '';
@@ -279,6 +281,13 @@ export class Guild extends BaseStructure {
 
   get owner(): null | User {
     return this.client.users.get(this.ownerId) || null;
+  }
+
+  get preferredLocaleText(): string {
+    if (this.preferredLocale in LocalesText) {
+      return LocalesText[this.preferredLocale];
+    }
+    return '';
   }
 
   get presences(): BaseCollection<string, Presence> {
