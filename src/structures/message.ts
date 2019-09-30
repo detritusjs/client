@@ -8,6 +8,8 @@ import { BaseCollection, emptyBaseCollection } from '../collections/basecollecti
 import { BaseSet } from '../collections/baseset';
 import {
   DiscordKeys,
+  DiscordRegex,
+  DiscordRegexNames,
   MessageCacheTypes,
   MessageFlags,
   MessageTypes,
@@ -16,7 +18,7 @@ import {
   PremiumGuildTierNames,
   SystemMessages,
 } from '../constants';
-import { Snowflake } from '../utils';
+import { regex, Markup, Snowflake } from '../utils';
 
 import {
   BaseStructure,
@@ -310,6 +312,79 @@ export class Message extends BaseStructure {
 
   get timestamp(): Date {
     return new Date(this.timestampUnix);
+  }
+
+  convertContent(
+    options: {
+      escapeMentions?: boolean,
+      guildSpecific?: boolean,
+      nick?: boolean,
+      text?: string,
+    } = {},
+  ): string {
+    const escape = !!(options.escapeMentions || options.escapeMentions === undefined);
+    const guildSpecific = !!(options.guildSpecific || options.guildSpecific === undefined);
+    const nick = !!(options.nick || options.nick === undefined);
+
+    let content = options.text || this.systemContent;
+    content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_CHANNEL], (match, id) => {
+      if (this.mentionChannels.has(id)) {
+        const channel = <Channel> this.mentionChannels.get(id);
+        return channel.toString();
+      } else {
+        if (this.client.channels.has(id)) {
+          const channel = <Channel> this.client.channels.get(id);
+          if (guildSpecific && this.guildId) {
+            if (this.guildId === channel.guildId) {
+              return channel.toString();
+            }
+          } else {
+            return channel.toString();
+          }
+        }
+      }
+      return '#deleted-channel';
+    });
+
+    const guild = this.guild;
+    content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_ROLE], (match, id) => {
+      if (guild && guild.roles.has(id)) {
+        const role = <Role> guild.roles.get(id);
+        return `@${role}`;
+      }
+      return '@deleted-role';
+    });
+
+    content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_USER], (match, mentionType, id) => {
+      if (this.mentions.has(id)) {
+        const memberOrUser = <Member | User> this.mentions.get(id);
+        if (nick) {
+          return `@${memberOrUser.name}`;
+        }
+        return `@${memberOrUser}`;
+      } else {
+        if (guildSpecific && this.guildId) {
+          if (this.client.members.has(this.guildId, id)) {
+            const member = <Member> this.client.members.get(this.guildId, id);
+            if (nick) {
+              return `@${member.name}`;
+            }
+            return `@${member}`;
+          }
+        } else {
+          if (this.client.users.has(id)) {
+            const user = <User> this.client.users.get(id);
+            return `@${user}`;
+          }
+        }
+      }
+      return match;
+    });
+
+    if (escape) {
+      content = Markup.escape.mentions(content);
+    }
+    return content;
   }
 
   hasFlag(flag: number): boolean {

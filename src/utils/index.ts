@@ -18,10 +18,12 @@ import {
 import { Message } from '../structures/message';
 
 
+import * as Markup from './markup';
 import * as PermissionTools from './permissions';
 
 export {
   guildIdToShardId,
+  Markup,
   PermissionTools,
   Snowflake,
 };
@@ -156,66 +158,80 @@ export function intToRGB(int: number): {
 }
 
 
-export interface RegexPayload {
+export interface DiscordRegexMatch {
   animated?: boolean,
   id?: string,
   language?: string,
+  matched: string,
+  mentionType?: string,
+  name?: string,
+  text?: string,
+}
+
+export interface DiscordRegexPayload {
   match: {
     regex: RegExp,
     type: string,
   },
-  name?: string,
-  text?: string,
+  matches: Array<DiscordRegexMatch>,
 }
 
 export function regex(
   type: string,
   content: string,
-): null | RegexPayload {
+  onlyFirst: boolean = false,
+): DiscordRegexPayload {
   type = String(type || '').toUpperCase();
   const regex = (<any> DiscordRegex)[type];
   if (regex === undefined) {
     throw new Error(`Unknown regex type: ${type}`);
   }
-  const match = regex.exec(content);
-  if (!match) {
-    return null;
-  }
 
-  const payload: RegexPayload = {
-    match: {
-      regex,
-      type,
-    },
+  const payload: DiscordRegexPayload = {
+    match: {regex, type},
+    matches: [],
   };
-  switch (type) {
-    case DiscordRegexNames.EMOJI: {
-      payload.name = <string> match[1];
-      payload.id = <string> match[2];
-      payload.animated = content.startsWith('<a:');
-    }; break;
-    case DiscordRegexNames.MENTION_CHANNEL:
-    case DiscordRegexNames.MENTION_ROLE:
-    case DiscordRegexNames.MENTION_USER: {
-      payload.id = <string> match[1];
-    }; break;
-    case DiscordRegexNames.TEXT_CODEBLOCK: {
-      payload.language = <string> match[2];
-      payload.text = <string> match[3];
-    }; break;
-    case DiscordRegexNames.TEXT_BOLD:
-    case DiscordRegexNames.TEXT_CODESTRING:
-    case DiscordRegexNames.TEXT_ITALICS:
-    case DiscordRegexNames.TEXT_SNOWFLAKE:
-    case DiscordRegexNames.TEXT_SPOILER:
-    case DiscordRegexNames.TEXT_STRIKE:
-    case DiscordRegexNames.TEXT_UNDERLINE:
-    case DiscordRegexNames.TEXT_URL: {
-      payload.text = <string> match[1];
-    }; break;
-    default: {
-      throw new Error(`Unknown regex type: ${type}`);
-    };
+
+  let match: RegExpExecArray | null = null;
+  while (match = regex.exec(content)) {
+    const result: DiscordRegexMatch = {matched: match[0]};
+    switch (type) {
+      case DiscordRegexNames.EMOJI: {
+        result.name = <string> match[1];
+        result.id = <string> match[2];
+        result.animated = content.startsWith('<a:');
+      }; break;
+      case DiscordRegexNames.MENTION_CHANNEL:
+      case DiscordRegexNames.MENTION_ROLE: {
+        result.id = <string> match[1];
+      }; break;
+      case DiscordRegexNames.MENTION_USER: {
+        result.id = <string> match[2];
+        result.mentionType = <string> match[1];
+      }; break;
+      case DiscordRegexNames.TEXT_CODEBLOCK: {
+        result.language = <string> match[2];
+        result.text = <string> match[3];
+      }; break;
+      case DiscordRegexNames.TEXT_BOLD:
+      case DiscordRegexNames.TEXT_CODESTRING:
+      case DiscordRegexNames.TEXT_ITALICS:
+      case DiscordRegexNames.TEXT_SNOWFLAKE:
+      case DiscordRegexNames.TEXT_SPOILER:
+      case DiscordRegexNames.TEXT_STRIKE:
+      case DiscordRegexNames.TEXT_UNDERLINE:
+      case DiscordRegexNames.TEXT_URL: {
+        result.text = <string> match[1];
+      }; break;
+      default: {
+        throw new Error(`Unknown regex type: ${type}`);
+      };
+    }
+    payload.matches.push(result);
+
+    if (onlyFirst) {
+      break;
+    }
   }
   return payload;
 }

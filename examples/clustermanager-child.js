@@ -20,9 +20,9 @@ client.add({
   onBefore: (context) => context.user.isClientOwner,
   onCancel: (context) => context.reply(`${context.user.mention}, you're not this bot's owner or part of it's team.`),
   run: async (context, args) => {
-    const match = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, args.code);
-    if (match !== null) {
-      args.code = match.text;
+    const { matches } = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, args.code);
+    if (matches.length) {
+      args.code = matches[0].text;
     }
 
     let language = 'js';

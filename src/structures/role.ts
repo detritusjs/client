@@ -124,6 +124,6 @@ export class Role extends BaseStructure {
   }
 
   toString(): string {
-    return this.mention;
+    return this.name;
   }
 }

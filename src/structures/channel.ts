@@ -100,7 +100,7 @@ export class ChannelBase extends BaseStructure {
   isPartial: boolean = false;
   lastMessageId?: null | string;
   lastPinTimestampUnix: number = 0;
-  name: string = '';
+  name!: string;
   nsfw: boolean = false;
   parentId?: null | string;
   position: number = -1;
@@ -529,7 +529,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   toString(): string {
-    return (this.isDmSingle) ? 'DM Channel' : `#${this.name}`;
+    return `#${this.name}`;
   }
 }
 
@@ -555,6 +555,7 @@ const keysChannelDm = new BaseSet<string>([
  */
 export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
+  _name: string = '';
 
   lastMessageId?: null | string;
 
@@ -588,6 +589,13 @@ export class ChannelDM extends ChannelBase {
       }
     }
     return collection;
+  }
+
+  get name(): string {
+    if (!this._name) {
+      return this.recipients.join(', ') || 'DM Channel';
+    }
+    return this._name;
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
@@ -694,6 +702,9 @@ export class ChannelDM extends ChannelBase {
         case DiscordKeys.LAST_PIN_TIMESTAMP: {
           this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
         }; return;
+        case DiscordKeys.NAME: {
+          this._name = value;
+        }; return;
         case DiscordKeys.NICKS: {
           if (Object.keys(value).length) {
             if (!this._nicks) {
@@ -770,7 +781,6 @@ export class ChannelDMGroup extends ChannelDM {
 
   applicationId?: string;
   icon: null | string = null;
-  name: string = '';
   ownerId: string = '';
 
   constructor(client: ShardClient, data: BaseStructureData) {

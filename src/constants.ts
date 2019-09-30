@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.7.23',
+  VERSION: '0.8.0',
 });
 
 export type Snowflake = number | string;
@@ -354,19 +354,19 @@ export const DiscordRegexNames = Tools.normalize({
 });
 
 export const DiscordRegex = Object.freeze({
-  [DiscordRegexNames.EMOJI]: /^<a?:(\w+):(\d+)>$/,
-  [DiscordRegexNames.MENTION_CHANNEL]: /^<#(\d+)>$/,
-  [DiscordRegexNames.MENTION_ROLE]: /^<@&(\d+)>$/,
-  [DiscordRegexNames.MENTION_USER]: /^<@!?(\d+)>$/,
-  [DiscordRegexNames.TEXT_BOLD]: /\*\*([\s\S]+?)\*\*/,
-  [DiscordRegexNames.TEXT_CODEBLOCK]: /```(([a-z0-9-]+?)\n+)?\n*([^]+?)\n*```/i,
-  [DiscordRegexNames.TEXT_CODESTRING]: /`([\s\S]+?)`/,
-  [DiscordRegexNames.TEXT_ITALICS]: /_([\s\S]+?)_|\*([\s\S]+?)\*/,
-  [DiscordRegexNames.TEXT_SNOWFLAKE]: /^(\d+)$/,
-  [DiscordRegexNames.TEXT_SPOILER]: /\|\|([\s\S]+?)\|\|/,
-  [DiscordRegexNames.TEXT_STRIKE]: /~~([\s\S]+?)~~(?!_)/,
-  [DiscordRegexNames.TEXT_UNDERLINE]: /__([\s\S]+?)__/,
-  [DiscordRegexNames.TEXT_URL]: /^((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s])$/,
+  [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/g,
+  [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/g,
+  [DiscordRegexNames.MENTION_ROLE]: /<@&(\d+)>/g,
+  [DiscordRegexNames.MENTION_USER]: /<@(!?)(\d+)>/g,
+  [DiscordRegexNames.TEXT_BOLD]: /\*\*([\s\S]+?)\*\*/g,
+  [DiscordRegexNames.TEXT_CODEBLOCK]: /```(([a-z0-9-]+?)\n+)?\n*([^]+?)\n*```/gi,
+  [DiscordRegexNames.TEXT_CODESTRING]: /`([\s\S]+?)`/g,
+  [DiscordRegexNames.TEXT_ITALICS]: /_([\s\S]+?)_|\*([\s\S]+?)\*/g,
+  [DiscordRegexNames.TEXT_SNOWFLAKE]: /(\d+)/g,
+  [DiscordRegexNames.TEXT_SPOILER]: /\|\|([\s\S]+?)\|\|/g,
+  [DiscordRegexNames.TEXT_STRIKE]: /~~([\s\S]+?)~~(?!_)/g,
+  [DiscordRegexNames.TEXT_UNDERLINE]: /__([\s\S]+?)__/g,
+  [DiscordRegexNames.TEXT_URL]: /((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s])/g,
 });
 
 export const Distributors = Object.freeze({
