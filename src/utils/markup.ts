@@ -2,6 +2,7 @@ export const Strings = Object.freeze({
   BOLD: '**',
   CODEBLOCK: '```',
   CODESTRING: '`',
+  ESCAPE: '\\',
   ITALICS: '_',
   SPOILER: '||',
   STRIKE: '~~',
@@ -11,12 +12,25 @@ export const Strings = Object.freeze({
 export const Regexes = Object.freeze({
   [Strings.BOLD]: /\*\*/g,
   [Strings.CODEBLOCK]: new RegExp(Strings.CODEBLOCK, 'g'),
-  [Strings.ITALICS]: /_|\*/g,
+  [Strings.CODESTRING]: new RegExp(Strings.CODESTRING, 'g'),
+  [Strings.ESCAPE]: /\\/g,
+  [Strings.ITALICS]: /(_|\*)/g,
   [Strings.SPOILER]: /\|\|/g,
   [Strings.STRIKE]: new RegExp(Strings.STRIKE, 'g'),
   [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
   EVERYONE: /@(everyone|here)/g,
   MENTION: /<@([!&]?[0-9]{16,21})>/g,
+});
+
+export const Replacements = Object.freeze({
+  [Strings.BOLD]: '\\*\\*',
+  [Strings.CODEBLOCK]: '``\u200b`',
+  [Strings.CODESTRING]: '\\`',
+  [Strings.ESCAPE]: '\\\\',
+  [Strings.ITALICS]: '\\$1',
+  [Strings.SPOILER]: '\\|\\|',
+  [Strings.STRIKE]: '\\~\\~',
+  [Strings.UNDERLINE]: '\\_\\_',
 });
 
 
@@ -45,7 +59,7 @@ const defaultMarkupFilter: MarkupFilter = Object.freeze({
 
 const defaultBoldFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
   limit: 1996,
-  replacement: '\*\*',
+  replacement: Replacements[Strings.BOLD],
 }));
 
 export function bold(text: string, options: MarkupFilterOptions = {}): string {
@@ -66,7 +80,7 @@ export interface CodeblockFilterOptions extends MarkupFilterOptions {
 const defaultCodeblockFilter: CodeblockFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
   language: '',
   limit: 1990,
-  replacement: '``\u200b`',
+  replacement: Replacements[Strings.CODEBLOCK],
 }));
 
 export function codeblock(text: string, options: CodeblockFilterOptions = {}): string {
@@ -80,14 +94,21 @@ export function codeblock(text: string, options: CodeblockFilterOptions = {}): s
 
 
 
-export function codestring(text: string): string {
-  return text;
+const defaultCodestringFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
+  limit: 1998,
+  replacement: Replacements[Strings.CODESTRING],
+}));
+
+export function codestring(text: string, options: MarkupFilterOptions = {}): string {
+  text = escape.codestring(text, options);
+  return `\`${text}\``;
 }
+
 
 
 const defaultItalicsFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
   limit: 1998,
-  replacement: '\$1',
+  replacement: Replacements[Strings.ITALICS],
 }));
 
 export function italics(text: string, options: MarkupFilterOptions = {}): string {
@@ -98,7 +119,7 @@ export function italics(text: string, options: MarkupFilterOptions = {}): string
 
 const defaultSpoilerFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
   limit: 1996,
-  replacement: '\\|\\|',
+  replacement: Replacements[Strings.SPOILER],
 }));
 
 export function spoiler(text: string, options: MarkupFilterOptions = {}): string {
@@ -110,7 +131,7 @@ export function spoiler(text: string, options: MarkupFilterOptions = {}): string
 
 const defaultStrikeFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
   limit: 1996,
-  replacement: '\~\~',
+  replacement: Replacements[Strings.STRIKE],
 }));
 
 export function strike(text: string, options: MarkupFilterOptions = {}): string {
@@ -122,7 +143,7 @@ export function strike(text: string, options: MarkupFilterOptions = {}): string 
 
 const defaultUnderlineFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
   limit: 1996,
-  replacement: '\_\_',
+  replacement: Replacements[Strings.UNDERLINE],
 }));
 
 export function underline(text: string, options: MarkupFilterOptions = {}): string {
@@ -143,9 +164,26 @@ export function trueSlice(
 
 
 export const escape = Object.freeze({
+  all: (text: string, options: MarkupFilterOptions = {}): string => {
+    const filter: MarkupFilter = Object.assign({}, defaultMarkupFilter, options);
+
+    text = text.trim();
+    text = text.replace(Regexes[Strings.ESCAPE], Replacements[Strings.ESCAPE]);
+    text = text.replace(Regexes[Strings.ITALICS], Replacements[Strings.ITALICS]);
+    text = text.replace(Regexes[Strings.BOLD], Replacements[Strings.BOLD]);
+    text = text.replace(Regexes[Strings.CODESTRING], Replacements[Strings.CODESTRING]);
+    text = text.replace(Regexes[Strings.SPOILER], Replacements[Strings.SPOILER]);
+    text = text.replace(Regexes[Strings.STRIKE], Replacements[Strings.STRIKE]);
+    text = text.replace(Regexes[Strings.UNDERLINE], Replacements[Strings.UNDERLINE]);
+
+    if (filter.mentions) {
+      text = escape.mentions(text, filter.mentionEscapeCharacter);
+    }
+    return trueSlice(text, filter.limit);
+  },
   bold: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultBoldFilter, options);
-  
+
     text = text.trim().replace(Regexes[Strings.BOLD], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -165,9 +203,18 @@ export const escape = Object.freeze({
     }
     return trueSlice(text, filter.limit);
   },
+  codestring: (text: string, options: MarkupFilterOptions = {}): string => {
+    const filter: MarkupFilter = Object.assign({}, defaultCodestringFilter, options);
+
+    text = text.trim().replace(Regexes[Strings.CODESTRING], filter.replacement);
+    if (filter.mentions) {
+      text = escape.mentions(text, filter.mentionEscapeCharacter);
+    }
+    return trueSlice(text, filter.limit);
+  },
   italics: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultItalicsFilter, options);
-  
+
     text = text.trim().replace(Regexes[Strings.ITALICS], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -181,7 +228,7 @@ export const escape = Object.freeze({
   },
   spoiler: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultSpoilerFilter, options);
-  
+
     text = text.trim().replace(Regexes[Strings.SPOILER], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -190,7 +237,7 @@ export const escape = Object.freeze({
   },
   strike: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultStrikeFilter, options);
-  
+
     text = text.trim().replace(Regexes[Strings.STRIKE], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -199,7 +246,7 @@ export const escape = Object.freeze({
   },
   underline: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultUnderlineFilter, options);
-  
+
     text = text.trim().replace(Regexes[Strings.UNDERLINE], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);

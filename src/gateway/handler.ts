@@ -629,6 +629,10 @@ export class GatewayDispatchHandler {
       isNew = true;
     }
 
+    if (!isUnavailable) {
+      guild.left = true;
+    }
+
     if (!isNew || !this.client.guilds.enabled) {
       for (let [channelId, channel] of this.client.channels) {
         if (channel.guildId === guildId) {

@@ -140,6 +140,7 @@ export class Guild extends BaseStructure {
   joinedAtUnix: number = 0;
   large: boolean = false;
   lazy: boolean = false;
+  left: boolean = false;
   maxMembers: number = DEFAULT_MAX_MEMBERS;
   maxPresences: number = DEFAULT_MAX_PRESENCES;
   memberCount: number = 0;
