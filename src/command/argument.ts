@@ -38,6 +38,8 @@ export class Argument {
   type: ArgumentConverter | string = CommandArgumentTypes.STRING;
 
   constructor(options: ArgumentOptions) {
+    options = Object.assign({}, options);
+
     if (options.prefix !== undefined) {
       if (options.prefixes === undefined) {
         options.prefixes = [];

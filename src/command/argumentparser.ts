@@ -29,10 +29,6 @@ export class ArgumentParser {
     for (let arg of args) {
       this.args.push(new Argument(arg));
     }
-
-    Object.defineProperties(this, {
-      args: {writable: false},
-    });
   }
 
   async parse(
