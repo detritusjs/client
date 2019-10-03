@@ -15,8 +15,6 @@ import { AuthTypes, ClientEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants
 import { GatewayClientEvents } from './gateway/clientevents';
 
 
-export type ShardsCollection = BaseCollection<number, ShardClient>;
-
 export interface ClusterClientOptions extends ShardClientOptions {
   shardCount?: number,
   shards?: [number, number],
@@ -38,7 +36,7 @@ export class ClusterClient extends EventEmitter {
   shardCount: number = 0;
   shardEnd: number = -1;
   shardStart: number = 0;
-  shards: ShardsCollection = new BaseCollection();
+  shards = new BaseCollection<number, ShardClient>();
   shardOptions: ShardClientOptions = {};
 
   constructor(

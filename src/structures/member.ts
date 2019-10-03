@@ -257,7 +257,24 @@ export class Member extends UserMixin {
     return PermissionTools.checkPermissions(this.permissions, permissions);
   }
 
-  // canEdit(member: Member) (check the heirarchy)
+  /* just checks who has the higher role, doesn't check permissions */
+  canEdit(member: Member): boolean {
+    if (this.isOwner) {
+      return true;
+    }
+    if (member.isOwner) {
+      return false;
+    }
+    if (this.id === member.id) {
+      return true;
+    }
+    const us = this.highestRole;
+    const them = member.highestRole;
+    if (us && them) {
+      return them.position < us.position;
+    }
+    return false;
+  }
 
   permissionsIn(channelId: ChannelGuildBase | string): number {
     let channel: ChannelGuildBase;

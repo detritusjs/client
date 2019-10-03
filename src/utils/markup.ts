@@ -7,6 +7,7 @@ export const Strings = Object.freeze({
   SPOILER: '||',
   STRIKE: '~~',
   UNDERLINE: '__',
+  URL: 'URL',
 });
 
 export const Regexes = Object.freeze({
@@ -18,6 +19,7 @@ export const Regexes = Object.freeze({
   [Strings.SPOILER]: /\|\|/g,
   [Strings.STRIKE]: new RegExp(Strings.STRIKE, 'g'),
   [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
+  [Strings.URL]: /\)/g,
   EVERYONE: /@(everyone|here)/g,
   MENTION: /<@([!&]?[0-9]{16,21})>/g,
 });
@@ -152,6 +154,13 @@ export function underline(text: string, options: MarkupFilterOptions = {}): stri
 }
 
 
+export function url(text: string, url: string): string {
+  url = escape.url(url);
+  return `[${text}](${url})`;
+}
+
+
+
 export function trueSlice(
   text: string,
   limit?: number,
@@ -252,5 +261,11 @@ export const escape = Object.freeze({
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
     return trueSlice(text, filter.limit);
+  },
+  url: (text: string, options: MarkupFilterOptions = {}): string => {
+    text = text.trim().replace(Regexes[Strings.URL], (match: string) => {
+      return '%' + match.charCodeAt(0).toString(16);
+    });
+    return text;
   },
 });
