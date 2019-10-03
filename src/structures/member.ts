@@ -48,6 +48,7 @@ export class Member extends UserMixin {
   guildId: string = '';
   hoistedRoleId: null | string = null;
   joinedAtUnix: number = 0;
+  left: boolean = false;
   mute: boolean = false;
   nick: null | string = null;
   premiumSinceUnix: number = 0;

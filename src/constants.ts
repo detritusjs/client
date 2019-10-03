@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.8.5',
+  VERSION: '0.8.6',
 });
 
 export type Snowflake = number | string;
@@ -537,12 +537,6 @@ export const LocalesText = Object.freeze({
   [Locales.TURKISH]: 'Turkish',
   [Locales.UKRAINIAN]: 'Ukrainian',
   [Locales.VIETNAMESE]: 'Vietnamese',
-});
-
-export const MessageCacheTypes = Object.freeze({
-  CHANNEL: 'channel',
-  GUILD: 'guild',
-  USER: 'user',
 });
 
 export const MessageEmbedTypes = Object.freeze({
@@ -1489,5 +1483,3 @@ export const DEFAULT_GROUP_DM_AVATARS: ReadonlyArray<string> = Object.freeze([
 ]);
 
 export const IMAGE_FORMATS: ReadonlyArray<string> = Object.freeze(Object.values(ImageFormats));
-
-export const MESSAGE_CACHE_TYPES: ReadonlyArray<string> = Object.freeze(Object.values(MessageCacheTypes));

@@ -3,7 +3,6 @@ import {
   BaseClientCollectionOptions,
 } from './basecollection';
 
-import { Presence } from '../structures/presence';
 import { User } from '../structures/user';
 
 

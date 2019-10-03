@@ -175,6 +175,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildDelete {
+    channels: BaseCollection<string, Channel> | null,
     guild: Guild | null,
     guildId: string,
     isUnavailable: boolean,
@@ -205,6 +206,7 @@ export namespace GatewayClientEvents {
   export interface GuildMemberRemove {
     guildId: string,
     isDuplicate: boolean,
+    member: Member | null,
     user: User,
     userId: string,
   }

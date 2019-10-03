@@ -10,7 +10,6 @@ import {
   DiscordKeys,
   DiscordRegex,
   DiscordRegexNames,
-  MessageCacheTypes,
   MessageFlags,
   MessageTypes,
   MessageTypesDeletable,
@@ -104,6 +103,7 @@ export class Message extends BaseStructure {
   call?: MessageCall;
   channelId: string = '';
   content: string = '';
+  deleted: boolean = false;
   editedTimestampUnix: number = 0;
   flags: number = 0;
   guildId?: string;
@@ -140,21 +140,6 @@ export class Message extends BaseStructure {
       return this._attachments;
     }
     return emptyBaseCollection;
-  }
-
-  get cacheKey(): null | string {
-    switch (this.client.messages.type) {
-      case MessageCacheTypes.CHANNEL: {
-        return this.channelId;
-      };
-      case MessageCacheTypes.GUILD: {
-        return this.guildId || this.channelId;
-      };
-      case MessageCacheTypes.USER: {
-        return this.author.id;
-      };
-    }
-    return null;
   }
 
   get canDelete(): boolean {

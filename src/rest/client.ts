@@ -10,7 +10,7 @@ const { RestEvents } = Constants;
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ClientEvents, MessageCacheTypes } from '../constants';
+import { ClientEvents } from '../constants';
 
 import {
   Application,
@@ -347,11 +347,11 @@ export class RestClient extends Client {
     const data = await super.editMessage.call(this, channelId, messageId, options);
     let message: Message;
     if (this.client.messages.has(data.id)) {
-      message = <Message> this.client.messages.get(null, data.id);
+      message = <Message> this.client.messages.get(data.id);
       message.merge(data);
+      // should we really merge? the message_update event wont have differences then
     } else {
       message = new Message(this.client, data);
-      // should we really merge? the message_update event wont have differences then
       this.client.messages.insert(message);
     }
     return message;
@@ -819,22 +819,9 @@ export class RestClient extends Client {
       }
     }
 
-    let cacheKey: null | string = null;
-    switch (this.client.messages.type) {
-      case MessageCacheTypes.CHANNEL: {
-        cacheKey = channelId;
-      }; break;
-      case MessageCacheTypes.GUILD: {
-        cacheKey = guildId || channelId;
-      }; break;
-      case MessageCacheTypes.USER: {
-        cacheKey = null;
-      }; break;
-    }
-
     let message: Message;
-    if (this.client.messages.has(cacheKey, data.id)) {
-      message = <Message> this.client.messages.get(cacheKey, data.id);
+    if (this.client.messages.has(data.id)) {
+      message = <Message> this.client.messages.get(data.id);
       message.merge(data);
     } else {
       data.guild_id = guildId;
@@ -860,24 +847,11 @@ export class RestClient extends Client {
       }
     }
 
-    let cacheKey: null | string = null;
-    switch (this.client.messages.type) {
-      case MessageCacheTypes.CHANNEL: {
-        cacheKey = channelId;
-      }; break;
-      case MessageCacheTypes.GUILD: {
-        cacheKey = guildId || channelId;
-      }; break;
-      case MessageCacheTypes.USER: {
-        cacheKey = null;
-      }; break;
-    }
-
     const collection = new BaseCollection<string, Message>();
     for (let raw of data) {
       let message: Message;
-      if (this.client.messages.has(cacheKey, raw.id)) {
-        message = <Message> this.client.messages.get(cacheKey, raw.id);
+      if (this.client.messages.has(raw.id)) {
+        message = <Message> this.client.messages.get(raw.id);
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -956,24 +930,11 @@ export class RestClient extends Client {
       }
     }
 
-    let cacheKey: null | string = null;
-    switch (this.client.messages.type) {
-      case MessageCacheTypes.CHANNEL: {
-        cacheKey = channelId;
-      }; break;
-      case MessageCacheTypes.GUILD: {
-        cacheKey = guildId || channelId;
-      }; break;
-      case MessageCacheTypes.USER: {
-        cacheKey = null;
-      }; break;
-    }
-
     const collection = new BaseCollection<string, Message>();
     for (let raw of data) {
       let message: Message;
-      if (this.client.messages.has(cacheKey, raw.id)) {
-        message = <Message> this.client.messages.get(cacheKey, raw.id);
+      if (this.client.messages.has(raw.id)) {
+        message = <Message> this.client.messages.get(raw.id);
         message.merge(raw);
       } else {
         raw.guild_id = guildId;

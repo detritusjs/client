@@ -94,6 +94,7 @@ export class ChannelBase extends BaseStructure {
 
   applicationId?: string;
   bitrate: number = 0;
+  deleted: boolean = false;
   guildId: string = '';
   id: string = '';
   icon?: null | string;
@@ -118,11 +119,6 @@ export class ChannelBase extends BaseStructure {
     if (merge) {
       this.merge(data);
     }
-    Object.defineProperties(this, {
-      _nicks: {enumerable: false, writable: true},
-      _permissionOverwrites: {enumerable: false, writable: true},
-      _recipients: {enumerable: false, writable: true},
-    });
   }
 
   get canAddReactions(): boolean {
@@ -579,9 +575,6 @@ export class ChannelDM extends ChannelBase {
   }
 
   get messages(): BaseCollection<string, Message> {
-    if (this.client.messages.has(this.id)) {
-      return <BaseCollection<string, Message>> this.client.messages.get(this.id);
-    }
     const collection = new BaseCollection<string, Message>();
     for (let [messageId, message] of this.client.messages) {
       if (message.channelId === this.id) {
@@ -1202,9 +1195,6 @@ export class ChannelGuildText extends ChannelGuildBase {
   }
 
   get messages(): BaseCollection<string, Message> {
-    if (this.client.messages.has(this.id)) {
-      return <BaseCollection<string, Message>> this.client.messages.get(this.id);
-    }
     const collection = new BaseCollection<string, Message>();
     for (let [messageId, message] of this.client.messages) {
       if (message.channelId === this.id) {

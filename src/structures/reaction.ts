@@ -2,7 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, MessageCacheTypes } from '../constants';
+import { DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -67,20 +67,7 @@ export class Reaction extends BaseStructure {
   }
 
   get message(): Message | null {
-    let cacheKey: null | string = null;
-    switch (this.client.messages.type) {
-      case MessageCacheTypes.CHANNEL: {
-        cacheKey = this.channelId;
-      }; break;
-      case MessageCacheTypes.GUILD: {
-        cacheKey = this.guildId || this.channelId;
-      }; break;
-      case MessageCacheTypes.USER: {
-        cacheKey = null;
-      }; break;
-    }
-
-    return this.client.messages.get(cacheKey, this.messageId) || null;
+    return this.client.messages.get(this.messageId) || null;
   }
 
   add() {

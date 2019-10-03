@@ -7,7 +7,6 @@ import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { EmojisOptions } from '../collections/emojis';
-import { MembersOptions } from '../collections/members';
 import { RolesOptions } from '../collections/roles';
 import {
   DiscordKeys,
@@ -303,9 +302,6 @@ export class Guild extends BaseStructure {
   }
 
   get messages(): BaseCollection<string, Message> {
-    if (this.client.messages.has(this.id)) {
-      return <BaseCollection<string, Message>> this.client.messages.get(this.id);
-    }
     const collection = new BaseCollection<string, Message>();
     for (let [messageId, message] of this.client.messages) {
       if (message.guildId === this.id) {

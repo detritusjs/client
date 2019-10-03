@@ -8,7 +8,6 @@ import { BaseCollection, emptyBaseCollection } from '../collections/basecollecti
 import { BaseSet } from '../collections/baseset';
 import {
   DiscordKeys,
-  MessageCacheTypes,
   PremiumTypes,
   RelationshipTypes,
   UserFlags,
@@ -116,13 +115,6 @@ export class User extends BaseStructure {
   }
 
   get messages(): BaseCollection<string, Message> {
-    if (this.client.messages.type === MessageCacheTypes.USER) {
-      if (this.client.messages.has(this.id)) {
-        return <BaseCollection<string, Message>> this.client.messages.get(this.id);
-      } else {
-        return emptyBaseCollection;
-      }
-    }
     const collection = new BaseCollection<string, Message>();
     for (let [messageId, message] of this.client.messages) {
       if (message.author.id === this.id) {
