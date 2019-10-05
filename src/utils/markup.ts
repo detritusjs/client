@@ -7,7 +7,6 @@ export const Strings = Object.freeze({
   SPOILER: '||',
   STRIKE: '~~',
   UNDERLINE: '__',
-  URL: 'URL',
 });
 
 export const Regexes = Object.freeze({
@@ -19,9 +18,9 @@ export const Regexes = Object.freeze({
   [Strings.SPOILER]: /\|\|/g,
   [Strings.STRIKE]: new RegExp(Strings.STRIKE, 'g'),
   [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
-  [Strings.URL]: /\)/g,
   EVERYONE: /@(everyone|here)/g,
   MENTION: /<@([!&]?[0-9]{16,21})>/g,
+  URL: /\)/g,
 });
 
 export const Replacements = Object.freeze({
@@ -33,6 +32,7 @@ export const Replacements = Object.freeze({
   [Strings.SPOILER]: '\\|\\|',
   [Strings.STRIKE]: '\\~\\~',
   [Strings.UNDERLINE]: '\\_\\_',
+  MENTION: '\u200b',
 });
 
 
@@ -230,7 +230,7 @@ export const escape = Object.freeze({
     }
     return trueSlice(text, filter.limit);
   },
-  mentions: (text: string, replacement: string = defaultMarkupFilter.mentionEscapeCharacter): string => {
+  mentions: (text: string, replacement: string = Replacements.MENTION): string => {
     text = text.replace(Regexes.EVERYONE, `@${replacement}$1`);
     text = text.replace(Regexes.MENTION, `<${replacement}@$1>`);
     return text;
@@ -263,7 +263,7 @@ export const escape = Object.freeze({
     return trueSlice(text, filter.limit);
   },
   url: (text: string, options: MarkupFilterOptions = {}): string => {
-    text = text.trim().replace(Regexes[Strings.URL], (match: string) => {
+    text = text.trim().replace(Regexes.URL, (match: string) => {
       return '%' + match.charCodeAt(0).toString(16);
     });
     return text;

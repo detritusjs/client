@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.8.6',
+  VERSION: '0.8.7',
 });
 
 export type Snowflake = number | string;
@@ -473,14 +473,14 @@ export const LobbyTypes = Object.freeze({
 
 export const Locales = Object.freeze({
   BULGARIAN: 'bg',
-  CHINESE_SIMPLIFIED: 'zh-CN',
-  CHINESE_TRADITIONAL: 'zh-TW',
+  CHINESE: 'zh-CN',
+  CHINESE_TAIWAN: 'zh-TW',
   CROATIAN: 'hr',
   CZECH: 'cs',
   DANISH: 'da',
   DUTCH: 'nl',
   ENGLISH_GB: 'en-GB',
-  ENGLISH_USA: 'en-US',
+  ENGLISH_US: 'en-US',
   FINNISH: 'fi',
   FRENCH: 'fr',
   GERMAN: 'de',
@@ -507,14 +507,14 @@ export const Locales = Object.freeze({
 
 export const LocalesText = Object.freeze({
   [Locales.BULGARIAN]: 'Bulgarian',
-  [Locales.CHINESE_SIMPLIFIED]: 'Chinese Simplified',
-  [Locales.CHINESE_TRADITIONAL]: 'Traditional Chinese',
+  [Locales.CHINESE]: 'Chinese, China',
+  [Locales.CHINESE_TAIWAN]: 'Chinese, Taiwan',
   [Locales.CROATIAN]: 'Croatian',
   [Locales.CZECH]: 'Czech',
   [Locales.DANISH]: 'Danish',
   [Locales.DUTCH]: 'Dutch',
-  [Locales.ENGLISH_GB]: 'English, GB',
-  [Locales.ENGLISH_USA]: 'English, USA',
+  [Locales.ENGLISH_GB]: 'English, UK',
+  [Locales.ENGLISH_US]: 'English, US',
   [Locales.FINNISH]: 'Finnish',
   [Locales.FRENCH]: 'French',
   [Locales.GERMAN]: 'German',

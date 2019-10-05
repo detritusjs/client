@@ -146,7 +146,7 @@ export class Guild extends BaseStructure {
   mfaLevel: number = 0;
   name: string = '';
   ownerId: string = '';
-  preferredLocale: string = Locales.ENGLISH_USA;
+  preferredLocale: string = Locales.ENGLISH_US;
   premiumSubscriptionCount: number = 0;
   premiumTier: number = 0;
   region: string = '';
