@@ -664,12 +664,10 @@ export class PresenceActivityParty extends BaseStructure {
         if (group.has(userId)) {
           continue;
         }
-        if (presence.activities && presence.activities.length) {
-          for (let [activityId, activity] of presence.activities) {
-            if (activity.party && activity.party.id === this.id) {
-              group.set(userId, presence.user);
-              break;
-            }
+        for (let [activityId, activity] of presence.activities) {
+          if (activity.party && activity.party.id === this.id) {
+            group.set(userId, presence.user);
+            break;
           }
         }
       }
@@ -752,8 +750,8 @@ export class PresenceActivityTimestamps extends BaseStructure {
   readonly _keysMerge = keysMergePresenceActivityTimestamps;
   readonly activity: PresenceActivity;
 
-  end?: number;
-  start: number = 0;
+  end?: number = 0;
+  start?: number = 0;
 
   constructor(activity: PresenceActivity, data: BaseStructureData) {
     super(activity.client);
@@ -762,8 +760,14 @@ export class PresenceActivityTimestamps extends BaseStructure {
   }
 
   get elapsedTime(): number {
+    let elapsed: number;
+    if (this.start) {
+      elapsed = Math.max(Date.now() - this.start, 0);
+    } else {
+      elapsed = Date.now();
+    }
+
     const total = this.totalTime;
-    const elapsed = Math.max(Date.now() - this.start, 0);
     if (total) {
       return Math.min(elapsed, total);
     }
@@ -772,7 +776,10 @@ export class PresenceActivityTimestamps extends BaseStructure {
 
   get totalTime(): number {
     if (this.end) {
-      return this.end - this.start;
+      if (this.start) {
+        return this.end - this.start;
+      }
+      return this.end;
     }
     return 0;
   }

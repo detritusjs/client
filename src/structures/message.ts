@@ -17,12 +17,11 @@ import {
   PremiumGuildTierNames,
   SystemMessages,
 } from '../constants';
-import { regex, Markup, Snowflake } from '../utils';
+import { Markup, Snowflake } from '../utils';
 
 import {
   BaseStructure,
   BaseStructureData,
-  convertKey,
 } from './basestructure';
 import { Application } from './application';
 import { Attachment } from './attachment';
@@ -677,6 +676,21 @@ export class MessageActivity extends BaseStructure {
     this.message = message;
     this.merge(data);
     Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get group(): BaseCollection<string, User> {
+    const group = new BaseCollection<string, User>();
+    if (this.partyId) {
+      for (let [userId, presence] of this.client.presences) {
+        for (let [activityId, activity] of presence.activities) {
+          if (activity.party && activity.party.id === this.partyId) {
+            group.set(userId, presence.user);
+            break;
+          }
+        }
+      }
+    }
+    return group;
   }
 }
 
