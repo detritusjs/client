@@ -241,6 +241,7 @@ export class VoiceConnection extends EventEmitter {
     this.setOpusEncoder({kill: true});
     this.setOpusDecoder({kill: true});
     this.emit('killed');
+    this.removeAllListeners();
   }
 
   sendAudio(
