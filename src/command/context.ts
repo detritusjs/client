@@ -201,6 +201,14 @@ export class Context {
     return this.message.inDm;
   }
 
+  get me() {
+    const guild = this.guild;
+    if (guild) {
+      return guild.me;
+    }
+    return null;
+  }
+
   get member() {
     return this.message.member;
   }
