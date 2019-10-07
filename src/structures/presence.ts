@@ -20,6 +20,7 @@ import {
   BaseStructureData,
 } from './basestructure';
 import { Application } from './application';
+import { Emoji } from './emoji';
 import { User } from './user';
 
 
@@ -293,6 +294,7 @@ export class PresenceActivity extends BaseStructure {
   assets?: PresenceActivityAssets;
   createdAt?: number;
   details?: string;
+  emoji?: Emoji;
   flags: number = 0;
   guildIds = new BaseSet<string>();
   id: string = '';
@@ -476,6 +478,14 @@ export class PresenceActivity extends BaseStructure {
                 this.assets.merge(value);
               } else {
                 this.assets = new PresenceActivityAssets(this, value);
+              }
+            }; return;
+            case DiscordKeys.EMOJI: {
+              // reason is that `name` can be spoofed here
+              if (this.emoji) {
+                this.emoji.merge(value);
+              } else {
+                this.emoji = new Emoji(this.client, value);
               }
             }; return;
             case DiscordKeys.PARTY: {
