@@ -44,12 +44,12 @@ export class Emoji extends BaseStructure {
   _roles?: BaseCollection<string, null | Role>;
 
   animated: boolean = false;
-  available: boolean = true;
+  available?: boolean;
   guildId?: string;
   id: null | string = null;
-  managed: boolean = false;
+  managed?: boolean;
   name: string = '';
-  requireColons: boolean = false;
+  requireColons?: boolean;
   user?: User;
 
   constructor(client: ShardClient, data: BaseStructureData) {

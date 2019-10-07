@@ -252,6 +252,7 @@ const keysPresenceActivity = new BaseSet<string>([
   DiscordKeys.ASSETS,
   DiscordKeys.CREATED_AT,
   DiscordKeys.DETAILS,
+  DiscordKeys.EMOJI,
   DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.GUILD_IDS,
