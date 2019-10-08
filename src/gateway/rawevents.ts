@@ -785,6 +785,11 @@ export namespace GatewayRawEvents {
     },
     created_at?: number,
     details?: string,
+    emoji?: {
+      animated: boolean,
+      id: null | string,
+      name: string,
+    },
     flags?: number,
     id?: string,
     instance?: boolean,
@@ -804,7 +809,7 @@ export namespace GatewayRawEvents {
     sync_id?: string,
     timestamps?: {
       end?: number,
-      start: number,
+      start?: number,
     },
     type: number,
     url?: string,
