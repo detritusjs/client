@@ -14,7 +14,8 @@ const {
 import { ShardClient } from '../client';
 
 import { Opus } from './encoders';
-import * as Types from './types';
+import { MediaEvents } from './mediaevents';
+import { MediaRawEvents } from './rawevents';
 import { VoiceConnection } from './voiceconnection';
 
 
@@ -44,7 +45,7 @@ export class MediaHandler {
     return this.connection.gateway;
   }
 
-  onPacket(packet: Types.MediaGatewayPacket): void {
+  onPacket(packet: MediaRawEvents.MediaGatewayPacket): void {
     const handler = this.opHandler.getHandler(packet.op);
     if (handler) {
       handler.call(this.opHandler, packet.d);
@@ -117,43 +118,44 @@ export class MediaGatewayOpHandler {
     return (<any> this)[op];
   }
 
-  [MediaOpCodes.CLIENT_CONNECT](data: Types.ClientConnect) {
-    const userId = data['user_id'];
-    this.connection.emit('connect', {
+  [MediaOpCodes.CLIENT_CONNECT](data: MediaRawEvents.ClientConnect) {
+    const payload: MediaEvents.ClientConnect = {
       audioSSRC: data['audio_ssrc'],
-      user: this.client.users.get(userId),
-      userId,
+      user: this.client.users.get(data['user_id']) || null,
+      userId: data['user_id'],
       videoSSRC: data['video_ssrc'],
-    });
+    }
+    this.connection.emit('connect', payload);
   }
 
-  [MediaOpCodes.CLIENT_DISCONNECT](data: Types.ClientDisconnect) {
+  [MediaOpCodes.CLIENT_DISCONNECT](data: MediaRawEvents.ClientDisconnect) {
     const userId = data['user_id'];
     if (this.connection.opusDecoders.has(userId)) {
       const opusDecoder = <Opus.AudioOpus> this.connection.opusDecoders.get(userId);
       opusDecoder.delete();
       this.connection.opusDecoders.delete(userId);
     }
-    this.connection.emit('disconnect', {
-      user: this.client.users.get(userId),
-      userId,
-    });
+    const user = this.client.users.get(userId) || null;
+
+    const payload: MediaEvents.ClientDisconnect = {user, userId};
+    this.connection.emit('disconnect', payload);
   }
 
-  [MediaOpCodes.SPEAKING](data: Types.Speaking) {
+  [MediaOpCodes.SPEAKING](data: MediaRawEvents.Speaking) {
     const priority = (data['speaking'] & MediaSpeakingFlags.PRIORITY) === MediaSpeakingFlags.PRIORITY;
     const soundshare = (data['speaking'] & MediaSpeakingFlags.SOUNDSHARE) === MediaSpeakingFlags.SOUNDSHARE;
     const voice = (data['speaking'] & MediaSpeakingFlags.VOICE) === MediaSpeakingFlags.VOICE;
-
     const userId = data['user_id'];
-    this.connection.emit('speaking', {
+
+    const payload: MediaEvents.Speaking = {
       isSpeaking: !!data['speaking'],
       priority,
       soundshare,
-      voice,
       ssrc: data['ssrc'],
-      user: this.client.users.get(userId),
+      user: this.client.users.get(userId) || null,
       userId,
-    });
+      voice,
+    };
+    this.connection.emit('speaking', payload);
   }
 }

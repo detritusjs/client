@@ -1,6 +1,6 @@
 import { ChildProcess, fork } from 'child_process';
 
-import { EventEmitter, Timers } from 'detritus-utils';
+import { EventSpewer, Timers } from 'detritus-utils';
 
 import { ClusterManager } from '../clustermanager';
 import { BaseCollection } from '../collections/basecollection';
@@ -23,7 +23,7 @@ export interface ClusterProcessRunOptions {
   wait?: boolean,
 }
 
-export class ClusterProcess extends EventEmitter {
+export class ClusterProcess extends EventSpewer {
   readonly _evalsWaiting = new BaseCollection<string, {
     promise: Promise<any>,
     resolve: Function,

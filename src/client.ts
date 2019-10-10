@@ -1,6 +1,6 @@
 import { ClientOptions as RestOptions, Endpoints } from 'detritus-client-rest';
 import { Gateway } from 'detritus-client-socket';
-import { EventEmitter } from 'detritus-utils';
+import { EventSpewer } from 'detritus-utils';
 
 
 import { ClusterClient } from './clusterclient';
@@ -138,7 +138,7 @@ export interface VoiceConnectOptions extends VoiceConnectionOptions {
  * Shard Client, represents one gateway connection
  * @category Clients
  */
-export class ShardClient extends EventEmitter {
+export class ShardClient extends EventSpewer {
   /**
    * @ignore
    */
@@ -446,7 +446,7 @@ export class ShardClient extends EventEmitter {
     return `Detritus Client (Shard ${this.shardId})`;
   }
 
-  on(event: string, listener: Function): this;
+  on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'activityJoinInvite', listener: (payload: GatewayClientEvents.ActivityJoinInvite) => any): this;
   on(event: 'activityJoinRequest', listener: (payload: GatewayClientEvents.ActivityJoinRequest) => any): this;
   on(event: 'activityStart', listener: (payload: GatewayClientEvents.ActivityStart) => any): this;
@@ -531,7 +531,7 @@ export class ShardClient extends EventEmitter {
   on(event: 'unknown', listener: (payload: GatewayClientEvents.Unknown) => any): this;
   on(event: 'warn', listener: (payload: GatewayClientEvents.Warn) => any): this;
   on(event: 'killed', listener: (payload: GatewayClientEvents.Killed) => any): this;
-  on(event: string, listener: Function): this {
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
   }

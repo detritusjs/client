@@ -515,22 +515,6 @@ export class RestClient extends Client {
     return guild;
   }
 
-  async fetchGuilds(): Promise<BaseCollection<string, Guild>> {
-    const data: Array<any> = await super.fetchGuilds.call(this);
-    const collection = new BaseCollection<string, Guild>();
-    for (let raw of data) {
-      let guild: Guild;
-      if (this.client.guilds.has(raw.id)) {
-        guild = <Guild> this.client.guilds.get(raw.id);
-        guild.merge(raw);
-      } else {
-        guild = new Guild(this.client, raw);
-      }
-      collection.set(guild.id, guild);
-    }
-    return collection;
-  }
-
   async fetchGuildAuditLogs(
     guildId: string,
     options: RequestTypes.FetchGuildAuditLogs = {},

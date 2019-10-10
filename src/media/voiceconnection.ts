@@ -2,7 +2,7 @@ import {
   Constants as SocketConstants,
   Media,
 } from 'detritus-client-socket';
-import { EventEmitter } from 'detritus-utils';
+import { EventSpewer } from 'detritus-utils';
 
 const {
   MediaCodecs,
@@ -91,7 +91,7 @@ const OpusProperties = [
  * Voice Connection
  * @category Media
  */
-export class VoiceConnection extends EventEmitter {
+export class VoiceConnection extends EventSpewer {
   client: ShardClient;
   decodeAudio: boolean;
   formats: {
@@ -406,5 +406,14 @@ export class VoiceConnection extends EventEmitter {
 
   setVideo(selfVideo: boolean): Promise<void> {
     return this.setState({selfVideo});
+  }
+
+  on(event: string | symbol, listener: (...args: any[]) => void): this;
+  on(event: 'connect', listener: (payload: any) => any): this;
+  on(event: 'disconnect', listener: (payload: any) => any): this;
+  on(event: 'speaking', listener: (payload: any) => any): this;
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
+    super.on(event, listener);
+    return this;
   }
 }

@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 import { Client as DetritusRestClient } from 'detritus-client-rest';
-import { EventEmitter, Timers } from 'detritus-utils';
+import { EventSpewer, Timers } from 'detritus-utils';
 
 
 import { ClusterProcess } from './cluster/process';
@@ -25,7 +25,7 @@ export interface ClusterManagerRunOptions {
   url?: string,
 }
 
-export class ClusterManager extends EventEmitter {
+export class ClusterManager extends EventSpewer {
   file: string;
   processes = new BaseCollection<number, ClusterProcess>();
   ran: boolean = false;
@@ -167,9 +167,9 @@ export class ClusterManager extends EventEmitter {
     });
   }
 
-  on(event: string, listener: Function): this;
+  on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'clusterProcess', listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
-  on(event: string, listener: Function): this {
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
   }

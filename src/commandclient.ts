@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { EventEmitter } from 'detritus-utils';
+import { EventSpewer } from 'detritus-utils';
 
 import { ShardClient } from './client';
 import {
@@ -65,8 +65,8 @@ export interface CommandAttributes {
  * Command Client, hooks onto the ShardClient to provide easier command handling
  * @category Clients
  */
-export class CommandClient extends EventEmitter {
-  readonly _clientListeners: {[key: string]: Function | null} = {};
+export class CommandClient extends EventSpewer {
+  readonly _clientListeners: {[key: string]: null | ((...args: any[]) => void)} = {};
 
   activateOnEdits: boolean = false;
   client: ClusterClient | ShardClient;
@@ -421,7 +421,7 @@ export class CommandClient extends EventEmitter {
   kill(): void {
     this.client.kill();
     this.emit(ClientEvents.KILLED);
-    this.clearListeners();
+    this.removeAllListeners();
   }
 
   async run(
@@ -631,7 +631,7 @@ export class CommandClient extends EventEmitter {
     this.replies.delete(payload.raw.id);
   }
 
-  on(event: string, listener: Function): this;
+  on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'commandError', listener: (payload: CommandEvents.CommandError) => any): this;
   on(event: 'commandFail', listener: (payload: CommandEvents.CommandFail) => any): this;
   on(event: 'commandNone', listener: (payload: CommandEvents.CommandNone) => any): this;
@@ -639,7 +639,7 @@ export class CommandClient extends EventEmitter {
   on(event: 'commandRatelimit', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
   on(event: 'commandRunError', listener: (payload: CommandEvents.CommandRunError) => any): this;
   on(event: 'killed', listener: () => any): this;
-  on(event: string, listener: Function): this {
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
   }

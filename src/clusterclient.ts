@@ -1,7 +1,7 @@
 import {
   Client as DetritusRestClient,
 } from 'detritus-client-rest';
-import { EventEmitter, Timers } from 'detritus-utils';
+import { EventSpewer, Timers } from 'detritus-utils';
 
 import {
   ShardClient,
@@ -25,7 +25,7 @@ export interface ClusterClientRunOptions extends ShardClientRunOptions {
   delay?: number,
 }
 
-export class ClusterClient extends EventEmitter {
+export class ClusterClient extends EventSpewer {
   readonly token: string;
 
   readonly commandClient: CommandClient | null = null;
@@ -197,8 +197,7 @@ export class ClusterClient extends EventEmitter {
     return this;
   }
 
-  on(event: string, listener: Function): this;
-  on(event: string, listener: Function): this;
+  on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'activityJoinInvite', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityJoinInvite) => any): this;
   on(event: 'activityJoinRequest', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityJoinRequest) => any): this;
   on(event: 'activityStart', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityStart) => any): this;
@@ -285,7 +284,7 @@ export class ClusterClient extends EventEmitter {
   on(event: 'killed', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Killed | GatewayClientEvents.Killed) => any): this;
   on(event: 'ready', listener: () => any): this;
   on(event: 'shard', listener: (payload: GatewayClientEvents.ClusterEvent) => any): this;
-  on(event: string, listener: Function): this {
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
   }

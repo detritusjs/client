@@ -1,4 +1,4 @@
-import { EventEmitter } from 'detritus-utils';
+import { EventSpewer } from 'detritus-utils';
 
 import { ClusterClient } from '../clusterclient';
 import { ClientEvents, ClusterIPCOpCodes } from '../constants';
@@ -9,7 +9,7 @@ import { Snowflake } from '../utils';
 import { ClusterIPCTypes } from './ipctypes';
 
 
-export class ClusterProcessChild extends EventEmitter {
+export class ClusterProcessChild extends EventSpewer {
   readonly cluster: ClusterClient;
 
   clusterCount: number = 1;
@@ -164,9 +164,9 @@ export class ClusterProcessChild extends EventEmitter {
     });
   }
 
-  on(event: string, listener: Function): this;
+  on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'ipc', listener: (message: any) => any): this;
-  on(event: string, listener: Function): this {
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
   }
