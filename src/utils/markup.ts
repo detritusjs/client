@@ -88,7 +88,7 @@ const defaultCodeblockFilter: CodeblockFilter = Object.freeze(Object.assign({}, 
 export function codeblock(text: string, options: CodeblockFilterOptions = {}): string {
   text = escape.codeblock(text, options);
   return [
-    '```' + options.language,
+    '```' + (options.language || defaultCodeblockFilter.language),
     text,
     '```',
   ].join('\n');
