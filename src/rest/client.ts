@@ -679,9 +679,7 @@ export class RestClient extends Client {
     } else {
       data.guild_id = guildId;
       member = new Member(this.client, data);
-      if (this.client.members.has(guildId)) {
-        this.client.members.insert(member);
-      }
+      this.client.members.insert(member);
     }
     return member;
   }
@@ -701,9 +699,7 @@ export class RestClient extends Client {
       } else {
         raw.guild_id = guildId;
         member = new Member(this.client, raw);
-        if (this.client.members.has(guildId)) {
-          this.client.members.insert(member);
-        }
+        this.client.members.insert(member);
       }
       collection.set(member.id, member);
     }

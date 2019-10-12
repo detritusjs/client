@@ -644,9 +644,12 @@ export class GatewayDispatchHandler {
         }
       }
 
-      this.client.members.delete(guildId); // should we check each member and see if we should clear the user obj from cache too?
       this.client.presences.clearGuildId(guildId);
       this.client.voiceStates.delete(guildId);
+
+      guild.emojis.clear();
+      guild.members.clear(); // should we check each member and see if we should clear the user obj from cache too?
+      guild.roles.clear();
     }
 
     if (!isUnavailable) {
@@ -954,11 +957,8 @@ export class GatewayDispatchHandler {
         role = <Role> guild.roles.get(roleId);
         guild.roles.delete(roleId);
       }
-    }
 
-    if (this.client.members.has(guildId)) {
-      const members = <BaseCollection<string, Member>> this.client.members.get(guildId);
-      for (let [userId, member] of members) {
+      for (let [userId, member] of guild.members) {
         if (member._roles) {
           const index = member._roles.indexOf(roleId);
           if (index !== -1) {

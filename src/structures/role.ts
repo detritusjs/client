@@ -67,17 +67,21 @@ export class Role extends BaseStructure {
   }
 
   get members(): BaseCollection<string, Member> {
-    const collection = new BaseCollection<string, Member>();
     const guild = this.guild;
     const members = (guild) ? guild.members : null;
     if (members) {
+      if (this.isDefault) {
+        return members;
+      }
+      const collection = new BaseCollection<string, Member>();
       for (let [userId, member] of members) {
-        if (member.roles.has(this.id)) {
+        if (member._roles && member._roles.includes(this.id)) {
           collection.set(userId, member);
         }
       }
+      return collection;
     }
-    return collection;
+    return new BaseCollection<string, Member>();
   }
 
   get mention(): string {

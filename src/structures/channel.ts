@@ -591,6 +591,13 @@ export class ChannelDM extends ChannelBase {
     return this._name;
   }
 
+  get voiceStates(): BaseCollection<string, VoiceState> {
+    if (this.client.voiceStates.has(this.id)) {
+      return <BaseCollection<string, VoiceState>> this.client.voiceStates.get(this.id);
+    }
+    return emptyBaseCollection;
+  }
+
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.recipients.size) {
       const user = <User> this.recipients.first();
@@ -1182,9 +1189,9 @@ export class ChannelGuildText extends ChannelGuildBase {
   get members(): BaseCollection<string, Member> {
     const collection = new BaseCollection<string, Member>();
 
-    const members = this.client.members.get(this.guildId);
-    if (members) {
-      for (let [userId, member] of members) {
+    const guild = this.guild;
+    if (guild) {
+      for (let [userId, member] of guild.members) {
         if (this.can(Permissions.VIEW_CHANNEL, member)) {
           collection.set(userId, member);
         }
@@ -1352,7 +1359,9 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     const voiceStates = this.client.voiceStates.get(this.guildId);
     if (voiceStates) {
       for (let [userId, voiceState] of voiceStates) {
-        collection.set(userId, voiceState);
+        if (voiceState.channelId === this.id) {
+          collection.set(userId, voiceState);
+        }
       }
     }
 

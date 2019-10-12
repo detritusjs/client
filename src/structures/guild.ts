@@ -7,6 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { EmojisOptions } from '../collections/emojis';
+import { MembersOptions } from '../collections/members';
 import { RolesOptions } from '../collections/roles';
 import {
   DiscordKeys,
@@ -25,7 +26,6 @@ import {
   MAX_EMOJI_SLOTS,
   MAX_EMOJI_SLOTS_MORE,
 } from '../constants';
-import { GatewayRawEvents } from '../gateway/rawevents';
 import {
   addQuery,
   getAcronym,
@@ -59,6 +59,7 @@ import { VoiceState } from './voicestate';
 
 export interface GuildCacheOptions {
   emojis?: EmojisOptions,
+  members?: MembersOptions,
   roles?: RolesOptions,
 }
 
@@ -143,6 +144,7 @@ export class Guild extends BaseStructure {
   maxMembers: number = DEFAULT_MAX_MEMBERS;
   maxPresences: number = DEFAULT_MAX_PRESENCES;
   memberCount: number = 0;
+  members: BaseCollection<string, Member>;
   mfaLevel: number = 0;
   name: string = '';
   ownerId: string = '';
@@ -163,6 +165,7 @@ export class Guild extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData, cache: GuildCacheOptions = {}) {
     super(client);
     this.emojis = new BaseCollection<string, Emoji>(cache.emojis || this.client.emojis.options);
+    this.members = new BaseCollection<string, Member>(cache.members || this.client.members.options);
     this.roles = new BaseCollection<string, Role>(cache.roles || this.client.roles.options);
     this.merge(data);
   }
@@ -289,16 +292,9 @@ export class Guild extends BaseStructure {
 
   get me(): Member | null {
     if (this.client.user) {
-      return this.client.members.get(this.id, this.client.user.id) || null;
+      return this.members.get(this.client.user.id) || null;
     }
     return null;
-  }
-
-  get members(): BaseCollection<string, Member> {
-    if (this.client.members.has(this.id)) {
-      return <BaseCollection<string, Member>> this.client.members.get(this.id);
-    }
-    return emptyBaseCollection;
   }
 
   get messages(): BaseCollection<string, Message> {
@@ -771,26 +767,24 @@ export class Guild extends BaseStructure {
           }
         }; break;
         case DiscordKeys.MEMBERS: {
-          const cache = this.client.members.insertCache(this.id);
-          cache.clear();
-
+          this.members.clear();
           for (let raw of value) {
             if (this.client.user && this.client.user.id === raw.user.id) {
               raw.guild_id = this.id;
               const member = new Member(this.client, raw);
-              this.client.members.insert(member);
+              this.members.set(member.id, member);
               continue;
             }
 
             if (this.client.members.enabled) {
               let member: Member;
-              if (this.client.members.has(this.id, raw.user.id)) {
-                member = <Member> this.client.members.get(this.id, raw.user.id);
+              if (this.members.has(raw.user.id)) {
+                member = <Member> this.members.get(raw.user.id);
                 member.merge(raw);
               } else {
                 raw.guild_id = this.id;
                 member = new Member(this.client, raw);
-                this.client.members.insert(member);
+                this.members.set(member.id, member);
               }
             } else if (this.client.presences.enabled || this.client.users.enabled) {
               let user: User;
@@ -837,20 +831,20 @@ export class Guild extends BaseStructure {
           }
         }; return;
         case DiscordKeys.VOICE_STATES: {
-          const cache = this.client.voiceStates.insertCache(this.id);
-          cache.clear();
-
           if (this.client.voiceStates.enabled) {
+            const cache = this.client.voiceStates.insertCache(this.id);
+            cache.clear();
             for (let raw of value) {
-              if (this.client.voiceStates.has(this.id, raw.user_id)) {
-                (<VoiceState> this.client.voiceStates.get(this.id, raw.user_id)).merge(raw);
+              if (cache.has(raw.user_id)) {
+                const voiceState = <VoiceState> cache.get(raw.user_id);
+                voiceState.merge(raw);
               } else {
                 raw.guild_id = this.id;
                 const voiceState = new VoiceState(this.client, raw);
-                if (!voiceState.member && this.client.members.has(this.id, raw.user_id)) {
-                  voiceState.member = <Member> this.client.members.get(this.id, raw.user_id);
+                if (!voiceState.member && this.members.has(voiceState.userId)) {
+                  voiceState.member = <Member> this.members.get(voiceState.userId);
                 }
-                this.client.voiceStates.insert(new VoiceState(this.client, raw));
+                cache.set(voiceState.userId, voiceState);
               }
             }
           }
