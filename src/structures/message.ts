@@ -641,7 +641,7 @@ export class Message extends BaseStructure {
           this.timestampUnix = (new Date(value)).getTime();
         }; return;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 
@@ -732,7 +732,7 @@ export class MessageCall extends BaseStructure {
           }
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

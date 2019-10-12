@@ -121,7 +121,7 @@ export class Typing extends BaseStructure {
           this.timeout.start(TYPING_TIMEOUT, () => this._stop());
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

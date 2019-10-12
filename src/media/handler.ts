@@ -46,9 +46,8 @@ export class MediaHandler {
   }
 
   onPacket(packet: MediaRawEvents.MediaGatewayPacket): void {
-    const handler = this.opHandler.getHandler(packet.op);
-    if (handler) {
-      handler.call(this.opHandler, packet.d);
+    if (packet.op in this.opHandler) {
+      (<any> this.opHandler)[packet.op](packet.d);
     }
   }
 
@@ -112,10 +111,6 @@ export class MediaGatewayOpHandler {
 
   get connection() {
     return this.handler.connection;
-  }
-
-  getHandler(op: number): MediaGatewayOpHandlerFunction | undefined {
-    return (<any> this)[op];
   }
 
   [MediaOpCodes.CLIENT_CONNECT](data: MediaRawEvents.ClientConnect) {

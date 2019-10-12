@@ -758,7 +758,7 @@ export class ChannelDM extends ChannelBase {
           }
         }; return;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }
@@ -1124,7 +1124,7 @@ export class ChannelGuildBase extends ChannelBase {
           }
         }; return;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }
@@ -1307,7 +1307,7 @@ export class ChannelGuildText extends ChannelGuildBase {
           this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
         }; return;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

@@ -116,7 +116,7 @@ export class Team extends BaseStructure {
           }
         }; return;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }
@@ -195,7 +195,7 @@ export class TeamMember extends UserMixin {
           value = user;
         }; break;
       }
-      super.mergeValue.call(this, key, value);
+      super.mergeValue(key, value);
     }
   }
 }

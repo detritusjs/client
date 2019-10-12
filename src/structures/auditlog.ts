@@ -85,7 +85,7 @@ export class AuditLog extends BaseStructure {
           value = new AuditLogOptions(this, value);
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

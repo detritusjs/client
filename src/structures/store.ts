@@ -92,7 +92,7 @@ export class StoreListing extends BaseStructure {
           value = new StoreListingAsset(this, value);
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }
@@ -212,7 +212,7 @@ export class Sku extends BaseStructure {
           value = application;
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

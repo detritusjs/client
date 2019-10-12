@@ -128,7 +128,7 @@ export class VoiceCall extends BaseStructure {
           }
         }; return;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

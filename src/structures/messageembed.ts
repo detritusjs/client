@@ -128,7 +128,7 @@ export class MessageEmbed extends BaseStructure {
         value = new MessageEmbedVideo(this.client, value);
       }; break;
     }
-    return super.mergeValue.call(this, key, value);
+    return super.mergeValue(key, value);
   }
 }
 

@@ -227,7 +227,7 @@ export class Embed extends Structure {
         value = video;
       }; break;
     }
-    return super.mergeValue.call(this, key, value);
+    return super.mergeValue(key, value);
   }
 
   toJSON(): GatewayRawEvents.RawMessageEmbed {

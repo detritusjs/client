@@ -66,7 +66,7 @@ export class RestClient extends Client {
     channelId: string,
     options: RequestTypes.CreateChannelInvite = {},
   ): Promise<Invite> {
-    const data = super.createChannelInvite.call(this, channelId, options);
+    const data = super.createChannelInvite(channelId, options);
     return new Invite(this.client, data);
   }
 
@@ -75,20 +75,20 @@ export class RestClient extends Client {
     overwriteId: string,
     options: RequestTypes.EditChannelOverwrite = {},
   ): Promise<any> {
-    return super.editChannelOverwrite.call(this, channelId, overwriteId, options);
+    return super.editChannelOverwrite(channelId, overwriteId, options);
   }
 
   async createApplicationNews(
     options: RequestTypes.CreateApplicationNews,
   ): Promise<ApplicationNews> {
-    const data = await super.createApplicationNews.call(this, options);
+    const data = await super.createApplicationNews(options);
     return new ApplicationNews(this.client, data);
   }
 
   async createDm(
     options: RequestTypes.CreateDm = {},
   ): Promise<ChannelDM> {
-    const data = await super.createDm.call(this, options);
+    const data = await super.createDm(options);
     let channel: ChannelDM;
     if (this.client.channels.has(data.id)) {
       channel = <ChannelDM> this.client.channels.get(data.id);
@@ -104,7 +104,7 @@ export class RestClient extends Client {
   async createGuild(
     options: RequestTypes.CreateGuild,
   ): Promise<Guild> {
-    const data = await super.createGuild.call(this, options);
+    const data = await super.createGuild(options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
       guild = <Guild> this.client.guilds.get(data.id);
@@ -120,7 +120,7 @@ export class RestClient extends Client {
     guildId: string,
     options: RequestTypes.CreateGuildChannel,
   ): Promise<Channel> {
-    const data = await super.createGuildChannel.call(this, guildId, options);
+    const data = await super.createGuildChannel(guildId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -137,7 +137,7 @@ export class RestClient extends Client {
     guildId: string,
     options: RequestTypes.CreateGuildEmoji,
   ): Promise<Emoji> {
-    const data = await super.createGuildEmoji.call(this, guildId, options);
+    const data = await super.createGuildEmoji(guildId, options);
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
@@ -155,7 +155,7 @@ export class RestClient extends Client {
     guildId: string,
     options: RequestTypes.CreateGuildRole = {},
   ): Promise<Role> {
-    const data = await super.createGuildRole.call(this, guildId, options);
+    const data = await super.createGuildRole(guildId, options);
     data.guild_id = guildId;
     const role = new Role(this.client, data);
     if (this.client.guilds.has(guildId)) {
@@ -168,7 +168,7 @@ export class RestClient extends Client {
     channelId: string,
     options: RequestTypes.CreateMessage | string = {},
   ): Promise<Message> {
-    const data = await super.createMessage.call(this, channelId, options);
+    const data = await super.createMessage(channelId, options);
     if (this.client.channels.has(data.channel_id)) {
       const channel = <Channel> this.client.channels.get(data.channel_id);
       if (channel.guildId) {
@@ -184,7 +184,7 @@ export class RestClient extends Client {
     applicationId: string,
     options: RequestTypes.CreateOauth2ApplicationAsset,
   ): Promise<Oauth2ApplicationAsset> {
-    const data = await super.createOauth2ApplicationAsset.call(this, applicationId, options);
+    const data = await super.createOauth2ApplicationAsset(applicationId, options);
     data.application_id = applicationId;
     return new Oauth2ApplicationAsset(this.client, data);
   }
@@ -193,7 +193,7 @@ export class RestClient extends Client {
     applicationId: string,
     options: RequestTypes.CreateStoreApplicationAsset,
   ): Promise<StoreApplicationAsset> {
-    const data = await super.createStoreApplicationAsset.call(this, applicationId, options);
+    const data = await super.createStoreApplicationAsset(applicationId, options);
     data.application_id = applicationId;
     return new StoreApplicationAsset(this.client, data);
   }
@@ -202,12 +202,12 @@ export class RestClient extends Client {
     channelId: string,
     options: RequestTypes.CreateWebhook,
   ): Promise<Webhook> {
-    const data = await super.createWebhook.call(this, channelId, options);
+    const data = await super.createWebhook(channelId, options);
     return new Webhook(this.client, data);
   }
 
   async deleteChannel(channelId: string, options: RequestTypes.DeleteChannel = {}): Promise<Channel> {
-    const data = await super.deleteChannel.call(this, channelId, options);
+    const data = await super.deleteChannel(channelId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -220,7 +220,7 @@ export class RestClient extends Client {
   }
 
   async deleteInvite(code: string, options: RequestTypes.DeleteInvite = {}): Promise<Invite> {
-    const data = await super.deleteInvite.call(this, code, options);
+    const data = await super.deleteInvite(code, options);
     return new Invite(this.client, data);
   }
 
@@ -229,7 +229,7 @@ export class RestClient extends Client {
     channelId: string,
     options: RequestTypes.EditChannel = {},
   ): Promise<Channel> {
-    const data = await super.editChannel.call(this, channelId, options);
+    const data = await super.editChannel(channelId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -245,7 +245,7 @@ export class RestClient extends Client {
     guildId: string,
     options: RequestTypes.EditGuild = {},
   ): Promise<Guild> {
-    const data = await super.editGuild.call(this, guildId, options);
+    const data = await super.editGuild(guildId, options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
       guild = <Guild> this.client.guilds.get(data.id);
@@ -261,7 +261,7 @@ export class RestClient extends Client {
     emojiId: string,
     options: RequestTypes.EditGuildEmoji = {},
   ): Promise<Emoji> {
-    const data = await super.editGuildEmoji.call(this, guildId, emojiId, options);
+    const data = await super.editGuildEmoji(guildId, emojiId, options);
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
@@ -279,7 +279,7 @@ export class RestClient extends Client {
     roleId: string,
     options: RequestTypes.EditGuildRole = {},
   ): Promise<Role> {
-    const data = await super.editGuildRole.call(this, guildId, roleId, options);
+    const data = await super.editGuildRole(guildId, roleId, options);
     let role: Role;
     if (this.client.guilds.has(guildId)) {
       const guild = <Guild> this.client.guilds.get(guildId);
@@ -303,7 +303,7 @@ export class RestClient extends Client {
     roles: RequestTypes.EditGuildRolePositions,
     options: RequestTypes.EditGuildRolePositionsExtra = {}
   ): Promise<BaseCollection<string, Role>> {
-    const data = await super.editGuildRolePositions.call(this, guildId, roles, options);
+    const data = await super.editGuildRolePositions(guildId, roles, options);
 
     const collection = new BaseCollection<string, Role>();
     if (this.client.guilds.has(guildId)) {
@@ -328,7 +328,7 @@ export class RestClient extends Client {
   async editMe(
     options: RequestTypes.EditMe = {},
   ): Promise<UserMe> {
-    const data = await super.editMe.call(this, options);
+    const data = await super.editMe(options);
     let user: UserMe;
     if (this.client.user !== null) {
       user = <UserMe> this.client.user;
@@ -344,7 +344,7 @@ export class RestClient extends Client {
     messageId: string,
     options: RequestTypes.EditMessage | string = {},
   ): Promise<Message> {
-    const data = await super.editMessage.call(this, channelId, messageId, options);
+    const data = await super.editMessage(channelId, messageId, options);
     let message: Message;
     if (this.client.messages.has(data.id)) {
       message = <Message> this.client.messages.get(data.id);
@@ -361,7 +361,7 @@ export class RestClient extends Client {
     teamId: string,
     options: RequestTypes.EditTeam = {},
   ): Promise<any> {
-    return super.editTeam.call(this, teamId, options);
+    return super.editTeam(teamId, options);
   }
 
   async editUser(options: RequestTypes.EditMe = {}) {
@@ -372,7 +372,7 @@ export class RestClient extends Client {
     webhookId: string,
     options: RequestTypes.EditWebhook = {},
   ): Promise<Webhook> {
-    const data = await super.editWebhook.call(this, webhookId, options);
+    const data = await super.editWebhook(webhookId, options);
     return new Webhook(this.client, data);
   }
 
@@ -381,7 +381,7 @@ export class RestClient extends Client {
     token: string,
     options: RequestTypes.EditWebhook = {},
   ): Promise<Webhook> {
-    const data = await super.editWebhookToken.call(this, webhookId, token, options);
+    const data = await super.editWebhookToken(webhookId, token, options);
     return new Webhook(this.client, data);
   }
 
@@ -391,7 +391,7 @@ export class RestClient extends Client {
     options: RequestTypes.ExecuteWebhook | string = {},
     compatibleType?: string,
   ): Promise<Message | null> {
-    const data = await super.executeWebhook.call(this, webhookId, token, options, compatibleType);
+    const data = await super.executeWebhook(webhookId, token, options, compatibleType);
     if (typeof(options) !== 'string' && options.wait) {
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
@@ -403,7 +403,7 @@ export class RestClient extends Client {
   async fetchApplicationNews(
     applicationIds?: Array<string> | string,
   ): Promise<BaseCollection<string, ApplicationNews>> {
-    const data = await super.fetchApplicationNews.call(this, applicationIds);
+    const data = await super.fetchApplicationNews(applicationIds);
     const collection = new BaseCollection<string, ApplicationNews>();
     for (let raw of data) {
       const applicationNews = new ApplicationNews(this.client, raw);
@@ -413,7 +413,7 @@ export class RestClient extends Client {
   }
 
   async fetchApplicationNewsId(newsId: string): Promise<ApplicationNews> {
-    const data = await super.fetchApplicationNewsId.call(this, newsId);
+    const data = await super.fetchApplicationNewsId(newsId);
     return new ApplicationNews(this.client, data);
   }
 
@@ -430,12 +430,12 @@ export class RestClient extends Client {
   async fetchApplication(
     applicationId: string,
   ): Promise<Application> {
-    const data = await super.fetchApplication.call(this, applicationId);
+    const data = await super.fetchApplication(applicationId);
     return new Application(this.client, data);
   }
 
   async fetchChannel(channelId: string): Promise<Channel> {
-    const data = await super.fetchChannel.call(this, channelId);
+    const data = await super.fetchChannel(channelId);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -449,7 +449,7 @@ export class RestClient extends Client {
   async fetchChannelInvites(
     channelId: string,
   ): Promise<BaseCollection<string, Invite>> {
-    const data: Array<any> = await super.fetchChannelInvites.call(this, channelId);
+    const data: Array<any> = await super.fetchChannelInvites(channelId);
     const collection = new BaseCollection<string, Invite>();
     for (let raw of data) {
       const invite = new Invite(this.client, raw);
@@ -459,14 +459,14 @@ export class RestClient extends Client {
   }
 
   async fetchChannelStoreListing(channelId: string): Promise<StoreListing> {
-    const data = await super.fetchChannelStoreListing.call(this, channelId);
+    const data = await super.fetchChannelStoreListing(channelId);
     return new StoreListing(this.client, data);
   }
 
   async fetchChannelWebhooks(
     channelId: string,
   ): Promise<BaseCollection<string, Webhook>> {
-    const data = await super.fetchChannelWebhooks.call(this, channelId);
+    const data = await super.fetchChannelWebhooks(channelId);
     const collection = new BaseCollection<string, Webhook>();
     for (let raw of data) {
       const webhook = new Webhook(this.client, raw);
@@ -478,7 +478,7 @@ export class RestClient extends Client {
   async fetchDms(
     userId: string = '@me',
   ): Promise<BaseCollection<string, Channel>> {
-    const data: Array<any> = await super.fetchDms.call(this, userId);
+    const data: Array<any> = await super.fetchDms(userId);
     const collection = new BaseCollection<string, Channel>();
     for (let raw of data) {
       let channel: Channel;
@@ -497,12 +497,12 @@ export class RestClient extends Client {
     code: string,
     options: RequestTypes.FetchGiftCode = {},
   ): Promise<Gift> {
-    const data = await super.fetchGiftCode.call(this, code, options);
+    const data = await super.fetchGiftCode(code, options);
     return new Gift(this.client, data);
   }
 
   async fetchGuild(guildId: string): Promise<Guild> {
-    const data = await super.fetchGuild.call(this, guildId);
+    const data = await super.fetchGuild(guildId);
 
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
@@ -519,7 +519,7 @@ export class RestClient extends Client {
     guildId: string,
     options: RequestTypes.FetchGuildAuditLogs = {},
   ): Promise<BaseCollection<string, AuditLog>> {
-    const data = await super.fetchGuildAuditLogs.call(this, guildId, options);
+    const data = await super.fetchGuildAuditLogs(guildId, options);
     const collection = new BaseCollection<string, AuditLog>();
     for (let raw of data.audit_log_entries) {
       let target: null | User | Webhook = null;
@@ -560,7 +560,7 @@ export class RestClient extends Client {
   async fetchGuildBans(
     guildId: string,
   ): Promise<RestResponses.FetchGuildBans> {
-    const data = await super.fetchGuildBans.call(this, guildId);
+    const data = await super.fetchGuildBans(guildId);
     const collection: RestResponses.FetchGuildBans = new BaseCollection();
     for (let raw of data) {
       let user: User;
@@ -581,7 +581,7 @@ export class RestClient extends Client {
   async fetchGuildChannels(
     guildId: string,
   ): Promise<BaseCollection<string, Channel>> {
-    const data = await super.fetchGuildChannels.call(this, guildId);
+    const data = await super.fetchGuildChannels(guildId);
     const collection = new BaseCollection<string, Channel>();
 
     for (let raw of data) {
@@ -601,7 +601,7 @@ export class RestClient extends Client {
     guildId: string,
     emojiId: string,
   ): Promise<Emoji> {
-    const data = await super.fetchGuildEmoji.call(this, guildId, emojiId);
+    const data = await super.fetchGuildEmoji(guildId, emojiId);
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
@@ -617,7 +617,7 @@ export class RestClient extends Client {
   async fetchGuildEmojis(
     guildId: string,
   ): Promise<BaseCollection<string, Emoji>> {
-    const data = await super.fetchGuildEmojis.call(this, guildId);
+    const data = await super.fetchGuildEmojis(guildId);
 
     if (this.client.guilds.has(guildId)) {
       const guild = <Guild> this.client.guilds.get(guildId);
@@ -643,7 +643,7 @@ export class RestClient extends Client {
   async fetchGuildIntegrations(
     guildId: string,
   ): Promise<BaseCollection<string, Integration>> {
-    const data = await super.fetchGuildIntegrations.call(this, guildId);
+    const data = await super.fetchGuildIntegrations(guildId);
     const collection = new BaseCollection<string, Integration>();
 
     for (let raw of data) {
@@ -657,7 +657,7 @@ export class RestClient extends Client {
   async fetchGuildInvites(
     guildId: string,
   ): Promise<BaseCollection<string, Invite>> {
-    const data = await super.fetchGuildInvites.call(this, guildId);
+    const data = await super.fetchGuildInvites(guildId);
     const collection = new BaseCollection<string, Invite>();
 
     for (let raw of data) {
@@ -671,7 +671,7 @@ export class RestClient extends Client {
     guildId: string,
     userId: string,
   ): Promise<Member> {
-    const data = await super.fetchGuildMember.call(this, guildId, userId);
+    const data = await super.fetchGuildMember(guildId, userId);
     let member: Member;
     if (this.client.members.has(guildId, userId)) {
       member = <Member> this.client.members.get(guildId, userId);
@@ -688,7 +688,7 @@ export class RestClient extends Client {
     guildId: string,
     options: RequestTypes.FetchGuildMembers = {},
   ): Promise<BaseCollection<string, Member>> {
-    const data = await super.fetchGuildMembers.call(this, guildId, options);
+    const data = await super.fetchGuildMembers(guildId, options);
     const collection = new BaseCollection<string, Member>();
 
     for (let raw of data) {
@@ -709,7 +709,7 @@ export class RestClient extends Client {
   async fetchGuildPremiumSubscriptions(
     guildId: string,
   ): Promise<BaseCollection<string, PremiumSubscription>> {
-    const data = await super.fetchGuildPremiumSubscriptions.call(this, guildId);
+    const data = await super.fetchGuildPremiumSubscriptions(guildId);
     const subscriptions = new BaseCollection<string, PremiumSubscription>();
     for (let raw of data) {
       const subscription = new PremiumSubscription(this.client, raw);
@@ -721,7 +721,7 @@ export class RestClient extends Client {
   async fetchGuildRoles(
     guildId: string,
   ): Promise<BaseCollection<string, Role>> {
-    const data = await super.fetchGuildRoles.call(this, guildId);
+    const data = await super.fetchGuildRoles(guildId);
     const collection = new BaseCollection<string, Role>();
 
     if (this.client.guilds.has(guildId)) {
@@ -757,7 +757,7 @@ export class RestClient extends Client {
   async fetchGuildWebhooks(
     guildId: string,
   ): Promise<BaseCollection<string, Webhook>> {
-    const data = await super.fetchGuildWebhooks.call(this, guildId);
+    const data = await super.fetchGuildWebhooks(guildId);
     const collection = new BaseCollection<string, Webhook>();
 
     for (let raw of data) {
@@ -771,7 +771,7 @@ export class RestClient extends Client {
     code: string,
     options: RequestTypes.FetchInvite = {},
   ): Promise<Invite> {
-    const data = await super.fetchInvite.call(this, code, options);
+    const data = await super.fetchInvite(code, options);
     return new Invite(this.client, data);
   }
 
@@ -789,7 +789,7 @@ export class RestClient extends Client {
     channelId: string,
     messageId: string,
   ): Promise<Message> {
-    const data = await super.fetchMessage.call(this, channelId, messageId);
+    const data = await super.fetchMessage(channelId, messageId);
 
     let guildId: string | undefined;
     if (this.client.channels.has(data.channel_id)) {
@@ -814,7 +814,7 @@ export class RestClient extends Client {
     channelId: string,
     options: RequestTypes.FetchMessages = {},
   ): Promise<BaseCollection<string, Message>> {
-    const data = await super.fetchMessages.call(this, channelId, options);
+    const data = await super.fetchMessages(channelId, options);
 
     let guildId: string | undefined;
     if (data.length) {
@@ -856,7 +856,7 @@ export class RestClient extends Client {
   async fetchOauth2Application(
     userId: string = '@me',
   ): Promise<Oauth2Application> {
-    const data = await super.fetchOauth2Application.call(this, userId);
+    const data = await super.fetchOauth2Application(userId);
 
     let oauth2Application: Oauth2Application;
     if (userId === '@me') {
@@ -885,7 +885,7 @@ export class RestClient extends Client {
   async fetchOauth2ApplicationAssets(
     applicationId: string,
   ): Promise<BaseCollection<string, Oauth2ApplicationAsset>> {
-    const data = await super.fetchOauth2ApplicationAssets.call(this, applicationId);
+    const data = await super.fetchOauth2ApplicationAssets(applicationId);
 
     const collection = new BaseCollection<string, Oauth2ApplicationAsset>();
     for (let raw of data) {
@@ -899,7 +899,7 @@ export class RestClient extends Client {
   async fetchPinnedMessages(
     channelId: string,
   ): Promise<BaseCollection<string, Message>> {
-    const data = await super.fetchMessages.call(this, channelId);
+    const data = await super.fetchMessages(channelId);
 
     let guildId: null | string = null;
     if (data.length) {
@@ -928,7 +928,7 @@ export class RestClient extends Client {
   async fetchStoreApplicationAssets(
     applicationId: string,
   ): Promise<BaseCollection<string, StoreApplicationAsset>> {
-    const data = await super.fetchStoreApplicationAssets.call(this, applicationId);
+    const data = await super.fetchStoreApplicationAssets(applicationId);
 
     const collection = new BaseCollection<string, StoreApplicationAsset>();
     for (let raw of data) {
@@ -945,7 +945,7 @@ export class RestClient extends Client {
     emoji: string,
     options: RequestTypes.FetchReactions = {},
   ): Promise<BaseCollection<string, User>> {
-    const data = await super.fetchReactions.call(this, channelId, messageId, emoji, options);
+    const data = await super.fetchReactions(channelId, messageId, emoji, options);
     const collection = new BaseCollection<string, User>();
     for (let raw of data) {
       let user: User;
@@ -961,12 +961,12 @@ export class RestClient extends Client {
   }
 
   async fetchTeam(teamId: string): Promise<Team> {
-    const data = await super.fetchTeam.call(this, teamId);
+    const data = await super.fetchTeam(teamId);
     return new Team(this.client, data);
   }
 
   async fetchTeamMembers(teamId: string): Promise<BaseCollection<string, TeamMember>> {
-    const data: Array<any> = await super.fetchTeamMembers.call(this, teamId);
+    const data: Array<any> = await super.fetchTeamMembers(teamId);
     const collection = new BaseCollection<string, TeamMember>();
     for (let raw of data) {
       collection.set(raw.user.id, new TeamMember(this.client, raw));
@@ -975,14 +975,14 @@ export class RestClient extends Client {
   }
 
   async fetchTeamMember(teamId: string, userId: string): Promise<TeamMember> {
-    const data = await super.fetchTeamMember.call(this, teamId, userId);
+    const data = await super.fetchTeamMember(teamId, userId);
     return new TeamMember(this.client, data);
   }
 
   async fetchUser(
     userId: string,
   ): Promise<User> {
-    const data = await super.fetchUser.call(this, userId);
+    const data = await super.fetchUser(userId);
     let user: User;
     if (this.client.users.has(data.id)) {
       user = <User> this.client.users.get(data.id);
@@ -994,14 +994,14 @@ export class RestClient extends Client {
   }
 
   async fetchUserProfile(userId: string): Promise<Profile> {
-    const data = await super.fetchUserProfile.call(this, userId);
+    const data = await super.fetchUserProfile(userId);
     return new Profile(this.client, data);
   }
 
   async fetchVoiceRegions(
     guildId?: string,
   ): Promise<BaseCollection<string, VoiceRegion>> {
-    const data = await super.fetchVoiceRegions.call(this, guildId);
+    const data = await super.fetchVoiceRegions(guildId);
     const regions = new BaseCollection<string, VoiceRegion>();
     for (let raw of data) {
       const region = new VoiceRegion(this.client, raw);
@@ -1013,7 +1013,7 @@ export class RestClient extends Client {
   async fetchWebhook(
     webhookId: string,
   ): Promise<Webhook> {
-    const data = await super.fetchWebhook.call(this, webhookId);
+    const data = await super.fetchWebhook(webhookId);
     return new Webhook(this.client, data);
   }
 
@@ -1021,7 +1021,7 @@ export class RestClient extends Client {
     webhookId: string,
     token: string,
   ): Promise<Webhook> {
-    const data = await super.fetchWebhookToken.call(this, webhookId, token);
+    const data = await super.fetchWebhookToken(webhookId, token);
     return new Webhook(this.client, data);
   }
 }

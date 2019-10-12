@@ -185,7 +185,7 @@ export class Emoji extends BaseStructure {
           value = user;
         }; break;
       }
-      super.mergeValue.call(this, key, value);
+      super.mergeValue(key, value);
     }
   }
 

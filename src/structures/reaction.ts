@@ -101,7 +101,7 @@ export class Reaction extends BaseStructure {
           value = emoji;
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

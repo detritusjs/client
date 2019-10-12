@@ -850,7 +850,7 @@ export class Guild extends BaseStructure {
           }
         }; return;
       }
-      super.mergeValue.call(this, key, value);
+      super.mergeValue(key, value);
     }
   }
 

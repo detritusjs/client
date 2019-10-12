@@ -123,7 +123,7 @@ export class VoiceState extends BaseStructure {
           value = member;
         }; break;
       }
-      super.mergeValue.call(this, key, value);
+      super.mergeValue(key, value);
     }
   }
 }

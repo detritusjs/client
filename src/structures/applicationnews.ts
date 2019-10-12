@@ -66,6 +66,6 @@ export class ApplicationNews extends BaseStructure {
         value = new Date(value);
       }; break;
     }
-    super.mergeValue.call(this, key, value);
+    super.mergeValue(key, value);
   }
 }

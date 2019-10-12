@@ -209,7 +209,7 @@ export class Oauth2Application extends BaseStructure {
           value = team;
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

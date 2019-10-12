@@ -373,7 +373,7 @@ export class Member extends UserMixin {
         }
       }; break;
       default: {
-        return super.difference.call(this, key, value);
+        return super.difference(key, value);
       };
     }
     if (differences !== undefined) {
@@ -413,7 +413,7 @@ export class Member extends UserMixin {
           value = user;
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 

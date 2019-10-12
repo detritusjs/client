@@ -98,7 +98,7 @@ export class Gift extends BaseStructure {
           value = user;
         }; break;
       }
-      return super.mergeValue.call(this, key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

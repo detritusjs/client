@@ -112,9 +112,8 @@ export class GatewayHandler {
       this.client.emit(ClientEvents.RAW, packet);
     }
     if (!this.disabledEvents.has(name)) {
-      const handler = this.dispatchHandler.getHandler(name);
-      if (handler) {
-        handler.call(this.dispatchHandler, data);
+      if (name in this.dispatchHandler) {
+        (<any> this.dispatchHandler)[name](data);
       } else {
         this.client.emit(ClientEvents.UNKNOWN, packet);
       }
@@ -143,10 +142,6 @@ export class GatewayDispatchHandler {
 
   get client() {
     return this.handler.client;
-  }
-
-  getHandler(name: string): GatewayDispatchHandlerFunction | undefined {
-    return (<any> this)[name];
   }
 
   /* Dispatch Events */

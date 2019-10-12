@@ -237,7 +237,7 @@ export class Presence extends BaseStructure {
           value = user;
         }; break;
       }
-      super.mergeValue.call(this, key, value);
+      super.mergeValue(key, value);
     }
   }
 
@@ -517,7 +517,7 @@ export class PresenceActivity extends BaseStructure {
         return this._setFromSnake(key, value);
       }
     }
-    return super.mergeValue.call(this, key, value);
+    return super.mergeValue(key, value);
   }
 
   toString(): string {

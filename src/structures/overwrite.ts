@@ -1,6 +1,5 @@
 import { RequestTypes } from 'detritus-client-rest';
 
-import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, OverwriteTypes } from '../constants';
 import { PermissionTools } from '../utils';
