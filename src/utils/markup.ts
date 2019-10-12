@@ -53,7 +53,7 @@ export interface MarkupFilterOptions {
 const defaultMarkupFilter: MarkupFilter = Object.freeze({
   limit: 2000,
   mentions: true,
-  mentionEscapeCharacter: '\\',
+  mentionEscapeCharacter: '\u200b',
   replacement: '',
 });
 
