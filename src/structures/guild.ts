@@ -778,12 +778,6 @@ export class Guild extends BaseStructure {
             if (this.client.user && this.client.user.id === raw.user.id) {
               raw.guild_id = this.id;
               const member = new Member(this.client, raw);
-              // now fill in the roles since they'll be null if we received this from READY (full guild object) or GUILD_CREATE so guild wasn't in cache
-              for (let [roleId, role] of member.roles) {
-                if (!role) {
-                  member.roles.set(roleId, this.roles.get(roleId) || null);
-                }
-              }
               this.client.members.insert(member);
               continue;
             }
@@ -797,12 +791,6 @@ export class Guild extends BaseStructure {
                 raw.guild_id = this.id;
                 member = new Member(this.client, raw);
                 this.client.members.insert(member);
-              }
-              // now fill in the roles since they'll be null if we received this from READY (full guild object) or GUILD_CREATE so guild wasn't in cache
-              for (let [roleId, role] of member.roles) {
-                if (!role) {
-                  member.roles.set(roleId, this.roles.get(roleId) || null);
-                }
               }
             } else if (this.client.presences.enabled || this.client.users.enabled) {
               let user: User;

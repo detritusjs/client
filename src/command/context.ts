@@ -249,17 +249,22 @@ export class Context {
     return null;
   }
 
-  editOrReply(options: RequestTypes.EditMessage | string = {}) {
-    const message = this.response;
-    if (message) {
+  async editOrReply(options: RequestTypes.EditMessage | string = {}) {
+    const oldReply = this.response;
+    if (oldReply) {
       if (typeof(options) === 'string') {
         options = {content: options, embed: null};
       } else {
         options = Object.assign({content: '', embed: null}, options);
       }
-      return message.edit(options);
+      return oldReply.edit(options);
+    } else {
+      const reply = await this.message.reply(options);
+      if (this.commandClient.maxEditDuration) {
+        this.commandClient.replies.set(this.messageId, reply);
+      }
+      return reply;
     }
-    return this.message.reply(options);
   }
 
   reply(options: RequestTypes.CreateMessage | string = {}) {

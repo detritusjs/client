@@ -42,7 +42,7 @@ const keysMergeMember = new BaseSet<string>([
 export class Member extends UserMixin {
   readonly _keys = keysMember;
   readonly _keysMerge = keysMergeMember;
-  _roles?: BaseCollection<string, null | Role>;
+  _roles?: Array<string>;
 
   deaf: boolean = false;
   guildId: string = '';
@@ -226,12 +226,20 @@ export class Member extends UserMixin {
   }
 
   get roles(): BaseCollection<string, null | Role> {
-    if (this._roles) {
-      return this._roles;
-    }
     const collection = new BaseCollection<string, null | Role>();
+
     const guild = this.guild;
     collection.set(this.guildId, (guild) ? guild.defaultRole : null);
+    if (this._roles) {
+      for (let roleId of this._roles) {
+        if (guild) {
+          collection.set(roleId, guild.roles.get(roleId) || null);
+        } else {
+          collection.set(roleId, null);
+        }
+      }
+    }
+
     return collection;
   }
 
@@ -388,24 +396,9 @@ export class Member extends UserMixin {
         }; return;
         case DiscordKeys.ROLES: {
           if (value.length) {
-            if (!this._roles) {
-              this._roles = new BaseCollection<string, null | Role>();
-            }
-            this._roles.clear();
-            const guild = this.guild;
-            this.roles.set(this.guildId, (guild) ? guild.defaultRole : null);
-            for (let roleId of value) {
-              if (guild) {
-                this.roles.set(roleId, guild.roles.get(roleId) || null);
-              } else {
-                this.roles.set(roleId, null);
-              }
-            }
+            this._roles = value;
           } else {
-            if (this._roles) {
-              this._roles.clear();
-              this._roles = undefined;
-            }
+            this._roles = undefined;
           }
         }; return;
         case DiscordKeys.USER: {
