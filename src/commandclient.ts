@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import * as path from 'path';
 
 import { EventSpewer } from 'detritus-utils';
@@ -9,9 +8,9 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
-import { ClientEvents, CommandRatelimitTypes } from './constants';
+import { ClientEvents } from './constants';
 import { ImportedCommandsError } from './errors';
-import { getExceededRatelimits } from './utils';
+import { getExceededRatelimits, getFiles } from './utils';
 
 import {
   Command,
@@ -22,7 +21,6 @@ import { Context } from './command/context';
 import { CommandEvents } from './command/events';
 import {
   CommandRatelimit,
-  CommandRatelimitItem,
   CommandRatelimitOptions,
 } from './command/ratelimit';
 
@@ -249,23 +247,16 @@ export class CommandClient extends EventSpewer {
     return this;
   }
 
-  async addMultipleIn(directory: string, isAbsolute?: boolean): Promise<CommandClient> {
-    if (!isAbsolute) {
+  async addMultipleIn(directory: string, options: {isAbsolute?: boolean, subdirectories?: boolean} = {}): Promise<CommandClient> {
+    options = Object.assign({}, options);
+    if (!options.isAbsolute) {
       if (require.main) {
         // require.main.path exists but typescript doesn't let us use it..
         directory = path.join(path.dirname(require.main.filename), directory);
       }
     }
-    const files: Array<string> = await new Promise((resolve, reject) => {
-      fs.readdir(directory, (error: any, files: Array<string>) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(files);
-        }
-      });
-    });
 
+    const files: Array<string> = await getFiles(directory, options.subdirectories);
     const errors: {[key: string]: Error} = {};
     for (let file of files) {
       if (!file.endsWith('.js')) {
