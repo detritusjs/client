@@ -31,6 +31,8 @@ const keysEmoji = new BaseSet<string>([
 ]);
 
 const keysMergeEmoji = new BaseSet<string>([
+  DiscordKeys.ANIMATED,
+  DiscordKeys.ID,
   DiscordKeys.GUILD_ID,
 ]);
 
@@ -153,6 +155,17 @@ export class Emoji extends BaseStructure {
   }
 
   mergeValue(key: string, value: any): void {
+    switch (key) {
+      case DiscordKeys.ANIMATED: {
+        this.animated = !!value;
+      }; return;
+      case DiscordKeys.ID: {
+        // since presences can have emojis now, we want to reuse the emoji object
+        // this can cause someone switching from an emoji with an id to one without (which will make the id stay, this fixes it)
+        this.id = value || null;
+      }; return;
+    }
+
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.ROLES: {
