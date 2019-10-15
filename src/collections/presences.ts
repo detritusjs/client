@@ -32,7 +32,7 @@ export class Presences extends BaseClientCollection<string, Presence> {
         presence = <Presence> this.get(value.user.id);
         if (value.status === PresenceStatuses.OFFLINE) {
           presence._deleteGuildId(guildId);
-          if (!presence.guildIds.length) {
+          if (presence._shouldDelete) {
             this.delete(presence.user.id);
             presence.merge(value);
           }
@@ -54,7 +54,7 @@ export class Presences extends BaseClientCollection<string, Presence> {
   clearGuildId(guildId: string): void {
     for (let [userId, presence] of this) {
       presence._deleteGuildId(guildId);
-      if (!presence.guildIds.length) {
+      if (presence._shouldDelete) {
         this.delete(userId);
       }
     }

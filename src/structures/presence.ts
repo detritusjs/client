@@ -69,9 +69,9 @@ export class Presence extends BaseStructure {
   readonly _keysMerge = keysMergePresence;
   readonly _keysSkipDifference = keysSkipDifferencePresence;
   _activities?: BaseCollection<string, PresenceActivity>;
+  _guildIds: BaseSet<string> | string = '';
 
-  clientStatus?: PresenceClientStatus;
-  guildIds = new BaseSet<string>();
+  clientStatus?: {desktop?: string, mobile?: string, web?: string};
   lastGuildId: string = LOCAL_GUILD_ID;
   lastModified?: number;
   status: string = PresenceStatuses.OFFLINE;
@@ -105,6 +105,17 @@ export class Presence extends BaseStructure {
     return null;
   }
 
+  get guildIds(): BaseSet<string> {
+    if (typeof(this._guildIds) === 'string') {
+      const guildIds = new BaseSet<string>();
+      if (this._guildIds) {
+        guildIds.add(this._guildIds);
+      }
+      return guildIds;
+    }
+    return this._guildIds;
+  }
+
   get isDnd(): boolean {
     return this.status === PresenceStatuses.DND;
   }
@@ -119,6 +130,13 @@ export class Presence extends BaseStructure {
 
   get isOnline(): boolean {
     return this.status === PresenceStatuses.ONLINE;
+  }
+
+  get showMobileIcon(): boolean {
+    if (this.clientStatus) {
+      return this.clientStatus.mobile === PresenceStatuses.ONLINE;
+    }
+    return false;
   }
 
   activityFor(guildId: string): null | PresenceActivity {
@@ -138,7 +156,7 @@ export class Presence extends BaseStructure {
     if (this._activities) {
       const collection = new BaseCollection<string, PresenceActivity>();
       for (let [activityId, activity] of this._activities) {
-        if (activity.guildIds.has(guildId)) {
+        if (activity._hasGuildId(guildId)) {
           collection.set(activity.id, activity);
         }
       }
@@ -147,20 +165,49 @@ export class Presence extends BaseStructure {
     return emptyBaseCollection;
   }
 
+
+  get _shouldDelete(): boolean {
+    return !this._guildIds;
+  }
+
   _deleteGuildId(guildId: string): void {
-    this.guildIds.delete(guildId);
-    if (this.guildIds.length) {
-      if (this._activities) {
-        for (let [activityId, activity] of this._activities) {
-          activity.guildIds.delete(guildId);
-          if (!activity.guildIds.length) {
-            this._activities.delete(activityId);
-          }
-        }
-        if (!this._activities.length) {
+    if (typeof(this._guildIds) === 'string') {
+      if (this._guildIds === guildId) {
+        this._guildIds = '';
+        if (this._activities) {
+          this._activities.clear();
           this._activities = undefined;
         }
       }
+    } else {
+      this._guildIds.delete(guildId);
+      if (this._guildIds.length) {
+        if (this._activities) {
+          for (let [activityId, activity] of this._activities) {
+            activity._deleteGuildId(guildId);
+            if (activity._shouldDelete) {
+              this._activities.delete(activityId);
+            }
+          }
+          if (!this._activities.length) {
+            this._activities = undefined;
+          }
+        }
+
+        if (this._guildIds.length === 1) {
+          this._guildIds = this._guildIds.first() || '';
+        }
+      } else {
+        this._guildIds = '';
+      }
+    }
+  }
+
+  _hasGuildId(guildId: string): boolean {
+    if (typeof(this._guildIds) === 'string') {
+      return this._guildIds === guildId;
+    } else {
+      return this._guildIds.has(guildId);
     }
   }
 
@@ -171,7 +218,7 @@ export class Presence extends BaseStructure {
           const guildId = this.lastGuildId;
           if (this._activities) {
             for (let [activityId, activity] of this._activities) {
-              activity.guildIds.delete(guildId);
+              activity._deleteGuildId(guildId);
             }
           }
 
@@ -197,7 +244,7 @@ export class Presence extends BaseStructure {
 
           if (this._activities && !isNew) {
             for (let [activityId, activity] of this._activities) {
-              if (!activity.guildIds.length) {
+              if (activity._shouldDelete) {
                 this._activities.delete(activityId);
               }
             }
@@ -206,20 +253,29 @@ export class Presence extends BaseStructure {
             }
           }
         }; return;
-        case DiscordKeys.CLIENT_STATUS: {
-          if (this.clientStatus) {
-            this.clientStatus.merge(value);
-          } else {
-            this.clientStatus = new PresenceClientStatus(this, value);
-          }
-        }; return;
         case DiscordKeys.GAME: {
           // itll always be in the activities array
         }; return;
         case DiscordKeys.GUILD_ID: {
-          this.lastGuildId = value || LOCAL_GUILD_ID;
-          this.guildIds.add(this.lastGuildId);
+          value = value || LOCAL_GUILD_ID;
+          this.lastGuildId = value;
+
+          // _guildIds will be a string (if its a single guild) or a set (if the presence is for multiple guilds)
+          if (typeof(this._guildIds) === 'string') {
+            if (this._guildIds) {
+              this._guildIds = new BaseSet<string>([this._guildIds, value]);
+            } else {
+              this._guildIds = value;
+            }
+          } else {
+            this._guildIds.add(value);
+          }
         }; return;
+        case DiscordKeys.LAST_MODIFIED: {
+          if (value) {
+            value = parseInt(value);
+          }
+        }; break;
         case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
@@ -290,6 +346,7 @@ export class PresenceActivity extends BaseStructure {
   readonly _keysMerge = keysMergePresenceActivity;
   readonly _keysSkipDifference = keysSkipDifferencePresenceActivity;
   readonly user: User;
+  _guildIds: BaseSet<string> | string = '';
 
   applicationId?: string;
   assets?: PresenceActivityAssets;
@@ -297,7 +354,6 @@ export class PresenceActivity extends BaseStructure {
   details?: string;
   emoji?: Emoji;
   flags: number = 0;
-  guildIds = new BaseSet<string>();
   id: string = '';
   instance?: boolean;
   metadata?: any;
@@ -338,6 +394,17 @@ export class PresenceActivity extends BaseStructure {
       return this.party.group;
     }
     return null;
+  }
+
+  get guildIds(): BaseSet<string> {
+    if (typeof(this._guildIds) === 'string') {
+      const guildIds = new BaseSet<string>();
+      if (this._guildIds) {
+        guildIds.add(this._guildIds);
+      }
+      return guildIds;
+    }
+    return this._guildIds;
   }
 
   get canInstance(): boolean {
@@ -463,10 +530,49 @@ export class PresenceActivity extends BaseStructure {
     );
   }
 
+
+  get _shouldDelete(): boolean {
+    return !this._guildIds;
+  }
+
+  _deleteGuildId(guildId: string): void {
+    if (typeof(this._guildIds) === 'string') {
+      if (this._guildIds === guildId) {
+        this._guildIds = '';
+      }
+    } else {
+      this._guildIds.delete(guildId);
+      if (this._guildIds.length) {
+        if (this._guildIds.length === 1) {
+          this._guildIds = this._guildIds.first() || '';
+        }
+      } else {
+        this._guildIds = '';
+      }
+    }
+  }
+
+  _hasGuildId(guildId: string): boolean {
+    if (typeof(this._guildIds) === 'string') {
+      return this._guildIds === guildId;
+    } else {
+      return this._guildIds.has(guildId);
+    }
+  }
+
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.GUILD_ID: {
-        this.guildIds.add(value || LOCAL_GUILD_ID);
+        value = value || LOCAL_GUILD_ID;
+        if (typeof(this._guildIds) === 'string') {
+          if (this._guildIds) {
+            this._guildIds = new BaseSet<string>([this._guildIds, value]);
+          } else {
+            this._guildIds = value;
+          }
+        } else {
+          this._guildIds.add(value);
+        }
       }; return;
     }
     if (value !== undefined && value !== null) {
@@ -793,64 +899,6 @@ export class PresenceActivityTimestamps extends BaseStructure {
       return this.end;
     }
     return 0;
-  }
-
-  mergeValue(key: string, value: any): void {
-    return this._setFromSnake(key, value);
-  }
-}
-
-
-const keysPresenceClientStatus = new BaseSet<string>([
-  DiscordKeys.DESKTOP,
-  DiscordKeys.MOBILE,
-  DiscordKeys.WEB,
-]);
-
-const keysMergePresenceClientStatus = keysPresenceClientStatus;
-
-/**
- * Presence Client Status Structure, used in [Presence]
- * used to describe if a person is on desktop, mobile, web, etc..
- * @category Structure
- */
-export class PresenceClientStatus extends BaseStructure {
-  readonly _keys = keysPresenceClientStatus;
-  readonly _keysMerge = keysMergePresenceClientStatus;
-  readonly presence: Presence;
-
-  desktop?: string;
-  mobile?: string;
-  web?: string;
-
-  constructor(presence: Presence, data: BaseStructureData) {
-    super(presence.client);
-    this.presence = presence;
-    this.merge(data);
-  }
-
-  get isOnDesktop(): boolean {
-    return !!this.desktop;
-  }
-
-  get isOnMobile(): boolean {
-    return !!this.mobile;
-  }
-
-  get isOnWeb(): boolean {
-    return !!this.web;
-  }
-
-  get isOnlineOnDesktop(): boolean {
-    return this.desktop === PresenceStatuses.ONLINE;
-  }
-
-  get isOnlineOnMobile(): boolean {
-    return this.mobile === PresenceStatuses.ONLINE;
-  }
-
-  get isOnlineOnWeb(): boolean {
-    return this.web === PresenceStatuses.ONLINE;
   }
 
   mergeValue(key: string, value: any): void {

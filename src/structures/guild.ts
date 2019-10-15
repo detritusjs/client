@@ -321,7 +321,7 @@ export class Guild extends BaseStructure {
   get presences(): BaseCollection<string, Presence> {
     const collection = new BaseCollection<string, Presence>();
     for (let [userId, presence] of this.client.presences) {
-      if (presence.guildIds.has(this.id)) {
+      if (presence._hasGuildId(this.id)) {
         collection.set(userId, presence);
       }
     }
