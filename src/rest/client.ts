@@ -564,11 +564,11 @@ export class RestClient extends Client {
     const collection: RestResponses.FetchGuildBans = new BaseCollection();
     for (let raw of data) {
       let user: User;
-      if (this.client.users.has(raw.id)) {
-        user = <User> this.client.users.get(raw.id);
-        user.merge(raw);
+      if (this.client.users.has(raw.user.id)) {
+        user = <User> this.client.users.get(raw.user.id);
+        user.merge(raw.user);
       } else {
-        user = new User(this.client, raw);
+        user = new User(this.client, raw.user);
       }
       collection.set(user.id, {
         reason: raw.reason,
