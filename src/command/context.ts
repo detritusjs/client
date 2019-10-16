@@ -21,6 +21,7 @@ export class Context {
   readonly typing: Typing | null;
 
   command?: Command;
+  metadata?: {[key: string]: any};
   prefix?: string;
 
   constructor(

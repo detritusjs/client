@@ -358,10 +358,10 @@ export class PresenceActivity extends BaseStructure {
   instance?: boolean;
   metadata?: any;
   name: string = '';
-  party?: PresenceActivityParty;
+  party?: {id?: string, size?: [number, number]};
   platform?: string;
   position: number = 0;
-  secrets?: PresenceActivitySecrets;
+  secrets?: {join?: string, match?: string, spectate?: string};
   sessionId?: string;
   state?: string;
   syncId?: string;
@@ -389,24 +389,6 @@ export class PresenceActivity extends BaseStructure {
     return null;
   }
 
-  get group(): BaseCollection<string, User> | null {
-    if (this.party) {
-      return this.party.group;
-    }
-    return null;
-  }
-
-  get guildIds(): BaseSet<string> {
-    if (typeof(this._guildIds) === 'string') {
-      const guildIds = new BaseSet<string>();
-      if (this._guildIds) {
-        guildIds.add(this._guildIds);
-      }
-      return guildIds;
-    }
-    return this._guildIds;
-  }
-
   get canInstance(): boolean {
     return this.hasFlag(ActivityFlags.INSTANCE);
   }
@@ -429,6 +411,38 @@ export class PresenceActivity extends BaseStructure {
 
   get canSync(): boolean {
     return this.hasFlag(ActivityFlags.SYNC);
+  }
+
+  get group(): BaseCollection<string, User> {
+    const group = new BaseCollection<string, User>();
+    if (this.party && this.party.id) {
+      const me = this.user;
+      group.set(me.id, me);
+
+      for (let [userId, presence] of this.client.presences) {
+        if (group.has(userId)) {
+          continue;
+        }
+        for (let [activityId, activity] of presence.activities) {
+          if (activity.party && activity.party.id === this.id) {
+            group.set(userId, presence.user);
+            break;
+          }
+        }
+      }
+    }
+    return group;
+  }
+
+  get guildIds(): BaseSet<string> {
+    if (typeof(this._guildIds) === 'string') {
+      const guildIds = new BaseSet<string>();
+      if (this._guildIds) {
+        guildIds.add(this._guildIds);
+      }
+      return guildIds;
+    }
+    return this._guildIds;
   }
 
   get imageUrl(): null | string {
@@ -459,13 +473,43 @@ export class PresenceActivity extends BaseStructure {
     return (
       this.isListening &&
       !!(this.id && this.id.startsWith(SpecialPrefixes.SPOTIFY)) &&
-      !!(this.party && this.party.isSpotify)
+      !!(this.partyIsSpotify)
     );
   }
 
   get isOnXbox(): boolean {
     return this.applicationId === SpecialApplications.XBOX;
   }
+
+
+  get partyIsFull(): boolean {
+    if (this.party && this.party.size) {
+      return this.partySize === this.partyMaxSize;
+    }
+    return false;
+  }
+
+  get partyIsSpotify(): boolean {
+    if (this.party && this.party.id) {
+      return this.party.id.startsWith(SpecialPrefixes.SPOTIFY);
+    }
+    return false;
+  }
+
+  get partyMaxSize(): number | null {
+    if (this.party && this.party.size) {
+      return this.party.size[1];
+    }
+    return null;
+  }
+
+  get partySize(): number | null {
+    if (this.party && this.party.size) {
+      return this.party.size[0];
+    }
+    return null;
+  }
+
 
   get platformDiscordUrl(): null | string {
     if (this.applicationId) {
@@ -593,20 +637,6 @@ export class PresenceActivity extends BaseStructure {
                 this.emoji.merge(value);
               } else {
                 this.emoji = new Emoji(this.client, value);
-              }
-            }; return;
-            case DiscordKeys.PARTY: {
-              if (this.party) {
-                this.party.merge(value);
-              } else {
-                this.party = new PresenceActivityParty(this, value);
-              }
-            }; return;
-            case DiscordKeys.SECRETS: {
-              if (this.secrets) {
-                this.secrets.merge(value);
-              } else {
-                this.secrets = new PresenceActivitySecrets(this, value);
               }
             }; return;
             case DiscordKeys.TIMESTAMPS: {
@@ -737,117 +767,6 @@ export class PresenceActivityAssets extends BaseStructure {
   }
 }
 
-
-const keysPresenceActivityParty = new BaseSet<string>([
-  DiscordKeys.ID,
-  DiscordKeys.SIZE,
-]);
-
-const keysMergePresenceActivityParty = keysPresenceActivityParty;
-
-/**
- * Presence Activity Party Structure, used in [PresenceActivity]
- * describe's the user's current party (listening party, game party, etc..)
- * @category Structure
- */
-export class PresenceActivityParty extends BaseStructure {
-  readonly _keys = keysPresenceActivityParty;
-  readonly _keysMerge = keysMergePresenceActivityParty;
-  readonly activity: PresenceActivity;
-
-  id?: string;
-  size?: [number, number];
-
-  constructor(activity: PresenceActivity, data: BaseStructureData) {
-    super(activity.client);
-    this.activity = activity;
-    this.merge(data);
-  }
-
-  get currentSize(): number | null {
-    if (this.size) {
-      return this.size[0];
-    }
-    return null;
-  }
-
-  get group(): BaseCollection<string, User> {
-    const group = new BaseCollection<string, User>();
-    if (this.id) {
-      const me = this.activity.user;
-      group.set(me.id, me);
-
-      for (let [userId, presence] of this.client.presences) {
-        if (group.has(userId)) {
-          continue;
-        }
-        for (let [activityId, activity] of presence.activities) {
-          if (activity.party && activity.party.id === this.id) {
-            group.set(userId, presence.user);
-            break;
-          }
-        }
-      }
-    }
-    return group;
-  }
-
-  get isFull(): boolean {
-    if (this.size) {
-      return this.currentSize === this.maxSize;
-    }
-    return false;
-  }
-
-  get isSpotify(): boolean {
-    return !!this.id && this.id.startsWith(SpecialPrefixes.SPOTIFY);
-  }
-
-  get maxSize(): number | null {
-    if (this.size) {
-      return this.size[1];
-    }
-    return null;
-  }
-
-  mergeValue(key: string, value: any): void {
-    return this._setFromSnake(key, value);
-  }
-}
-
-
-const keysPresenceActivitySecrets = new BaseSet<string>([
-  DiscordKeys.JOIN,
-  DiscordKeys.MATCH,
-  DiscordKeys.SPECTATE,
-]);
-
-const keysMergePresenceActivitySecrets = keysPresenceActivitySecrets;
-
-/**
- * Presence Activity Secrets Structure
- * used to join someone's game
- * @category Structure
- */
-export class PresenceActivitySecrets extends BaseStructure {
-  readonly _keys = keysPresenceActivitySecrets;
-  readonly _keysMerge = keysMergePresenceActivitySecrets;
-  readonly activity: PresenceActivity;
-
-  join?: string;
-  match?: string;
-  spectate?: string;
-
-  constructor(activity: PresenceActivity, data: BaseStructureData) {
-    super(activity.client);
-    this.activity = activity;
-    this.merge(data);
-  }
-
-  mergeValue(key: string, value: any): void {
-    return this._setFromSnake(key, value);
-  }
-}
 
 
 const keysPresenceActivityTimestamps = new BaseSet<string>([
