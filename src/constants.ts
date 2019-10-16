@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.11',
+  VERSION: '0.9.12',
 });
 
 export type Snowflake = number | string;
@@ -492,11 +492,9 @@ export const Locales = Object.freeze({
   LITHUANIAN: 'lt',
   NORWEGIAN: 'no',
   POLISH: 'pl',
-  PORTUGUESE: 'pt-PT',
   PORTUGUESE_BRAZILIAN: 'pt-BR',
   ROMANIAN: 'ro',
   RUSSIAN: 'ru',
-  SLOVAK: 'sk',
   SPANISH: 'es-ES',
   SWEDISH: 'sv-SE',
   THAI: 'th',
@@ -526,11 +524,9 @@ export const LocalesText = Object.freeze({
   [Locales.LITHUANIAN]: 'Lithuanian',
   [Locales.NORWEGIAN]: 'Norwegian',
   [Locales.POLISH]: 'Polish',
-  [Locales.PORTUGUESE]: 'Portuguese',
   [Locales.PORTUGUESE_BRAZILIAN]: 'Portuguese, Brazilian',
   [Locales.ROMANIAN]: 'Romanian',
   [Locales.RUSSIAN]: 'Russian',
-  [Locales.SLOVAK]: 'Slovak',
   [Locales.SPANISH]: 'Spanish',
   [Locales.SWEDISH]: 'Swedish',
   [Locales.THAI]: 'Thai',
