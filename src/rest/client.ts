@@ -509,7 +509,7 @@ export class RestClient extends Client {
       guild = <Guild> this.client.guilds.get(data.id);
       guild.merge(data);
     } else {
-      guild = new Guild(this.client, data, {emojis: {}, roles: {}});
+      guild = new Guild(this.client, data, {emojis: {}, members: {}, roles: {}});
     }
     guild.hasMetadata = true;
     return guild;

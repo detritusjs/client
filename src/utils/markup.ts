@@ -176,7 +176,6 @@ export const escape = Object.freeze({
   all: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultMarkupFilter, options);
 
-    text = text.trim();
     text = text.replace(Regexes[Strings.ESCAPE], Replacements[Strings.ESCAPE]);
     text = text.replace(Regexes[Strings.ITALICS], Replacements[Strings.ITALICS]);
     text = text.replace(Regexes[Strings.BOLD], Replacements[Strings.BOLD]);
@@ -193,7 +192,7 @@ export const escape = Object.freeze({
   bold: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultBoldFilter, options);
 
-    text = text.trim().replace(Regexes[Strings.BOLD], filter.replacement);
+    text = text.replace(Regexes[Strings.BOLD], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
@@ -202,7 +201,6 @@ export const escape = Object.freeze({
   codeblock: (text: string, options: CodeblockFilterOptions = {}): string => {
     const filter: CodeblockFilter = Object.assign({}, defaultCodeblockFilter, options);
 
-    text = text.trim();
     while (text.includes(Strings.CODEBLOCK)) {
       text = text.replace(Regexes[Strings.CODEBLOCK], filter.replacement);
     }
@@ -215,7 +213,7 @@ export const escape = Object.freeze({
   codestring: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultCodestringFilter, options);
 
-    text = text.trim().replace(Regexes[Strings.CODESTRING], filter.replacement);
+    text = text.replace(Regexes[Strings.CODESTRING], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
@@ -224,7 +222,7 @@ export const escape = Object.freeze({
   italics: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultItalicsFilter, options);
 
-    text = text.trim().replace(Regexes[Strings.ITALICS], filter.replacement);
+    text = text.replace(Regexes[Strings.ITALICS], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
@@ -238,7 +236,7 @@ export const escape = Object.freeze({
   spoiler: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultSpoilerFilter, options);
 
-    text = text.trim().replace(Regexes[Strings.SPOILER], filter.replacement);
+    text = text.replace(Regexes[Strings.SPOILER], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
@@ -247,7 +245,7 @@ export const escape = Object.freeze({
   strike: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultStrikeFilter, options);
 
-    text = text.trim().replace(Regexes[Strings.STRIKE], filter.replacement);
+    text = text.replace(Regexes[Strings.STRIKE], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
@@ -256,14 +254,14 @@ export const escape = Object.freeze({
   underline: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultUnderlineFilter, options);
 
-    text = text.trim().replace(Regexes[Strings.UNDERLINE], filter.replacement);
+    text = text.replace(Regexes[Strings.UNDERLINE], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
     return trueSlice(text, filter.limit);
   },
   url: (text: string, options: MarkupFilterOptions = {}): string => {
-    text = text.trim().replace(Regexes.URL, (match: string) => {
+    text = text.replace(Regexes.URL, (match: string) => {
       return '%' + match.charCodeAt(0).toString(16);
     });
     return text;
