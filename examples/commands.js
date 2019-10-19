@@ -17,6 +17,7 @@ commandClient.add({
   run: (context) => context.reply('pong'),
 });
 
+// '!!custom'
 commandClient.add({
   name: 'custom',
   label: 'now',
@@ -24,6 +25,7 @@ commandClient.add({
   run: (context, args) => context.reply(`Command was ran at ${args.now}`),
 });
 
+// '!!eval some code here'
 commandClient.add({
   label: 'code',
   name: 'eval',
@@ -65,6 +67,9 @@ commandClient.add({
   },
 });
 
+// '!!echo some text here'
+// '!!echo some text here -reverse'
+// '!!echo some text here -backwards'
 commandClient.add({
   label: 'text',
   name: 'echo',
@@ -80,6 +85,7 @@ commandClient.add({
   },
 });
 
+// '!!join -deaf -mute -video'
 commandClient.add({
   args: [
     {name: 'deaf', type: 'bool'},
@@ -110,6 +116,7 @@ commandClient.add({
   },
 });
 
+// '!!leave'
 commandClient.add({
   name: 'leave',
   onBefore: (context) => !!context.voiceConnection,
@@ -118,6 +125,50 @@ commandClient.add({
     context.voiceConnection.kill();
     return context.reply('ok i left');
   },
+});
+
+
+// '!!remind test'
+commandClient.add({
+  name: 'remind',
+  label: 'text',
+  run: (context, args) => context.reply(`remind you about ${args.text}`),
+});
+
+// '!!remind delete test'
+commandClient.add({
+  name: 'remind delete',
+  label: 'text',
+  priority: 1,
+  run: (context, args) => context.reply(`delete reminder that matches ${args.text}`),
+});
+
+/*
+// Or just have one command do it all
+
+// '!!remind test -delete'
+commandClient.add({
+  name: 'remind',
+  args: [{name: 'delete', type: Boolean}],
+  label: 'text',
+  run: (context, args) => {
+    if (args.delete) {
+      return context.reply(`delete reminder that matches ${args.text}`);
+    } else {
+      return context.reply(`remind you about ${args.text}`);
+    }
+  },
+})
+*/
+
+
+// You can set custom prefixes to args, default is '-'
+// '!!argtest +custom some-text'
+// '!!argtest +custom some-text -default some-other-text'
+commandClient.add({
+  name: 'argtest',
+  args: [{name: 'custom', prefix: '+'}, {name: 'default'}],
+  run: (context, args) => context.reply(`Default prefix for args is '-', but you're able to change it. (default: ${args.default}), (custom: ${args.custom})`),
 });
 
 (async () => {

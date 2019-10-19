@@ -120,13 +120,47 @@ export class Argument {
 
   getName(content: string): null | string {
     for (let name of this.names) {
-      if (content.length === name.length) {
-        if (content === name) {
-          return name;
+      if (name.includes(' ')) {
+        const parts = name.split(' ');
+        let matches = true;
+
+        let copy = content;
+        let store: string = '';
+        for (let [key, part] of parts.entries()) {
+          if (copy.length === part.length) {
+            if (copy === part) {
+              store += copy;
+              copy = '';
+              continue;
+            }
+          } else {
+            if (copy.startsWith(part + ' ')) {
+              store += part;
+              copy = copy.slice(part.length);
+              if (key !== (parts.length - 1)) {
+                while (copy.startsWith(' ')) {
+                  store += ' ';
+                  copy = copy.slice(1);
+                }
+              }
+              continue;
+            }
+          }
+          matches = false;
+          break;
+        }
+        if (matches) {
+          return store;
         }
       } else {
-        if (content.startsWith(name + ' ')) {
-          return name;
+        if (content.length === name.length) {
+          if (content === name) {
+            return name;
+          }
+        } else {
+          if (content.startsWith(name + ' ')) {
+            return name;
+          }
         }
       }
     }

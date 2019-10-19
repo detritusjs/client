@@ -66,7 +66,7 @@ export class RestClient extends Client {
     channelId: string,
     options: RequestTypes.CreateChannelInvite = {},
   ): Promise<Invite> {
-    const data = super.createChannelInvite(channelId, options);
+    const data = await super.createChannelInvite(channelId, options);
     return new Invite(this.client, data);
   }
 
