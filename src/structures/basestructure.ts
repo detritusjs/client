@@ -42,8 +42,10 @@ export class Structure {
     if (value !== undefined) {
       const camelKey = convertKey(key);
       const old = (<any> this)[camelKey];
-      if (old !== undefined) {
-        if (old instanceof BaseStructure) {
+      if (old !== undefined && old !== value) {
+        if (!!old !== !!value) {
+          return [true, old];
+        } else if (old instanceof BaseStructure) {
           let differences = old.differences(value);
           if (differences) {
             return [true, differences];
@@ -70,6 +72,19 @@ export class Structure {
           }
         } else if (Array.isArray(old)) {
 
+        } else if (typeof(old) === 'object') {
+          if (typeof(value) === 'object') {
+            const keys = Object.keys(value);
+            if (Object.keys(old).length !== keys.length) {
+              return [true, old];
+            }
+            const matches = keys.every((key: string) => old[key] === value[key]);
+            if (!matches) {
+              return [true, old];
+            }
+          } else {
+            return [true, old];
+          }
         } else {
           if (old !== value) {
             return [true, old];
