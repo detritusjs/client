@@ -24,7 +24,7 @@ import {
   CommandRatelimitOptions,
 } from './command/ratelimit';
 
-import { BaseCollection } from './collections';
+import { BaseCollection, BaseSet } from './collections';
 import { Message, Typing, User } from './structures';
 
 
@@ -42,7 +42,7 @@ export interface CommandClientOptions extends ClusterClientOptions {
   useClusterClient?: boolean,
 }
 
-export type CommandClientPrefixes = Array<string> | Set<string> | string;
+export type CommandClientPrefixes = Array<string> | BaseSet<string> | Set<string> | string;
 export type CommandClientPrefixCheck = (context: Context) => CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
 export interface CommandClientAdd extends CommandOptions {
@@ -73,8 +73,8 @@ export class CommandClient extends EventSpewer {
   maxEditDuration: number = 5 * 60 * 1000;
   mentionsEnabled: boolean = true;
   prefixes: {
-    custom: Set<string>,
-    mention: Set<string>,
+    custom: BaseSet<string>,
+    mention: BaseSet<string>,
   };
   ran: boolean;
   ratelimits: Array<CommandRatelimit> = [];
@@ -118,8 +118,8 @@ export class CommandClient extends EventSpewer {
     this.mentionsEnabled = !!(options.mentionsEnabled || options.mentionsEnabled === undefined);
     this.onPrefixCheck = options.onPrefixCheck;
     this.prefixes = Object.freeze({
-      custom: new Set<string>(),
-      mention: new Set<string>(),
+      custom: new BaseSet<string>(),
+      mention: new BaseSet<string>(),
     });
     this.ran = this.client.ran;
     this.replies = new BaseCollection({expire: this.maxEditDuration});
@@ -130,8 +130,9 @@ export class CommandClient extends EventSpewer {
       }
       options.prefixes.push(options.prefix);
     }
+
     if (options.prefixes !== undefined) {
-      options.prefixes.sort((x: string, y: string) => +(x.length < y.length));
+      options.prefixes.sort((x: string, y: string) => y.length - x.length);
       for (let prefix of options.prefixes) {
         prefix = prefix.trim();
         if (options.prefixSpace) {
@@ -368,19 +369,24 @@ export class CommandClient extends EventSpewer {
     return null;
   }
 
-  async getPrefixes(context: Context): Promise<Set<string>> {
+  async getPrefixes(context: Context): Promise<BaseSet<string>> {
     if (typeof(this.onPrefixCheck) === 'function') {
       const prefixes = await Promise.resolve(this.onPrefixCheck(context));
-      if (prefixes instanceof Set) {
-        return prefixes;
+      if (prefixes === this.prefixes.custom) {
+        return <BaseSet<string>> prefixes;
       }
-      if (Array.isArray(prefixes)) {
-        return new Set(prefixes);
+
+      let sorted: Array<string>;
+      if (prefixes instanceof Set || prefixes instanceof BaseSet) {
+        sorted = Array.from(prefixes);
+      } else if (typeof(prefixes) === 'string') {
+        sorted = [prefixes];
+      } else if (Array.isArray(prefixes)) {
+        sorted = prefixes;
+      } else {
+        throw new Error('Invalid Prefixes Type Received');
       }
-      if (typeof(prefixes) === 'string') {
-        return new Set([prefixes]);
-      }
-      throw new Error('Invalid Prefixes Type Received');
+      return new BaseSet(sorted.sort((x, y) => y.length - x.length));
     }
     return this.prefixes.custom;
   }
