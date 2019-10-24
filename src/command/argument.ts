@@ -47,10 +47,17 @@ export class Argument {
       options.prefixes.push(options.prefix);
     }
     if (options.prefixes !== undefined) {
-      options.prefixes.sort((x: string, y: string) => +(x.length < y.length));
+      options.prefixes.sort((x: string, y: string) => y.length - x.length);
+      if (options.prefixes.some((prefix) => prefix.endsWith(' '))) {
+        options.prefixSpace = true;
+      }
 
       this.prefixes.clear();
       for (let prefix of options.prefixes) {
+        if (!prefix) {
+          continue;
+        }
+
         prefix = prefix.trim();
         if (options.prefixSpace) {
           prefix += ' ';
