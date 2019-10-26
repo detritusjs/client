@@ -114,6 +114,13 @@ const keysMergeGuild = new BaseSet<string>([
   DiscordKeys.PRESENCES,
 ]);
 
+const keysSkipDifferenceGuild = new BaseSet<string>([
+  DiscordKeys.EMOJIS,
+  DiscordKeys.MEMBERS,
+  DiscordKeys.PRESENCES,
+  DiscordKeys.ROLES,
+]);
+
 /**
  * Guild Structure
  * @category Structure
@@ -121,6 +128,7 @@ const keysMergeGuild = new BaseSet<string>([
 export class Guild extends BaseStructure {
   readonly _keys = keysGuild;
   readonly _keysMerge = keysMergeGuild;
+  readonly _keysSkipDifference = keysSkipDifferenceGuild;
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;

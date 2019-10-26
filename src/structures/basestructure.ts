@@ -59,8 +59,10 @@ export class Structure {
         } else if (old instanceof BaseSet) {
           if (old.size !== value.length) {
             return [true, old.clone()];
-          } else if (old.size) {
-            return [true, old.clone()];
+          } else {
+            if (!value.every((item: any) => old.has(item))) {
+              return [true, old.clone()];
+            }
           }
         } else if (old instanceof Date) {
           if (value) {

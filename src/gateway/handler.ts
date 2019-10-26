@@ -40,6 +40,7 @@ import { GatewayRawEvents } from './rawevents';
 export interface GatewayHandlerOptions {
   disabledEvents?: Array<string>,
   loadAllMembers?: boolean,
+  memberChunksDelay?: number,
   whitelistedEvents?: Array<string>,
 }
 
@@ -59,7 +60,7 @@ export class GatewayHandler {
   duplicateMemberEventsCache = new BaseCollection<string, string>({expire: 2000});
 
   memberChunks = {
-    delay: 2000,
+    delay: 1500,
     done: new BaseSet<string>(),
     left: new BaseSet<string>(),
     sending: new BaseSet<string>(),
@@ -79,6 +80,10 @@ export class GatewayHandler {
       return v.toUpperCase();
     }));
     this.loadAllMembers = !!options.loadAllMembers;
+
+    if (options.memberChunksDelay !== undefined) {
+      this.memberChunks.delay = options.memberChunksDelay;
+    }
 
     if (options.whitelistedEvents) {
       this.disabledEvents.clear();
@@ -563,17 +568,27 @@ export class GatewayDispatchHandler {
       if (this.handler.memberChunks.left.has(guild.id)) {
         if (guild.members.length !== guild.memberCount) {
           this.handler.memberChunks.sending.add(guild.id);
-          this.handler.memberChunks.timer.start(this.handler.memberChunks.delay, () => {
-            const guildIds = this.handler.memberChunks.sending.toArray();
-            this.handler.memberChunks.sending.clear();
-            if (guildIds.length) {
-              this.client.gateway.requestGuildMembers(guildIds, {
-                limit: 0,
-                presences: true,
-                query: '',
-              });
-            }
-          });
+
+          if (this.handler.memberChunks.delay) {
+            this.handler.memberChunks.timer.start(this.handler.memberChunks.delay, () => {
+              const guildIds = this.handler.memberChunks.sending.toArray();
+              this.handler.memberChunks.sending.clear();
+              if (guildIds.length) {
+                this.client.gateway.requestGuildMembers(guildIds, {
+                  limit: 0,
+                  presences: true,
+                  query: '',
+                });
+              }
+            });
+          } else {
+            this.handler.memberChunks.sending.delete(guild.id);
+            this.client.gateway.requestGuildMembers(guild.id, {
+              limit: 0,
+              presences: true,
+              query: '',
+            });
+          }
         }
         this.handler.memberChunks.done.add(guild.id);
         this.handler.memberChunks.left.delete(guild.id);
@@ -591,6 +606,7 @@ export class GatewayDispatchHandler {
     const isUnavailable = !!data['unavailable'];
 
     this.handler.memberChunks.done.delete(guildId);
+    this.handler.memberChunks.left.delete(guildId);
     this.handler.memberChunks.sending.delete(guildId);
 
     let isNew: boolean;
@@ -814,22 +830,11 @@ export class GatewayDispatchHandler {
     const userId: string = data['user']['id'];
 
     const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE);
-    if (this.client.members.has(guildId, data['user']['id'])) {
-      member = <Member> this.client.members.get(guildId, data['user']['id']);
+
+    if (this.client.members.has(guildId, userId)) {
+      member = <Member> this.client.members.get(guildId, userId);
       if (isListening) {
         differences = member.differences(data);
-      }
-      if (!!member.premiumSinceUnix !== !!data['premium_since']) {
-        if (this.client.guilds.has(guildId)) {
-          const guild = <Guild> this.client.guilds.get(guildId);
-          if (data['premium_since']) {
-            // they just boosted since `member.premiumSince` is null
-            guild.premiumSubscriptionCount++;
-          } else {
-            // they just unboosted since `data['premium_since'] is null
-            guild.premiumSubscriptionCount--;
-          }
-        }
       }
       member.merge(data);
     } else {
@@ -864,9 +869,7 @@ export class GatewayDispatchHandler {
       }
     }
 
-    const g = <Guild> this.client.guilds.get(guildId);
     if (data['members']) {
-      let old = g.members.length;
       // we (the bot user) won't be in the chunk anyways, right?
       if (this.client.members.enabled || isListening) {
         members = new BaseCollection<string, Member>();
