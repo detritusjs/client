@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.22',
+  VERSION: '0.9.23',
 });
 
 export type Snowflake = number | string;
@@ -87,6 +87,12 @@ export const ApplicationNewsFlags = Object.freeze({
 export const Oauth2AssetTypes = Object.freeze({
   SMALL: 1,
   LARGE: 2,
+});
+
+export const ActivityPlatformTypes = Object.freeze({
+  DESKTOP: 'desktop',
+  SAMSUNG: 'samsung',
+  XBOX: 'xbox',
 });
 
 export const AuditLogActions = Object.freeze({
@@ -191,6 +197,12 @@ export const AuditLogChangeKeys = Object.freeze({
   USES: 'uses',
 });
 
+export const CarouselMediaTypes = Object.freeze({
+  IMAGE: 1,
+  YOUTUBE_VIDEO: 2,
+  VIDEO: 3,
+});
+
 export const ChannelTypes = Object.freeze({
   BASE: -1,
   GUILD_TEXT: 0,
@@ -201,6 +213,7 @@ export const ChannelTypes = Object.freeze({
   GUILD_NEWS: 5,
   GUILD_STORE: 6,
   GUILD_LFG_LISTINGS: 7,
+  LFG_GROUP_DM: 8,
 });
 
 export const ClientEvents = Object.freeze({
@@ -409,6 +422,15 @@ export const DistributorUrls = Tools.URIEncodeWrap({
     `https://store.ubi.com/search/?q=${skuId}`,
 });
 
+export const EntitlementTypes = Object.freeze({
+  PURCHASE: 1,
+  PREMIUM_SUBSCRIPTION: 2,
+  DEVELOPER_GIFT: 3,
+  TEST_MODE_PURCHASE: 4,
+  FREE_PURCHASE: 5,
+  USER_GIFT: 6,
+});
+
 export const ExplicitContentFilterTypes = Object.freeze({
   DISABLED: 0,
   NON_FRIENDS: 1,
@@ -429,6 +451,7 @@ export const GuildFeatures = Tools.normalize({
   FEATURABLE: null,
   INVITE_SPLASH: null,
   LURKABLE: null,
+  MEMBER_LIST_DISABLED: null,
   MORE_EMOJI: null,
   NEWS: null,
   PARTNERED: null,
@@ -441,6 +464,14 @@ export const GuildFeatures = Tools.normalize({
 export const GuildNotificationSettings = Object.freeze({
   ALL: 0,
   MENTIONS: 1,
+});
+
+export const GuildWidgetStyles = Object.freeze({
+  BANNER_1: 'banner1',
+  BANNER_2: 'banner2',
+  BANNER_3: 'banner3',
+  BANNER_4: 'banner4',
+  SHIELD: 'shield',
 });
 
 export const ImageFormats = Object.freeze({
@@ -550,6 +581,7 @@ export const MessageFlags = Object.freeze({
   CROSSPOSTED: 1 << 0,
   IS_CROSSPOST: 1 << 1,
   SUPPRESS_EMBEDS: 1 << 2,
+  SOURCE_MESSAGE_DELETED: 1 << 3,
 });
 
 export const MessageTypes = Object.freeze({
@@ -703,12 +735,13 @@ export const PlatformTypes = Object.freeze({
   FACEBOOK: 'facebook',
   LEAGUE_OF_LEGENDS: 'leagueoflegends',
   REDDIT: 'reddit',
+  SAMSUNG: 'samsung',
   SKYPE: 'skype',
   SPOTIFY: 'spotify',
   STEAM: 'steam',
   TWITCH: 'twitch',
   TWITTER: 'twitter',
-  YUOTUBE: 'youtube',
+  YOUTUBE: 'youtube',
   XBOX: 'xbox',
 });
 
@@ -780,7 +813,7 @@ export const SpecialUrls = Tools.URIEncodeWrap({
 
 export const SystemChannelFlags = Object.freeze({
   SUPPRESS_JOIN_NOTIFICATIONS: 1 << 0,
-  SUPPRESS_PREMIUM_SUBSCRIPTIONS: 1 << 0,
+  SUPPRESS_PREMIUM_SUBSCRIPTIONS: 1 << 1,
 });
 
 export const SystemMessages = Object.freeze({
@@ -870,6 +903,30 @@ export const UserFlags = Object.freeze({
   TEAM_USER: 1 << 10,
 });
 
+// the level of their boost badge
+export const UserPremiumGuildSubscriptionLevels = Object.freeze({
+  LEVEL_1: 1,
+  LEVEL_2: 2,
+  LEVEL_3: 3,
+  LEVEL_4: 4,
+  LEVEL_5: 5,
+  LEVEL_6: 6,
+  LEVEL_7: 7,
+  LEVEL_8: 8,
+  LEVEL_9: 9,
+});
+
+export const UserPremiumGuildSubscriptionMonths = Object.freeze({
+  [UserPremiumGuildSubscriptionLevels.LEVEL_2]: 2,
+  [UserPremiumGuildSubscriptionLevels.LEVEL_3]: 3,
+  [UserPremiumGuildSubscriptionLevels.LEVEL_4]: 6,
+  [UserPremiumGuildSubscriptionLevels.LEVEL_5]: 9,
+  [UserPremiumGuildSubscriptionLevels.LEVEL_6]: 12,
+  [UserPremiumGuildSubscriptionLevels.LEVEL_7]: 15,
+  [UserPremiumGuildSubscriptionLevels.LEVEL_8]: 18,
+  [UserPremiumGuildSubscriptionLevels.LEVEL_9]: 24,
+});
+
 export const UserRequiredActions = Tools.normalize({
   AGREEMENTS: null,
   REQUIRE_CAPTCHA: null,
@@ -884,15 +941,6 @@ export const VerificationLevels = Object.freeze({
   HIGH: 3,
   VERY_HIGH: 4,
 });
-
-export const GuildWidgetStyles = Object.freeze({
-  BANNER_1: 'banner1',
-  BANNER_2: 'banner2',
-  BANNER_3: 'banner3',
-  BANNER_4: 'banner4',
-  SHIELD: 'shield',
-});
-
 
 export const DiscordKeys = Object.freeze({
   ACCESS_TYPE: 'access_type',

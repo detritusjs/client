@@ -167,6 +167,9 @@ export class ShardClient extends EventSpewer {
   /** If the client is ran or not */
   ran: boolean = false;
 
+  /** (Users only) if the client requires an action (like the captcha overlay) */
+  requiredAction?: null | string;
+
   /** `detritus-client-rest`'s Rest Client, but wrapped over */
   rest: RestClient;
 

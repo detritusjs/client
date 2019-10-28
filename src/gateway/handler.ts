@@ -257,6 +257,7 @@ export class GatewayDispatchHandler {
       }
     } else {
       this.client.owners.set(me.id, me);
+      this.client.requiredAction = data['required_action'];
     }
 
     try {
@@ -1483,7 +1484,14 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.USER_REQUIRED_ACTION_UPDATE](data: GatewayRawEvents.UserRequiredActionUpdate) {
+    const requiredAction = this.client.requiredAction;
+    this.client.requiredAction = data['required_action'];
 
+    const payload: GatewayClientEvents.UserRequiredActionUpdate = {
+      differences: {requiredAction},
+      requiredAction: this.client.requiredAction,
+    };
+    this.client.emit(ClientEvents.USER_REQUIRED_ACTION_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.USER_SETTINGS_UPDATE](data: GatewayRawEvents.UserSettingsUpdate) {

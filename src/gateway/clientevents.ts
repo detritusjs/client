@@ -455,7 +455,8 @@ export namespace GatewayClientEvents {
   }
 
   export interface UserRequiredActionUpdate {
-
+    differences: {requiredAction?: null | string},
+    requiredAction: null | string,
   }
 
   export interface UserUpdate {

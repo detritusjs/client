@@ -6,6 +6,7 @@ import { BaseCollection, emptyBaseCollection } from '../collections/basecollecti
 import { BaseSet } from '../collections/baseset';
 import {
   ActivityFlags,
+  ActivityPlatformTypes,
   ActivityTypes,
   DiscordKeys,
   PlatformTypes,
@@ -389,6 +390,10 @@ export class PresenceActivity extends BaseStructure {
     return null;
   }
 
+  get applicationIsXbox(): boolean {
+    return this.applicationId === SpecialApplications.XBOX;
+  }
+
   get canInstance(): boolean {
     return this.hasFlag(ActivityFlags.INSTANCE);
   }
@@ -477,8 +482,12 @@ export class PresenceActivity extends BaseStructure {
     );
   }
 
+  get isOnSamsung(): boolean {
+    return this.platformType === ActivityPlatformTypes.SAMSUNG;
+  }
+
   get isOnXbox(): boolean {
-    return this.applicationId === SpecialApplications.XBOX;
+    return this.platformType === ActivityPlatformTypes.XBOX;
   }
 
 
@@ -508,6 +517,17 @@ export class PresenceActivity extends BaseStructure {
       return this.party.size[0];
     }
     return null;
+  }
+
+  get platformType(): string {
+    // should we check `isPlaying`? the client returns null if they aren't
+    if (this.applicationIsXbox) {
+      return ActivityPlatformTypes.XBOX;
+    }
+    if (this.platform) {
+      return this.platform;
+    }
+    return ActivityPlatformTypes.DESKTOP;
   }
 
 
