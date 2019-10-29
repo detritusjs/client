@@ -83,8 +83,8 @@ export class CommandClient extends EventSpewer {
   ratelimits: Array<CommandRatelimit> = [];
   replies: BaseCollection<string, Message>;
 
-  onCommandCheck?: CommandClientCommandCheck;
-  onPrefixCheck?: CommandClientPrefixCheck;
+  onCommandCheck?(context: Context, command: Command): boolean | Promise<boolean>;
+  onPrefixCheck?(context: Context): CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
   constructor(
     token: ShardClient | string,
@@ -127,12 +127,8 @@ export class CommandClient extends EventSpewer {
     this.ran = this.client.ran;
     this.replies = new BaseCollection({expire: this.maxEditDuration});
 
-    if (options.onCommandCheck) {
-      this.onCommandCheck = options.onCommandCheck;
-    }
-    if (options.onPrefixCheck) {
-      this.onPrefixCheck = options.onPrefixCheck;
-    }
+    this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
+    this.onPrefixCheck = options.onPrefixCheck || this.onPrefixCheck;
 
     if (options.prefix !== undefined) {
       if (options.prefixes === undefined) {

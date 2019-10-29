@@ -107,16 +107,16 @@ export class Command {
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
 
-  onBefore?: CommandCallbackBefore;
-  onBeforeRun?: CommandCallbackBeforeRun;
-  onCancel?: CommandCallbackCancel;
-  onCancelRun?: CommandCallbackCancelRun;
-  onError?: CommandCallbackError;
-  run?: CommandCallbackRun;
-  onRatelimit?: CommandCallbackRatelimit;
-  onRunError?: CommandCallbackRunError;
-  onSuccess?: CommandCallbackSuccess;
-  onTypeError?: CommandCallbackTypeError;
+  onBefore?(context: Context): Promise<boolean> | boolean;
+  onBeforeRun?(context: Context, args: ParsedArgs): Promise<boolean> | boolean;
+  onCancel?(context: Context): Promise<any | Message> | any | Message;
+  onCancelRun?(context: Context, args: ParsedArgs): Promise<any | Message> | any | Message;
+  onError?(context: Context, args: ParsedArgs, error: any): Promise<any> | any;
+  run?(context: Context, args: ParsedArgs): Promise<any | Message> | any | Message;
+  onRatelimit?(context: Context, ratelimits: Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}>, metadata: {global: boolean, now: number}): Promise<any> | any;
+  onRunError?(context: Context, args: ParsedArgs, error: any): Promise<any> | any;
+  onSuccess?(context: Context, args: ParsedArgs): Promise<any> | any;
+  onTypeError?(context: Context, args: ParsedArgs, errors: ParsedErrors): Promise<any | Message> | any | Message;
 
   constructor(
     commandClient: CommandClient,
