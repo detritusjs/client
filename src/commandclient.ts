@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import { EventSpewer } from 'detritus-utils';
+import { EventSpewer, EventSubscription } from 'detritus-utils';
 
 import { ShardClient } from './client';
 import {
@@ -33,6 +33,7 @@ export interface CommandClientOptions extends ClusterClientOptions {
   ignoreMe?: boolean,
   maxEditDuration?: number,
   mentionsEnabled?: boolean,
+  onCommandCheck?: CommandClientCommandCheck,
   onPrefixCheck?: CommandClientPrefixCheck,
   prefix?: string,
   prefixes?: Array<string>,
@@ -41,6 +42,8 @@ export interface CommandClientOptions extends ClusterClientOptions {
   ratelimits?: Array<CommandRatelimitOptions>,
   useClusterClient?: boolean,
 }
+
+export type CommandClientCommandCheck = (context: Context, command: Command) => boolean | Promise<boolean>;
 
 export type CommandClientPrefixes = Array<string> | BaseSet<string> | Set<string> | string;
 export type CommandClientPrefixCheck = (context: Context) => CommandClientPrefixes | Promise<CommandClientPrefixes>;
@@ -64,7 +67,7 @@ export interface CommandAttributes {
  * @category Clients
  */
 export class CommandClient extends EventSpewer {
-  readonly _clientListeners: {[key: string]: null | ((...args: any[]) => void)} = {};
+  readonly _clientSubscriptions: Array<EventSubscription> = [];
 
   activateOnEdits: boolean = false;
   client: ClusterClient | ShardClient;
@@ -80,6 +83,7 @@ export class CommandClient extends EventSpewer {
   ratelimits: Array<CommandRatelimit> = [];
   replies: BaseCollection<string, Message>;
 
+  onCommandCheck?: CommandClientCommandCheck;
   onPrefixCheck?: CommandClientPrefixCheck;
 
   constructor(
@@ -116,13 +120,19 @@ export class CommandClient extends EventSpewer {
     this.ignoreMe = options.ignoreMe || this.ignoreMe;
     this.maxEditDuration = +(options.maxEditDuration || this.maxEditDuration);
     this.mentionsEnabled = !!(options.mentionsEnabled || options.mentionsEnabled === undefined);
-    this.onPrefixCheck = options.onPrefixCheck;
     this.prefixes = Object.freeze({
       custom: new BaseSet<string>(),
       mention: new BaseSet<string>(),
     });
     this.ran = this.client.ran;
     this.replies = new BaseCollection({expire: this.maxEditDuration});
+
+    if (options.onCommandCheck) {
+      this.onCommandCheck = options.onCommandCheck;
+    }
+    if (options.onPrefixCheck) {
+      this.onPrefixCheck = options.onPrefixCheck;
+    }
 
     if (options.prefix !== undefined) {
       if (options.prefixes === undefined) {
@@ -164,21 +174,19 @@ export class CommandClient extends EventSpewer {
     }
 
     Object.defineProperties(this, {
-      _clientListeners: {enumerable: false, writable: false},
+      _clientSubscriptions: {enumerable: false, writable: false},
       activateOnEdits: {configurable: true, writable: false},
       client: {enumerable: false, writable: false},
       commands: {writable: false},
       maxEditDuration: {configurable: true, writable: false},
       mentionsEnabled: {configurable: true, writable: false},
-      onPrefixCheck: {enumerable: false},
+      onCommandCheck: {enumerable: false, writable: true},
+      onPrefixCheck: {enumerable: false, writable: true},
       prefixes: {writable: false},
       prefixSpace: {configurable: true, writable: false},
       ran: {configurable: true, writable: false},
       replies: {enumerable: false, writable: false},
     });
-    this._clientListeners[ClientEvents.MESSAGE_CREATE] = null;
-    this._clientListeners[ClientEvents.MESSAGE_DELETE] = null;
-    this._clientListeners[ClientEvents.MESSAGE_UPDATE] = null;
   }
 
   get rest() {
@@ -237,7 +245,7 @@ export class CommandClient extends EventSpewer {
 
     this.commands.push(command);
     this.commands.sort((x, y) => y.priority - x.priority);
-    this.setListeners();
+    this.setSubscriptions();
     return this;
   }
 
@@ -320,7 +328,7 @@ export class CommandClient extends EventSpewer {
       }
     }
     this.commands.length = 0;
-    this.resetListeners();
+    this.resetSubscriptions();
   }
 
   async getAttributes(context: Context): Promise<CommandAttributes | null> {
@@ -391,33 +399,29 @@ export class CommandClient extends EventSpewer {
     return this.prefixes.custom;
   }
 
-  resetListeners(): void {
-    for (let name in this._clientListeners) {
-      const listener = this._clientListeners[name];
-      if (listener) {
-        this.client.removeListener(name, listener);
-        this._clientListeners[name] = null;
+  resetSubscriptions(): void {
+    while (this._clientSubscriptions.length) {
+      const subscription = this._clientSubscriptions.shift();
+      if (subscription) {
+        subscription.remove();
       }
     }
   }
 
-  setListeners(): void {
-    this.resetListeners();
-    this._clientListeners[ClientEvents.MESSAGE_CREATE] = this.handle.bind(this, ClientEvents.MESSAGE_CREATE);
-    this._clientListeners[ClientEvents.MESSAGE_DELETE] = this.handleDelete.bind(this, ClientEvents.MESSAGE_DELETE);
-    this._clientListeners[ClientEvents.MESSAGE_UPDATE] = this.handle.bind(this, ClientEvents.MESSAGE_UPDATE);
-    for (let name in this._clientListeners) {
-      const listener = this._clientListeners[name];
-      if (listener) {
-        this.client.addListener(name, listener);
-      }
-    }
+  setSubscriptions(): void {
+    this.resetSubscriptions();
+
+    const subscriptions = this._clientSubscriptions;
+    subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_CREATE, this.handle.bind(this, ClientEvents.MESSAGE_CREATE)));
+    subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_DELETE, this.handleDelete.bind(this, ClientEvents.MESSAGE_DELETE)));
+    subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_UPDATE, this.handle.bind(this, ClientEvents.MESSAGE_UPDATE)));
   }
 
   /* Kill/Run */
   kill(): void {
     this.client.kill();
     this.emit(ClientEvents.KILLED);
+    this.resetSubscriptions();
     this.removeAllListeners();
   }
 
@@ -482,6 +486,19 @@ export class CommandClient extends EventSpewer {
     const command = this.getCommand(attributes);
     if (command) {
       context.command = command;
+      if (typeof(this.onCommandCheck) === 'function') {
+        try {
+          const shouldContinue = await Promise.resolve(this.onCommandCheck(context, command));
+          if (!shouldContinue) {
+            const error = new Error('Command check returned false');
+            this.emit(ClientEvents.COMMAND_NONE, {context, error});
+            return;
+          }
+        } catch(error) {
+          this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+          return;
+        }
+      }
     } else {
       const error = new Error('Unknown Command');
       this.emit(ClientEvents.COMMAND_NONE, {context, error});

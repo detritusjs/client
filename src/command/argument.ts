@@ -15,6 +15,7 @@ export interface ArgumentOptions {
   aliases?: Array<string>,
   default?: ArgumentDefault,
   label?: string,
+  metadata?: {[key: string]: any},
   name: string,
   prefix?: string,
   prefixes?: Array<string>,
@@ -33,6 +34,7 @@ export class Argument {
   aliases: Array<string>;
   default: ArgumentDefault = undefined;
   label: string;
+  metadata?: {[key: string]: any};
   name: string;
   prefixes: Set<string> = new Set(['-']);
   type: ArgumentConverter | string = CommandArgumentTypes.STRING;
@@ -40,6 +42,9 @@ export class Argument {
   constructor(options: ArgumentOptions) {
     options = Object.assign({}, options);
 
+    if (options.metadata !== undefined) {
+      this.metadata = Object.assign({}, options.metadata);
+    }
     if (options.prefix !== undefined) {
       if (options.prefixes === undefined) {
         options.prefixes = [];

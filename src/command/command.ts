@@ -124,7 +124,7 @@ export class Command {
   ) {
     this.commandClient = commandClient;
 
-    this.arg = new Argument(Object.assign({prefix: ''}, options));
+    this.arg = new Argument(Object.assign({prefix: ''}, options, {metadata: undefined}));
     this.args = new ArgumentParser(options.args);
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
