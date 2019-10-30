@@ -9,7 +9,7 @@ import {
 } from './basestructure';
 import { ConnectedAccount } from './connectedaccount';
 import { Guild } from './guild';
-import { User } from './user';
+import { UserWithFlags } from './user';
 
 
 const keysProfile = new BaseSet<string>([
@@ -33,7 +33,7 @@ export class Profile extends BaseStructure {
   nicks = new BaseCollection<string, string>();
   premiumGuildSince: Date | null = null;
   premiumSince: Date | null = null;
-  user!: User;
+  user!: UserWithFlags;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -72,14 +72,7 @@ export class Profile extends BaseStructure {
           }
         }; break;
         case DiscordKeys.USER: {
-          let user: User;
-          if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
-            user.merge(value);
-          } else {
-            user = new User(this.client, value);
-          }
-          value = user;
+          value = new UserWithFlags(this.client, value);
         }; break;
       }
       return super.mergeValue(key, value);
