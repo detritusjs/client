@@ -42,7 +42,7 @@ import {
   Webhook,
 } from '../structures';
 
-import { RestResponses, RequestTypes } from './types';
+import { RestResponses } from './types';
 
 
 export class RestClient extends Client {
