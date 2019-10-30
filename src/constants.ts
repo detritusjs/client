@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.25',
+  VERSION: '0.9.26',
 });
 
 export type Snowflake = number | string;
@@ -953,6 +953,7 @@ export const DiscordKeys = Object.freeze({
   AFK_TIMEOUT: 'afk_timeout',
   ALIASES: 'aliases',
   ALLOW: 'allow',
+  ANALYTICS_TOKEN: 'analytics_token',
   ANIMATED: 'animated',
   APPLICATION: 'application',
   APPLICATION_ID: 'application_id',
@@ -1238,6 +1239,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.AFK_TIMEOUT]: 'afkTimeout',
   [DiscordKeys.ALIASES]: 'aliases',
   [DiscordKeys.ALLOW]: 'allow',
+  [DiscordKeys.ANALYTICS_TOKEN]: 'analyticsToken',
   [DiscordKeys.ANIMATED]: 'animated',
   [DiscordKeys.APPLICATION]: 'application',
   [DiscordKeys.APPLICATION_ID]: 'applicationId',

@@ -42,7 +42,7 @@ import {
   Webhook,
 } from '../structures';
 
-import { RestResponses } from './types';
+import { RestResponses, RequestTypes } from './types';
 
 
 export class RestClient extends Client {
@@ -773,6 +773,11 @@ export class RestClient extends Client {
   ): Promise<Invite> {
     const data = await super.fetchInvite(code, options);
     return new Invite(this.client, data);
+  }
+
+  async fetchMe(options: RequestTypes.FetchMe = {}): Promise<UserMe> {
+    const data = await super.fetchMe.call(this, options);
+    return new UserMe(this.client, data);
   }
 
   async fetchMeConnections(): Promise<BaseCollection<string, ConnectedAccount>> {

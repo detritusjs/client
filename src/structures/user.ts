@@ -361,6 +361,7 @@ export class UserExtended extends UserWithFlags {
 
 const keysUserMe = new BaseSet<string>([
   ...keysUserExtended,
+  DiscordKeys.ANALYTICS_TOKEN,
   DiscordKeys.PHONE,
 ]);
 
@@ -372,6 +373,7 @@ const keysUserMe = new BaseSet<string>([
 export class UserMe extends UserExtended {
   readonly _keys = keysUserMe;
 
+  analyticsToken?: string;
   phone?: string;
 
   constructor(
