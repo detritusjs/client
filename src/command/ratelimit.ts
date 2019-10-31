@@ -14,7 +14,7 @@ import {
 export interface CommandRatelimitOptions {
   duration?: number,
   limit?: number,
-  type?: CommandRatelimitTypes,
+  type?: CommandRatelimitTypes | string,
 }
 
 /**

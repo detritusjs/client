@@ -90,7 +90,7 @@ export interface ShardClientOptions {
     voiceStates?: VoiceStatesOptions,
   } | boolean,
   gateway?: GatewayOptions,
-  imageFormat?: ImageFormats,
+  imageFormat?: ImageFormats | string,
   isBot?: boolean,
   rest?: RestOptions,
   pass?: {
@@ -226,11 +226,11 @@ export class ShardClient extends EventSpewer {
       this._isBot = !!options.isBot;
     }
     if (options.imageFormat) {
-      options.imageFormat = <ImageFormats> <unknown> options.imageFormat.toLowerCase();
-      if (!IMAGE_FORMATS.includes(options.imageFormat)) {
+      const imageFormat = <ImageFormats> <unknown> options.imageFormat.toLowerCase();
+      if (!IMAGE_FORMATS.includes(imageFormat)) {
         throw new Error(`Image format must be one of ${JSON.stringify(IMAGE_FORMATS)}`);
       }
-      this.imageFormat = options.imageFormat;
+      this.imageFormat = imageFormat;
     }
 
     Object.defineProperties(this, {
