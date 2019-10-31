@@ -94,7 +94,7 @@ export interface CommandOptions extends ArgumentOptions {
  * Command itself
  * @category Command
  */
-export class Command {
+export class Command<ParsedArgsFinished = ParsedArgs> {
   readonly _file?: string;
   readonly commandClient: CommandClient;
 
@@ -112,10 +112,10 @@ export class Command {
   onCancel?(context: Context): Promise<any | Message> | any | Message;
   onCancelRun?(context: Context, args: ParsedArgs): Promise<any | Message> | any | Message;
   onError?(context: Context, args: ParsedArgs, error: any): Promise<any> | any;
-  run?(context: Context, args: ParsedArgs): Promise<any | Message> | any | Message;
   onRatelimit?(context: Context, ratelimits: Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}>, metadata: {global: boolean, now: number}): Promise<any> | any;
-  onRunError?(context: Context, args: ParsedArgs, error: any): Promise<any> | any;
-  onSuccess?(context: Context, args: ParsedArgs): Promise<any> | any;
+  run?(context: Context, args: ParsedArgsFinished): Promise<any | Message> | any | Message;
+  onRunError?(context: Context, args: ParsedArgsFinished, error: any): Promise<any> | any;
+  onSuccess?(context: Context, args: ParsedArgsFinished): Promise<any> | any;
   onTypeError?(context: Context, args: ParsedArgs, errors: ParsedErrors): Promise<any | Message> | any | Message;
 
   constructor(

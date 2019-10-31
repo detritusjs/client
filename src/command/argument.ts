@@ -31,9 +31,10 @@ const blankPrefixes = Object.freeze(['']);
  * @category Command
  */
 export class Argument {
+  _label?: string;
+
   aliases: Array<string>;
   default: ArgumentDefault = undefined;
-  label: string;
   metadata?: {[key: string]: any};
   name: string;
   prefixes: Set<string> = new Set(['-']);
@@ -75,8 +76,11 @@ export class Argument {
 
     this.aliases = (options.aliases || []).map((alias) => alias.toLowerCase());
     this.default = options.default;
-    this.label = (options.label || options.name).toLowerCase();
     this.name = options.name.toLowerCase();
+
+    if (options.label) {
+      this._label = options.label;
+    }
 
     switch (options.type) {
       case Boolean: {
@@ -97,6 +101,14 @@ export class Argument {
         this.default = !!this.default;
       }; break;
     }
+  }
+
+  get label(): string {
+    return this._label || this.name;
+  }
+
+  set label(value: string) {
+    this._label = value;
   }
 
   get names(): Array<string> {

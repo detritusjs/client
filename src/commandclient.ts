@@ -271,15 +271,15 @@ export class CommandClient extends EventSpewer {
 
       try {
         let importedCommand: any = require(filepath);
+        if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
+          importedCommand = importedCommand.default;
+        }
         if (typeof(importedCommand) === 'function') {
           this.add({_file: filepath, _class: importedCommand, name: ''});
         } else if (importedCommand instanceof Command) {
           Object.defineProperty(importedCommand, '_file', {value: filepath});
           this.add(importedCommand);
         } else if (typeof(importedCommand) === 'object') {
-          if ('default' in importedCommand) {
-            importedCommand = importedCommand.default;
-          }
           this.add({...importedCommand, _file: filepath});
         }
       } catch(error) {
