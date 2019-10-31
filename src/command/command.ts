@@ -1,7 +1,8 @@
 import { CommandAttributes, CommandClient } from '../commandclient';
+import { CommandArgumentTypes } from '../constants';
 import { Message } from '../structures/message';
 
-import { ArgumentOptions, Argument } from './argument';
+import { ArgumentConverter, ArgumentOptions, Argument } from './argument';
 import { ArgumentParser, ParsedArgs, ParsedErrors } from './argumentparser';
 import { Context } from './context';
 import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from './ratelimit';
@@ -171,16 +172,32 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     return this.arg.aliases;
   }
 
+  set aliases(value: Array<string>) {
+    this.arg.aliases = value;
+  }
+
   get label(): string {
     return this.arg.label;
+  }
+
+  set label(value: string) {
+    this.arg.label = value;
   }
 
   get name(): string {
     return this.arg.name;
   }
 
+  set name(value: string) {
+    this.arg.name = value.toLowerCase();
+  }
+
   get names(): Array<string> {
     return this.arg.names;
+  }
+
+  set type(value: ArgumentConverter | Boolean | Number | String | CommandArgumentTypes) {
+    this.arg.type = value;
   }
 
   check(name: string): boolean {

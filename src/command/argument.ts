@@ -7,6 +7,8 @@ export type ArgumentConverter = (value: string, context: Context) => Promise<any
 
 export type ArgumentDefault = ((context: Context) => Promise<any> | any) | any;
 
+export type ArgumenType = ArgumentConverter | Boolean | Number | String | CommandArgumentTypes;
+
 /**
  * Command Argument Options
  * @category Command Options
@@ -20,7 +22,7 @@ export interface ArgumentOptions {
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
-  type?: ArgumentConverter | Boolean | Number | String | CommandArgumentTypes,
+  type?: ArgumenType,
 }
 
 
@@ -31,14 +33,14 @@ const blankPrefixes = Object.freeze(['']);
  * @category Command
  */
 export class Argument {
-  _label?: string;
+  private _aliases: Array<string> = [];
+  private _label?: string;
+  private _type: ArgumenType = CommandArgumentTypes.STRING;
 
-  aliases: Array<string>;
   default: ArgumentDefault = undefined;
   metadata?: {[key: string]: any};
   name: string;
   prefixes: Set<string> = new Set(['-']);
-  type: ArgumentConverter | CommandArgumentTypes = CommandArgumentTypes.STRING;
 
   constructor(options: ArgumentOptions) {
     options = Object.assign({}, options);
@@ -74,33 +76,25 @@ export class Argument {
       }
     }
 
-    this.aliases = (options.aliases || []).map((alias) => alias.toLowerCase());
     this.default = options.default;
     this.name = options.name.toLowerCase();
-
+    if (options.aliases) {
+      this.aliases = options.aliases;
+    }
     if (options.label) {
-      this._label = options.label;
+      this.label = options.label;
     }
-
-    switch (options.type) {
-      case Boolean: {
-        options.type = CommandArgumentTypes.BOOL;
-      }; break;
-      case Number: {
-        options.type = CommandArgumentTypes.NUMBER;
-      }; break;
-      case String: {
-        options.type = CommandArgumentTypes.STRING;
-      }; break;
+    if (options.type) {
+      this.type = options.type;
     }
+  }
 
-    this.type = <ArgumentConverter | CommandArgumentTypes> (options.type || this.type);
+  get aliases(): Array<string> {
+    return this._aliases;
+  }
 
-    switch (this.type) {
-      case CommandArgumentTypes.BOOL: {
-        this.default = !!this.default;
-      }; break;
-    }
+  set aliases(value: Array<string>) {
+    this._aliases = (value || []).map((alias) => alias.toLowerCase());
   }
 
   get label(): string {
@@ -121,6 +115,31 @@ export class Argument {
       }
     }
     return names;
+  }
+
+  get type(): ArgumenType {
+    return this._type;
+  }
+
+  set type(value: ArgumenType) {
+    switch (value) {
+      case Boolean: {
+        value = CommandArgumentTypes.BOOL;
+      }; break;
+      case Number: {
+        value = CommandArgumentTypes.NUMBER;
+      }; break;
+      case String: {
+        value = CommandArgumentTypes.STRING;
+      }; break;
+    }
+
+    this._type = (value || this.type);
+    switch (this.type) {
+      case CommandArgumentTypes.BOOL: {
+        this.default = !!this.default;
+      }; break;
+    }
   }
 
   check(name: string): boolean {
