@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DiscordKeys, PlatformTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -35,7 +35,7 @@ export class ConnectedAccount extends BaseStructure {
   name: string = '';
   revoked?: boolean;
   showActivity?: boolean;
-  type: string = '';
+  type!: PlatformTypes;
   verified: boolean = false;
   visibility?: number;
 

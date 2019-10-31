@@ -360,7 +360,7 @@ export class PresenceActivity extends BaseStructure {
   metadata?: any;
   name: string = '';
   party?: {id?: string, size?: [number, number]};
-  platform?: string;
+  platform?: ActivityPlatformTypes;
   position: number = 0;
   secrets?: {join?: string, match?: string, spectate?: string};
   sessionId?: string;

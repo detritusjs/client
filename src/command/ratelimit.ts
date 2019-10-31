@@ -14,7 +14,7 @@ import {
 export interface CommandRatelimitOptions {
   duration?: number,
   limit?: number,
-  type?: string,
+  type?: CommandRatelimitTypes,
 }
 
 /**
@@ -37,14 +37,17 @@ export class CommandRatelimit {
 
   duration: number = 5000;
   limit: number = 5;
-  type: string = CommandRatelimitTypes.USER;
+  type: CommandRatelimitTypes = CommandRatelimitTypes.USER;
 
   constructor(options: boolean | CommandRatelimitOptions = {}) {
     options = <CommandRatelimitOptions> Object.assign({}, options);
 
     this.duration = options.duration || this.duration;
     this.limit = options.limit || this.limit;
-    this.type = (options.type || this.type).toLowerCase();
+
+    if (options.type) {
+      this.type = <CommandRatelimitTypes> <unknown> options.type.toLowerCase();
+    }
     if (!COMMAND_RATELIMIT_TYPES.includes(this.type)) {
       this.type = CommandRatelimitTypes.USER;
     }

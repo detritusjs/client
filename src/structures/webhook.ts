@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DiscordKeys, WebhookTypes } from '../constants';
 import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 
 import {
@@ -42,6 +42,7 @@ export class Webhook extends BaseStructure {
   id: string = '';
   name: string = '';
   token?: null | string;
+  type: WebhookTypes = WebhookTypes.INCOMING;
   user?: null | User;
 
   constructor(client: ShardClient, data: BaseStructureData) {

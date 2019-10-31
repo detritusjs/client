@@ -25,7 +25,7 @@ export class Relationship extends BaseStructure {
   readonly _keys = keysRelationship;
 
   id: string = '';
-  type: number = RelationshipTypes.NONE;
+  type: RelationshipTypes = RelationshipTypes.NONE;
   user!: User;
 
   constructor(client: ShardClient, data: BaseStructureData) {

@@ -20,7 +20,7 @@ export interface ArgumentOptions {
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
-  type?: ArgumentConverter | Boolean | Number | String | string,
+  type?: ArgumentConverter | Boolean | Number | String | CommandArgumentTypes,
 }
 
 
@@ -37,7 +37,7 @@ export class Argument {
   metadata?: {[key: string]: any};
   name: string;
   prefixes: Set<string> = new Set(['-']);
-  type: ArgumentConverter | string = CommandArgumentTypes.STRING;
+  type: ArgumentConverter | CommandArgumentTypes = CommandArgumentTypes.STRING;
 
   constructor(options: ArgumentOptions) {
     options = Object.assign({}, options);
@@ -90,7 +90,7 @@ export class Argument {
       }; break;
     }
 
-    this.type = <ArgumentConverter | string> (options.type || this.type);
+    this.type = <ArgumentConverter | CommandArgumentTypes> (options.type || this.type);
 
     switch (this.type) {
       case CommandArgumentTypes.BOOL: {

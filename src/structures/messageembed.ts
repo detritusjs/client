@@ -44,7 +44,7 @@ export class MessageEmbed extends BaseStructure {
   thumbnail?: MessageEmbedThumbnail;
   timestamp?: Date;
   title?: string;
-  type: string = MessageEmbedTypes.RICH;
+  type: MessageEmbedTypes = MessageEmbedTypes.RICH;
   url?: string;
   video?: MessageEmbedVideo;
 

@@ -3,7 +3,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DiscordKeys, SkuTypes } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -180,7 +180,7 @@ export class Sku extends BaseStructure {
   showAgeGate: boolean = false;
   systemRequirements?: {[key: string]: {recommended: any, minimum: any}};
   slug: string = '';
-  type: number = 0;
+  type: SkuTypes = SkuTypes.BASE;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);

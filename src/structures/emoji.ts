@@ -107,7 +107,7 @@ export class Emoji extends BaseStructure {
     return this.urlFormat();
   }
 
-  urlFormat(format?: null | string, query?: UrlQuery): string {
+  urlFormat(format?: ImageFormats | null, query?: UrlQuery): string {
     if (!this.id) {
       throw new Error('Cannot get a URL of a standard Emoji.');
     }
@@ -145,7 +145,7 @@ export class Emoji extends BaseStructure {
 
   async fetchData(
     options: {
-      format?: null | string,
+      format?: ImageFormats | null,
       query?: UrlQuery,
     } = {},
   ) {

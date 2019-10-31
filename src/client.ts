@@ -90,7 +90,7 @@ export interface ShardClientOptions {
     voiceStates?: VoiceStatesOptions,
   } | boolean,
   gateway?: GatewayOptions,
-  imageFormat?: string,
+  imageFormat?: ImageFormats,
   isBot?: boolean,
   rest?: RestOptions,
   pass?: {
@@ -149,7 +149,7 @@ export class ShardClient extends EventSpewer {
   commandClient: CommandClient | null = null;
 
   /** Default Image Format to use for any url getters*/
-  imageFormat: string = ImageFormats.PNG;
+  imageFormat: ImageFormats = ImageFormats.PNG;
 
   /** `detritus-client-socket`'s Gateway Socket */
   gateway: Gateway.Socket;
@@ -225,8 +225,8 @@ export class ShardClient extends EventSpewer {
     if (options.isBot !== undefined) {
       this._isBot = !!options.isBot;
     }
-    if (options.imageFormat !== undefined) {
-      options.imageFormat = (<string> options.imageFormat).toLowerCase();
+    if (options.imageFormat) {
+      options.imageFormat = <ImageFormats> <unknown> options.imageFormat.toLowerCase();
       if (!IMAGE_FORMATS.includes(options.imageFormat)) {
         throw new Error(`Image format must be one of ${JSON.stringify(IMAGE_FORMATS)}`);
       }

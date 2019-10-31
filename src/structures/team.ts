@@ -39,7 +39,7 @@ export class Team extends BaseStructure {
   members = new BaseCollection<string, TeamMember>();
   name: string = '';
   ownerUserId: string = '';
-  payoutAccountStatus?: number;
+  payoutAccountStatus?: TeamPayoutAccountStatuses;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
@@ -137,7 +137,7 @@ const keysTeamMember = new BaseSet<string>([
 export class TeamMember extends UserMixin {
   readonly _keys = keysTeamMember;
 
-  membershipState: number = TeamMembershipStates.BASE;
+  membershipState: TeamMembershipStates = TeamMembershipStates.BASE;
   permissions!: BaseSet<string>;
   teamId: string = '';
   user!: User;

@@ -286,7 +286,7 @@ export class ApplicationThirdPartySku extends BaseStructure {
   readonly _keys = keysApplicationThirdPartySku;
   readonly application: Application;
 
-  distributor: string = '';
+  distributor!: Distributors;
   id: null | string = null;
   sku: null | string = null; // deprecated
 

@@ -228,7 +228,7 @@ export class Oauth2ApplicationAsset extends BaseStructure {
   applicationId: string = '';
   id: string = '';
   name: string = '';
-  type: number = 0;
+  type!: Oauth2AssetTypes;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);

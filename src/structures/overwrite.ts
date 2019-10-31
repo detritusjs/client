@@ -32,7 +32,7 @@ export class Overwrite extends BaseStructure {
   allow: number = 0;
   deny: number = 0;
   id: string = '';
-  type: string = '';
+  type!: OverwriteTypes;
 
   constructor(channel: Channel, data: BaseStructureData) {
     super(channel.client);

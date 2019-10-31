@@ -11,6 +11,7 @@ import { MembersOptions } from '../collections/members';
 import { RolesOptions } from '../collections/roles';
 import {
   DiscordKeys,
+  GuildExplicitContentFilterTypes,
   GuildFeatures,
   Locales,
   LocalesText,
@@ -138,7 +139,7 @@ export class Guild extends BaseStructure {
   description: null | string = null;
   embedChannelId: null | string = null;
   embedEnabled: boolean = false;
-  explicitContentFilter: number = 0;
+  explicitContentFilter: GuildExplicitContentFilterTypes = GuildExplicitContentFilterTypes.DISABLED;
   emojis: BaseCollection<string, Emoji>;
   features = new BaseSet<string>();
   hasMetadata: boolean = false;
@@ -153,12 +154,12 @@ export class Guild extends BaseStructure {
   maxPresences: number = DEFAULT_MAX_PRESENCES;
   memberCount: number = 0;
   members: BaseCollection<string, Member>;
-  mfaLevel: number = 0;
+  mfaLevel: MfaLevels = MfaLevels.NONE;
   name: string = '';
   ownerId: string = '';
-  preferredLocale: string = Locales.ENGLISH_US;
+  preferredLocale: Locales = Locales.ENGLISH_US;
   premiumSubscriptionCount: number = 0;
-  premiumTier: number = 0;
+  premiumTier: PremiumGuildTiers = PremiumGuildTiers.NONE;
   region: string = '';
   roles: BaseCollection<string, Role>;
   splash: null | string = null;

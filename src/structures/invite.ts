@@ -59,7 +59,7 @@ export class Invite extends BaseStructure {
   maxUses?: number;
   revoked?: boolean;
   targetUser?: User;
-  targetUserType?: number;
+  targetUserType?: InviteTargetUserTypes;
   temporary?: boolean;
   uses?: number;
 

@@ -107,7 +107,7 @@ export class ChannelBase extends BaseStructure {
   position: number = -1;
   rateLimitPerUser: number = 0;
   topic?: string;
-  type: number = ChannelTypes.BASE;
+  type: ChannelTypes = ChannelTypes.BASE;
   userLimit: number = 0;
 
   constructor(

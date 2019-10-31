@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.27',
+  VERSION: '0.9.28',
 });
 
 export type Snowflake = number | string;
@@ -77,52 +77,59 @@ export const MAX_EMOJI_SLOTS = 50;
 export const MAX_EMOJI_SLOTS_MORE = 200;
 export const MIN_BITRATE = 8000;
 
+export const MEDIA_SIZES = Object.freeze([16, 20, 32, 40, 64, 80, 128, 160, 256, 320, 512, 640, 1024, 1280, 1536, 2048, 3072, 4096]);
 export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
 
-export const ApplicationNewsFlags = Object.freeze({
-  PATCH_NOTES: 1 << 1,
-  PROMOTION: 1 << 2,
-});
 
-export const Oauth2AssetTypes = Object.freeze({
-  SMALL: 1,
-  LARGE: 2,
-});
+export enum ApplicationNewsFlags {
+  PATCH_NOTES = 1 << 1,
+  PROMOTION = 1 << 2,
+};
 
-export const ActivityPlatformTypes = Object.freeze({
-  DESKTOP: 'desktop',
-  SAMSUNG: 'samsung',
-  XBOX: 'xbox',
-});
+export enum ApplicationTypes {
+  GAME = 1,
+  MUSIC = 2,
+}
 
-export const AuditLogActions = Object.freeze({
-  GUILD_UPDATE: 1,
-  CHANNEL_CREATE: 10,
-  CHANNEL_UPDATE: 11,
-  CHANNEL_DELETE: 12,
-  CHANNEL_OVERWRITE_CREATE: 13,
-  CHANNEL_OVERWRITE_UPDATE: 14,
-  CHANNEL_OVERWRITE_DELETE: 15,
-  MEMBER_KICK: 20,
-  MEMBER_PRUNE: 21,
-  MEMBER_BAN_ADD: 22,
-  MEMBER_BAN_REMOVE: 23,
-  MEMBER_UPDATE: 24,
-  MEMBER_ROLE_UPDATE: 25,
-  ROLE_CREATE: 30,
-  ROLE_UPDATE: 31,
-  ROLE_DELETE: 32,
-  INVITE_CREATE: 40,
-  INVITE_UPDATE: 41,
-  INVITE_DELETE: 42,
-  WEBHOOK_CREATE: 50,
-  WEBHOOK_UPDATE: 51,
-  WEBHOOK_DELETE: 52,
-  EMOJI_CREATE: 60,
-  EMOJI_UPDATE: 61,
-  EMOJI_DELETE: 62,
-  MESSAGE_DELETE: 72,
-});
+export enum Oauth2AssetTypes {
+  SMALL = 1,
+  LARGE = 2,
+};
+
+export enum ActivityPlatformTypes {
+  DESKTOP = 'desktop',
+  SAMSUNG = 'samsung',
+  XBOX = 'xbox',
+};
+
+export enum AuditLogActions {
+  GUILD_UPDATE = 1,
+  CHANNEL_CREATE = 10,
+  CHANNEL_UPDATE = 11,
+  CHANNEL_DELETE = 12,
+  CHANNEL_OVERWRITE_CREATE = 13,
+  CHANNEL_OVERWRITE_UPDATE = 14,
+  CHANNEL_OVERWRITE_DELETE = 15,
+  MEMBER_KICK = 20,
+  MEMBER_PRUNE = 21,
+  MEMBER_BAN_ADD = 22,
+  MEMBER_BAN_REMOVE = 23,
+  MEMBER_UPDATE = 24,
+  MEMBER_ROLE_UPDATE = 25,
+  ROLE_CREATE = 30,
+  ROLE_UPDATE = 31,
+  ROLE_DELETE = 32,
+  INVITE_CREATE = 40,
+  INVITE_UPDATE = 41,
+  INVITE_DELETE = 42,
+  WEBHOOK_CREATE = 50,
+  WEBHOOK_UPDATE = 51,
+  WEBHOOK_DELETE = 52,
+  EMOJI_CREATE = 60,
+  EMOJI_UPDATE = 61,
+  EMOJI_DELETE = 62,
+  MESSAGE_DELETE = 72,
+};
 
 export const AuditLogActionTypes = Tools.normalize({
   ALL: null,
@@ -147,208 +154,209 @@ export const AuditLogTargetTypes = Tools.normalize({
   EMOJI: null,
 });
 
-export const AuditLogChangeKeys = Object.freeze({
-  AFK_CHANNEL_ID: 'afk_channel_id',
-  AFK_TIMEOUT: 'afk_timeout',
-  APPLICATION_ID: 'application_id',
-  AVATAR_HASH: 'avatar_hash',
-  BANNER_HASH: 'banner_hash',
-  BITRATE: 'bitrate',
-  CHANNEL_ID: 'channel_id',
-  CODE: 'code',
-  COLOR: 'color',
-  DEAF: 'deaf',
-  DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
-  DESCRIPTION: 'description',
-  EXPLICIT_CONTENT_FILTER: 'explicit_content_filter',
-  HOIST: 'hoist',
-  ICON_HASH: 'icon_hash',
-  ID: 'id',
-  INVITER_ID: 'inviter_id',
-  MAX_AGE: 'max_age',
-  MAX_USES: 'max_uses',
-  MENTIONABLE: 'mentionable',
-  MFA_LEVEL: 'mfa_level',
-  MUTE: 'mute',
-  NAME: 'name',
-  NICK: 'nick',
-  NSFW: 'nsfw',
-  OWNER_ID: 'owner_id',
-  PERMISSION_OVERWRITES: 'permission_overwrites',
-  PERMISSIONS: 'permissions',
-  PERMISSIONS_DENIED: 'deny',
-  PERMISSIONS_GRANTED: 'allow',
-  POSITION: 'position',
-  PRUNE_DELETE_DAYS: 'prune_delete_days',
-  RATE_LIMIT_PER_USER: 'rate_limit_per_user',
-  REASON: 'reason',
-  REGION: 'region',
-  ROLES_ADD: '$add',
-  ROLES_REMOVE: '$remove',
-  SPLASH_HASH: 'splash_hash',
-  SYSTEM_CHANNEL_ID: 'system_channel_id',
-  WIDGET_CHANNEL_ID: 'widget_channel_id',
-  WIDGET_ENABLED: 'widget_enabled',
-  VANITY_URL_CODE: 'vanity_url_code',
-  VERIFICATION_LEVEL: 'verification_level',
-  TEMPORARY: 'temporary',
-  TOPIC: 'topic',
-  TYPE: 'type',
-  USES: 'uses',
-});
+export enum AuditLogChangeKeys {
+  AFK_CHANNEL_ID = 'afk_channel_id',
+  AFK_TIMEOUT = 'afk_timeout',
+  APPLICATION_ID = 'application_id',
+  AVATAR_HASH = 'avatar_hash',
+  BANNER_HASH = 'banner_hash',
+  BITRATE = 'bitrate',
+  CHANNEL_ID = 'channel_id',
+  CODE = 'code',
+  COLOR = 'color',
+  DEAF = 'deaf',
+  DEFAULT_MESSAGE_NOTIFICATIONS = 'default_message_notifications',
+  DESCRIPTION = 'description',
+  EXPLICIT_CONTENT_FILTER = 'explicit_content_filter',
+  HOIST = 'hoist',
+  ICON_HASH = 'icon_hash',
+  ID = 'id',
+  INVITER_ID = 'inviter_id',
+  MAX_AGE = 'max_age',
+  MAX_USES = 'max_uses',
+  MENTIONABLE = 'mentionable',
+  MFA_LEVEL = 'mfa_level',
+  MUTE = 'mute',
+  NAME = 'name',
+  NICK = 'nick',
+  NSFW = 'nsfw',
+  OWNER_ID = 'owner_id',
+  PERMISSION_OVERWRITES = 'permission_overwrites',
+  PERMISSIONS = 'permissions',
+  PERMISSIONS_DENIED = 'deny',
+  PERMISSIONS_GRANTED = 'allow',
+  POSITION = 'position',
+  PREFERRED_LOCALE = 'preferred_locale',
+  PRUNE_DELETE_DAYS = 'prune_delete_days',
+  RATE_LIMIT_PER_USER = 'rate_limit_per_user',
+  REASON = 'reason',
+  REGION = 'region',
+  ROLES_ADD = '$add',
+  ROLES_REMOVE = '$remove',
+  SPLASH_HASH = 'splash_hash',
+  SYSTEM_CHANNEL_ID = 'system_channel_id',
+  WIDGET_CHANNEL_ID = 'widget_channel_id',
+  WIDGET_ENABLED = 'widget_enabled',
+  VANITY_URL_CODE = 'vanity_url_code',
+  VERIFICATION_LEVEL = 'verification_level',
+  TEMPORARY = 'temporary',
+  TOPIC = 'topic',
+  TYPE = 'type',
+  USES = 'uses',
+};
 
-export const CarouselMediaTypes = Object.freeze({
-  IMAGE: 1,
-  YOUTUBE_VIDEO: 2,
-  VIDEO: 3,
-});
+export enum CarouselMediaTypes {
+  IMAGE = 1,
+  YOUTUBE_VIDEO = 2,
+  VIDEO = 3,
+};
 
-export const ChannelTypes = Object.freeze({
-  BASE: -1,
-  GUILD_TEXT: 0,
-  DM: 1,
-  GUILD_VOICE: 2,
-  GROUP_DM: 3,
-  GUILD_CATEGORY: 4,
-  GUILD_NEWS: 5,
-  GUILD_STORE: 6,
-  GUILD_LFG_LISTINGS: 7,
-  LFG_GROUP_DM: 8,
-});
+export enum ChannelTypes {
+  BASE = -1,
+  GUILD_TEXT = 0,
+  DM = 1,
+  GUILD_VOICE = 2,
+  GROUP_DM = 3,
+  GUILD_CATEGORY = 4,
+  GUILD_NEWS = 5,
+  GUILD_STORE = 6,
+  GUILD_LFG_LISTINGS = 7,
+  LFG_GROUP_DM = 8,
+};
 
-export const ClientEvents = Object.freeze({
-  ACTIVITY_JOIN_INVITE: 'activityJoinInvite',
-  ACTIVITY_JOIN_REQUEST: 'activityJoinRequest',
-  ACTIVITY_START: 'activityStart',
-  BRAINTREE_POPUP_BRIDGE_CALLBACK: 'braintreePopupBridgeCallback',
-  CALL_CREATE: 'callCreate',
-  CALL_DELETE: 'callDelete',
-  CALL_UPDATE: 'callUpdate',
-  CHANNEL_CREATE: 'channelCreate',
-  CHANNEL_DELETE: 'channelDelete',
-  CHANNEL_UPDATE: 'channelUpdate',
-  CHANNEL_PINS_ACK: 'channelPinsAck',
-  CHANNEL_PINS_UPDATE: 'channelPinsUpdate',
-  CHANNEL_RECIPIENT_ADD: 'channelRecipientAdd',
-  CHANNEL_RECIPIENT_REMOVE: 'channelRecipientRemove',
-  ENTITLEMENT_CREATE: 'entitlementCreate',
-  ENTITLEMENT_DELETE: 'entitlementDelete',
-  ENTITLEMENT_UPDATE: 'entitlementUpdate',
-  FRIEND_SUGGESTION_CREATE: 'friendSuggestionCreate',
-  FRIEND_SUGGESTION_DELETE: 'friendSuggestionDelete',
-  GIFT_CODE_UPDATE: 'giftCodeUpdate',
-  GUILD_BAN_ADD: 'guildBanAdd',
-  GUILD_BAN_REMOVE: 'guildBanRemove',
-  GUILD_CREATE: 'guildCreate',
-  GUILD_DELETE: 'guildDelete',
-  GUILD_UPDATE: 'guildUpdate',
-  GUILD_EMOJIS_UPDATE: 'guildEmojisUpdate',
-  GUILD_INTEGRATIONS_UPDATE: 'guildIntegrationsUpdate',
-  GUILD_MEMBER_ADD: 'guildMemberAdd',
-  GUILD_MEMBER_LIST_UPDATE: 'guildMemberListUpdate',
-  GUILD_MEMBER_REMOVE: 'guildMemberRemove',
-  GUILD_MEMBER_UPDATE: 'guildMemberUpdate',
-  GUILD_MEMBERS_CHUNK: 'guildMembersChunk',
-  GUILD_ROLE_CREATE: 'guildRoleCreate',
-  GUILD_ROLE_DELETE: 'guildRoleDelete',
-  GUILD_ROLE_UPDATE: 'guildRoleUpdate',
-  LIBRARY_APPLICATION_UPDATE: 'libraryApplicationUpdate',
-  LOBBY_CREATE: 'lobbyCreate',
-  LOBBY_DELETE: 'lobbyDelete',
-  LOBBY_UPDATE: 'lobbyUpdate',
-  LOBBY_MEMBER_CONNECT: 'lobbyMemberConnect',
-  LOBBY_MEMBER_DISCONNECT: 'lobbyMemberDisconnect',
-  LOBBY_MEMBER_UPDATE: 'lobbyMemberUpdate',
-  LOBBY_MESSAGE: 'lobbyMessage',
-  LOBBY_VOICE_SERVER_UPDATE: 'lobbyVoiceServerUpdate',
-  LOBBY_VOICE_STATE_UPDATE: 'lobbyVoiceStateUpdate',
-  MESSAGE_ACK: 'messageAck',
-  MESSAGE_CREATE: 'messageCreate',
-  MESSAGE_DELETE: 'messageDelete',
-  MESSAGE_DELETE_BULK: 'messageDeleteBulk',
-  MESSAGE_REACTION_ADD: 'messageReactionAdd',
-  MESSAGE_REACTION_REMOVE: 'messageReactionRemove',
-  MESSAGE_REACTION_REMOVE_ALL: 'messageReactionRemoveAll',
-  MESSAGE_UPDATE: 'messageUpdate',
-  OAUTH2_TOKEN_REMOVE: 'oauth2TokenRemove',
-  PRESENCES_REPLACE: 'presencesReplace',
-  PRESENCE_UPDATE: 'presenceUpdate',
-  RECENT_MENTION_DELETE: 'recentMentionDelete',
-  RELATIONSHIP_ADD: 'relationshipAdd',
-  RELATIONSHIP_REMOVE: 'relationshipRemove',
-  SESSIONS_REPLACE: 'sessionsReplace',
-  STREAM_CREATE: 'streamCreate',
-  STREAM_DELETE: 'streamDelete',
-  STREAM_SERVER_UPDATE: 'streamServerUpdate',
-  STREAM_UPDATE: 'streamUpdate',
-  TYPING_START: 'typingStart',
-  TYPING_STOP: 'typingStop',
-  USER_ACHIEVEMENT_UPDATE: 'userAchievementUpdate',
-  USER_CONNECTIONS_UPDATE: 'userConnectionsUpdate',
-  USER_FEED_SETTINGS_UPDATE: 'userFeedSettingsUpdate',
-  USER_GUILD_SETTINGS_UPDATE: 'userGuildSettingsUpdate',
-  USER_NOTE_UPDATE: 'userNoteUpdate',
-  USER_PAYMENT_SOURCES_UPDATE: 'userPaymentSourcesUpdate',
-  USER_PAYMENTS_UPDATE: 'userPaymentsUpdate',
-  USER_REQUIRED_ACTION_UPDATE: 'userRequiredActionUpdate',
-  USER_SETTINGS_UPDATE: 'userSettingsUpdate',
-  USER_SUBSCRIPTIONS_UPDATE: 'userSubscriptionsUpdate',
-  USER_UPDATE: 'userUpdate',
-  VOICE_SERVER_UPDATE: 'voiceServerUpdate',
-  VOICE_STATE_UPDATE: 'voiceStateUpdate',
-  WEBHOOKS_UPDATE: 'webhooksUpdate',
-  CLUSTER_PROCESS: 'clusterProcess',
-  COMMAND_ERROR: 'commandError',
-  COMMAND_FAIL: 'commandFail',
-  COMMAND_NONE: 'commandNone',
-  COMMAND_RAN: 'commandRan',
-  COMMAND_RATELIMIT: 'commandRatelimit',
-  COMMAND_RUN_ERROR: 'commandRunError',
-  GATEWAY_READY: 'gatewayReady',
-  GATEWAY_RESUMED: 'gatewayResumed',
-  KILLED: 'killed',
-  RAW: 'raw',
-  READY: 'ready',
-  REST_REQUEST: 'restRequest',
-  REST_RESPONSE: 'restResponse',
-  SHARD: 'shard',
-  UNKNOWN: 'unknown',
-  WARN: 'warn',
-});
+export enum ClientEvents {
+  ACTIVITY_JOIN_INVITE = 'activityJoinInvite',
+  ACTIVITY_JOIN_REQUEST = 'activityJoinRequest',
+  ACTIVITY_START = 'activityStart',
+  BRAINTREE_POPUP_BRIDGE_CALLBACK = 'braintreePopupBridgeCallback',
+  CALL_CREATE = 'callCreate',
+  CALL_DELETE = 'callDelete',
+  CALL_UPDATE = 'callUpdate',
+  CHANNEL_CREATE = 'channelCreate',
+  CHANNEL_DELETE = 'channelDelete',
+  CHANNEL_UPDATE = 'channelUpdate',
+  CHANNEL_PINS_ACK = 'channelPinsAck',
+  CHANNEL_PINS_UPDATE = 'channelPinsUpdate',
+  CHANNEL_RECIPIENT_ADD = 'channelRecipientAdd',
+  CHANNEL_RECIPIENT_REMOVE = 'channelRecipientRemove',
+  ENTITLEMENT_CREATE = 'entitlementCreate',
+  ENTITLEMENT_DELETE = 'entitlementDelete',
+  ENTITLEMENT_UPDATE = 'entitlementUpdate',
+  FRIEND_SUGGESTION_CREATE = 'friendSuggestionCreate',
+  FRIEND_SUGGESTION_DELETE = 'friendSuggestionDelete',
+  GIFT_CODE_UPDATE = 'giftCodeUpdate',
+  GUILD_BAN_ADD = 'guildBanAdd',
+  GUILD_BAN_REMOVE = 'guildBanRemove',
+  GUILD_CREATE = 'guildCreate',
+  GUILD_DELETE = 'guildDelete',
+  GUILD_UPDATE = 'guildUpdate',
+  GUILD_EMOJIS_UPDATE = 'guildEmojisUpdate',
+  GUILD_INTEGRATIONS_UPDATE = 'guildIntegrationsUpdate',
+  GUILD_MEMBER_ADD = 'guildMemberAdd',
+  GUILD_MEMBER_LIST_UPDATE = 'guildMemberListUpdate',
+  GUILD_MEMBER_REMOVE = 'guildMemberRemove',
+  GUILD_MEMBER_UPDATE = 'guildMemberUpdate',
+  GUILD_MEMBERS_CHUNK = 'guildMembersChunk',
+  GUILD_ROLE_CREATE = 'guildRoleCreate',
+  GUILD_ROLE_DELETE = 'guildRoleDelete',
+  GUILD_ROLE_UPDATE = 'guildRoleUpdate',
+  LIBRARY_APPLICATION_UPDATE = 'libraryApplicationUpdate',
+  LOBBY_CREATE = 'lobbyCreate',
+  LOBBY_DELETE = 'lobbyDelete',
+  LOBBY_UPDATE = 'lobbyUpdate',
+  LOBBY_MEMBER_CONNECT = 'lobbyMemberConnect',
+  LOBBY_MEMBER_DISCONNECT = 'lobbyMemberDisconnect',
+  LOBBY_MEMBER_UPDATE = 'lobbyMemberUpdate',
+  LOBBY_MESSAGE = 'lobbyMessage',
+  LOBBY_VOICE_SERVER_UPDATE = 'lobbyVoiceServerUpdate',
+  LOBBY_VOICE_STATE_UPDATE = 'lobbyVoiceStateUpdate',
+  MESSAGE_ACK = 'messageAck',
+  MESSAGE_CREATE = 'messageCreate',
+  MESSAGE_DELETE = 'messageDelete',
+  MESSAGE_DELETE_BULK = 'messageDeleteBulk',
+  MESSAGE_REACTION_ADD = 'messageReactionAdd',
+  MESSAGE_REACTION_REMOVE = 'messageReactionRemove',
+  MESSAGE_REACTION_REMOVE_ALL = 'messageReactionRemoveAll',
+  MESSAGE_UPDATE = 'messageUpdate',
+  OAUTH2_TOKEN_REMOVE = 'oauth2TokenRemove',
+  PRESENCES_REPLACE = 'presencesReplace',
+  PRESENCE_UPDATE = 'presenceUpdate',
+  RECENT_MENTION_DELETE = 'recentMentionDelete',
+  RELATIONSHIP_ADD = 'relationshipAdd',
+  RELATIONSHIP_REMOVE = 'relationshipRemove',
+  SESSIONS_REPLACE = 'sessionsReplace',
+  STREAM_CREATE = 'streamCreate',
+  STREAM_DELETE = 'streamDelete',
+  STREAM_SERVER_UPDATE = 'streamServerUpdate',
+  STREAM_UPDATE = 'streamUpdate',
+  TYPING_START = 'typingStart',
+  TYPING_STOP = 'typingStop',
+  USER_ACHIEVEMENT_UPDATE = 'userAchievementUpdate',
+  USER_CONNECTIONS_UPDATE = 'userConnectionsUpdate',
+  USER_FEED_SETTINGS_UPDATE = 'userFeedSettingsUpdate',
+  USER_GUILD_SETTINGS_UPDATE = 'userGuildSettingsUpdate',
+  USER_NOTE_UPDATE = 'userNoteUpdate',
+  USER_PAYMENT_SOURCES_UPDATE = 'userPaymentSourcesUpdate',
+  USER_PAYMENTS_UPDATE = 'userPaymentsUpdate',
+  USER_REQUIRED_ACTION_UPDATE = 'userRequiredActionUpdate',
+  USER_SETTINGS_UPDATE = 'userSettingsUpdate',
+  USER_SUBSCRIPTIONS_UPDATE = 'userSubscriptionsUpdate',
+  USER_UPDATE = 'userUpdate',
+  VOICE_SERVER_UPDATE = 'voiceServerUpdate',
+  VOICE_STATE_UPDATE = 'voiceStateUpdate',
+  WEBHOOKS_UPDATE = 'webhooksUpdate',
+  CLUSTER_PROCESS = 'clusterProcess',
+  COMMAND_ERROR = 'commandError',
+  COMMAND_FAIL = 'commandFail',
+  COMMAND_NONE = 'commandNone',
+  COMMAND_RAN = 'commandRan',
+  COMMAND_RATELIMIT = 'commandRatelimit',
+  COMMAND_RUN_ERROR = 'commandRunError',
+  GATEWAY_READY = 'gatewayReady',
+  GATEWAY_RESUMED = 'gatewayResumed',
+  KILLED = 'killed',
+  RAW = 'raw',
+  READY = 'ready',
+  REST_REQUEST = 'restRequest',
+  REST_RESPONSE = 'restResponse',
+  SHARD = 'shard',
+  UNKNOWN = 'unknown',
+  WARN = 'warn',
+};
 
-export const ClusterIPCOpCodes = Object.freeze({
-  READY: 0,
-  CLOSE: 1,
-  RECONNECTING: 2,
-  RESPAWN_ALL: 3,
-  EVAL: 4,
-});
+export enum ClusterIPCOpCodes {
+  READY = 0,
+  CLOSE = 1,
+  RECONNECTING = 2,
+  RESPAWN_ALL = 3,
+  EVAL = 4,
+};
 
-export const Colors = Object.freeze({
-  BLURPLE: 7506394,
-});
+export enum Colors {
+  BLURPLE = 7506394,
+};
 
-export const CommandArgumentTypes = Object.freeze({
-  BOOL: 'bool',
-  FLOAT: 'float',
-  NUMBER: 'number',
-  STRING: 'string',
-});
+export enum CommandArgumentTypes {
+  BOOL = 'bool',
+  FLOAT = 'float',
+  NUMBER = 'number',
+  STRING = 'string',
+};
 
 export const CommandErrors = Object.freeze({
 
 });
 
-export const CommandRatelimitTypes = Object.freeze({
-  CHANNEL: 'channel',
-  GUILD: 'guild',
-  USER: 'user',
-});
+export enum CommandRatelimitTypes {
+  CHANNEL = 'channel',
+  GUILD = 'guild',
+  USER = 'user',
+};
 
-export const DiscordOpusFormat = Object.freeze({
-  CHANNELS: 2,
-  SAMPLE_RATE: 48000,
-});
+export enum DiscordOpusFormat {
+  CHANNELS = 2,
+  SAMPLE_RATE = 48000,
+};
 
 export const DiscordRegexNames = Tools.normalize({
   EMOJI: null,
@@ -382,18 +390,18 @@ export const DiscordRegex = Object.freeze({
   [DiscordRegexNames.TEXT_URL]: /((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s])/g,
 });
 
-export const Distributors = Object.freeze({
-  BATTLENET: 'battlenet',
-  DISCORD: 'discord',
-  EPIC: 'epic',
-  GOG: 'gog',
-  ORIGIN: 'origin',
-  STEAM: 'steam',
-  TWITCH: 'twitch',
-  UPLAY: 'uplay',
-});
+export enum Distributors {
+  BATTLENET = 'battlenet',
+  DISCORD = 'discord',
+  EPIC = 'epic',
+  GOG = 'gog',
+  ORIGIN = 'origin',
+  STEAM = 'steam',
+  TWITCH = 'twitch',
+  UPLAY = 'uplay',
+};
 
-export const DistributorNames = Object.freeze({
+export const DistributorNames: {[key in Distributors]: string} = Object.freeze({
   [Distributors.BATTLENET]: 'Battle.net',
   [Distributors.DISCORD]: 'Discord',
   [Distributors.EPIC]: 'Epic',
@@ -422,26 +430,26 @@ export const DistributorUrls = Tools.URIEncodeWrap({
     `https://store.ubi.com/search/?q=${skuId}`,
 });
 
-export const EntitlementTypes = Object.freeze({
-  PURCHASE: 1,
-  PREMIUM_SUBSCRIPTION: 2,
-  DEVELOPER_GIFT: 3,
-  TEST_MODE_PURCHASE: 4,
-  FREE_PURCHASE: 5,
-  USER_GIFT: 6,
-});
+export enum EntitlementTypes {
+  PURCHASE = 1,
+  PREMIUM_SUBSCRIPTION = 2,
+  DEVELOPER_GIFT = 3,
+  TEST_MODE_PURCHASE = 4,
+  FREE_PURCHASE = 5,
+  USER_GIFT = 6,
+};
 
-export const ExplicitContentFilterTypes = Object.freeze({
-  DISABLED: 0,
-  NON_FRIENDS: 1,
-  FRIENDS_AND_NON_FRIENDS: 2,
-});
+export enum ExplicitContentFilterTypes {
+  DISABLED = 0,
+  NON_FRIENDS = 1,
+  FRIENDS_AND_NON_FRIENDS = 2,
+};
 
-export const GuildExplicitContentFilterTypes = Object.freeze({
-  DISABLED: 0,
-  MEMBERS_WITHOUT_ROLES: 1,
-  ALL_MEMBERS: 2,
-});
+export enum GuildExplicitContentFilterTypes {
+  DISABLED = 0,
+  MEMBERS_WITHOUT_ROLES = 1,
+  ALL_MEMBERS = 2,
+};
 
 export const GuildFeatures = Tools.normalize({
   ANIMATED_ICON: null,
@@ -461,78 +469,86 @@ export const GuildFeatures = Tools.normalize({
   VIP_REGIONS: null,
 });
 
-export const GuildNotificationSettings = Object.freeze({
-  ALL: 0,
-  MENTIONS: 1,
-});
+export enum GuildNotificationSettings {
+  ALL = 0,
+  MENTIONS = 1,
+};
 
-export const GuildWidgetStyles = Object.freeze({
-  BANNER_1: 'banner1',
-  BANNER_2: 'banner2',
-  BANNER_3: 'banner3',
-  BANNER_4: 'banner4',
-  SHIELD: 'shield',
-});
+export enum GuildWidgetStyles {
+  BANNER_1 = 'banner1',
+  BANNER_2 = 'banner2',
+  BANNER_3 = 'banner3',
+  BANNER_4 = 'banner4',
+  SHIELD = 'shield',
+};
 
-export const ImageFormats = Object.freeze({
-  GIF: 'gif',
-  JPEG: 'jpeg',
-  JPG: 'jpg',
-  PNG: 'png',
-  WEBP: 'webp',
-});
+export enum ImageFormats {
+  GIF = 'gif',
+  JPEG = 'jpeg',
+  JPG = 'jpg',
+  PNG = 'png',
+  WEBP = 'webp',
+};
 
-export const InviteTargetUserTypes = Object.freeze({
-  STREAM: 1,
-});
+export enum InviteTargetUserTypes {
+  STREAM = 1,
+};
 
-export const LobbyErrors = Object.freeze({
-  NO_ERROR: 0,
-  UNKNOWN_ERROR: 1,
-  SERVICE_UNAVAILABLE: 2,
-  NOT_FOUND: 3,
-  INVALID_SECRET: 4,
-  FULL: 5,
-  LOBBY_LIMIT_REACHED: 6,
-  ALREADY_CONNECTING: 7,
-});
+export enum LibraryApplicationFlags {
+  HIDDEN = 1 << 0,
+  PRIVATE = 1 << 1,
+  OVERLAY_DISABLED = 1 << 2,
+  ENTITLED = 1 << 3,
+  PREMIUM = 1 << 4,
+}
 
-export const LobbyTypes = Object.freeze({
-  PRIVATE: 1,
-  PUBLIC: 2,
-});
+export enum LobbyErrors {
+  NO_ERROR = 0,
+  UNKNOWN_ERROR = 1,
+  SERVICE_UNAVAILABLE = 2,
+  NOT_FOUND = 3,
+  INVALID_SECRET = 4,
+  FULL = 5,
+  LOBBY_LIMIT_REACHED = 6,
+  ALREADY_CONNECTING = 7,
+};
 
-export const Locales = Object.freeze({
-  BULGARIAN: 'bg',
-  CHINESE: 'zh-CN',
-  CHINESE_TAIWAN: 'zh-TW',
-  CROATIAN: 'hr',
-  CZECH: 'cs',
-  DANISH: 'da',
-  DUTCH: 'nl',
-  ENGLISH_GB: 'en-GB',
-  ENGLISH_US: 'en-US',
-  FINNISH: 'fi',
-  FRENCH: 'fr',
-  GERMAN: 'de',
-  GREEK: 'el',
-  HUNGARIAN: 'hu',
-  ITALIAN: 'it',
-  JAPANESE: 'ja',
-  KOREAN: 'ko',
-  LITHUANIAN: 'lt',
-  NORWEGIAN: 'no',
-  POLISH: 'pl',
-  PORTUGUESE_BRAZILIAN: 'pt-BR',
-  ROMANIAN: 'ro',
-  RUSSIAN: 'ru',
-  SPANISH: 'es-ES',
-  SWEDISH: 'sv-SE',
-  THAI: 'th',
-  TURKISH: 'tr',
-  UKRAINIAN: 'uk',
-  VIETNAMESE: 'vi',
-});
+export enum LobbyTypes {
+  PRIVATE = 1,
+  PUBLIC = 2,
+};
+
+export enum Locales {
+  BULGARIAN = 'bg',
+  CHINESE = 'zh-CN',
+  CHINESE_TAIWAN = 'zh-TW',
+  CROATIAN = 'hr',
+  CZECH = 'cs',
+  DANISH = 'da',
+  DUTCH = 'nl',
+  ENGLISH_GB = 'en-GB',
+  ENGLISH_US = 'en-US',
+  FINNISH = 'fi',
+  FRENCH = 'fr',
+  GERMAN = 'de',
+  GREEK = 'el',
+  HUNGARIAN = 'hu',
+  ITALIAN = 'it',
+  JAPANESE = 'ja',
+  KOREAN = 'ko',
+  LITHUANIAN = 'lt',
+  NORWEGIAN = 'no',
+  POLISH = 'pl',
+  PORTUGUESE_BRAZILIAN = 'pt-BR',
+  ROMANIAN = 'ro',
+  RUSSIAN = 'ru',
+  SPANISH = 'es-ES',
+  SWEDISH = 'sv-SE',
+  THAI = 'th',
+  TURKISH = 'tr',
+  UKRAINIAN = 'uk',
+  VIETNAMESE = 'vi',
+};
 
 export const LocalesText = Object.freeze({
   [Locales.BULGARIAN]: 'Bulgarian',
@@ -566,49 +582,54 @@ export const LocalesText = Object.freeze({
   [Locales.VIETNAMESE]: 'Vietnamese',
 });
 
-export const MessageEmbedTypes = Object.freeze({
-  APPLICATION_NEWS: 'application_news',
-  ARTICLE: 'article',
-  GIFV: 'gifv',
-  IMAGE: 'image',
-  LINK: 'link',
-  RICH: 'rich',
-  TWEET: 'tweet',
-  VIDEO: 'video',
-});
+export enum MessageEmbedTypes {
+  APPLICATION_NEWS = 'application_news',
+  ARTICLE = 'article',
+  GIFV = 'gifv',
+  IMAGE = 'image',
+  LINK = 'link',
+  RICH = 'rich',
+  TWEET = 'tweet',
+  VIDEO = 'video',
+};
 
-export const MessageFlags = Object.freeze({
-  CROSSPOSTED: 1 << 0,
-  IS_CROSSPOST: 1 << 1,
-  SUPPRESS_EMBEDS: 1 << 2,
-  SOURCE_MESSAGE_DELETED: 1 << 3,
-});
+export enum MessageFlags {
+  CROSSPOSTED = 1 << 0,
+  IS_CROSSPOST = 1 << 1,
+  SUPPRESS_EMBEDS = 1 << 2,
+  SOURCE_MESSAGE_DELETED = 1 << 3,
+};
 
-export const MessageTypes = Object.freeze({
-  BASE: -1,
-  DEFAULT: 0,
-  RECIPIENT_ADD: 1,
-  RECIPIENT_REMOVE: 2,
-  CALL: 3,
-  CHANNEL_NAME_CHANGE: 4,
-  CHANNEL_ICON_CHANGE: 5,
-  CHANNEL_PINNED_MESSAGE: 6,
-  GUILD_MEMBER_JOIN: 7,
-  GUILD_PREMIUM_SUBSCRIPTION: 8,
-  GUILD_PREMIUM_SUBSCRIPTION_TIER_1: 9,
-  GUILD_PREMIUM_SUBSCRIPTION_TIER_2: 10,
-  GUILD_PREMIUM_SUBSCRIPTION_TIER_3: 11,
-  CHANNEL_FOLLOW_ADD: 12,
-  LFG_DELIST_EXPIRED: 13,
-  LFG_DELIST_COMPLETED: 14,
-  LFG_DELIST_INACTIVE: 15,
-  LFG_DELIST_UNKNOWN: 16,
-  LFG_RELIST: 17,
-});
+export enum MessageTypes {
+  BASE = -1,
+  DEFAULT = 0,
+  RECIPIENT_ADD = 1,
+  RECIPIENT_REMOVE = 2,
+  CALL = 3,
+  CHANNEL_NAME_CHANGE = 4,
+  CHANNEL_ICON_CHANGE = 5,
+  CHANNEL_PINNED_MESSAGE = 6,
+  GUILD_MEMBER_JOIN = 7,
+  GUILD_PREMIUM_SUBSCRIPTION = 8,
+  GUILD_PREMIUM_SUBSCRIPTION_TIER_1 = 9,
+  GUILD_PREMIUM_SUBSCRIPTION_TIER_2 = 10,
+  GUILD_PREMIUM_SUBSCRIPTION_TIER_3 = 11,
+  CHANNEL_FOLLOW_ADD = 12,
+  LFG_DELIST_EXPIRED = 13,
+  LFG_DELIST_COMPLETED = 14,
+  LFG_DELIST_INACTIVE = 15,
+  LFG_DELIST_UNKNOWN = 16,
+  LFG_RELIST = 17,
+};
 
 export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.BASE]: true,
   [MessageTypes.DEFAULT]: true,
+  [MessageTypes.RECIPIENT_ADD]: false,
+  [MessageTypes.RECIPIENT_REMOVE]: false,
+  [MessageTypes.CALL]: false,
+  [MessageTypes.CHANNEL_NAME_CHANGE]: false,
+  [MessageTypes.CHANNEL_ICON_CHANGE]: false,
   [MessageTypes.CHANNEL_PINNED_MESSAGE]: true,
   [MessageTypes.GUILD_MEMBER_JOIN]: true,
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION]: true,
@@ -616,53 +637,58 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_2]: true,
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_3]: true,
   [MessageTypes.CHANNEL_FOLLOW_ADD]: true,
+  [MessageTypes.LFG_DELIST_EXPIRED]: false,
+  [MessageTypes.LFG_DELIST_COMPLETED]: false,
+  [MessageTypes.LFG_DELIST_INACTIVE]: false,
+  [MessageTypes.LFG_DELIST_UNKNOWN]: false,
+  [MessageTypes.LFG_RELIST]: false,
 });
 
-export const MfaLevels = Object.freeze({
-  NONE: 0,
-  ELEVATED: 1,
-});
+export enum MfaLevels {
+  NONE = 0,
+  ELEVATED = 1,
+};
 
-export const OverwriteTypes = Object.freeze({
-  MEMBER: 'member',
-  ROLE: 'role',
-});
+export enum OverwriteTypes {
+  MEMBER = 'member',
+  ROLE = 'role',
+};
 
 
-export const Permissions = Object.freeze({
-  NONE: 0,
-  CREATE_INSTANT_INVITE: 1 << 0,
-  KICK_MEMBERS: 1 << 1,
-  BAN_MEMBERS: 1 << 2,
-  ADMINISTRATOR: 1 << 3,
-  MANAGE_CHANNELS: 1 << 4,
-  MANAGE_GUILD: 1 << 5,
-  ADD_REACTIONS: 1 << 6,
-  VIEW_AUDIT_LOG: 1 << 7,
-  PRIORITY_SPEAKER: 1 << 8,
-  STREAM: 1 << 9,
-  VIEW_CHANNEL: 1 << 10,
-  SEND_MESSAGES: 1 << 11,
-  SEND_TTS_MESSAGES: 1 << 12,
-  MANAGE_MESSAGES: 1 << 13,
-  EMBED_LINKS: 1 << 14,
-  ATTACH_FILES: 1 << 15,
-  READ_MESSAGE_HISTORY: 1 << 16,
-  MENTION_EVERYONE: 1 << 17,
-  USE_EXTERNAL_EMOJIS: 1 << 18,
+export enum Permissions {
+  NONE = 0,
+  CREATE_INSTANT_INVITE = 1 << 0,
+  KICK_MEMBERS = 1 << 1,
+  BAN_MEMBERS = 1 << 2,
+  ADMINISTRATOR = 1 << 3,
+  MANAGE_CHANNELS = 1 << 4,
+  MANAGE_GUILD = 1 << 5,
+  ADD_REACTIONS = 1 << 6,
+  VIEW_AUDIT_LOG = 1 << 7,
+  PRIORITY_SPEAKER = 1 << 8,
+  STREAM = 1 << 9,
+  VIEW_CHANNEL = 1 << 10,
+  SEND_MESSAGES = 1 << 11,
+  SEND_TTS_MESSAGES = 1 << 12,
+  MANAGE_MESSAGES = 1 << 13,
+  EMBED_LINKS = 1 << 14,
+  ATTACH_FILES = 1 << 15,
+  READ_MESSAGE_HISTORY = 1 << 16,
+  MENTION_EVERYONE = 1 << 17,
+  USE_EXTERNAL_EMOJIS = 1 << 18,
   // unreleased feature 1 << 19
-  CONNECT: 1 << 20,
-  SPEAK: 1 << 21,
-  MUTE_MEMBERS: 1 << 22,
-  DEAFEN_MEMBERS: 1 << 23,
-  MOVE_MEMBERS: 1 << 24,
-  USE_VAD: 1 << 25,
-  CHANGE_NICKNAME: 1 << 26,
-  CHANGE_NICKNAMES: 1 << 27,
-  MANAGE_ROLES: 1 << 28,
-  MANAGE_WEBHOOKS: 1 << 29,
-  MANAGE_EMOJIS: 1 << 30,
-});
+  CONNECT = 1 << 20,
+  SPEAK = 1 << 21,
+  MUTE_MEMBERS = 1 << 22,
+  DEAFEN_MEMBERS = 1 << 23,
+  MOVE_MEMBERS = 1 << 24,
+  USE_VAD = 1 << 25,
+  CHANGE_NICKNAME = 1 << 26,
+  CHANGE_NICKNAMES = 1 << 27,
+  MANAGE_ROLES = 1 << 28,
+  MANAGE_WEBHOOKS = 1 << 29,
+  MANAGE_EMOJIS = 1 << 30,
+};
 
 export const PERMISSIONS_ALL = Object.values(Permissions).reduce(
   (permissions: number, permission: number) => permissions | permission,
@@ -730,27 +756,27 @@ export const PERMISSIONS_LURKER = [
 );
 
 
-export const PlatformTypes = Object.freeze({
-  BATTLENET: 'battlenet',
-  FACEBOOK: 'facebook',
-  LEAGUE_OF_LEGENDS: 'leagueoflegends',
-  REDDIT: 'reddit',
-  SAMSUNG: 'samsung',
-  SKYPE: 'skype',
-  SPOTIFY: 'spotify',
-  STEAM: 'steam',
-  TWITCH: 'twitch',
-  TWITTER: 'twitter',
-  YOUTUBE: 'youtube',
-  XBOX: 'xbox',
-});
+export enum PlatformTypes {
+  BATTLENET = 'battlenet',
+  FACEBOOK = 'facebook',
+  LEAGUE_OF_LEGENDS = 'leagueoflegends',
+  REDDIT = 'reddit',
+  SAMSUNG = 'samsung',
+  SKYPE = 'skype',
+  SPOTIFY = 'spotify',
+  STEAM = 'steam',
+  TWITCH = 'twitch',
+  TWITTER = 'twitter',
+  YOUTUBE = 'youtube',
+  XBOX = 'xbox',
+};
 
-export const PremiumGuildTiers = Object.freeze({
-  NONE: 0,
-  TIER_1: 1,
-  TIER_2: 2,
-  TIER_3: 3,
-});
+export enum PremiumGuildTiers {
+  NONE = 0,
+  TIER_1 = 1,
+  TIER_2 = 2,
+  TIER_3 = 3,
+};
 
 export const PremiumGuildTierNames = Object.freeze({
   [PremiumGuildTiers.NONE]: '',
@@ -789,32 +815,58 @@ export const PremiumGuildLimits = Object.freeze({
   }),
 });
 
-export const PremiumTypes = Object.freeze({
-  NONE: 0,
-  TIER_1: 1,
-  TIER_2: 2,
-});
+export enum PremiumTypes {
+  NONE = 0,
+  TIER_1 = 1,
+  TIER_2 = 2,
+};
 
-export const RelationshipTypes = Object.freeze({
-  NONE: 0,
-  FRIEND: 1,
-  BLOCKED: 2,
-  PENDING_INCOMING: 3,
-  PENDING_OUTGOING: 4,
-  IMPLICIT: 5,
-});
+export enum RelationshipTypes {
+  NONE = 0,
+  FRIEND = 1,
+  BLOCKED = 2,
+  PENDING_INCOMING = 3,
+  PENDING_OUTGOING = 4,
+  IMPLICIT = 5,
+};
+
+export enum SkuAccessTypes {
+  FULL = 1,
+  EARLY_ACCESS = 2,
+  VIP_ACCESS = 3,
+}
+
+export enum SkuFlags {
+  PREMIUM_PURCHASE = 1 << 0,
+  HAS_FREE_PREMIUM_CONTENT = 1 << 1,
+  AVAILABLE = 1 << 2,
+  PREMIUM_AND_DISTRIBUTION = 1 << 3,
+}
+
+export enum SkuTypes {
+  BASE = 0,
+  GAME = 1,
+  DLC = 2,
+  CONSUMABLE = 3,
+  BUNDLE = 4,
+  SUBSCRIPTION = 5,
+}
 
 export const SpecialUrls = Tools.URIEncodeWrap({
   SPOTIFY_TRACK: (trackId: string): string =>
     `https://open.spotify.com/track/${trackId}`,
   YOUTUBE_VIDEO: (videoId: string): string =>
     `https://youtu.be/${videoId}`,
+  YOUTUBE_VIDEO_EMBED: (videoId: string): string =>
+    `https://www.youtube.com/embed/${videoId}`,
+  YOUTUBE_VIDEO_THUMBNAIL: (videoId: string): string =>
+    `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
 });
 
-export const SystemChannelFlags = Object.freeze({
-  SUPPRESS_JOIN_NOTIFICATIONS: 1 << 0,
-  SUPPRESS_PREMIUM_SUBSCRIPTIONS: 1 << 1,
-});
+export enum SystemChannelFlags {
+  SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0,
+  SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1,
+};
 
 export const SystemMessages = Object.freeze({
   CallMissed: 'You missed a call from :user:.',
@@ -871,50 +923,49 @@ export const SystemMessages = Object.freeze({
   GuildMemberSubscribedAchievedTier: ':user: just boosted the server! :guild: has achieved **:premiumTier:!**',
 });
 
-export const TeamMembershipStates = Object.freeze({
-  BASE: 0,
-  INVITED: 1,
-  ACCEPTED: 2,
-});
+export enum TeamMembershipStates {
+  BASE = 0,
+  INVITED = 1,
+  ACCEPTED = 2,
+};
 
-export const TeamPayoutAccountStatuses = Object.freeze({
-  BASE: -2,
-  UNSUBMITTED: -1,
-  PENDING: 2,
-  ACTION_REQUIRED: 3,
-  ACTIVE: 4,
-  BLOCKED: 5,
-  SUSPENDED: 6,
-});
+export enum TeamPayoutAccountStatuses {
+  UNSUBMITTED = -1,
+  PENDING = 2,
+  ACTION_REQUIRED = 3,
+  ACTIVE = 4,
+  BLOCKED = 5,
+  SUSPENDED = 6,
+};
 
 export const TYPING_TIMEOUT = 10000;
 
-export const UserFlags = Object.freeze({
-  STAFF: 1 << 0,
-  PARTNER: 1 << 1,
-  HYPESQUAD: 1 << 2,
-  BUG_HUNTER: 1 << 3,
-  MFA_SMS: 1 << 4,
-  PREMIUM_PROMO_DISMISSED: 1 << 5,
-  HYPESQUAD_ONLINE_HOUSE_1: 1 << 6,
-  HYPESQUAD_ONLINE_HOUSE_2: 1 << 7,
-  HYPESQUAD_ONLINE_HOUSE_3: 1 << 8,
-  PREMIUM_EARLY_SUPPORTER: 1 << 9,
-  TEAM_USER: 1 << 10,
-});
+export enum UserFlags {
+  STAFF = 1 << 0,
+  PARTNER = 1 << 1,
+  HYPESQUAD = 1 << 2,
+  BUG_HUNTER = 1 << 3,
+  MFA_SMS = 1 << 4,
+  PREMIUM_PROMO_DISMISSED = 1 << 5,
+  HYPESQUAD_ONLINE_HOUSE_1 = 1 << 6,
+  HYPESQUAD_ONLINE_HOUSE_2 = 1 << 7,
+  HYPESQUAD_ONLINE_HOUSE_3 = 1 << 8,
+  PREMIUM_EARLY_SUPPORTER = 1 << 9,
+  TEAM_USER = 1 << 10,
+};
 
 // the level of their boost badge
-export const UserPremiumGuildSubscriptionLevels = Object.freeze({
-  LEVEL_1: 1,
-  LEVEL_2: 2,
-  LEVEL_3: 3,
-  LEVEL_4: 4,
-  LEVEL_5: 5,
-  LEVEL_6: 6,
-  LEVEL_7: 7,
-  LEVEL_8: 8,
-  LEVEL_9: 9,
-});
+export enum UserPremiumGuildSubscriptionLevels {
+  LEVEL_1 = 1,
+  LEVEL_2 = 2,
+  LEVEL_3 = 3,
+  LEVEL_4 = 4,
+  LEVEL_5 = 5,
+  LEVEL_6 = 6,
+  LEVEL_7 = 7,
+  LEVEL_8 = 8,
+  LEVEL_9 = 9,
+};
 
 export const UserPremiumGuildSubscriptionMonths = Object.freeze({
   [UserPremiumGuildSubscriptionLevels.LEVEL_2]: 2,
@@ -934,13 +985,18 @@ export const UserRequiredActions = Tools.normalize({
   REQUIRE_VERIFIED_PHONE: null,
 });
 
-export const VerificationLevels = Object.freeze({
-  NONE: 0,
-  LOW: 1,
-  MEDIUM: 2,
-  HIGH: 3,
-  VERY_HIGH: 4,
-});
+export enum VerificationLevels {
+  NONE = 0,
+  LOW = 1,
+  MEDIUM = 2,
+  HIGH = 3,
+  VERY_HIGH = 4,
+};
+
+export enum WebhookTypes {
+  INCOMING = 1,
+  NEWS_FOLLOWING = 2,
+};
 
 export const DiscordKeys = Object.freeze({
   ACCESS_TYPE: 'access_type',

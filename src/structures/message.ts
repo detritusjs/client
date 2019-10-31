@@ -114,7 +114,7 @@ export class Message extends BaseStructure {
   pinned: boolean = false;
   timestampUnix: number = 0;
   tts: boolean = false;
-  type = MessageTypes.BASE;
+  type: MessageTypes = MessageTypes.BASE;
   webhookId?: string;
 
   constructor(client: ShardClient, data: BaseStructureData) {

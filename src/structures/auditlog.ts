@@ -16,7 +16,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { ChannelBase } from './channel';
+import { ChannelGuildBase } from './channel';
 import { Guild } from './guild';
 import { Role } from './role';
 import { User } from './user';
@@ -43,7 +43,7 @@ const keysAuditLog = new BaseSet<string>([
 export class AuditLog extends BaseStructure {
   readonly _keys = keysAuditLog;
 
-  actionType: number = -1;
+  actionType!: AuditLogActions;
   changes = new BaseCollection<string, any>();
   id: string = '';
   guildId: string = '';
@@ -105,7 +105,7 @@ export class AuditLogChange extends BaseStructure {
   readonly _keys = keysAuditLogChange;
   readonly log: AuditLog;
 
-  key: string = '';
+  key!: AuditLogChangeKeys;
   newValue: any;
   oldValue: any;
 
@@ -137,7 +137,7 @@ export class AuditLogOptions extends BaseStructure {
   readonly _keys = keysAuditLogOptions;
   readonly log: AuditLog;
 
-  channel?: ChannelBase;
+  channel?: ChannelGuildBase;
   channelId?: string;
   count?: number;
   deleteMemberDays?: number;

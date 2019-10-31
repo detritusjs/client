@@ -29,15 +29,29 @@ export class Profile extends BaseStructure {
   readonly _keys = keysProfile;
 
   connectedAccounts = new BaseCollection<string, ConnectedAccount>();
-  mutualGuilds = new BaseCollection<string, Guild | null>();
+  mutualGuilds = new BaseCollection<string, {id: string, nick: null | string}>();
   nicks = new BaseCollection<string, string>();
-  premiumGuildSince: Date | null = null;
-  premiumSince: Date | null = null;
+  premiumGuildSinceUnix: number = 0;
+  premiumSinceUnix: number = 0;
   user!: UserWithFlags;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get premiumGuildSince(): Date | null {
+    if (this.premiumGuildSinceUnix) {
+      return new Date(this.premiumGuildSinceUnix);
+    }
+    return null;
+  }
+
+  get premiumSince(): Date | null {
+    if (this.premiumSinceUnix) {
+      return new Date(this.premiumSinceUnix);
+    }
+    return null;
   }
 
   mergeValue(key: string, value: any): void {
@@ -53,24 +67,15 @@ export class Profile extends BaseStructure {
         case DiscordKeys.MUTUAL_GUILDS: {
           this.mutualGuilds.clear();
           for (let raw of value) {
-            if (this.client.guilds.has(raw.id)) {
-              const guild = <Guild> this.client.guilds.get(raw.id);
-              this.mutualGuilds.set(guild.id, guild);
-            } else {
-              this.mutualGuilds.set(raw.id, null);
-            }
+            this.mutualGuilds.set(raw.id, raw);
           }
         }; return;
         case DiscordKeys.PREMIUM_GUILD_SINCE: {
-          if (value) {
-            value = new Date(value);
-          }
-        }; break;
+          this.premiumGuildSinceUnix = (value) ? (new Date(value)).getTime() : 0;
+        }; return;
         case DiscordKeys.PREMIUM_SINCE: {
-          if (value) {
-            value = new Date(value);
-          }
-        }; break;
+          this.premiumSinceUnix = (value) ? (new Date(value)).getTime() : 0;
+        }; return;
         case DiscordKeys.USER: {
           value = new UserWithFlags(this.client, value);
         }; break;
