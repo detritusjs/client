@@ -1,8 +1,5 @@
-const {
-  CommandClient,
-  Constants,
-  Utils,
-} = require('../lib');
+const { CommandClient, Constants, Utils } = require('../lib');
+const { Permissions } = Constants;
 
 const prefix = '!!';
 const token = '';
@@ -169,6 +166,50 @@ commandClient.add({
   name: 'argtest',
   args: [{name: 'custom', prefix: '+'}, {name: 'default'}],
   run: (context, args) => context.reply(`Default prefix for args is '-', but you're able to change it. (default: ${args.default}), (custom: ${args.custom})`),
+});
+
+
+// You can add easy permission checks (right now it's only by the permission number)
+commandClient.add({
+  name: 'amiadmin',
+  permissions: [Permissions.ADMINISTRATOR],
+  onPermissionsFail: (context, failed) => context.reply('no'),
+  run: (context) => context.reply('yes'),
+});
+
+// also check perms before allow a command continue, like embed permissions
+commandClient.add({
+  name: 'embedtest',
+  permissionsClient: [Permissions.EMBED_LINKS],
+  onPermissionsFailClient: (context) => context.reply('Please give me Embed Links permissions'),
+  run: (context) => context.reply({embed: {title: 'im an embed'}}),
+});
+
+// combine them both
+commandClient.add({
+  name: 'kick',
+  label: 'target',
+  permissionsClient: [Permissions.KICK_MEMBERS],
+  permissions: [Permissions.KICK_MEMBERS],
+  onPermissionsFailClient: (context) => context.reply('I need better permissions'),
+  onPermissionsFail: (context) => context.reply('you need better permissions'),
+  type: (value, context) => context.guild.members.get(value),
+  onBeforeRun: (context, args) => !!args.target,
+  onCancelRun: (context) => context.reply('that user id isnt in here'),
+  run: async (context, args) => {
+    if (!context.member.canEdit(args.target)) {
+      return context.reply('that guy has a higher role than you');
+    }
+    if (!context.me.canEdit(args.target)) {
+      return context.reply('that guy has a higher role than me');
+    }
+    try {
+      await context.guild.removeMember(args.target.id);
+      return context.reply('ok i kicked him');
+    } catch(error) {
+      return context.reply(`Some error happened: ${JSON.stringify(error.raw)}`);
+    }
+  },
 });
 
 (async () => {

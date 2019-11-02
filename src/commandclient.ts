@@ -8,9 +8,9 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
-import { ClientEvents } from './constants';
+import { ClientEvents, Permissions } from './constants';
 import { ImportedCommandsError } from './errors';
-import { getExceededRatelimits, getFiles } from './utils';
+import { PermissionTools, getExceededRatelimits, getFiles } from './utils';
 
 import {
   Command,
@@ -507,6 +507,74 @@ export class CommandClient extends EventSpewer {
       return;
     }
 
+    if (!message.inDm) {
+      if (Array.isArray(command.permissionsClient) && command.permissionsClient.length) {
+        const failed = [];
+
+        const channel = context.channel;
+        const member = context.me;
+        if (channel && member) {
+          const total = member.permissionsIn(channel);
+          if (!member.isOwner && !PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+            for (let permission of command.permissionsClient) {
+              if (!PermissionTools.checkPermissions(total, permission)) {
+                failed.push(permission);
+              }
+            }
+          }
+        } else {
+          for (let permission of command.permissionsClient) {
+            failed.push(permission);
+          }
+        }
+
+        if (failed.length) {
+          this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, {command, context, permissions: failed});
+          if (typeof(command.onPermissionsFailClient) === 'function') {
+            try {
+              await Promise.resolve(command.onPermissionsFailClient(context, failed));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+
+      if (Array.isArray(command.permissions) && command.permissions.length) {
+        const failed = [];
+
+        const channel = context.channel;
+        const member = context.member;
+        if (channel && member) {
+          const total = member.permissionsIn(channel);
+          if (!member.isOwner && !PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+            for (let permission of command.permissions) {
+              if (!PermissionTools.checkPermissions(total, permission)) {
+                failed.push(permission);
+              }
+            }
+          }
+        } else {
+          for (let permission of command.permissions) {
+            failed.push(permission);
+          }
+        }
+
+        if (failed.length) {
+          this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL, {command, context, permissions: failed});
+          if (typeof(command.onPermissionsFail) === 'function') {
+            try {
+              await Promise.resolve(command.onPermissionsFail(context, failed));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+    }
+
     if (this.ratelimits.length || command.ratelimits.length) {
       const now = Date.now();
       {
@@ -645,6 +713,8 @@ export class CommandClient extends EventSpewer {
   on(event: 'commandError', listener: (payload: CommandEvents.CommandError) => any): this;
   on(event: 'commandFail', listener: (payload: CommandEvents.CommandFail) => any): this;
   on(event: 'commandNone', listener: (payload: CommandEvents.CommandNone) => any): this;
+  on(event: 'commandPermissionsFailClient', listener: (payload: CommandEvents.CommandPermissionsFailClient) => any): this;
+  on(event: 'commandPermissionsFail', listener: (payload: CommandEvents.CommandPermissionsFail) => any): this;
   on(event: 'commandRan', listener: (payload: CommandEvents.CommandRan) => any): this;
   on(event: 'commandRatelimit', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
   on(event: 'commandRunError', listener: (payload: CommandEvents.CommandRunError) => any): this;

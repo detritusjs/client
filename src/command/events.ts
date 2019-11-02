@@ -1,7 +1,7 @@
 import { Message } from '../structures';
 
 import { ParsedArgs, ParsedErrors } from './argumentparser';
-import { Command } from './command';
+import { Command, FailedPermissions } from './command';
 import { Context } from './context';
 import { CommandRatelimit as CommandRatelimitCache, CommandRatelimitItem } from './ratelimit';
 
@@ -26,6 +26,18 @@ export namespace CommandEvents {
   export interface CommandNone {
     context: Context,
     error: Error,
+  }
+
+  export interface CommandPermissionsFailClient {
+    command: Command,
+    context: Context,
+    permissions: FailedPermissions,
+  }
+
+  export interface CommandPermissionsFail {
+    command: Command,
+    context: Context,
+    permissions: FailedPermissions,
   }
 
   export interface CommandRatelimit {

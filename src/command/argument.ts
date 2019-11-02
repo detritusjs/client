@@ -7,7 +7,7 @@ export type ArgumentConverter = (value: string, context: Context) => Promise<any
 
 export type ArgumentDefault = ((context: Context) => Promise<any> | any) | any;
 
-export type ArgumenType = ArgumentConverter | Boolean | Number | String | CommandArgumentTypes;
+export type ArgumentType = ArgumentConverter | Boolean | Number | String | CommandArgumentTypes;
 
 /**
  * Command Argument Options
@@ -19,10 +19,12 @@ export interface ArgumentOptions {
   label?: string,
   metadata?: {[key: string]: any},
   name: string,
+  permissions?: Array<Permissions | number>,
+  permissionsClient?: Array<Permissions | number>,
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
-  type?: ArgumenType,
+  type?: ArgumentType,
 }
 
 
@@ -35,7 +37,7 @@ const blankPrefixes = Object.freeze(['']);
 export class Argument {
   private _aliases: Array<string> = [];
   private _label?: string;
-  private _type: ArgumenType = CommandArgumentTypes.STRING;
+  private _type: ArgumentType = CommandArgumentTypes.STRING;
 
   default: ArgumentDefault = undefined;
   metadata?: {[key: string]: any};
@@ -49,12 +51,12 @@ export class Argument {
       this.metadata = Object.assign({}, options.metadata);
     }
     if (options.prefix !== undefined) {
-      if (options.prefixes === undefined) {
+      if (!options.prefixes) {
         options.prefixes = [];
       }
       options.prefixes.push(options.prefix);
     }
-    if (options.prefixes !== undefined) {
+    if (options.prefixes) {
       options.prefixes.sort((x: string, y: string) => y.length - x.length);
       if (options.prefixes.some((prefix) => prefix.endsWith(' '))) {
         options.prefixSpace = true;
@@ -117,11 +119,11 @@ export class Argument {
     return names;
   }
 
-  get type(): ArgumenType {
+  get type(): ArgumentType {
     return this._type;
   }
 
-  set type(value: ArgumenType) {
+  set type(value: ArgumentType) {
     switch (value) {
       case Boolean: {
         value = CommandArgumentTypes.BOOL;

@@ -1,5 +1,5 @@
 import { CommandAttributes, CommandClient } from '../commandclient';
-import { CommandArgumentTypes } from '../constants';
+import { CommandArgumentTypes, Permissions } from '../constants';
 import { Message } from '../structures/message';
 
 import { ArgumentConverter, ArgumentOptions, Argument } from './argument';
@@ -7,6 +7,8 @@ import { ArgumentParser, ParsedArgs, ParsedErrors } from './argumentparser';
 import { Context } from './context';
 import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from './ratelimit';
 
+
+export type FailedPermissions = Array<Permissions | number>;
 
 /**
  * @category Command
@@ -32,6 +34,11 @@ export type CommandCallbackCancelRun = (context: Context, args: ParsedArgs) => P
  * @category Command
  */
 export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => Promise<any> | any;
+
+/**
+ * @category Command
+ */
+export type CommandCallbackPermissionsFail = (context: Context, permissions: FailedPermissions) => Promise<any> | any;
 
 /**
  * @category Command
@@ -73,9 +80,11 @@ export interface CommandOptions extends ArgumentOptions {
   disableDmReply?: boolean,
   metadata?: {[key: string]: any},
   name: string,
+  permissions?: Array<Permissions>,
+  permissionsClient?: Array<Permissions>,
   priority?: number,
   ratelimit?: boolean | CommandRatelimitOptions | null,
-  ratelimits?: Array<CommandRatelimitOptions>;
+  ratelimits?: Array<CommandRatelimitOptions>,
   responseOptional?: boolean,
 
   onBefore?: CommandCallbackBefore,
@@ -83,8 +92,10 @@ export interface CommandOptions extends ArgumentOptions {
   onCancel?: CommandCallbackCancel,
   onCancelRun?: CommandCallbackCancelRun,
   onError?: CommandCallbackError,
-  run?: CommandCallbackRun,
+  onPermissionsFail?: CommandCallbackPermissionsFail,
+  onPermissionsFailClient?: CommandCallbackPermissionsFail,
   onRatelimit?: CommandCallbackRatelimit,
+  run?: CommandCallbackRun,
   onRunError?: CommandCallbackRunError,
   onSuccess?: CommandCallbackSuccess,
   onTypeError?: CommandCallbackTypeError,
@@ -104,6 +115,8 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   disableDm: boolean = false;
   disableDmReply: boolean = false;
   metadata: {[key: string]: any} = {};
+  permissions?: Array<Permissions>;
+  permissionsClient?: Array<Permissions>;
   priority: number = 0;
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
@@ -113,6 +126,8 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   onCancel?(context: Context): Promise<any | Message> | any | Message;
   onCancelRun?(context: Context, args: ParsedArgs): Promise<any | Message> | any | Message;
   onError?(context: Context, args: ParsedArgs, error: any): Promise<any> | any;
+  onPermissionsFail?(context: Context, permissions: FailedPermissions): Promise<any> | any;
+  onPermissionsFailClient?(context: Context, permissions: FailedPermissions): Promise<any> | any;
   onRatelimit?(context: Context, ratelimits: Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}>, metadata: {global: boolean, now: number}): Promise<any> | any;
   run?(context: Context, args: ParsedArgsFinished): Promise<any | Message> | any | Message;
   onRunError?(context: Context, args: ParsedArgsFinished, error: any): Promise<any> | any;
@@ -130,6 +145,8 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
     this.metadata = Object.assign(this.metadata, options.metadata);
+    this.permissions = options.permissions;
+    this.permissionsClient = options.permissionsClient;
     this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;
 
@@ -161,6 +178,8 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.onCancel = options.onCancel || this.onCancel;
     this.onCancelRun = options.onCancelRun || this.onCancelRun;
     this.onError = options.onError || this.onError;
+    this.onPermissionsFail = options.onPermissionsFail || this.onPermissionsFail;
+    this.onPermissionsFailClient = options.onPermissionsFailClient || this.onPermissionsFailClient;
     this.run = options.run || this.run;
     this.onRatelimit = options.onRatelimit || this.onRatelimit;
     this.onRunError = options.onRunError || this.onRunError;
