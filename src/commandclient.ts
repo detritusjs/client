@@ -274,14 +274,24 @@ export class CommandClient extends EventSpewer {
         if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
           importedCommand = importedCommand.default;
         }
-        if (typeof(importedCommand) === 'function') {
-          this.add({_file: filepath, _class: importedCommand, name: ''});
-        } else if (importedCommand instanceof Command) {
-          Object.defineProperty(importedCommand, '_file', {value: filepath});
-          this.add(importedCommand);
-        } else if (typeof(importedCommand) === 'object') {
-          this.add({...importedCommand, _file: filepath});
-        }
+
+        const addCommand = (imported: any): void => {
+          if (typeof(imported) === 'function') {
+            this.add({_file: filepath, _class: imported, name: ''});
+          } else if (imported instanceof Command) {
+            Object.defineProperty(imported, '_file', {value: filepath});
+            this.add(imported);
+          } else if (typeof(imported) === 'object') {
+            if (Array.isArray(imported)) {
+              for (let child of imported) {
+                addCommand(child);
+              }
+            } else {
+              this.add({...imported, _file: filepath});
+            }
+          }
+        };
+        addCommand(importedCommand);
       } catch(error) {
         errors[filepath] = error;
       }
