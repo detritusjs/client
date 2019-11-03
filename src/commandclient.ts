@@ -507,7 +507,66 @@ export class CommandClient extends EventSpewer {
       return;
     }
 
-    if (!message.inDm) {
+    if (this.ratelimits.length || command.ratelimits.length) {
+      const now = Date.now();
+      {
+        const ratelimits = getExceededRatelimits(this.ratelimits, message, now);
+        if (ratelimits.length) {
+          const global = true;
+
+          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(command.onRatelimit) === 'function') {
+            try {
+              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+
+      {
+        const ratelimits = getExceededRatelimits(command.ratelimits, message, now);
+        if (ratelimits.length) {
+          const global = false;
+
+          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(command.onRatelimit) === 'function') {
+            try {
+              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+    }
+
+    if (context.inDm) {
+      if (command.disableDm) {
+        const error = new Error('Command with DMs disabled used in DM');
+        if (command.disableDmReply) {
+          this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+        } else {
+          try {
+            const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
+            if (this.maxEditDuration) {
+              this.replies.set(message.id, reply);
+            }
+            this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, reply});
+          } catch(e) {
+            this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: e});
+          }
+        }
+        return;
+      }
+    } else {
       if (Array.isArray(command.permissionsClient) && command.permissionsClient.length) {
         const failed = [];
 
@@ -573,65 +632,6 @@ export class CommandClient extends EventSpewer {
           return;
         }
       }
-    }
-
-    if (this.ratelimits.length || command.ratelimits.length) {
-      const now = Date.now();
-      {
-        const ratelimits = getExceededRatelimits(this.ratelimits, message, now);
-        if (ratelimits.length) {
-          const global = true;
-
-          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
-          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
-
-          if (typeof(command.onRatelimit) === 'function') {
-            try {
-              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
-            } catch(error) {
-              // do something with this error?
-            }
-          }
-          return;
-        }
-      }
-
-      {
-        const ratelimits = getExceededRatelimits(command.ratelimits, message, now);
-        if (ratelimits.length) {
-          const global = false;
-
-          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
-          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
-
-          if (typeof(command.onRatelimit) === 'function') {
-            try {
-              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
-            } catch(error) {
-              // do something with this error?
-            }
-          }
-          return;
-        }
-      }
-    }
-
-    if (command.disableDm && context.inDm) {
-      const error = new Error('Command with DMs disabled used in DM');
-      if (command.disableDmReply) {
-        this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
-      } else {
-        try {
-          const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
-          if (this.maxEditDuration) {
-            this.replies.set(message.id, reply);
-          }
-          this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, reply});
-        } catch(e) {
-          this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: e});
-        }
-      }
-      return;
     }
 
     if (typeof(command.onBefore) === 'function') {
