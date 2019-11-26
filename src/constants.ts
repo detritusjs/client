@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.34',
+  VERSION: '0.9.35',
 });
 
 export type Snowflake = number | string;
@@ -116,6 +116,9 @@ export enum AuditLogActions {
   MEMBER_BAN_REMOVE = 23,
   MEMBER_UPDATE = 24,
   MEMBER_ROLE_UPDATE = 25,
+  MEMBER_MOVE = 26,
+  MEMBER_DISCONNECT = 27,
+  BOT_ADD = 28,
   ROLE_CREATE = 30,
   ROLE_UPDATE = 31,
   ROLE_DELETE = 32,
@@ -129,6 +132,12 @@ export enum AuditLogActions {
   EMOJI_UPDATE = 61,
   EMOJI_DELETE = 62,
   MESSAGE_DELETE = 72,
+  MESSAGE_BULK_DELETE = 73,
+  MESSAGE_PIN = 74,
+  MESSAGE_UNPIN = 75,
+  INTEGRATION_CREATE = 80,
+  INTEGRATION_UPDATE = 81,
+  INTEGRATION_DELETE = 82,
 };
 
 export const AuditLogActionTypes = Tools.normalize({
@@ -145,13 +154,16 @@ export const AuditLogSubtargetTypes = Object.freeze({
 
 export const AuditLogTargetTypes = Tools.normalize({
   ALL: null,
-  GUILD: null,
   CHANNEL: null,
-  USER: null,
-  ROLE: null,
-  INVITE: null,
-  WEBHOOK: null,
+  CHANNEL_OVERWRITE: null,
   EMOJI: null,
+  GUILD: null,
+  INTEGRATION: null,
+  INVITE: null,
+  ROLE: null,
+  UNKNOWN: null,
+  USER: null,
+  WEBHOOK: null,
 });
 
 export enum AuditLogChangeKeys {
@@ -167,6 +179,9 @@ export enum AuditLogChangeKeys {
   DEAF = 'deaf',
   DEFAULT_MESSAGE_NOTIFICATIONS = 'default_message_notifications',
   DESCRIPTION = 'description',
+  ENABLE_EMOTICONS = 'enable_emoticons',
+  EXPIRE_BEHAVIOR = 'expire_behavior',
+  EXPIRE_GRACE_PERIOD = 'expire_grace_period',
   EXPLICIT_CONTENT_FILTER = 'explicit_content_filter',
   HOIST = 'hoist',
   ICON_HASH = 'icon_hash',
@@ -466,6 +481,7 @@ export const GuildFeatures = Tools.normalize({
   NEWS: null,
   PARTNERED: null,
   PUBLIC: null,
+  PUBLIC_DISABLED: null,
   VANITY_URL: null,
   VERIFIED: null,
   VIP_REGIONS: null,
@@ -600,6 +616,7 @@ export enum MessageFlags {
   IS_CROSSPOST = 1 << 1,
   SUPPRESS_EMBEDS = 1 << 2,
   SOURCE_MESSAGE_DELETED = 1 << 3,
+  URGENT = 1 << 4,
 };
 
 export enum MessageTypes {
@@ -790,8 +807,8 @@ export const PremiumGuildTierNames = Object.freeze({
 export const PremiumGuildSubscriptionsRequired = Object.freeze({
   [PremiumGuildTiers.NONE]: 0,
   [PremiumGuildTiers.TIER_1]: 2,
-  [PremiumGuildTiers.TIER_2]: 10,
-  [PremiumGuildTiers.TIER_3]: 20,
+  [PremiumGuildTiers.TIER_2]: 15,
+  [PremiumGuildTiers.TIER_3]: 30,
 });
 
 export const PremiumGuildLimits = Object.freeze({
@@ -954,6 +971,8 @@ export enum UserFlags {
   HYPESQUAD_ONLINE_HOUSE_3 = 1 << 8,
   PREMIUM_EARLY_SUPPORTER = 1 << 9,
   TEAM_USER = 1 << 10,
+  SYSTEM = 1 << 12,
+  HAS_UNREAD_URGENT_MESSAGES = 1 << 13,
 };
 
 // the level of their boost badge
