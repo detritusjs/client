@@ -29,6 +29,7 @@ const keysUser = new BaseSet<string>([
   DiscordKeys.BOT,
   DiscordKeys.DISCRIMINATOR,
   DiscordKeys.ID,
+  DiscordKeys.SYSTEM,
   DiscordKeys.USERNAME,
 ]);
 
@@ -43,6 +44,7 @@ export class User extends BaseStructure {
   bot: boolean = false;
   discriminator: string = '0000';
   id: string = '';
+  system?: boolean;
   username: string = '';
 
   constructor(
@@ -102,8 +104,12 @@ export class User extends BaseStructure {
     return !!this.username;
   }
 
+  get isSystem(): boolean {
+    return !!this.system;
+  }
+
   get isWebhook(): boolean {
-    return this.bot && this.discriminator === '0000';
+    return this.bot && !this.isSystem && this.discriminator === '0000';
   }
 
   get jumpLink(): string {
