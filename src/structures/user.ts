@@ -448,6 +448,10 @@ export class UserMixin extends BaseStructure {
     return this.user.isMe;
   }
 
+  get isSystem(): boolean {
+    return this.user.isSystem;
+  }
+
   get isWebhook(): boolean {
     return this.user.isWebhook;
   }
@@ -478,6 +482,10 @@ export class UserMixin extends BaseStructure {
 
   get presence(): null | Presence {
     return this.user.presence;
+  }
+
+  get system(): boolean | undefined {
+    return this.user.system;
   }
 
   get username(): string {
