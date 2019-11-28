@@ -72,6 +72,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.CHANNELS,
   DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS,
   DiscordKeys.DESCRIPTION,
+  DiscordKeys.DISCOVERY_SPLASH,
   DiscordKeys.EMBED_CHANNEL_ID,
   DiscordKeys.EMBED_ENABLED,
   DiscordKeys.EMOJIS,
@@ -96,6 +97,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.PRESENCES,
   DiscordKeys.REGION,
   DiscordKeys.ROLES,
+  DiscordKeys.RULES_CHANNEL_ID,
   DiscordKeys.SPLASH,
   DiscordKeys.SYSTEM_CHANNEL_FLAGS,
   DiscordKeys.SYSTEM_CHANNEL_ID,
@@ -142,6 +144,7 @@ export class Guild extends BaseStructure {
   explicitContentFilter: GuildExplicitContentFilterTypes = GuildExplicitContentFilterTypes.DISABLED;
   emojis: BaseCollection<string, Emoji>;
   features = new BaseSet<string>();
+  discoverySplash: null | string = null;
   hasMetadata: boolean = false;
   icon: null | string = null;
   id: string = '';
@@ -162,6 +165,7 @@ export class Guild extends BaseStructure {
   premiumTier: PremiumGuildTiers = PremiumGuildTiers.NONE;
   region: string = '';
   roles: BaseCollection<string, Role>;
+  rulesChannelId: null | string = null;
   splash: null | string = null;
   systemChannelFlags: number = 0;
   systemChannelId: null | string = null;
@@ -198,8 +202,16 @@ export class Guild extends BaseStructure {
     return this.isVerified || this.hasFeature(GuildFeatures.BANNER);
   }
 
+  get canHaveDiscoveryFeatures(): boolean {
+    return this.isDiscoverable || this.isPublic;
+  }
+
   get canHaveNews(): boolean {
     return this.hasFeature(GuildFeatures.NEWS);
+  }
+
+  get canHavePublic(): boolean {
+    return !this.hasFeature(GuildFeatures.PUBLIC_DISABLED);
   }
 
   get canHaveSplash(): boolean {
@@ -250,6 +262,10 @@ export class Guild extends BaseStructure {
     return this.roles.get(this.id) || null;
   }
 
+  get discoverySplashUrl(): null | string {
+    return this.discoverySplashUrlFormat();
+  }
+
   get hasSystemChannelSuppressJoinNotifications(): boolean {
     return this.hasSystemChannelFlag(SystemChannelFlags.SUPPRESS_JOIN_NOTIFICATIONS);
   }
@@ -262,8 +278,16 @@ export class Guild extends BaseStructure {
     return this.iconUrlFormat();
   }
 
+  get isDiscoverable(): boolean {
+    return this.hasFeature(GuildFeatures.DISCOVERABLE);
+  }
+
   get isPartnered(): boolean {
     return this.hasFeature(GuildFeatures.PARTNERED);
+  }
+
+  get isPublic(): boolean {
+    return this.hasFeature(GuildFeatures.PUBLIC) && !this.hasFeature(GuildFeatures.PUBLIC_DISABLED);
   }
 
   get isVerified(): boolean {
@@ -335,6 +359,13 @@ export class Guild extends BaseStructure {
       }
     }
     return collection;
+  }
+
+  get rulesChannel(): Channel | null {
+    if (this.rulesChannelId) {
+      return this.client.channels.get(this.rulesChannelId) || null;
+    }
+    return null;
   }
 
   get splashUrl(): null | string {
@@ -448,6 +479,15 @@ export class Guild extends BaseStructure {
       return PermissionTools.checkPermissions(total, permissions);
     }
     return false;
+  }
+
+  discoverySplashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.discoverySplash) {
+      return null;
+    }
+    const hash = this.discoverySplash;
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
   }
 
   hasFeature(feature: string): boolean {

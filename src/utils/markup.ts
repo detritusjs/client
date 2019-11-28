@@ -20,6 +20,7 @@ export const Regexes = Object.freeze({
   [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
   EVERYONE: /@(everyone|here)/g,
   MENTION: /<@([!&]?[0-9]{16,21})>/g,
+  MENTION_HARDCORE: /@/g,
   URL: /\)/g,
 });
 
@@ -229,8 +230,7 @@ export const escape = Object.freeze({
     return trueSlice(text, filter.limit);
   },
   mentions: (text: string, replacement: string = Replacements.MENTION): string => {
-    text = text.replace(Regexes.EVERYONE, `@${replacement}$1`);
-    text = text.replace(Regexes.MENTION, `<${replacement}@$1>`);
+    text = text.replace(Regexes.MENTION_HARDCORE, `@${replacement}`);
     return text;
   },
   spoiler: (text: string, options: MarkupFilterOptions = {}): string => {

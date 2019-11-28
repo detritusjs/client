@@ -1374,11 +1374,27 @@ export class ChannelGuildVoice extends ChannelGuildBase {
 }
 
 
+const keysChannelGuildStore = new BaseSet<string>([
+  ...keysChannelGuildBase,
+  DiscordKeys.BITRATE,
+  DiscordKeys.USER_LIMIT,
+]);
+
 /**
  * Guild Store Channel
  * @category Structure
  */
 export class ChannelGuildStore extends ChannelGuildBase {
+  readonly _keys = keysChannelGuildStore;
+
+  bitrate: number = 0;
+  userLimit: number = 0;
+
+  constructor(client: ShardClient, data: BaseStructureData) {
+    super(client, data, false);
+    this.merge(data);
+  }
+
   async fetchStoreListing() {
     return this.client.rest.fetchChannelStoreListing(this.id);
   }

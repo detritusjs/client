@@ -1129,6 +1129,7 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.MESSAGE_REACTION_ADD](data: GatewayRawEvents.MessageReactionAdd) {
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
+    let member: Member | null = null;
     let message: Message | null = null;
     const messageId = data['message_id'];
     let reaction: null | Reaction = null;
@@ -1137,6 +1138,16 @@ export class GatewayDispatchHandler {
 
     if (this.client.users.has(userId)) {
       user = <User> this.client.users.get(userId);
+    }
+
+    if (data.member) {
+      if (this.client.members.has(guildId, userId)) {
+        member = <Member> this.client.members.get(guildId, userId);
+        member.merge(data.member);
+      } else {
+        member = new Member(this.client, data.member);
+        this.client.members.insert(member);
+      }
     }
 
     const emojiId = data.emoji.id || data.emoji.name;
@@ -1166,6 +1177,7 @@ export class GatewayDispatchHandler {
     const payload: GatewayClientEvents.MessageReactionAdd = {
       channelId,
       guildId,
+      member,
       message,
       messageId,
       reaction,

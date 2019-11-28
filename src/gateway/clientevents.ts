@@ -316,6 +316,7 @@ export namespace GatewayClientEvents {
   export interface MessageReactionAdd {
     channelId: string,
     guildId: string | undefined,
+    member: Member | null,
     message: Message | null,
     messageId: string,
     raw: GatewayRawEvents.MessageReactionAdd,

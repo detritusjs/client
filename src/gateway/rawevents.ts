@@ -345,11 +345,16 @@ export namespace GatewayRawEvents {
     emoji: RawEmojiPartial,
     guild_id?: string,
     message_id: string,
+    member?: RawMember,
     user_id: string,
   }
 
   export interface MessageReactionRemove extends MessageReactionAdd {
-
+    channel_id: string,
+    emoji: RawEmojiPartial,
+    guild_id?: string,
+    message_id: string,
+    user_id: string,
   }
 
   export interface MessageReactionRemoveAll {

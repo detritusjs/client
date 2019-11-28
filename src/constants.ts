@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.37',
+  VERSION: '0.9.38',
 });
 
 export type Snowflake = number | string;
@@ -1078,6 +1078,7 @@ export const DiscordKeys = Object.freeze({
   DESKTOP: 'desktop',
   DETAILS: 'details',
   DEVELOPERS: 'developers',
+  DISCOVERY_SPLASH: 'discovery_splash',
   DISCRIMINATOR: 'discriminator',
   DISTRIBUTOR: 'distributor',
   EDITED_TIMESTAMP: 'edited_timestamp',
@@ -1226,6 +1227,7 @@ export const DiscordKeys = Object.freeze({
   ROLE_ID: 'role_id',
   RPC_APPLICATION_STATE: 'rpc_application_state',
   RPC_ORIGINS: 'rpc_origins',
+  RULES_CHANNEL_ID: 'rules_channel_id',
   SECRET: 'secret',
   SECRETS: 'secrets',
   SELF_DEAF: 'self_deaf',
@@ -1365,6 +1367,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DESKTOP]: 'desktop',
   [DiscordKeys.DETAILS]: 'details',
   [DiscordKeys.DEVELOPERS]: 'developers',
+  [DiscordKeys.DISCOVERY_SPLASH]: 'discoverySplash',
   [DiscordKeys.DISCRIMINATOR]: 'discriminator',
   [DiscordKeys.DISTRIBUTOR]: 'distributor',
   [DiscordKeys.EDITED_TIMESTAMP]: 'editedTimestamp',
@@ -1513,6 +1516,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ROLE_ID]: 'roleId',
   [DiscordKeys.RPC_APPLICATION_STATE]: 'rpcApplicationState',
   [DiscordKeys.RPC_ORIGINS]: 'rpcOrigins',
+  [DiscordKeys.RULES_CHANNEL_ID]: 'rulesChannelId',
   [DiscordKeys.SECRET]: 'secret',
   [DiscordKeys.SECRETS]: 'secrets',
   [DiscordKeys.SELF_DEAF]: 'selfDeaf',
