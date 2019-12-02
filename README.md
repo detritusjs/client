@@ -4,6 +4,7 @@
 A wheels-attached, pure-TypeScript library for the Discord API.
 
 - [API Documentation](https://detritusjs.com)
+- [Discord Help Server](https://discord.gg/MPzPyV9)
 - [npm](https://www.npmjs.com/package/detritus-client)
 
 ## Installation
