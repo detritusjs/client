@@ -69,8 +69,7 @@ interface GatewayOptions extends Gateway.SocketOptions, GatewayHandlerOptions {
 
 }
 
-export interface ShardClientOptions {
-  cache?: {
+export interface CacheOptions {
     applications?: ApplicationsOptions,
     channels?: ChannelsOptions,
     connectedAccounts?: ConnectedAccountsOptions,
@@ -88,7 +87,10 @@ export interface ShardClientOptions {
     voiceCalls?: VoiceCallsOptions,
     voiceConnections?: VoiceConnectionsOptions,
     voiceStates?: VoiceStatesOptions,
-  } | boolean,
+}
+
+export interface ShardClientOptions {
+  cache?: CacheOptions | boolean,
   gateway?: GatewayOptions,
   imageFormat?: ImageFormats | string,
   isBot?: boolean,
