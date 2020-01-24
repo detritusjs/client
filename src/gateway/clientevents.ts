@@ -8,6 +8,7 @@ import {
   Channel,
   Emoji,
   Guild,
+  Invite,
   Member,
   Message,
   Presence,
@@ -251,6 +252,18 @@ export namespace GatewayClientEvents {
     guild: Guild,
   }
 
+  export interface InviteCreate {
+    channelId: string,
+    guildId: string,
+    invite: Invite,
+  }
+
+  export interface InviteDelete {
+    channelId: string,
+    code: string,
+    guildId: string,
+  }
+
   export interface LibraryApplicationUpdate {
 
   }
@@ -341,6 +354,15 @@ export namespace GatewayClientEvents {
     guildId: string | undefined,
     message: Message | null,
     messageId: string,
+  }
+
+  export interface MessageReactionRemoveEmoji {
+    channelId: string,
+    guildId: string | undefined,
+    message: Message | null,
+    messageId: string,
+    raw: GatewayRawEvents.MessageReactionRemoveEmoji,
+    reaction: Reaction,
   }
 
   export interface MessageUpdate {

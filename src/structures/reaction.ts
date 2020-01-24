@@ -82,6 +82,10 @@ export class Reaction extends BaseStructure {
     return this.client.rest.deleteReaction(this.channelId, this.messageId, this.emoji.endpointFormat, userId);
   }
 
+  deleteAll() {
+    return this.client.rest.deleteReactionsEmoji(this.channelId, this.messageId, this.emoji.endpointFormat);
+  }
+
   fetchUsers(options: RequestTypes.FetchReactions = {}) {
     return this.client.rest.fetchReactions(this.channelId, this.messageId, this.emoji.endpointFormat, options);
   }

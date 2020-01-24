@@ -474,6 +474,14 @@ export class PresenceActivity extends BaseStructure {
     return this.type === ActivityTypes.WATCHING;
   }
 
+  get isOnAndroid(): boolean {
+    return this.platformType === ActivityPlatformTypes.ANDROID;
+  }
+
+  get isOnIOS(): boolean {
+    return this.platformType === ActivityPlatformTypes.IOS;
+  }
+
   get isOnSpotify(): boolean {
     return (
       this.isListening &&

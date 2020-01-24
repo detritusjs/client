@@ -69,51 +69,55 @@ interface GatewayOptions extends Gateway.SocketOptions, GatewayHandlerOptions {
 
 }
 
+export interface ShardClientCacheOptions {
+  applications?: ApplicationsOptions,
+  channels?: ChannelsOptions,
+  connectedAccounts?: ConnectedAccountsOptions,
+  emojis?: EmojisOptions,
+  guilds?: GuildsOptions,
+  members?: MembersOptions,
+  messages?: MessagesOptions,
+  notes?: NotesOptions,
+  presences?: PresencesOptions,
+  relationships?: RelationshipsOptions,
+  roles?: RolesOptions,
+  sessions?: SessionsOptions,
+  typings?: TypingOptions,
+  users?: UsersOptions,
+  voiceCalls?: VoiceCallsOptions,
+  voiceConnections?: VoiceConnectionsOptions,
+  voiceStates?: VoiceStatesOptions,
+}
+
+export interface ShardClientPassOptions {
+  cluster?: ClusterClient,
+  commandClient?: CommandClient,
+  applications?: Applications,
+  channels?: Channels,
+  connectedAccounts?: ConnectedAccounts,
+  emojis?: Emojis,
+  guilds?: Guilds,
+  members?: Members,
+  messages?: Messages,
+  notes?: Notes,
+  presences?: Presences,
+  relationships?: Relationships,
+  roles?: Roles,
+  sessions?: Sessions,
+  typings?: TypingCollection,
+  users?: Users,
+  voiceCalls?: VoiceCalls,
+  voiceConnections?: VoiceConnections,
+  voiceStates?: VoiceStates,
+}
+
 export interface ShardClientOptions {
-  cache?: {
-    applications?: ApplicationsOptions,
-    channels?: ChannelsOptions,
-    connectedAccounts?: ConnectedAccountsOptions,
-    emojis?: EmojisOptions,
-    guilds?: GuildsOptions,
-    members?: MembersOptions,
-    messages?: MessagesOptions,
-    notes?: NotesOptions,
-    presences?: PresencesOptions,
-    relationships?: RelationshipsOptions,
-    roles?: RolesOptions,
-    sessions?: SessionsOptions,
-    typings?: TypingOptions,
-    users?: UsersOptions,
-    voiceCalls?: VoiceCallsOptions,
-    voiceConnections?: VoiceConnectionsOptions,
-    voiceStates?: VoiceStatesOptions,
-  } | boolean,
+  cache?: ShardClientCacheOptions | boolean,
   gateway?: GatewayOptions,
   imageFormat?: ImageFormats | string,
   isBot?: boolean,
   rest?: RestOptions,
-  pass?: {
-    cluster?: ClusterClient,
-    commandClient?: CommandClient,
-    applications?: Applications,
-    channels?: Channels,
-    connectedAccounts?: ConnectedAccounts,
-    emojis?: Emojis,
-    guilds?: Guilds,
-    members?: Members,
-    messages?: Messages,
-    notes?: Notes,
-    presences?: Presences,
-    relationships?: Relationships,
-    roles?: Roles,
-    sessions?: Sessions,
-    typings?: TypingCollection,
-    users?: Users,
-    voiceCalls?: VoiceCalls,
-    voiceConnections?: VoiceConnections,
-    voiceStates?: VoiceStates,
-  },
+  pass?: ShardClientPassOptions,
 }
 
 export interface ShardClientRunOptions {
@@ -487,6 +491,8 @@ export class ShardClient extends EventSpewer {
   on(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.GuildRoleDelete) => any): this;
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
   on(event: 'guildUpdate', listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
+  on(event: 'inviteCreate', listener: (payload: GatewayClientEvents.InviteCreate) => any): this;
+  on(event: 'inviteDelete', listener: (payload: GatewayClientEvents.InviteDelete) => any): this;
   on(event: 'libraryApplicationUpdate', listener: (payload: GatewayClientEvents.LibraryApplicationUpdate) => any): this;
   on(event: 'lobbyCreate', listener: (payload: GatewayClientEvents.LobbyCreate) => any): this;
   on(event: 'lobbyDelete', listener: (payload: GatewayClientEvents.LobbyDelete) => any): this;
@@ -503,6 +509,7 @@ export class ShardClient extends EventSpewer {
   on(event: 'messageReactionAdd', listener: (payload: GatewayClientEvents.MessageReactionAdd) => any): this;
   on(event: 'messageReactionRemove', listener: (payload: GatewayClientEvents.MessageReactionRemove) => any): this;
   on(event: 'messageReactionRemoveAll', listener: (payload: GatewayClientEvents.MessageReactionRemoveAll) => any): this;
+  on(event: 'messageReactionRemoveEmoji', listener: (payload: GatewayClientEvents.MessageReactionRemoveEmoji) => any): this;
   on(event: 'messageUpdate', listener: (payload: GatewayClientEvents.MessageUpdate) => any): this;
   on(event: 'oauth2TokenRevoke', listener: (payload: GatewayClientEvents.Oauth2TokenRevoke) => any): this;
   on(event: 'presenceUpdate', listener: (payload: GatewayClientEvents.PresenceUpdate) => any): this;

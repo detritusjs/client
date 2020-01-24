@@ -8,7 +8,7 @@ import { BaseCollection, emptyBaseCollection } from '../collections/basecollecti
 import { BaseSet } from '../collections/baseset';
 import {
   DiscordKeys,
-  PremiumTypes,
+  PremiumUserTypes,
   RelationshipTypes,
   UserFlags,
 } from '../constants';
@@ -273,8 +273,12 @@ export class UserWithFlags extends User {
     return this.hasFlag(UserFlags.HYPESQUAD);
   }
 
-  get hasBugHunter(): boolean {
-    return this.hasFlag(UserFlags.BUG_HUNTER);
+  get hasBugHunterLevel1(): boolean {
+    return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_1);
+  }
+
+  get hasBugHunterLevel2(): boolean {
+    return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_2);
   }
 
   get hasMfaSms(): boolean {
@@ -352,11 +356,11 @@ export class UserExtended extends UserWithFlags {
   }
 
   get hasNitroClassic(): boolean {
-    return this.hasPremiumType(PremiumTypes.TIER_1);
+    return this.hasPremiumType(PremiumUserTypes.TIER_1);
   }
 
   get hasNitro(): boolean {
-    return this.hasPremiumType(PremiumTypes.TIER_2);
+    return this.hasPremiumType(PremiumUserTypes.TIER_2);
   }
 
   hasPremiumType(type: number): boolean {

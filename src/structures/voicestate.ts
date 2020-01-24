@@ -83,6 +83,23 @@ export class VoiceState extends BaseStructure {
     return this.guildId || this.channelId || '';
   }
 
+  get streamKey(): string {
+    if (this.guildId) {
+      return `guild:${this.guildId}:${this.channelId}:${this.userId}`;
+    }
+    return '';
+  }
+
+  async fetchStreamPreview() {
+    if (!this.guildId) {
+      throw new Error('Stream Previews are unable in a DM call.');
+    }
+    if (!this.selfStream) {
+      throw new Error('User is not streaming');
+    }
+    return this.client.rest.fetchStreamPreview(this.streamKey);
+  }
+
   async edit(options: RequestTypes.EditGuildMember) {
     if (!this.guildId) {
       throw new Error('Cannot edit a user in a DM call.');

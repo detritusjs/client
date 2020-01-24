@@ -19,6 +19,7 @@ import {
   ConnectedAccount,
   Emoji,
   Guild,
+  Invite,
   Member,
   Message,
   Presence,
@@ -1019,6 +1020,24 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_UPDATE, payload);
   }
 
+  [GatewayDispatchEvents.INVITE_CREATE](data: GatewayRawEvents.InviteCreate) {
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
+    const invite = new Invite(this.client, data);
+
+    const payload: GatewayClientEvents.InviteCreate = {channelId, guildId, invite};
+    this.client.emit(ClientEvents.INVITE_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.INVITE_DELETE](data: GatewayRawEvents.InviteDelete) {
+    const channelId = data['channel_id'];
+    const code = data['code'];
+    const guildId = data['guild_id'];
+
+    const payload: GatewayClientEvents.InviteDelete = {channelId, code, guildId};
+    this.client.emit(ClientEvents.INVITE_DELETE, payload);
+  }
+
   [GatewayDispatchEvents.LIBRARY_APPLICATION_UPDATE](data: GatewayRawEvents.LibraryApplicationUpdate) {
 
   }
@@ -1258,6 +1277,42 @@ export class GatewayDispatchHandler {
       messageId,
     };
     this.client.emit(ClientEvents.MESSAGE_REACTION_REMOVE_ALL, payload);
+  }
+
+  [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE_EMOJI](data: GatewayRawEvents.MessageReactionRemoveEmoji) {
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
+    let message: Message | null = null;
+    const messageId = data['message_id'];
+    let reaction: null | Reaction = null;
+
+    const emojiId = data.emoji.id || data.emoji.name;
+    if (this.client.messages.has(messageId)) {
+      message = <Message> this.client.messages.get(messageId);
+      if (message._reactions && message._reactions.has(emojiId)) {
+        reaction = <Reaction> message._reactions.get(emojiId);
+        message._reactions.delete(emojiId);
+        if (!message._reactions.length) {
+          message._reactions = undefined;
+        }
+      }
+    }
+
+    if (!reaction) {
+      // https://github.com/discordapp/discord-api-docs/issues/812
+      Object.assign(data, {is_partial: true});
+      reaction = new Reaction(this.client, data);
+    }
+
+    const payload: GatewayClientEvents.MessageReactionRemoveEmoji = {
+      channelId,
+      guildId,
+      message,
+      messageId,
+      reaction,
+      raw: data,
+    };
+    this.client.emit(ClientEvents.MESSAGE_REACTION_REMOVE_EMOJI, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_UPDATE](data: GatewayRawEvents.MessageUpdate) {

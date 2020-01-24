@@ -198,6 +198,24 @@ export namespace GatewayRawEvents {
 
   }
 
+  export interface InviteCreate {
+    channel_id: string,
+    code: string,
+    created_at: string,
+    guild_id: string,
+    inviter: RawUserPartial,
+    max_age: number,
+    max_uses: number,
+    temporary: boolean,
+    uses: number,
+  }
+
+  export interface InviteDelete {
+    channel_id: string,
+    guild_id: string,
+    code: string,
+  }
+
   export interface LibraryApplicationUpdate {
     application: RawApplication,
     branch?: {
@@ -363,6 +381,13 @@ export namespace GatewayRawEvents {
     message_id: string,
   }
 
+  export interface MessageReactionRemoveEmoji {
+    channel_id: string,
+    guild_id?: string,
+    message_id: string,
+    emoji: RawEmojiPartial,
+  }
+
   export interface MessageUpdate extends MessageCreate {
     
   }
@@ -384,6 +409,10 @@ export namespace GatewayRawEvents {
   export interface Ready {
     _trace: Array<string>,
     analytics_token?: string,
+    application?: {
+      flags: number,
+      id: string,
+    },
     connected_accounts?: Array<RawConnectedAccount>,
     consents?: {
       personalization?: {

@@ -235,6 +235,8 @@ export class ClusterClient extends EventSpewer {
   on(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete) => any): this;
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
   on(event: 'guildUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
+  on(event: 'inviteCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.InviteCreate) => any): this;
+  on(event: 'inviteDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.InviteDelete) => any): this;
   on(event: 'libraryApplicationUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.LibraryApplicationUpdate) => any): this;
   on(event: 'lobbyCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.LobbyCreate) => any): this;
   on(event: 'lobbyDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.LobbyDelete) => any): this;
@@ -251,6 +253,7 @@ export class ClusterClient extends EventSpewer {
   on(event: 'messageReactionAdd', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageReactionAdd) => any): this;
   on(event: 'messageReactionRemove', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageReactionRemove) => any): this;
   on(event: 'messageReactionRemoveAll', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageReactionRemoveAll) => any): this;
+  on(event: 'messageReactionRemoveEmoji', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageReactionRemoveEmoji) => any): this;
   on(event: 'messageUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageUpdate) => any): this;
   on(event: 'oauth2TokenRevoke', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Oauth2TokenRevoke) => any): this;
   on(event: 'presenceUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.PresenceUpdate) => any): this;

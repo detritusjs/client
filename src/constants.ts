@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.38',
+  VERSION: '0.9.39',
 });
 
 export type Snowflake = number | string;
@@ -91,13 +91,10 @@ export enum ApplicationTypes {
   MUSIC = 2,
 }
 
-export enum Oauth2AssetTypes {
-  SMALL = 1,
-  LARGE = 2,
-};
-
 export enum ActivityPlatformTypes {
+  ANDROID = 'android',
   DESKTOP = 'desktop',
+  IOS = 'ios',
   SAMSUNG = 'samsung',
   XBOX = 'xbox',
 };
@@ -275,6 +272,8 @@ export enum ClientEvents {
   GUILD_ROLE_CREATE = 'guildRoleCreate',
   GUILD_ROLE_DELETE = 'guildRoleDelete',
   GUILD_ROLE_UPDATE = 'guildRoleUpdate',
+  INVITE_CREATE = 'inviteCreate',
+  INVITE_DELETE = 'inviteDelete',
   LIBRARY_APPLICATION_UPDATE = 'libraryApplicationUpdate',
   LOBBY_CREATE = 'lobbyCreate',
   LOBBY_DELETE = 'lobbyDelete',
@@ -292,6 +291,7 @@ export enum ClientEvents {
   MESSAGE_REACTION_ADD = 'messageReactionAdd',
   MESSAGE_REACTION_REMOVE = 'messageReactionRemove',
   MESSAGE_REACTION_REMOVE_ALL = 'messageReactionRemoveAll',
+  MESSAGE_REACTION_REMOVE_EMOJI = 'messageReactionRemoveEmoji',
   MESSAGE_UPDATE = 'messageUpdate',
   OAUTH2_TOKEN_REMOVE = 'oauth2TokenRemove',
   PRESENCES_REPLACE = 'presencesReplace',
@@ -473,6 +473,7 @@ export const GuildFeatures = Tools.normalize({
   BANNER: null,
   COMMERCE: null,
   DISCOVERABLE: null,
+  ENABLED_DISCOVERABLE_BEFORE: null,
   FEATURABLE: null,
   INVITE_SPLASH: null,
   LURKABLE: null,
@@ -634,11 +635,7 @@ export enum MessageTypes {
   GUILD_PREMIUM_SUBSCRIPTION_TIER_2 = 10,
   GUILD_PREMIUM_SUBSCRIPTION_TIER_3 = 11,
   CHANNEL_FOLLOW_ADD = 12,
-  LFG_DELIST_EXPIRED = 13,
-  LFG_DELIST_COMPLETED = 14,
-  LFG_DELIST_INACTIVE = 15,
-  LFG_DELIST_UNKNOWN = 16,
-  LFG_RELIST = 17,
+  GUILD_STREAM = 13,
 };
 
 export const MessageTypesDeletable = Object.freeze({
@@ -656,17 +653,40 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_2]: true,
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_3]: true,
   [MessageTypes.CHANNEL_FOLLOW_ADD]: true,
-  [MessageTypes.LFG_DELIST_EXPIRED]: false,
-  [MessageTypes.LFG_DELIST_COMPLETED]: false,
-  [MessageTypes.LFG_DELIST_INACTIVE]: false,
-  [MessageTypes.LFG_DELIST_UNKNOWN]: false,
-  [MessageTypes.LFG_RELIST]: false,
+  [MessageTypes.GUILD_STREAM]: false,
 });
 
 export enum MfaLevels {
   NONE = 0,
   ELEVATED = 1,
 };
+
+export enum Oauth2AssetTypes {
+  SMALL = 1,
+  LARGE = 2,
+};
+
+export enum Oauth2Scopes {
+  ACTIVITIES_READ = 'activities.read',
+  ACTIVITIES_WRITE = 'activities.write',
+  APPLICATIONS_BUILDS_UPLOAD = 'applications.builds.upload',
+  APPLICATIONS_BUILDS_READ = 'applications.builds.read',
+  APPLICATIONS_ENTITLEMENTS = 'applications.entitlements',
+  APPLICATIONS_STORE_UPDATE = 'applications.store.update',
+  BOT = 'bot',
+  CONNECTIONS = 'connections',
+  EMAIL = 'email',
+  GDM_JOIN = 'gdm.join',
+  GUILDS = 'guilds',
+  GUILDS_JOIN = 'guilds.join',
+  IDENTIFY = 'identify',
+  MESSAGES_READ = 'messages.read',
+  RELATIONSHIPS_READ = 'relationships.read',
+  RPC = 'rpc',
+  RPC_API = 'rpc.api',
+  RPC_NOTIFICATIONS_READ = 'rpc.notifications.read',
+  WEBHOOK_INCOMING = 'webhook.incoming',
+}
 
 export enum OverwriteTypes {
   MEMBER = 'member',
@@ -695,7 +715,7 @@ export enum Permissions {
   READ_MESSAGE_HISTORY = 1 << 16,
   MENTION_EVERYONE = 1 << 17,
   USE_EXTERNAL_EMOJIS = 1 << 18,
-  // unreleased feature 1 << 19
+  VIEW_GUILD_ANALYTICS = 1 << 19,
   CONNECT = 1 << 20,
   SPEAK = 1 << 21,
   MUTE_MEMBERS = 1 << 22,
@@ -798,7 +818,7 @@ export enum PremiumGuildTiers {
 };
 
 export const PremiumGuildTierNames = Object.freeze({
-  [PremiumGuildTiers.NONE]: '',
+  [PremiumGuildTiers.NONE]: 'No Level',
   [PremiumGuildTiers.TIER_1]: 'Level 1',
   [PremiumGuildTiers.TIER_2]: 'Level 2',
   [PremiumGuildTiers.TIER_3]: 'Level 3',
@@ -834,11 +854,23 @@ export const PremiumGuildLimits = Object.freeze({
   }),
 });
 
-export enum PremiumTypes {
+export enum PremiumUserTypes {
   NONE = 0,
   TIER_1 = 1,
   TIER_2 = 2,
 };
+
+export const PremiumUserLimits = Object.freeze({
+  [PremiumUserTypes.NONE]: Object.freeze({
+    attachment: MAX_ATTACHMENT_SIZE,
+  }),
+  [PremiumUserTypes.TIER_1]: Object.freeze({
+    attachment: MAX_ATTACHMENT_SIZE_PREMIUM,
+  }),
+  [PremiumUserTypes.TIER_2]: Object.freeze({
+    attachment: MAX_ATTACHMENT_SIZE_PREMIUM * 2,
+  }),
+});
 
 export enum RelationshipTypes {
   NONE = 0,
@@ -963,7 +995,7 @@ export enum UserFlags {
   STAFF = 1 << 0,
   PARTNER = 1 << 1,
   HYPESQUAD = 1 << 2,
-  BUG_HUNTER = 1 << 3,
+  BUG_HUNTER_LEVEL_1 = 1 << 3,
   MFA_SMS = 1 << 4,
   PREMIUM_PROMO_DISMISSED = 1 << 5,
   HYPESQUAD_ONLINE_HOUSE_1 = 1 << 6,
@@ -973,6 +1005,7 @@ export enum UserFlags {
   TEAM_USER = 1 << 10,
   SYSTEM = 1 << 12,
   HAS_UNREAD_URGENT_MESSAGES = 1 << 13,
+  BUG_HUNTER_LEVEL_2 = 1 << 14,
 };
 
 // the level of their boost badge
