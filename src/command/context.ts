@@ -3,7 +3,7 @@ import { RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
-import { CommandClient } from '../commandclient';
+import { CommandClient, CommandReply } from '../commandclient';
 
 import { Message, Typing } from '../structures';
 
@@ -76,8 +76,12 @@ export class Context {
     return this.client.shardId;
   }
 
-  get response() {
-    return this.commandClient.replies.get(this.messageId);
+  get response(): Message | null {
+    if (this.commandClient.replies.has(this.messageId)) {
+      const { reply } = <CommandReply> this.commandClient.replies.get(this.messageId);
+      return reply;
+    }
+    return null;
   }
 
   /* Client Collections */
@@ -251,18 +255,18 @@ export class Context {
   }
 
   async editOrReply(options: RequestTypes.EditMessage | string = {}) {
-    const oldReply = this.response;
-    if (oldReply) {
+    if (this.commandClient.replies.has(this.messageId)) {
+      const old = <CommandReply> this.commandClient.replies.get(this.messageId);
       if (typeof(options) === 'string') {
         options = {content: options, embed: null};
       } else {
         options = Object.assign({content: '', embed: null}, options);
       }
-      return oldReply.edit(options);
+      return old.reply.edit(options);
     } else {
       const reply = await this.message.reply(options);
-      if (this.commandClient.maxEditDuration) {
-        this.commandClient.replies.set(this.messageId, reply);
+      if (this.command) {
+        this.commandClient.storeReply(this.messageId, this.command, this, reply);
       }
       return reply;
     }

@@ -61,6 +61,12 @@ export interface CommandAttributes {
   prefix: string,
 }
 
+export interface CommandReply {
+  command: Command,
+  context: Context,
+  reply: Message,
+}
+
 
 /**
  * Command Client, hooks onto the ShardClient to provide easier command handling
@@ -81,7 +87,7 @@ export class CommandClient extends EventSpewer {
   };
   ran: boolean;
   ratelimits: Array<CommandRatelimit> = [];
-  replies: BaseCollection<string, Message>;
+  replies: BaseCollection<string, CommandReply>;
 
   onCommandCheck?(context: Context, command: Command): boolean | Promise<boolean>;
   onPrefixCheck?(context: Context): CommandClientPrefixes | Promise<CommandClientPrefixes>;
@@ -443,6 +449,12 @@ export class CommandClient extends EventSpewer {
     return this.client;
   }
 
+  storeReply(messageId: string, command: Command, context: Context, reply: Message): void {
+    if (this.maxEditDuration && reply instanceof Message) {
+      this.replies.set(messageId, {command, context, reply});
+    }
+  }
+
   /* Handler */
   async handle(
     name: string,
@@ -485,7 +497,8 @@ export class CommandClient extends EventSpewer {
         throw new Error('Does not start with any allowed prefixes');
       }
     } catch(error) {
-      this.emit(ClientEvents.COMMAND_NONE, {context, error});
+      const payload: CommandEvents.CommandNone = {context, error};
+      this.emit(ClientEvents.COMMAND_NONE, payload);
       return;
     }
 
@@ -497,23 +510,28 @@ export class CommandClient extends EventSpewer {
           const shouldContinue = await Promise.resolve(this.onCommandCheck(context, command));
           if (!shouldContinue) {
             const error = new Error('Command check returned false');
-            this.emit(ClientEvents.COMMAND_NONE, {context, error});
+            const payload: CommandEvents.CommandNone = {context, error};
+            this.emit(ClientEvents.COMMAND_NONE, payload);
             return;
           }
         } catch(error) {
-          this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+          const payload: CommandEvents.CommandNone = {context, error};
+          this.emit(ClientEvents.COMMAND_ERROR, payload);
           return;
         }
       }
     } else {
       const error = new Error('Unknown Command');
-      this.emit(ClientEvents.COMMAND_NONE, {context, error});
+      const payload: CommandEvents.CommandNone = {context, error};
+      this.emit(ClientEvents.COMMAND_NONE, payload);
       return;
     }
 
     if (!command.responseOptional && !message.canReply) {
       const error = new Error('Cannot send messages in this channel');
-      this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+
+      const payload: CommandEvents.CommandError = {command, context, error};
+      this.emit(ClientEvents.COMMAND_ERROR, payload);
       return;
     }
 
@@ -562,16 +580,17 @@ export class CommandClient extends EventSpewer {
       if (command.disableDm) {
         const error = new Error('Command with DMs disabled used in DM');
         if (command.disableDmReply) {
-          this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+          const payload: CommandEvents.CommandError = {command, context, error};
+          this.emit(ClientEvents.COMMAND_ERROR, payload);
         } else {
           try {
             const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
-            if (this.maxEditDuration) {
-              this.replies.set(message.id, reply);
-            }
-            this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, reply});
+            this.storeReply(message.id, command, context, reply);
+            const payload: CommandEvents.CommandError = {command, context, error, reply};
+            this.emit(ClientEvents.COMMAND_ERROR, payload);
           } catch(e) {
-            this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: e});
+            const payload: CommandEvents.CommandError = {command, context, error, extra: e};
+            this.emit(ClientEvents.COMMAND_ERROR, payload);
           }
         }
         return;
@@ -598,7 +617,8 @@ export class CommandClient extends EventSpewer {
         }
 
         if (failed.length) {
-          this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, {command, context, permissions: failed});
+          const payload: CommandEvents.CommandPermissionsFailClient = {command, context, permissions: failed};
+          this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, payload);
           if (typeof(command.onPermissionsFailClient) === 'function') {
             try {
               await Promise.resolve(command.onPermissionsFailClient(context, failed));
@@ -631,7 +651,8 @@ export class CommandClient extends EventSpewer {
         }
 
         if (failed.length) {
-          this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL, {command, context, permissions: failed});
+          const payload: CommandEvents.CommandPermissionsFail = {command, context, permissions: failed};
+          this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL, payload);
           if (typeof(command.onPermissionsFail) === 'function') {
             try {
               await Promise.resolve(command.onPermissionsFail(context, failed));
@@ -650,14 +671,13 @@ export class CommandClient extends EventSpewer {
         if (!shouldContinue) {
           if (typeof(command.onCancel) === 'function') {
             const reply = await Promise.resolve(command.onCancel(context));
-            if (this.maxEditDuration && reply instanceof Message) {
-              this.replies.set(message.id, reply);
-            }
+            this.storeReply(message.id, command, context, reply);
           }
           return;
         }
       } catch(error) {
-        this.emit(ClientEvents.COMMAND_ERROR, {command, context, error});
+        const payload: CommandEvents.CommandError = {command, context, error};
+        this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
       }
     }
@@ -667,12 +687,11 @@ export class CommandClient extends EventSpewer {
     if (Object.keys(errors).length) {
       if (typeof(command.onTypeError) === 'function') {
         const reply = await Promise.resolve(command.onTypeError(context, args, errors));
-        if (this.maxEditDuration && reply instanceof Message) {
-          this.replies.set(message.id, reply);
-        }
+        this.storeReply(message.id, command, context, reply);
       }
       const error = new Error('Command errored out while converting args');
-      this.emit(ClientEvents.COMMAND_ERROR, {command, context, error, extra: errors});
+      const payload: CommandEvents.CommandError = {command, context, error, extra: errors};
+      this.emit(ClientEvents.COMMAND_ERROR, payload);
       return;
     }
 
@@ -682,9 +701,7 @@ export class CommandClient extends EventSpewer {
         if (!shouldRun) {
           if (typeof(command.onCancelRun) === 'function') {
             const reply = await Promise.resolve(command.onCancelRun(context, args));
-            if (this.maxEditDuration && reply instanceof Message) {
-              this.replies.set(message.id, reply);
-            }
+            this.storeReply(message.id, command, context, reply);
           }
           return;
         }
@@ -693,16 +710,17 @@ export class CommandClient extends EventSpewer {
       try {
         if (typeof(command.run) === 'function') {
           const reply = await Promise.resolve(command.run(context, args));
-          if (this.maxEditDuration && reply instanceof Message) {
-            this.replies.set(message.id, reply);
-          }
+          this.storeReply(message.id, command, context, reply);
         }
-        this.emit(ClientEvents.COMMAND_RAN, {args, command, context, prefix});
+
+        const payload: CommandEvents.CommandRan = {args, command, context, prefix};
+        this.emit(ClientEvents.COMMAND_RAN, payload);
         if (typeof(command.onSuccess) === 'function') {
           await Promise.resolve(command.onSuccess(context, args));
         }
       } catch(error) {
-        this.emit(ClientEvents.COMMAND_RUN_ERROR, {args, command, context, error, prefix});
+        const payload: CommandEvents.CommandRunError = {args, command, context, error, prefix};
+        this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(command.onRunError) === 'function') {
           await Promise.resolve(command.onRunError(context, args, error));
         }
@@ -711,15 +729,24 @@ export class CommandClient extends EventSpewer {
       if (typeof(command.onError) === 'function') {
         await Promise.resolve(command.onError(context, args, error));
       }
-      this.emit(ClientEvents.COMMAND_FAIL, {args, command, context, error, prefix});
+      const payload: CommandEvents.CommandFail = {args, command, context, error, prefix};
+      this.emit(ClientEvents.COMMAND_FAIL, payload);
     }
   }
 
-  async handleDelete(name: string, payload: {raw: {id: string}}): Promise<void> {
-    this.replies.delete(payload.raw.id);
+  async handleDelete(name: string, deletePayload: {raw: {id: string}}): Promise<void> {
+    const messageId = deletePayload.raw.id;
+    if (this.replies.has(messageId)) {
+      const { command, context, reply } = <CommandReply> this.replies.get(messageId);
+      this.replies.delete(messageId);
+
+      const payload: CommandEvents.CommandDelete = {command, context, reply};
+      this.emit(ClientEvents.COMMAND_DELETE, payload);
+    }
   }
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;
+  on(event: 'commandDelete', listener: (payload: CommandEvents.CommandDelete) => any): this;
   on(event: 'commandError', listener: (payload: CommandEvents.CommandError) => any): this;
   on(event: 'commandFail', listener: (payload: CommandEvents.CommandFail) => any): this;
   on(event: 'commandNone', listener: (payload: CommandEvents.CommandNone) => any): this;

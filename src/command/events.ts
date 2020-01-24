@@ -7,6 +7,12 @@ import { CommandRatelimit as CommandRatelimitCache, CommandRatelimitItem } from 
 
 
 export namespace CommandEvents {
+  export interface CommandDelete {
+    command: Command,
+    context: Context,
+    reply: Message,
+  }
+
   export interface CommandError {
     command: Command,
     context: Context,

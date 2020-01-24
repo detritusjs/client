@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.39',
+  VERSION: '0.9.40',
 });
 
 export type Snowflake = number | string;
@@ -321,6 +321,7 @@ export enum ClientEvents {
   VOICE_STATE_UPDATE = 'voiceStateUpdate',
   WEBHOOKS_UPDATE = 'webhooksUpdate',
   CLUSTER_PROCESS = 'clusterProcess',
+  COMMAND_DELETE = 'commandDelete',
   COMMAND_ERROR = 'commandError',
   COMMAND_FAIL = 'commandFail',
   COMMAND_NONE = 'commandNone',
