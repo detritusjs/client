@@ -1,7 +1,7 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, MessageEmbedTypes } from '../constants';
+import { MEDIA_ATTACHMENT_URL_PREFIX, DiscordKeys, MessageEmbedTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -51,6 +51,14 @@ export class MessageEmbed extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get hasAttachment(): boolean {
+    return !!(
+      (this.image && this.image.hasAttachment) ||
+      (this.thumbnail && this.thumbnail.hasAttachment) ||
+      (this.video && this.video.hasAttachment)
+    );
   }
 
   get isApplicationNews(): boolean {
@@ -229,6 +237,10 @@ export class MessageEmbedImage extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get hasAttachment(): boolean {
+    return !!(this.proxyUrl && this.proxyUrl.startsWith(MEDIA_ATTACHMENT_URL_PREFIX));
   }
 }
 

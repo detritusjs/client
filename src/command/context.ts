@@ -269,7 +269,7 @@ export class Context {
       options = Object.assign({content: '', embed: null}, options);
 
       const old = <CommandReply> this.commandClient.replies.get(this.messageId);
-      if (old.reply.attachments.length || options.activity || options.applicationId || options.file || options.files) {
+      if (old.reply.hasAttachment || options.activity || options.applicationId || options.file || options.files) {
         if (options.delete || options.delete === undefined) {
           await old.reply.delete();
         }

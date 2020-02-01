@@ -227,6 +227,10 @@ export class Message extends BaseStructure {
     return null;
   }
 
+  get hasAttachment(): boolean {
+    return !!(this.attachments.length || this.embeds.some((embed) => embed.hasAttachment));
+  }
+
   get hasFlagCrossposted(): boolean {
     return this.hasFlag(MessageFlags.CROSSPOSTED);
   }
