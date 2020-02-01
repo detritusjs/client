@@ -10,6 +10,12 @@ import { Message, Typing } from '../structures';
 import { Command } from './command';
 
 
+export type EditOrCreate = RequestTypes.CreateMessage & RequestTypes.EditMessage;
+export interface EditOrReply extends EditOrCreate {
+  delete?: boolean,
+}
+
+
 /**
  * Command Context
  * @category Command
@@ -254,22 +260,30 @@ export class Context {
     return null;
   }
 
-  async editOrReply(options: RequestTypes.EditMessage | string = {}) {
-    if (this.commandClient.replies.has(this.messageId)) {
-      const old = <CommandReply> this.commandClient.replies.get(this.messageId);
-      if (typeof(options) === 'string') {
-        options = {content: options, embed: null};
-      } else {
-        options = Object.assign({content: '', embed: null}, options);
-      }
-      return old.reply.edit(options);
-    } else {
-      const reply = await this.message.reply(options);
-      if (this.command) {
-        this.commandClient.storeReply(this.messageId, this.command, this, reply);
-      }
-      return reply;
+  async editOrReply(options: EditOrReply | string = {}) {
+    if (typeof(options) === 'string') {
+      options = {content: options};
     }
+    let reply: Message;
+    if (this.commandClient.replies.has(this.messageId)) {
+      options = Object.assign({content: '', embed: null}, options);
+
+      const old = <CommandReply> this.commandClient.replies.get(this.messageId);
+      if (old.reply.attachments.length || options.activity || options.applicationId || options.file || options.files) {
+        if (options.delete || options.delete === undefined) {
+          await old.reply.delete();
+        }
+        reply = await this.message.reply(options);
+      } else {
+        reply = await old.reply.edit(options);
+      }
+    } else {
+      reply = await this.message.reply(options);
+    }
+    if (this.command) {
+      this.commandClient.storeReply(this.messageId, this.command, this, reply);
+    }
+    return reply;
   }
 
   reply(options: RequestTypes.CreateMessage | string = {}) {
