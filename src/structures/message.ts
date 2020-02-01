@@ -62,14 +62,15 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.WEBHOOK_ID,
 ]);
 
+// we need webhook id before merging the user to make sure not to cache it
 const keysMergeMessage = new BaseSet<string>([
+  DiscordKeys.WEBHOOK_ID,
   DiscordKeys.AUTHOR,
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.MENTIONS,
   DiscordKeys.TYPE,
-  DiscordKeys.WEBHOOK_ID,
 ]);
 
 const keysSkipDifferenceMessage = new BaseSet<string>([

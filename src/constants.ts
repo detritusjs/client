@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.40',
+  VERSION: '0.9.41',
 });
 
 export type Snowflake = number | string;
@@ -232,8 +232,6 @@ export enum ChannelTypes {
   GUILD_CATEGORY = 4,
   GUILD_NEWS = 5,
   GUILD_STORE = 6,
-  GUILD_LFG_LISTINGS = 7,
-  LFG_GROUP_DM = 8,
 };
 
 export enum ClientEvents {

@@ -258,12 +258,7 @@ export class ChannelBase extends BaseStructure {
       (this.isGuildText) ||
       (this.isGuildVoice) ||
       (this.isGuildNews) ||
-      (this.isGuildStore) ||
-      (this.isGuildLfgListings);
-  }
-
-  get isGuildLfgListings(): boolean {
-    return this.type === ChannelTypes.GUILD_LFG_LISTINGS;
+      (this.isGuildStore);
   }
 
   get isGuildNews(): boolean {
@@ -552,6 +547,7 @@ const keysChannelDm = new BaseSet<string>([
 export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
   _name: string = '';
+  type = ChannelTypes.DM;
 
   lastMessageId?: null | string;
 
@@ -778,6 +774,7 @@ const keysChannelDmGroup = new BaseSet<string>([
  */
 export class ChannelDMGroup extends ChannelDM {
   readonly _keys = keysChannelDmGroup;
+  type = ChannelTypes.GROUP_DM;
 
   applicationId?: string;
   icon: null | string = null;
@@ -855,6 +852,7 @@ const keysMergeChannelGuildBase = new BaseSet<string>([
 export class ChannelGuildBase extends ChannelBase {
   readonly _keys = keysChannelGuildBase;
   readonly _keysMerge = keysMergeChannelGuildBase;
+  type = ChannelTypes.BASE;
 
   guildId: string = '';
   nsfw: boolean = false;
@@ -1142,6 +1140,7 @@ const keysChannelGuildCategory = new BaseSet<string>([
  */
 export class ChannelGuildCategory extends ChannelGuildBase {
   readonly _keys = keysChannelGuildCategory;
+  type = ChannelTypes.GUILD_CATEGORY;
 
   bitrate: number = 0;
   userLimit: number = 0;
@@ -1172,11 +1171,11 @@ const keysChannelGuildText = new BaseSet<string>([
 
 /**
  * Guild Text Channel, it can also be a news channel.
- * Not sure about the upcoming LFG group, it might not extend this
  * @category Structure
  */
 export class ChannelGuildText extends ChannelGuildBase {
   readonly _keys = keysChannelGuildText;
+  type = ChannelTypes.GUILD_TEXT;
 
   lastMessageId?: null | string;
   topic?: string = '';
@@ -1325,6 +1324,7 @@ const keysChannelGuildVoice = new BaseSet<string>([
  */
 export class ChannelGuildVoice extends ChannelGuildBase {
   readonly _keys = keysChannelGuildVoice;
+  type = ChannelTypes.GUILD_VOICE;
 
   bitrate: number = 64000;
   userLimit: number = 0;
@@ -1386,6 +1386,7 @@ const keysChannelGuildStore = new BaseSet<string>([
  */
 export class ChannelGuildStore extends ChannelGuildBase {
   readonly _keys = keysChannelGuildStore;
+  type = ChannelTypes.GUILD_STORE;
 
   bitrate: number = 0;
   userLimit: number = 0;
