@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.9.43',
+  VERSION: '0.9.44',
 });
 
 export type Snowflake = number | string;
@@ -260,7 +260,6 @@ export enum ClientEvents {
   GUILD_BAN_REMOVE = 'guildBanRemove',
   GUILD_CREATE = 'guildCreate',
   GUILD_DELETE = 'guildDelete',
-  GUILD_UPDATE = 'guildUpdate',
   GUILD_EMOJIS_UPDATE = 'guildEmojisUpdate',
   GUILD_INTEGRATIONS_UPDATE = 'guildIntegrationsUpdate',
   GUILD_MEMBER_ADD = 'guildMemberAdd',
@@ -268,9 +267,11 @@ export enum ClientEvents {
   GUILD_MEMBER_REMOVE = 'guildMemberRemove',
   GUILD_MEMBER_UPDATE = 'guildMemberUpdate',
   GUILD_MEMBERS_CHUNK = 'guildMembersChunk',
+  GUILD_READY = 'guildReady',
   GUILD_ROLE_CREATE = 'guildRoleCreate',
   GUILD_ROLE_DELETE = 'guildRoleDelete',
   GUILD_ROLE_UPDATE = 'guildRoleUpdate',
+  GUILD_UPDATE = 'guildUpdate',
   INVITE_CREATE = 'inviteCreate',
   INVITE_DELETE = 'inviteDelete',
   LIBRARY_APPLICATION_UPDATE = 'libraryApplicationUpdate',
@@ -316,6 +317,7 @@ export enum ClientEvents {
   USER_SETTINGS_UPDATE = 'userSettingsUpdate',
   USER_SUBSCRIPTIONS_UPDATE = 'userSubscriptionsUpdate',
   USER_UPDATE = 'userUpdate',
+  USERS_UPDATE = 'usersUpdate',
   VOICE_SERVER_UPDATE = 'voiceServerUpdate',
   VOICE_STATE_UPDATE = 'voiceStateUpdate',
   WEBHOOKS_UPDATE = 'webhooksUpdate',

@@ -231,6 +231,7 @@ export class ClusterClient extends EventSpewer {
   on(event: 'guildMemberRemove', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberRemove) => any): this;
   on(event: 'guildMemberUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberUpdate) => any): this;
   on(event: 'guildMembersChunk', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMembersChunk) => any): this;
+  on(event: 'guildReady', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildReady) => any): this;
   on(event: 'guildRoleCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleCreate) => any): this;
   on(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete) => any): this;
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
@@ -276,6 +277,7 @@ export class ClusterClient extends EventSpewer {
   on(event: 'userPaymentSourcesUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   on(event: 'userPaymentsUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentsUpdate) => any): this;
   on(event: 'userUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserUpdate) => any): this;
+  on(event: 'usersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UsersUpdate) => any): this;
   on(event: 'voiceServerUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.VoiceServerUpdate) => any): this;
   on(event: 'voiceStateUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.VoiceStateUpdate) => any): this;
   on(event: 'webhooksUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.WebhooksUpdate) => any): this;

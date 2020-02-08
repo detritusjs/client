@@ -66,6 +66,7 @@ export class GatewayHandler {
     left: new BaseSet<string>(),
     sending: new BaseSet<string>(),
     timer: new Timers.Timeout(),
+    waiting: new BaseSet<string>(),
   };
 
   constructor(
@@ -103,9 +104,7 @@ export class GatewayHandler {
   }
 
   onKilled(payload: {error?: Error}): void {
-    if (!this.client.killed) {
-      this.client.kill(payload.error);
-    }
+    this.client.kill(payload.error);
   }
 
   onPacket(packet: GatewayRawEvents.GatewayPacket): void {
@@ -191,7 +190,10 @@ export class GatewayDispatchHandler {
           if (guild.unavailable) {
             this.handler.memberChunks.left.add(guild.id);
           } else {
-            if (guild.members.length !== guild.memberCount) {
+            if (guild.members.length === guild.memberCount) {
+              const payload: GatewayClientEvents.GuildReady = {guild};
+              this.client.emit(ClientEvents.GUILD_READY, payload);
+            } else {
               requestChunksNow.push(guild.id);
               this.handler.memberChunks.done.add(guild.id);
             }
@@ -199,6 +201,9 @@ export class GatewayDispatchHandler {
         }
       }
       if (requestChunksNow.length) {
+        for (let guildId of requestChunksNow) {
+          this.handler.memberChunks.waiting.add(guildId);
+        }
         this.client.gateway.requestGuildMembers(requestChunksNow, {
           limit: 0,
           presences: true,
@@ -568,7 +573,10 @@ export class GatewayDispatchHandler {
       }
 
       if (this.handler.memberChunks.left.has(guild.id)) {
-        if (guild.members.length !== guild.memberCount) {
+        if (guild.members.length === guild.memberCount) {
+          const payload: GatewayClientEvents.GuildReady = {guild};
+          this.client.emit(ClientEvents.GUILD_READY, payload);
+        } else {
           this.handler.memberChunks.sending.add(guild.id);
 
           if (this.handler.memberChunks.delay) {
@@ -576,6 +584,9 @@ export class GatewayDispatchHandler {
               const guildIds = this.handler.memberChunks.sending.toArray();
               this.handler.memberChunks.sending.clear();
               if (guildIds.length) {
+                for (let guildId of guildIds) {
+                  this.handler.memberChunks.waiting.add(guildId);
+                }
                 this.client.gateway.requestGuildMembers(guildIds, {
                   limit: 0,
                   presences: true,
@@ -585,6 +596,7 @@ export class GatewayDispatchHandler {
             });
           } else {
             this.handler.memberChunks.sending.delete(guild.id);
+            this.handler.memberChunks.waiting.add(guild.id);
             this.client.gateway.requestGuildMembers(guild.id, {
               limit: 0,
               presences: true,
@@ -831,7 +843,7 @@ export class GatewayDispatchHandler {
     let member: Member;
     const userId: string = data['user']['id'];
 
-    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE);
+    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE) || this.client.hasEventListener(ClientEvents.USERS_UPDATE);
 
     if (this.client.members.has(guildId, userId)) {
       member = <Member> this.client.members.get(guildId, userId);
@@ -842,6 +854,15 @@ export class GatewayDispatchHandler {
     } else {
       member = new Member(this.client, data);
       this.client.members.insert(member);
+    }
+
+    if (differences && differences.user) {
+      const payload: GatewayClientEvents.UsersUpdate = {
+        differences: differences.user,
+        from: ClientEvents.GUILD_MEMBER_UPDATE,
+        user: member.user,
+      };
+      this.client.emit(ClientEvents.USERS_UPDATE, payload);
     }
 
     const payload: GatewayClientEvents.GuildMemberUpdate = {differences, guildId, member, userId};
@@ -909,6 +930,12 @@ export class GatewayDispatchHandler {
       // user ids
       // if the userId is not a big int, it'll be an integer..
       notFound = data['not_found'].map((userId) => String(userId));
+    }
+
+    if (guild && this.handler.memberChunks.waiting.has(guild.id) && guild.members.length === guild.memberCount) {
+      this.handler.memberChunks.waiting.delete(guild.id)
+      const payload: GatewayClientEvents.GuildReady = {guild};
+      this.client.emit(ClientEvents.GUILD_READY, payload);
     }
 
     const payload: GatewayClientEvents.GuildMembersChunk = {
@@ -1359,7 +1386,7 @@ export class GatewayDispatchHandler {
     let presence: Presence;
     let wentOffline: boolean = data['status'] === PresenceStatuses.OFFLINE;
 
-    if (this.client.hasEventListener(ClientEvents.PRESENCE_UPDATE)) {
+    if (this.client.hasEventListener(ClientEvents.PRESENCE_UPDATE) || this.client.hasEventListener(ClientEvents.USERS_UPDATE)) {
       if (this.client.presences.has(data['user']['id'])) {
         differences = (<Presence> this.client.presences.get(data['user']['id'])).differences(data);
       }
@@ -1374,6 +1401,15 @@ export class GatewayDispatchHandler {
         member = new Member(this.client, data);
         this.client.members.insert(member);
       }
+    }
+
+    if (differences && differences.user) {
+      const payload: GatewayClientEvents.UsersUpdate = {
+        differences: differences.user,
+        from: ClientEvents.PRESENCE_UPDATE,
+        user: presence.user,
+      };
+      this.client.emit(ClientEvents.USERS_UPDATE, payload);
     }
 
     const payload: GatewayClientEvents.PresenceUpdate = {differences, guildId, isGuildPresence, member, presence, wentOffline};

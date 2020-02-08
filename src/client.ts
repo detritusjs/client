@@ -147,6 +147,7 @@ export class ShardClient extends EventSpewer {
    * @ignore
    */
   _isBot: boolean = true;
+  _killed: boolean = false;
 
   application: Oauth2Application | null = null;
   cluster: ClusterClient | null = null;
@@ -239,6 +240,7 @@ export class ShardClient extends EventSpewer {
 
     Object.defineProperties(this, {
       _isBot: {configurable: true, enumerable: false, writable: false},
+      _killed: {configurable: true, enumerable: false, writable: false},
       cluster: {enumerable: false, writable: false},
       commandClient: {configurable: true, enumerable: false, writable: false},
       gateway: {enumerable: false, writable: false},
@@ -304,7 +306,7 @@ export class ShardClient extends EventSpewer {
   }
 
   get killed(): boolean {
-    return this.gateway.killed;
+    return this._killed && this.gateway.killed;
   }
 
   get shardCount(): number {
@@ -325,6 +327,7 @@ export class ShardClient extends EventSpewer {
 
   kill(error?: Error): void {
     if (!this.killed) {
+      Object.defineProperty(this, '_killed', {value: true});
       this.gateway.kill(error);
       this.reset();
       if (this.cluster) {
@@ -385,8 +388,9 @@ export class ShardClient extends EventSpewer {
 
     this.gateway.connect(url);
     if (wait) {
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         this.once(ClientEvents.GATEWAY_READY, resolve);
+        this.once(ClientEvents.KILLED, ({error}) => reject(error));
       });
     }
     Object.defineProperty(this, 'ran', {value: true});
@@ -487,6 +491,7 @@ export class ShardClient extends EventSpewer {
   on(event: 'guildMemberRemove', listener: (payload: GatewayClientEvents.GuildMemberRemove) => any): this;
   on(event: 'guildMemberUpdate', listener: (payload: GatewayClientEvents.GuildMemberUpdate) => any): this;
   on(event: 'guildMembersChunk', listener: (payload: GatewayClientEvents.GuildMembersChunk) => any): this;
+  on(event: 'guildReady', listener: (payload: GatewayClientEvents.GuildReady) => any): this;
   on(event: 'guildRoleCreate', listener: (payload: GatewayClientEvents.GuildRoleCreate) => any): this;
   on(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.GuildRoleDelete) => any): this;
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
@@ -532,6 +537,7 @@ export class ShardClient extends EventSpewer {
   on(event: 'userPaymentSourcesUpdate', listener: (payload: GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   on(event: 'userPaymentsUpdate', listener: (payload: GatewayClientEvents.UserPaymentsUpdate) => any): this;
   on(event: 'userUpdate', listener: (payload: GatewayClientEvents.UserUpdate) => any): this;
+  on(event: 'usersUpdate', listener: (payload: GatewayClientEvents.UsersUpdate) => any): this;
   on(event: 'voiceServerUpdate', listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): this;
   on(event: 'voiceStateUpdate', listener: (payload: GatewayClientEvents.VoiceStateUpdate) => any): this;
   on(event: 'webhooksUpdate', listener: (payload: GatewayClientEvents.WebhooksUpdate) => any): this;

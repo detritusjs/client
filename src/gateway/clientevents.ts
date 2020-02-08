@@ -4,6 +4,7 @@ import { GatewayRawEvents } from './rawevents';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
+import { ClientEvents } from '../constants';
 import {
   Channel,
   Emoji,
@@ -225,6 +226,10 @@ export namespace GatewayClientEvents {
     members: BaseCollection<string, Member> | null,
     notFound: Array<string> | null,
     presences: BaseCollection<string, Presence> | null,
+  }
+
+  export interface GuildReady {
+    guild: Guild,
   }
 
   export interface GuildRoleCreate {
@@ -485,6 +490,12 @@ export namespace GatewayClientEvents {
   export interface UserUpdate {
     differences: any | null,
     user: UserMe,
+  }
+
+  export interface UsersUpdate {
+    differences: any | null,
+    from: ClientEvents,
+    user: User,
   }
 
   export interface VoiceServerUpdate {
