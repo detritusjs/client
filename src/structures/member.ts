@@ -335,7 +335,7 @@ export class Member extends UserMixin {
 
   editNick(nick: string, options: RequestTypes.EditGuildNick = {}) {
     if (this.isMe) {
-      return this.client.rest.editGuildNick(this.guildId, nick, '@me', options);
+      return this.client.rest.editGuildNick(this.guildId, nick, options);
     }
     return this.edit({...options, nick});
   }

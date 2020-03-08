@@ -417,21 +417,21 @@ export class RestClient extends Client {
     return new ApplicationNews(this.client, data);
   }
 
-  async fetchApplications(): Promise<BaseCollection<string, Application>> {
-    const data = await super.fetchApplications.call(this);
+  async fetchApplication(
+    applicationId: string,
+  ): Promise<Application> {
+    const data = await super.fetchApplication(applicationId);
+    return new Application(this.client, data);
+  }
+
+  async fetchApplicationsDetectable(): Promise<BaseCollection<string, Application>> {
+    const data = await super.fetchApplicationsDetectable.call(this);
     const collection = new BaseCollection<string, Application>();
     for (let raw of data) {
       const application = new Application(this.client, raw);
       collection.set(application.id, application);
     }
     return collection;
-  }
-
-  async fetchApplication(
-    applicationId: string,
-  ): Promise<Application> {
-    const data = await super.fetchApplication(applicationId);
-    return new Application(this.client, data);
   }
 
   async fetchChannel(channelId: string): Promise<Channel> {

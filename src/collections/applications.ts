@@ -22,7 +22,7 @@ export class Applications extends BaseClientCollection<string, Application> {
   async fill(): Promise<void> {
     if (this.enabled) {
       this.clear();
-      const applications = await this.client.rest.fetchApplications();
+      const applications = await this.client.rest.fetchApplicationsDetectable();
       for (let [applicationId, application] of applications) {
         this.insert(application);
       }

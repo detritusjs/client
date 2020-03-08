@@ -93,6 +93,7 @@ export class Application extends BaseStructure {
   eulaId?: string;
   executables?: Array<ApplicationExecutable>;
   guildId?: string;
+  hook?: boolean;
   icon: null | string = null;
   id: string = '';
   name: string = '';

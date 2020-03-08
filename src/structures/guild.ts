@@ -622,8 +622,8 @@ export class Guild extends BaseStructure {
     return this.client.rest.editGuildMfaLevel(this.id, options);
   }
 
-  async editNick(nick: string, userId: string = '@me', options: RequestTypes.EditGuildNick = {}) {
-    return this.client.rest.editGuildNick(this.id, nick, userId, options);
+  async editNick(nick: string, options: RequestTypes.EditGuildNick = {}) {
+    return this.client.rest.editGuildNick(this.id, nick, options);
   }
 
   async editRole(roleId: string, options: RequestTypes.EditGuildRole) {
