@@ -61,6 +61,7 @@ const keysApplication = new BaseSet<string>([
   DiscordKeys.EULA_ID,
   DiscordKeys.EXECUTABLES,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.HOOK,
   DiscordKeys.ICON,
   DiscordKeys.ID,
   DiscordKeys.NAME,

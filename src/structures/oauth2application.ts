@@ -26,6 +26,7 @@ const keysOauth2Application = new BaseSet<string>([
   DiscordKeys.DESCRIPTION,
   DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.HOOK,
   DiscordKeys.ICON,
   DiscordKeys.ID,
   DiscordKeys.NAME,

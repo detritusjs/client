@@ -29,6 +29,7 @@ const keysUser = new BaseSet<string>([
   DiscordKeys.BOT,
   DiscordKeys.DISCRIMINATOR,
   DiscordKeys.ID,
+  DiscordKeys.PUBLIC_FLAGS,
   DiscordKeys.SYSTEM,
   DiscordKeys.USERNAME,
 ]);
@@ -44,6 +45,7 @@ export class User extends BaseStructure {
   bot: boolean = false;
   discriminator: string = '0000';
   id: string = '';
+  publicFlags: number = 0;
   system?: boolean;
   username: string = '';
 
@@ -86,6 +88,66 @@ export class User extends BaseStructure {
       }
     }
     return collection;
+  }
+
+  get hasStaff(): boolean {
+    return this.hasFlag(UserFlags.STAFF);
+  }
+
+  get hasPartner(): boolean {
+    return this.hasFlag(UserFlags.PARTNER);
+  }
+
+  get hasHypesquad(): boolean {
+    return this.hasFlag(UserFlags.HYPESQUAD);
+  }
+
+  get hasBugHunterLevel1(): boolean {
+    return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_1);
+  }
+
+  get hasBugHunterLevel2(): boolean {
+    return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_2);
+  }
+
+  get hasMfaSms(): boolean {
+    return this.hasFlag(UserFlags.MFA_SMS);
+  }
+
+  get hasPremiumPromoDismissed(): boolean {
+    return this.hasFlag(UserFlags.PREMIUM_PROMO_DISMISSED);
+  }
+
+  get hasHypesquadHouseBravery(): boolean {
+    return this.hasFlag(UserFlags.HYPESQUAD_ONLINE_HOUSE_1);
+  }
+
+  get hasHypesquadHouseBrilliance(): boolean {
+    return this.hasFlag(UserFlags.HYPESQUAD_ONLINE_HOUSE_2);
+  }
+
+  get hasHypesquadHouseBalance(): boolean {
+    return this.hasFlag(UserFlags.HYPESQUAD_ONLINE_HOUSE_3);
+  }
+
+  get hasEarlySupporter(): boolean {
+    return this.hasFlag(UserFlags.PREMIUM_EARLY_SUPPORTER);
+  }
+
+  get hasTeamUser(): boolean {
+    return this.hasFlag(UserFlags.TEAM_USER);
+  }
+
+  get hasUnderageDeleted(): boolean {
+    return this.hasFlag(UserFlags.UNDERAGE_DELETED);
+  }
+
+  get hasVerifiedBot(): boolean {
+    return this.hasFlag(UserFlags.VERIFIED_BOT);
+  }
+
+  get hasVerifiedDeveloper(): boolean {
+    return this.hasFlag(UserFlags.VERIFIED_DEVELOPER);
   }
 
   get isClientOwner(): boolean {
@@ -153,6 +215,14 @@ export class User extends BaseStructure {
     const hash = this.avatar;
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.AVATAR(this.id, hash, format), query);
+  }
+
+  hasFlag(flag: number): boolean {
+    return this.hasPublicFlag(flag);
+  }
+
+  hasPublicFlag(flag: number): boolean {
+    return (this.publicFlags & flag) === flag;
   }
 
   add() {
@@ -259,54 +329,6 @@ export class UserWithFlags extends User {
     if (merge) {
       this.merge(data);
     }
-  }
-
-  get hasStaff(): boolean {
-    return this.hasFlag(UserFlags.STAFF);
-  }
-
-  get hasPartner(): boolean {
-    return this.hasFlag(UserFlags.PARTNER);
-  }
-
-  get hasHypesquad(): boolean {
-    return this.hasFlag(UserFlags.HYPESQUAD);
-  }
-
-  get hasBugHunterLevel1(): boolean {
-    return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_1);
-  }
-
-  get hasBugHunterLevel2(): boolean {
-    return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_2);
-  }
-
-  get hasMfaSms(): boolean {
-    return this.hasFlag(UserFlags.MFA_SMS);
-  }
-
-  get hasPremiumPromoDismissed(): boolean {
-    return this.hasFlag(UserFlags.PREMIUM_PROMO_DISMISSED);
-  }
-
-  get hasHypesquadHouseBravery(): boolean {
-    return this.hasFlag(UserFlags.HYPESQUAD_ONLINE_HOUSE_1);
-  }
-
-  get hasHypesquadHouseBrilliance(): boolean {
-    return this.hasFlag(UserFlags.HYPESQUAD_ONLINE_HOUSE_2);
-  }
-
-  get hasHypesquadHouseBalance(): boolean {
-    return this.hasFlag(UserFlags.HYPESQUAD_ONLINE_HOUSE_3);
-  }
-
-  get hasEarlySupporter(): boolean {
-    return this.hasFlag(UserFlags.PREMIUM_EARLY_SUPPORTER);
-  }
-
-  get hasTeamUser(): boolean {
-    return this.hasFlag(UserFlags.TEAM_USER);
   }
 
   hasFlag(flag: number): boolean {

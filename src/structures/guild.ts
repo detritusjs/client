@@ -22,6 +22,7 @@ import {
   SystemChannelFlags,
   DEFAULT_MAX_MEMBERS,
   DEFAULT_MAX_PRESENCES,
+  DEFAULT_MAX_VIDEO_CHANNEL_USERS,
   MAX_ATTACHMENT_SIZE,
   MAX_BITRATE,
   MAX_EMOJI_SLOTS,
@@ -86,6 +87,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.LAZY,
   DiscordKeys.MAX_MEMBERS,
   DiscordKeys.MAX_PRESENCES,
+  DiscordKeys.MAX_VIDEO_CHANNEL_USERS,
   DiscordKeys.MEMBER_COUNT,
   DiscordKeys.MEMBERS,
   DiscordKeys.MFA_LEVEL,
@@ -95,6 +97,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT,
   DiscordKeys.PREMIUM_TIER,
   DiscordKeys.PRESENCES,
+  DiscordKeys.PUBLIC_UPDATES_CHANNEL_ID,
   DiscordKeys.REGION,
   DiscordKeys.ROLES,
   DiscordKeys.RULES_CHANNEL_ID,
@@ -155,6 +158,7 @@ export class Guild extends BaseStructure {
   left: boolean = false;
   maxMembers: number = DEFAULT_MAX_MEMBERS;
   maxPresences: number = DEFAULT_MAX_PRESENCES;
+  maxVideoChannelUsers: number = DEFAULT_MAX_VIDEO_CHANNEL_USERS;
   memberCount: number = 0;
   members: BaseCollection<string, Member>;
   mfaLevel: MfaLevels = MfaLevels.NONE;
@@ -163,6 +167,7 @@ export class Guild extends BaseStructure {
   preferredLocale: Locales = Locales.ENGLISH_US;
   premiumSubscriptionCount: number = 0;
   premiumTier: PremiumGuildTiers = PremiumGuildTiers.NONE;
+  publicUpdatesChannelId: null | string = null;
   region: string = '';
   roles: BaseCollection<string, Role>;
   rulesChannelId: null | string = null;
@@ -359,6 +364,13 @@ export class Guild extends BaseStructure {
       }
     }
     return collection;
+  }
+
+  get publicUpdatesChannel(): Channel | null {
+    if (this.publicUpdatesChannelId) {
+      return this.client.channels.get(this.publicUpdatesChannelId) || null;
+    }
+    return null;
   }
 
   get rulesChannel(): Channel | null {

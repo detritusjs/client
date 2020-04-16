@@ -19,8 +19,6 @@ export interface ArgumentOptions {
   label?: string,
   metadata?: {[key: string]: any},
   name: string,
-  permissions?: Array<Permissions | number>,
-  permissionsClient?: Array<Permissions | number>,
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,

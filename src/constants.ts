@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.10.1',
+  VERSION: '0.10.2',
 });
 
 export type Snowflake = number | string;
@@ -66,6 +66,7 @@ export type Snowflake = number | string;
 
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;
+export const DEFAULT_MAX_VIDEO_CHANNEL_USERS = 25;
 
 export const LOCAL_GUILD_ID = '@me';
 
@@ -488,6 +489,7 @@ export const GuildFeatures = Tools.normalize({
   VANITY_URL: null,
   VERIFIED: null,
   VIP_REGIONS: null,
+  WELCOME_SCREEN_ENABLED: null,
 });
 
 export enum GuildNotificationSettings {
@@ -799,6 +801,7 @@ export const PERMISSIONS_LURKER = [
 
 export enum PlatformTypes {
   BATTLENET = 'battlenet',
+  CONTACTS = 'contacts',
   FACEBOOK = 'facebook',
   LEAGUE_OF_LEGENDS = 'leagueoflegends',
   REDDIT = 'reddit',
@@ -1008,6 +1011,9 @@ export enum UserFlags {
   SYSTEM = 1 << 12,
   HAS_UNREAD_URGENT_MESSAGES = 1 << 13,
   BUG_HUNTER_LEVEL_2 = 1 << 14,
+  UNDERAGE_DELETED = 1 << 15,
+  VERIFIED_BOT = 1 << 16,
+  VERIFIED_DEVELOPER = 1 << 17,
 };
 
 // the level of their boost badge
@@ -1154,6 +1160,7 @@ export const DiscordKeys = Object.freeze({
   HERO_VIDEO: 'hero_video',
   HOIST: 'hoist',
   HOISTED_ROLE: 'hoisted_role',
+  HOOK: 'hook',
   ICON: 'icon',
   ICON_URL: 'icon_url',
   ID: 'id',
@@ -1185,6 +1192,7 @@ export const DiscordKeys = Object.freeze({
   MAX_MEMBERS: 'max_members',
   MAX_PRESENCES: 'max_presences',
   MAX_USES: 'max_uses',
+  MAX_VIDEO_CHANNEL_USERS: 'max_video_channel_users',
   ME: 'me',
   MEMBER: 'member',
   MEMBERS: 'members',
@@ -1245,6 +1253,8 @@ export const DiscordKeys = Object.freeze({
   PROVIDER: 'provider',
   PROXY_ICON_URL: 'proxy_icon_url',
   PROXY_URL: 'proxy_url',
+  PUBLIC_FLAGS: 'public_flags',
+  PUBLIC_UPDATES_CHANNEL_ID: 'public_updates_channel_id',
   PUBLISHERS: 'publishers',
   RATE_LIMIT_PER_USER: 'rate_limit_per_user',
   REACTIONS: 'reactions',
@@ -1443,6 +1453,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.HERO_VIDEO]: 'heroVideo',
   [DiscordKeys.HOIST]: 'hoist',
   [DiscordKeys.HOISTED_ROLE]: 'hoistedRole',
+  [DiscordKeys.HOOK]: 'hook',
   [DiscordKeys.ICON]: 'icon',
   [DiscordKeys.ICON_URL]: 'iconUrl',
   [DiscordKeys.ID]: 'id',
@@ -1474,6 +1485,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MAX_MEMBERS]: 'maxMembers',
   [DiscordKeys.MAX_PRESENCES]: 'maxPresences',
   [DiscordKeys.MAX_USES]: 'maxUses',
+  [DiscordKeys.MAX_VIDEO_CHANNEL_USERS]: 'maxVideoChannelUsers',
   [DiscordKeys.ME]: 'me',
   [DiscordKeys.MEMBER]: 'member',
   [DiscordKeys.MEMBERS]: 'members',
@@ -1534,6 +1546,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PROVIDER]: 'provider',
   [DiscordKeys.PROXY_ICON_URL]: 'proxyIconUrl',
   [DiscordKeys.PROXY_URL]: 'proxyUrl',
+  [DiscordKeys.PUBLIC_FLAGS]: 'publicFlags',
+  [DiscordKeys.PUBLIC_UPDATES_CHANNEL_ID]: 'publicUpdatesChannelId',
   [DiscordKeys.PUBLISHERS]: 'publishers',
   [DiscordKeys.RATE_LIMIT_PER_USER]: 'rateLimitPerUser',
   [DiscordKeys.REACTIONS]: 'reactions',

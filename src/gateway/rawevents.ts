@@ -69,6 +69,11 @@ export namespace GatewayRawEvents {
     last_pin_timestamp: string,
   }
 
+  export interface ChannelUnreadUpdate {
+    channel_unread_updates: Array<{id: string, last_message_id: string}>,
+    guild_id: string,
+  }
+
   export interface ChannelUpdate extends RawChannel  {
 
   }
