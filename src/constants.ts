@@ -1011,7 +1011,6 @@ export enum UserFlags {
   SYSTEM = 1 << 12,
   HAS_UNREAD_URGENT_MESSAGES = 1 << 13,
   BUG_HUNTER_LEVEL_2 = 1 << 14,
-  UNDERAGE_DELETED = 1 << 15,
   VERIFIED_BOT = 1 << 16,
   VERIFIED_DEVELOPER = 1 << 17,
 };

@@ -138,10 +138,6 @@ export class User extends BaseStructure {
     return this.hasFlag(UserFlags.TEAM_USER);
   }
 
-  get hasUnderageDeleted(): boolean {
-    return this.hasFlag(UserFlags.UNDERAGE_DELETED);
-  }
-
   get hasVerifiedBot(): boolean {
     return this.hasFlag(UserFlags.VERIFIED_BOT);
   }
