@@ -58,7 +58,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.10.2',
+  VERSION: '0.10.3',
 });
 
 export type Snowflake = number | string;
@@ -733,7 +733,7 @@ export enum Permissions {
   MANAGE_EMOJIS = 1 << 30,
 };
 
-export const PERMISSIONS_ALL = Object.values(Permissions).reduce(
+export const PERMISSIONS_ALL = (<Array<Permissions>> Object.values(Permissions)).reduce(
   (permissions: number, permission: number) => permissions | permission,
   Permissions.NONE,
 );
@@ -1106,6 +1106,8 @@ export const DiscordKeys = Object.freeze({
   COUNT: 'count',
   COVER_IMAGE: 'cover_image',
   CREATED_AT: 'created_at',
+  CREATOR: 'creator',
+  CREATOR_ID: 'creator_id',
   CURRENCY: 'currency',
   CUSTOM: 'custom',
   DEAF: 'deaf',
@@ -1170,6 +1172,7 @@ export const DiscordKeys = Object.freeze({
   INTERVAL: 'interval',
   INTERVAL_COUNT: 'interval_count',
   INVITER: 'inviter',
+  IS_DIRTY: 'is_dirty',
   IS_PARTIAL: 'is_partial',
   JOIN: 'join',
   JOINED_AT: 'joined_at',
@@ -1278,6 +1281,7 @@ export const DiscordKeys = Object.freeze({
   SELF_MUTE: 'self_mute',
   SELF_STREAM: 'self_stream',
   SELF_VIDEO: 'self_video',
+  SERIALIZED_SOURCE_GUILD: 'serialized_source_guild',
   SESSION_ID: 'session_id',
   SHOW_ACTIVITY: 'show_activity',
   SHOW_AGE_GATE: 'show_age_gate',
@@ -1287,6 +1291,7 @@ export const DiscordKeys = Object.freeze({
   SLUG: 'slug',
   SMALL_IMAGE: 'small_image',
   SMALL_TEXT: 'small_text',
+  SOURCE_GUILD_ID: 'source_guild_id',
   SPECTATE: 'spectate',
   SPLASH: 'splash',
   START: 'start',
@@ -1328,7 +1333,9 @@ export const DiscordKeys = Object.freeze({
   TTS: 'tts',
   TYPE: 'type',
   UNAVAILABLE: 'unavailable',
+  UPDATED_AT: 'updated_at',
   URL: 'url',
+  USAGE_COUNT: 'usage_count',
   USER: 'user',
   USERNAME: 'username',
   USER_ID: 'user_id',
@@ -1399,6 +1406,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.COUNT]: 'count',
   [DiscordKeys.COVER_IMAGE]: 'coverImage',
   [DiscordKeys.CREATED_AT]: 'createdAt',
+  [DiscordKeys.CREATOR]: 'creator',
+  [DiscordKeys.CREATOR_ID]: 'creatorId',
   [DiscordKeys.CURRENCY]: 'currency',
   [DiscordKeys.CUSTOM]: 'custom',
   [DiscordKeys.DEAF]: 'deaf',
@@ -1463,6 +1472,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.INTERVAL]: 'interval',
   [DiscordKeys.INTERVAL_COUNT]: 'intervalCount',
   [DiscordKeys.INVITER]: 'inviter',
+  [DiscordKeys.IS_DIRTY]: 'isDirty',
   [DiscordKeys.IS_PARTIAL]: 'isPartial',
   [DiscordKeys.JOIN]: 'join',
   [DiscordKeys.JOINED_AT]: 'joinedAt',
@@ -1571,6 +1581,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SELF_MUTE]: 'selfMute',
   [DiscordKeys.SELF_STREAM]: 'selfStream',
   [DiscordKeys.SELF_VIDEO]: 'selfVideo',
+  [DiscordKeys.SERIALIZED_SOURCE_GUILD]: 'serializedSourceGuild',
   [DiscordKeys.SESSION_ID]: 'sessionId',
   [DiscordKeys.SHOW_ACTIVITY]: 'showActivity',
   [DiscordKeys.SHOW_AGE_GATE]: 'showAgeGate',
@@ -1580,6 +1591,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SLUG]: 'slug',
   [DiscordKeys.SMALL_IMAGE]: 'smallImage',
   [DiscordKeys.SMALL_TEXT]: 'smallText',
+  [DiscordKeys.SOURCE_GUILD_ID]: 'sourceGuildId',
   [DiscordKeys.SPECTATE]: 'spectate',
   [DiscordKeys.SPLASH]: 'splash',
   [DiscordKeys.START]: 'start',
@@ -1621,7 +1633,9 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.TTS]: 'tts',
   [DiscordKeys.TYPE]: 'type',
   [DiscordKeys.UNAVAILABLE]: 'unavailable',
+  [DiscordKeys.UPDATED_AT]: 'updatedAt',
   [DiscordKeys.URL]: 'url',
+  [DiscordKeys.USAGE_COUNT]: 'usageCount',
   [DiscordKeys.USER]: 'user',
   [DiscordKeys.USERNAME]: 'username',
   [DiscordKeys.USER_ID]: 'userId',

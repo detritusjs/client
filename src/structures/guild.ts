@@ -65,6 +65,396 @@ export interface GuildCacheOptions {
   roles?: RolesOptions,
 }
 
+
+const keysBaseGuild = new BaseSet<string>([
+  DiscordKeys.FEATURES,
+  DiscordKeys.ICON,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+]);
+
+/**
+ * Base Guild Structure
+ * @category Structure
+ */
+export class BaseGuild extends BaseStructure {
+  readonly _keys = keysBaseGuild;
+
+  features = new BaseSet<string>();
+  icon: null | string = null;
+  id: string = '';
+  name: string = '';
+
+  constructor(
+    client: ShardClient,
+    data: BaseStructureData,
+    merge: boolean = true,
+  ) {
+    super(client);
+    if (merge) {
+      this.merge(data);
+    }
+  }
+
+  get acronym(): string {
+    return getAcronym(this.name);
+  }
+
+  get canHaveBanner(): boolean {
+    return this.isVerified || this.hasFeature(GuildFeatures.BANNER);
+  }
+
+  get canHaveDiscoveryFeatures(): boolean {
+    return this.isDiscoverable || this.isPublic;
+  }
+
+  get canHaveNews(): boolean {
+    return this.hasFeature(GuildFeatures.NEWS);
+  }
+
+  get canHavePublic(): boolean {
+    return !this.hasFeature(GuildFeatures.PUBLIC_DISABLED);
+  }
+
+  get canHaveSplash(): boolean {
+    return this.hasFeature(GuildFeatures.INVITE_SPLASH);
+  }
+
+  get canHaveStore(): boolean {
+    return this.hasFeature(GuildFeatures.COMMERCE);
+  }
+
+  get canHaveVanityUrl(): boolean {
+    return this.hasFeature(GuildFeatures.VANITY_URL);
+  }
+
+  get canHaveVipRegions(): boolean {
+    return this.hasFeature(GuildFeatures.VIP_REGIONS);
+  }
+  
+  get createdAt(): Date {
+    return new Date(this.createdAtUnix);
+  }
+
+  get createdAtUnix(): number {
+    return Snowflake.timestamp(this.id);
+  }
+  
+  get iconUrl(): null | string {
+    return this.iconUrlFormat();
+  }
+
+  get isDiscoverable(): boolean {
+    return this.hasFeature(GuildFeatures.DISCOVERABLE);
+  }
+
+  get isPartnered(): boolean {
+    return this.hasFeature(GuildFeatures.PARTNERED);
+  }
+
+  get isPublic(): boolean {
+    return this.hasFeature(GuildFeatures.PUBLIC) && !this.hasFeature(GuildFeatures.PUBLIC_DISABLED);
+  }
+
+  get isVerified(): boolean {
+    return this.hasFeature(GuildFeatures.VERIFIED);
+  }
+
+  get jumpLink(): string {
+    return Endpoints.Routes.URL + Endpoints.Routes.GUILD(this.id);
+  }
+
+  get widgetImageUrl(): string {
+    return Endpoints.Api.URL_STABLE + Endpoints.Api.PATH + Endpoints.formatRoute(Endpoints.Api.GUILD_WIDGET_PNG, {
+      guildId: this.id,
+    });
+  }
+
+  get widgetUrl(): string {
+    return Endpoints.Api.URL_STABLE + Endpoints.RoutesQuery.WIDGET(this.id, {theme: 'dark'});
+  }
+
+
+  hasFeature(feature: string): boolean {
+    return this.features.has(feature);
+  }
+
+  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.icon) {
+      return null;
+    }
+    const hash = this.icon;
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_ICON(this.id, hash, format), query);
+  }
+
+  widgetImageUrlFormat(query?: UrlQuery): string {
+    return addQuery(this.widgetImageUrl, query);
+  }
+
+  widgetUrlFormat(options: RequestTypes.RouteWidget = {}): string {
+    return Endpoints.Api.URL_STABLE + Endpoints.RoutesQuery.WIDGET(this.id, options);
+  }
+
+
+  async ack() {
+    return this.client.rest.ackGuild(this.id);
+  }
+
+  async addMember(userId: string, options: RequestTypes.AddGuildMember) {
+    return this.client.rest.addGuildMember(this.id, userId, options);
+  }
+
+  async addMemberRole(userId: string, roleId: string) {
+    return this.client.rest.addGuildMemberRole(this.id, userId, roleId);
+  }
+
+  async beginPrune(options: RequestTypes.BeginGuildPrune = {}) {
+    return this.client.rest.beginGuildPrune(this.id, options);
+  }
+
+  async createBan(userId: string, options: RequestTypes.CreateGuildBan) {
+    return this.client.rest.createGuildBan(this.id, userId, options);
+  }
+
+  async createChannel(options: RequestTypes.CreateGuildChannel) {
+    return this.client.rest.createGuildChannel(this.id, options);
+  }
+
+  async createEmoji(options: RequestTypes.CreateGuildEmoji) {
+    return this.client.rest.createGuildEmoji(this.id, options);
+  }
+
+  async createIntegration(options: RequestTypes.CreateGuildIntegration) {
+    return this.client.rest.createGuildIntegration(this.id, options);
+  }
+
+  async createRole(options: RequestTypes.CreateGuildRole) {
+    return this.client.rest.createGuildRole(this.id, options);
+  }
+
+  async createTemplate(options: RequestTypes.CreateGuildTemplate) {
+    return this.client.rest.createGuildTemplate(this.id, options);
+  }
+
+
+  async delete() {
+    return this.client.rest.deleteGuild(this.id);
+  }
+
+  async deleteChannel(channelId: string, options: RequestTypes.DeleteChannel = {}) {
+    return this.client.rest.deleteChannel(channelId, options);
+  }
+
+  async deleteEmoji(emojiId: string, options: RequestTypes.DeleteGuildEmoji = {}) {
+    return this.client.rest.deleteGuildEmoji(this.id, emojiId, options);
+  }
+
+  async deleteIntegration(integrationId: string, options: RequestTypes.DeleteGuildIntegration = {}) {
+    return this.client.rest.deleteGuildIntegration(this.id, integrationId, options);
+  }
+
+  async deletePremiumSubscription(subscriptionId: string) {
+    return this.client.rest.deleteGuildPremiumSubscription(this.id, subscriptionId);
+  }
+
+  async deleteRole(roleId: string, options: RequestTypes.DeleteGuildRole = {}) {
+    return this.client.rest.deleteGuildRole(this.id, roleId, options);
+  }
+
+  async deleteTemplate(templateId: string) {
+    return this.client.rest.deleteGuildTemplate(this.id, templateId);
+  }
+
+
+  async edit(options: RequestTypes.EditGuild) {
+    return this.client.rest.editGuild(this.id, options);
+  }
+
+  async editChannel(channelId: string, options: RequestTypes.EditChannel) {
+    return this.client.rest.editChannel(channelId, options);
+  }
+
+  async editChannelPositions(channels: RequestTypes.EditGuildChannels, options: RequestTypes.EditGuildChannelsExtra = {}) {
+    return this.client.rest.editGuildChannels(this.id, channels, options);
+  }
+
+  async editEmbed(options: RequestTypes.EditGuildEmbed) {
+    return this.client.rest.editGuildEmbed(this.id, options);
+  }
+
+  async editEmoji(emojiId: string, options: RequestTypes.EditGuildEmoji) {
+    return this.client.rest.editGuildEmoji(this.id, emojiId, options);
+  }
+
+  async editIntegration(integrationId: string, options: RequestTypes.EditGuildIntegration) {
+    return this.client.rest.editGuildIntegration(this.id, integrationId, options);
+  }
+
+  async editMember(userId: string, options: RequestTypes.EditGuildMember) {
+    return this.client.rest.editGuildMember(this.id, userId, options);
+  }
+
+  async editMfaLevel(options: RequestTypes.EditGuildMfaLevel) {
+    return this.client.rest.editGuildMfaLevel(this.id, options);
+  }
+
+  async editNick(nick: string, options: RequestTypes.EditGuildNick = {}) {
+    return this.client.rest.editGuildNick(this.id, nick, options);
+  }
+
+  async editRole(roleId: string, options: RequestTypes.EditGuildRole) {
+    return this.client.rest.editGuildRole(this.id, roleId, options);
+  }
+
+  async editRolePositions(roles: RequestTypes.EditGuildRolePositions, options: RequestTypes.EditGuildRolePositionsExtra = {}) {
+    return this.client.rest.editGuildRolePositions(this.id, roles, options);
+  }
+
+  async editVanityUrl(code: string, options: RequestTypes.EditGuildVanity = {}) {
+    return this.client.rest.editGuildVanity(this.id, code, options);
+  }
+
+
+  async fetchApplications(channelId?: string) {
+    return this.client.rest.fetchGuildApplications(this.id, channelId);
+  }
+
+  async fetchAuditLogs(options: RequestTypes.FetchGuildAuditLogs) {
+    return this.client.rest.fetchGuildAuditLogs(this.id, options);
+  }
+
+  async fetchBans() {
+    return this.client.rest.fetchGuildBans(this.id);
+  }
+
+  async fetchChannels() {
+    return this.client.rest.fetchGuildChannels(this.id);
+  }
+
+  async fetchEmbed() {
+    return this.client.rest.fetchGuildEmbed(this.id);
+  }
+
+  async fetchEmoji(emojiId: string) {
+    return this.client.rest.fetchGuildEmoji(this.id, emojiId);
+  }
+
+  async fetchEmojis() {
+    return this.client.rest.fetchGuildEmojis(this.id);
+  }
+
+  async fetchInvites() {
+    return this.client.rest.fetchGuildInvites(this.id);
+  }
+
+  async fetchIntegrations() {
+    return this.client.rest.fetchGuildIntegrations(this.id);
+  }
+
+  async fetchMember(userId: string) {
+    return this.client.rest.fetchGuildMember(this.id, userId);
+  }
+
+  async fetchMembers(options: RequestTypes.FetchGuildMembers) {
+    return this.client.rest.fetchGuildMembers(this.id, options);
+  }
+
+  async fetchPremiumSubscriptions() {
+    return this.client.rest.fetchGuildPremiumSubscriptions(this.id);
+  }
+
+  async fetchPruneCount() {
+    return this.client.rest.fetchGuildPruneCount(this.id);
+  }
+
+  async fetchRoles() {
+    return this.client.rest.fetchGuildRoles(this.id);
+  }
+
+  async fetchTemplates() {
+    return this.client.rest.fetchGuildTemplates(this.id);
+  }
+
+  async fetchVanityUrl() {
+    return this.client.rest.fetchGuildVanityUrl(this.id);
+  }
+
+  async fetchVoiceRegions() {
+    return this.client.rest.fetchVoiceRegions(this.id);
+  }
+
+  async fetchWebhooks() {
+    return this.client.rest.fetchGuildWebhooks(this.id);
+  }
+
+  async fetchWidget() {
+    return this.client.rest.fetchGuildWidget(this.id);
+  }
+
+  async fetchWidgetJson() {
+    return this.client.rest.fetchGuildWidgetJson(this.id);
+  }
+
+  async fetchWidgetPng(options: RequestTypes.FetchGuildWidgetPng = {}) {
+    return this.client.rest.fetchGuildWidgetPng(this.id, options);
+  }
+
+
+  async join(options: RequestTypes.JoinGuild) {
+    return this.client.rest.joinGuild(this.id, options);
+  }
+
+  async leave() {
+    return this.client.rest.leaveGuild(this.id);
+  }
+
+
+  async removeBan(userId: string, options: RequestTypes.RemoveGuildBan = {}) {
+    return this.client.rest.removeGuildBan(this.id, userId, options);
+  }
+
+  async removeMember(userId: string, options: RequestTypes.RemoveGuildMember = {}) {
+    return this.client.rest.removeGuildMember(this.id, userId, options);
+  }
+
+  async removeMemberRole(userId: string, roleId: string, options: RequestTypes.RemoveGuildBan = {}) {
+    return this.client.rest.removeGuildMemberRole(this.id, userId, roleId, options);
+  }
+
+
+  async search(options: RequestTypes.SearchOptions, retry?: boolean) {
+    return this.client.rest.searchGuild(this.id, options, retry);
+  }
+
+  async syncIntegration(integrationId: string) {
+    return this.client.rest.syncGuildIntegration(this.id, integrationId);
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.FEATURES: {
+          if (this.features) {
+            this.features.clear();
+            for (let raw of value) {
+              this.features.add(raw);
+            }
+          } else {
+            this.features = new BaseSet(value);
+          }
+        }; return;
+      }
+      super.mergeValue(key, value);
+    }
+  }
+
+  toString(): string {
+    return this.name;
+  }
+}
+
+
 const keysGuild = new BaseSet<string>([
   DiscordKeys.AFK_CHANNEL_ID,
   DiscordKeys.AFK_TIMEOUT,
@@ -131,7 +521,7 @@ const keysSkipDifferenceGuild = new BaseSet<string>([
  * Guild Structure
  * @category Structure
  */
-export class Guild extends BaseStructure {
+export class Guild extends BaseGuild {
   readonly _keys = keysGuild;
   readonly _keysMerge = keysMergeGuild;
   readonly _keysSkipDifference = keysSkipDifferenceGuild;
@@ -181,15 +571,11 @@ export class Guild extends BaseStructure {
   widgetEnabled: boolean = false;
 
   constructor(client: ShardClient, data: BaseStructureData, cache: GuildCacheOptions = {}) {
-    super(client);
+    super(client, data, false);
     this.emojis = new BaseCollection<string, Emoji>(cache.emojis || this.client.emojis.options);
     this.members = new BaseCollection<string, Member>(cache.members || this.client.members.options);
     this.roles = new BaseCollection<string, Role>(cache.roles || this.client.roles.options);
     this.merge(data);
-  }
-
-  get acronym(): string {
-    return getAcronym(this.name);
   }
 
   get afkChannel(): Channel | null {
@@ -201,38 +587,6 @@ export class Guild extends BaseStructure {
 
   get bannerUrl(): null | string {
     return this.bannerUrlFormat();
-  }
-
-  get canHaveBanner(): boolean {
-    return this.isVerified || this.hasFeature(GuildFeatures.BANNER);
-  }
-
-  get canHaveDiscoveryFeatures(): boolean {
-    return this.isDiscoverable || this.isPublic;
-  }
-
-  get canHaveNews(): boolean {
-    return this.hasFeature(GuildFeatures.NEWS);
-  }
-
-  get canHavePublic(): boolean {
-    return !this.hasFeature(GuildFeatures.PUBLIC_DISABLED);
-  }
-
-  get canHaveSplash(): boolean {
-    return this.hasFeature(GuildFeatures.INVITE_SPLASH);
-  }
-
-  get canHaveStore(): boolean {
-    return this.hasFeature(GuildFeatures.COMMERCE);
-  }
-
-  get canHaveVanityUrl(): boolean {
-    return this.hasFeature(GuildFeatures.VANITY_URL);
-  }
-
-  get canHaveVipRegions(): boolean {
-    return this.hasFeature(GuildFeatures.VIP_REGIONS);
   }
 
   get categoryChannels(): BaseCollection<string, ChannelGuildCategory> {
@@ -255,14 +609,6 @@ export class Guild extends BaseStructure {
     return collection;
   }
 
-  get createdAt(): Date {
-    return new Date(this.createdAtUnix);
-  }
-
-  get createdAtUnix(): number {
-    return Snowflake.timestamp(this.id);
-  }
-
   get defaultRole(): null | Role {
     return this.roles.get(this.id) || null;
   }
@@ -279,35 +625,11 @@ export class Guild extends BaseStructure {
     return this.hasSystemChannelFlag(SystemChannelFlags.SUPPRESS_PREMIUM_SUBSCRIPTIONS);
   }
 
-  get iconUrl(): null | string {
-    return this.iconUrlFormat();
-  }
-
-  get isDiscoverable(): boolean {
-    return this.hasFeature(GuildFeatures.DISCOVERABLE);
-  }
-
-  get isPartnered(): boolean {
-    return this.hasFeature(GuildFeatures.PARTNERED);
-  }
-
-  get isPublic(): boolean {
-    return this.hasFeature(GuildFeatures.PUBLIC) && !this.hasFeature(GuildFeatures.PUBLIC_DISABLED);
-  }
-
-  get isVerified(): boolean {
-    return this.hasFeature(GuildFeatures.VERIFIED);
-  }
-
   get joinedAt(): Date | null {
     if (this.joinedAtUnix) {
       return new Date(this.joinedAtUnix);
     }
     return null;
-  }
-
-  get jumpLink(): string {
-    return Endpoints.Routes.URL + Endpoints.Routes.GUILD(this.id);
   }
 
   get maxAttachmentSize(): number {
@@ -428,15 +750,6 @@ export class Guild extends BaseStructure {
     return emptyBaseCollection;
   }
 
-  get widgetImageUrl(): string {
-    return Endpoints.Api.URL_STABLE + Endpoints.Api.PATH + Endpoints.formatRoute(Endpoints.Api.GUILD_WIDGET_PNG, {
-      guildId: this.id,
-    });
-  }
-
-  get widgetUrl(): string {
-    return Endpoints.Api.URL_STABLE + Endpoints.RoutesQuery.WIDGET(this.id, {theme: 'dark'});
-  }
 
   bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (!this.banner) {
@@ -502,21 +815,8 @@ export class Guild extends BaseStructure {
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
   }
 
-  hasFeature(feature: string): boolean {
-    return this.features.has(feature);
-  }
-
   hasSystemChannelFlag(flag: number): boolean {
     return (this.systemChannelFlags & flag) === flag;
-  }
-
-  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (!this.icon) {
-      return null;
-    }
-    const hash = this.icon;
-    format = getFormatFromHash(hash, format, this.client.imageFormat);
-    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_ICON(this.id, hash, format), query);
   }
 
   isOwner(userId: string): boolean {
@@ -532,185 +832,6 @@ export class Guild extends BaseStructure {
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
   }
 
-  widgetImageUrlFormat(query?: UrlQuery): string {
-    return addQuery(this.widgetImageUrl, query);
-  }
-
-  widgetUrlFormat(options: RequestTypes.RouteWidget = {}): string {
-    return Endpoints.Api.URL_STABLE + Endpoints.RoutesQuery.WIDGET(this.id, options);
-  }
-
-  async ack() {
-    return this.client.rest.ackGuild(this.id);
-  }
-
-  async addMember(userId: string, options: RequestTypes.AddGuildMember) {
-    return this.client.rest.addGuildMember(this.id, userId, options);
-  }
-
-  async addMemberRole(userId: string, roleId: string) {
-    return this.client.rest.addGuildMemberRole(this.id, userId, roleId);
-  }
-
-  async beginPrune(options: RequestTypes.BeginGuildPrune = {}) {
-    return this.client.rest.beginGuildPrune(this.id, options);
-  }
-
-  async createBan(userId: string, options: RequestTypes.CreateGuildBan) {
-    return this.client.rest.createGuildBan(this.id, userId, options);
-  }
-
-  async createChannel(options: RequestTypes.CreateGuildChannel) {
-    return this.client.rest.createGuildChannel(this.id, options);
-  }
-
-  async createEmoji(options: RequestTypes.CreateGuildEmoji) {
-    return this.client.rest.createGuildEmoji(this.id, options);
-  }
-
-  async createIntegration(options: RequestTypes.CreateGuildIntegration) {
-    return this.client.rest.createGuildIntegration(this.id, options);
-  }
-
-  async createRole(options: RequestTypes.CreateGuildRole) {
-    return this.client.rest.createGuildRole(this.id, options);
-  }
-
-
-  async delete() {
-    return this.client.rest.deleteGuild(this.id);
-  }
-
-  async deleteChannel(channelId: string, options: RequestTypes.DeleteChannel = {}) {
-    return this.client.rest.deleteChannel(channelId, options);
-  }
-
-  async deleteEmoji(emojiId: string, options: RequestTypes.DeleteGuildEmoji = {}) {
-    return this.client.rest.deleteGuildEmoji(this.id, emojiId, options);
-  }
-
-  async deleteIntegration(integrationId: string, options: RequestTypes.DeleteGuildIntegration = {}) {
-    return this.client.rest.deleteGuildIntegration(this.id, integrationId, options);
-  }
-
-  async deletePremiumSubscription(subscriptionId: string) {
-    return this.client.rest.deleteGuildPremiumSubscription(this.id, subscriptionId);
-  }
-
-  async deleteRole(roleId: string, options: RequestTypes.DeleteGuildRole = {}) {
-    return this.client.rest.deleteGuildRole(this.id, roleId, options);
-  }
-
-
-  async edit(options: RequestTypes.EditGuild) {
-    return this.client.rest.editGuild(this.id, options);
-  }
-
-  async editChannel(channelId: string, options: RequestTypes.EditChannel) {
-    return this.client.rest.editChannel(channelId, options);
-  }
-
-  async editChannelPositions(channels: RequestTypes.EditGuildChannels, options: RequestTypes.EditGuildChannelsExtra = {}) {
-    return this.client.rest.editGuildChannels(this.id, channels, options);
-  }
-
-  async editEmbed(options: RequestTypes.EditGuildEmbed) {
-    return this.client.rest.editGuildEmbed(this.id, options);
-  }
-
-  async editEmoji(emojiId: string, options: RequestTypes.EditGuildEmoji) {
-    return this.client.rest.editGuildEmoji(this.id, emojiId, options);
-  }
-
-  async editIntegration(integrationId: string, options: RequestTypes.EditGuildIntegration) {
-    return this.client.rest.editGuildIntegration(this.id, integrationId, options);
-  }
-
-  async editMember(userId: string, options: RequestTypes.EditGuildMember) {
-    return this.client.rest.editGuildMember(this.id, userId, options);
-  }
-
-  async editMfaLevel(options: RequestTypes.EditGuildMfaLevel) {
-    return this.client.rest.editGuildMfaLevel(this.id, options);
-  }
-
-  async editNick(nick: string, options: RequestTypes.EditGuildNick = {}) {
-    return this.client.rest.editGuildNick(this.id, nick, options);
-  }
-
-  async editRole(roleId: string, options: RequestTypes.EditGuildRole) {
-    return this.client.rest.editGuildRole(this.id, roleId, options);
-  }
-
-  async editRolePositions(roles: RequestTypes.EditGuildRolePositions, options: RequestTypes.EditGuildRolePositionsExtra = {}) {
-    return this.client.rest.editGuildRolePositions(this.id, roles, options);
-  }
-
-  async editVanityUrl(code: string, options: RequestTypes.EditGuildVanity = {}) {
-    return this.client.rest.editGuildVanity(this.id, code, options);
-  }
-
-
-  async fetchApplications(channelId?: string) {
-    return this.client.rest.fetchGuildApplications(this.id, channelId);
-  }
-
-  async fetchAuditLogs(options: RequestTypes.FetchGuildAuditLogs) {
-    return this.client.rest.fetchGuildAuditLogs(this.id, options);
-  }
-
-  async fetchBans() {
-    return this.client.rest.fetchGuildBans(this.id);
-  }
-
-  async fetchChannels() {
-    return this.client.rest.fetchGuildChannels(this.id);
-  }
-
-  async fetchEmbed() {
-    return this.client.rest.fetchGuildEmbed(this.id);
-  }
-
-  async fetchEmoji(emojiId: string) {
-    return this.client.rest.fetchGuildEmoji(this.id, emojiId);
-  }
-
-  async fetchEmojis() {
-    return this.client.rest.fetchGuildEmojis(this.id);
-  }
-
-  async fetchInvites() {
-    return this.client.rest.fetchGuildInvites(this.id);
-  }
-
-  async fetchIntegrations() {
-    return this.client.rest.fetchGuildIntegrations(this.id);
-  }
-
-  async fetchMember(userId: string) {
-    return this.client.rest.fetchGuildMember(this.id, userId);
-  }
-
-  async fetchMembers(options: RequestTypes.FetchGuildMembers) {
-    return this.client.rest.fetchGuildMembers(this.id, options);
-  }
-
-  async fetchPremiumSubscriptions() {
-    return this.client.rest.fetchGuildPremiumSubscriptions(this.id);
-  }
-
-  async fetchPruneCount() {
-    return this.client.rest.fetchGuildPruneCount(this.id);
-  }
-
-  async fetchRoles() {
-    return this.client.rest.fetchGuildRoles(this.id);
-  }
-
-  async fetchVanityUrl() {
-    return this.client.rest.fetchGuildVanityUrl(this.id);
-  }
-
   async fetchVoiceRegion(): Promise<VoiceRegion> {
     const regions = await this.fetchVoiceRegions();
     const region = regions.find((reg: VoiceRegion) => reg.id === this.region);
@@ -718,57 +839,6 @@ export class Guild extends BaseStructure {
       throw new Error('Couldn\'t find this server\'s region from discord.');
     }
     return region;
-  }
-
-  async fetchVoiceRegions() {
-    return this.client.rest.fetchVoiceRegions(this.id);
-  }
-
-  async fetchWebhooks() {
-    return this.client.rest.fetchGuildWebhooks(this.id);
-  }
-
-  async fetchWidget() {
-    return this.client.rest.fetchGuildWidget(this.id);
-  }
-
-  async fetchWidgetJson() {
-    return this.client.rest.fetchGuildWidgetJson(this.id);
-  }
-
-  async fetchWidgetPng(options: RequestTypes.FetchGuildWidgetPng = {}) {
-    return this.client.rest.fetchGuildWidgetPng(this.id, options);
-  }
-
-
-  async join(options: RequestTypes.JoinGuild) {
-    return this.client.rest.joinGuild(this.id, options);
-  }
-
-  async leave() {
-    return this.client.rest.leaveGuild(this.id);
-  }
-
-
-  async removeBan(userId: string, options: RequestTypes.RemoveGuildBan = {}) {
-    return this.client.rest.removeGuildBan(this.id, userId, options);
-  }
-
-  async removeMember(userId: string, options: RequestTypes.RemoveGuildMember = {}) {
-    return this.client.rest.removeGuildMember(this.id, userId, options);
-  }
-
-  async removeMemberRole(userId: string, roleId: string, options: RequestTypes.RemoveGuildBan = {}) {
-    return this.client.rest.removeGuildMemberRole(this.id, userId, roleId, options);
-  }
-
-
-  async search(options: RequestTypes.SearchOptions, retry?: boolean) {
-    return this.client.rest.searchGuild(this.id, options, retry);
-  }
-
-  async syncIntegration(integrationId: string) {
-    return this.client.rest.syncGuildIntegration(this.id, integrationId);
   }
 
   mergeValue(key: string, value: any): void {
@@ -807,16 +877,6 @@ export class Guild extends BaseStructure {
             for (let emoji of emojis) {
               this.emojis.set(emoji.id || emoji.name, emoji);
             }
-          }
-        }; return;
-        case DiscordKeys.FEATURES: {
-          if (this.features) {
-            this.features.clear();
-            for (let raw of value) {
-              this.features.add(raw);
-            }
-          } else {
-            this.features = new BaseSet(value);
           }
         }; return;
         case DiscordKeys.JOINED_AT: {
@@ -914,8 +974,54 @@ export class Guild extends BaseStructure {
       super.mergeValue(key, value);
     }
   }
+}
 
-  toString(): string {
-    return this.name;
+
+
+const keysGuildMe = new BaseSet<string>([
+  DiscordKeys.FEATURES,
+  DiscordKeys.ICON,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.OWNER,
+  DiscordKeys.PERMISSIONS,
+]);
+
+/**
+ * Guild Me Structure
+ * @category Structure
+ */
+export class GuildMe extends BaseGuild {
+  readonly _keys = keysGuildMe;
+
+  owner: boolean = false;
+  permissions: number = 0;
+
+  constructor(client: ShardClient, data: BaseStructureData) {
+    super(client, data, false);
+    this.merge(data);
+  }
+
+  can(
+    permissions: PermissionTools.PermissionChecks,
+    options: {
+      ignoreAdministrator?: boolean,
+      ignoreOwner?: boolean,
+    } = {},
+  ): boolean {
+    const ignoreAdministrator = !!options.ignoreAdministrator;
+    const ignoreOwner = !!options.ignoreOwner;
+
+    if (!ignoreOwner) {
+      if (this.owner) {
+        return true;
+      }
+    }
+
+    const total = this.permissions;
+    if (!ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+      return true;
+    }
+    return PermissionTools.checkPermissions(total, permissions);
   }
 }

@@ -458,6 +458,62 @@ export class UserMixin extends BaseStructure {
     return this.user.guilds;
   }
 
+  get hasStaff(): boolean {
+    return this.user.hasStaff;
+  }
+
+  get hasPartner(): boolean {
+    return this.user.hasPartner;
+  }
+
+  get hasHypesquad(): boolean {
+    return this.user.hasHypesquad;
+  }
+
+  get hasBugHunterLevel1(): boolean {
+    return this.user.hasBugHunterLevel1;
+  }
+
+  get hasBugHunterLevel2(): boolean {
+    return this.user.hasBugHunterLevel2;
+  }
+
+  get hasMfaSms(): boolean {
+    return this.user.hasMfaSms;
+  }
+
+  get hasPremiumPromoDismissed(): boolean {
+    return this.user.hasPremiumPromoDismissed;
+  }
+
+  get hasHypesquadHouseBravery(): boolean {
+    return this.user.hasHypesquadHouseBravery;
+  }
+
+  get hasHypesquadHouseBrilliance(): boolean {
+    return this.user.hasHypesquadHouseBrilliance;
+  }
+
+  get hasHypesquadHouseBalance(): boolean {
+    return this.user.hasHypesquadHouseBalance;
+  }
+
+  get hasEarlySupporter(): boolean {
+    return this.user.hasEarlySupporter;
+  }
+
+  get hasTeamUser(): boolean {
+    return this.user.hasTeamUser;
+  }
+
+  get hasVerifiedBot(): boolean {
+    return this.user.hasVerifiedBot;
+  }
+
+  get hasVerifiedDeveloper(): boolean {
+    return this.user.hasVerifiedDeveloper;
+  }
+
   get id(): string {
     return this.user.id;
   }
@@ -516,6 +572,14 @@ export class UserMixin extends BaseStructure {
 
   avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
     return this.user.avatarUrlFormat(format, query);
+  }
+
+  hasFlag(flag: number): boolean {
+    return this.user.hasFlag(flag);
+  }
+
+  hasPublicFlag(flag: number): boolean {
+    return this.user.hasPublicFlag(flag);
   }
 
   add() {

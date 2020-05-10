@@ -24,6 +24,7 @@ export * from './role';
 export * from './session';
 export * from './store';
 export * from './team';
+export * from './template';
 export * from './typing';
 export * from './user';
 export * from './voicecall';

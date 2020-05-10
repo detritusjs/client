@@ -23,6 +23,7 @@ import {
   Emoji,
   Gift,
   Guild,
+  GuildMe,
   Integration,
   Invite,
   Member,
@@ -36,6 +37,7 @@ import {
   StoreListing,
   Team,
   TeamMember,
+  Template,
   User,
   UserMe,
   VoiceRegion,
@@ -60,6 +62,22 @@ export class RestClient extends Client {
 
     this.on(RestEvents.REQUEST, (payload: RestClientEvents.RequestPayload) => this.client.emit(ClientEvents.REST_REQUEST, payload));
     this.on(RestEvents.RESPONSE, (payload: RestClientEvents.ResponsePayload) => this.client.emit(ClientEvents.REST_RESPONSE, payload));
+  }
+
+  async acceptTemplate(
+    templateId: string,
+    options: RequestTypes.AcceptTemplate,
+  ): Promise<Guild> {
+    const data = await super.acceptTemplate(templateId, options);
+    let guild: Guild;
+    if (this.client.guilds.has(data.id)) {
+      guild = <Guild> this.client.guilds.get(data.id);
+      guild.merge(data);
+    } else {
+      guild = <Guild> new Guild(this.client, data);
+      this.client.guilds.insert(guild);
+    }
+    return guild;
   }
 
   async createChannelInvite(
@@ -162,6 +180,14 @@ export class RestClient extends Client {
       (<Guild> this.client.guilds.get(guildId)).roles.set(role.id, role);
     }
     return role;
+  }
+
+  async createGuildTemplate(
+    guildId: string,
+    options: RequestTypes.CreateGuildTemplate,
+  ): Promise<Template> {
+    const data = await super.createGuildTemplate(guildId, options);
+    return new Template(this.client, data);
   }
 
   async createMessage(
@@ -754,6 +780,19 @@ export class RestClient extends Client {
     return collection;
   }
 
+  async fetchGuildTemplates(
+    guildId: string,
+  ): Promise<BaseCollection<string, Template>> {
+    const data = await super.fetchGuildTemplates(guildId);
+    const collection = new BaseCollection<string, Template>();
+
+    for (let raw of data) {
+      const template = new Template(this.client, raw);
+      collection.set(template.code, template);
+    }
+    return collection;
+  }
+
   async fetchGuildWebhooks(
     guildId: string,
   ): Promise<BaseCollection<string, Webhook>> {
@@ -780,12 +819,42 @@ export class RestClient extends Client {
     return new UserMe(this.client, data);
   }
 
+  async fetchMeChannels(): Promise<BaseCollection<string, Channel>> {
+    const data = await super.fetchMeChannels();
+    const collection = new BaseCollection<string, Channel>();
+
+    for (let raw of data) {
+      let channel: Channel;
+      if (this.client.channels.has(raw.id)) {
+        channel = <Channel> this.client.channels.get(raw.id);
+        channel.merge(raw);
+      } else {
+        channel = createChannelFromData(this.client, raw);
+      }
+      collection.set(channel.id, channel);
+    }
+    return collection;
+  }
+
   async fetchMeConnections(): Promise<BaseCollection<string, ConnectedAccount>> {
     const data = await super.fetchMeConnections.call(this);
     const collection = new BaseCollection<string, ConnectedAccount>();
     for (let raw of data) {
       const account = new ConnectedAccount(this.client, raw);
       collection.set(account.key, account);
+    }
+    return collection;
+  }
+
+  async fetchMeGuilds(
+    options: RequestTypes.FetchMeGuilds = {},
+  ): Promise<BaseCollection<string, GuildMe>> {
+    const data = await super.fetchMeGuilds(options);
+    const collection = new BaseCollection<string, GuildMe>();
+
+    for (let raw of data) {
+      const guild = new GuildMe(this.client, raw);
+      collection.set(guild.id, guild);
     }
     return collection;
   }
@@ -982,6 +1051,11 @@ export class RestClient extends Client {
   async fetchTeamMember(teamId: string, userId: string): Promise<TeamMember> {
     const data = await super.fetchTeamMember(teamId, userId);
     return new TeamMember(this.client, data);
+  }
+
+  async fetchTemplate(templateId: string): Promise<Template> {
+    const data = await super.fetchTemplate(templateId);
+    return new Template(this.client, data);
   }
 
   async fetchUser(
