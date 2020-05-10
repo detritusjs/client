@@ -562,6 +562,10 @@ export class UserMixin extends BaseStructure {
     return this.user.presence;
   }
 
+  get publicFlags(): number {
+    return this.user.publicFlags;
+  }
+
   get system(): boolean | undefined {
     return this.user.system;
   }
