@@ -22,6 +22,8 @@ const {
   GatewayDispatchEvents,
   GatewayOpCodes,
   GatewayPresenceStatuses,
+  MediaCodecs,
+  MediaCodecTypes,
   MediaOpCodes,
   MediaSpeakingFlags,
   SocketCloseCodes,
@@ -40,6 +42,8 @@ export {
   GatewayDispatchEvents,
   GatewayOpCodes,
   GatewayPresenceStatuses as PresenceStatuses,
+  MediaCodecs,
+  MediaCodecTypes,
   MediaOpCodes,
   MediaSpeakingFlags as SpeakingFlags,
   SocketCloseCodes,
@@ -58,7 +62,7 @@ export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.10.4',
+  VERSION: '0.10.5',
 });
 
 export type Snowflake = number | string;
@@ -640,6 +644,8 @@ export enum MessageTypes {
   GUILD_PREMIUM_SUBSCRIPTION_TIER_3 = 11,
   CHANNEL_FOLLOW_ADD = 12,
   GUILD_STREAM = 13,
+  GUILD_DISCOVERY_DISQUALIFIED = 14,
+  GUILD_DISCOVERY_REQUALIFIED = 15,
 };
 
 export const MessageTypesDeletable = Object.freeze({
@@ -658,6 +664,8 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_3]: true,
   [MessageTypes.CHANNEL_FOLLOW_ADD]: true,
   [MessageTypes.GUILD_STREAM]: false,
+  [MessageTypes.GUILD_DISCOVERY_DISQUALIFIED]: false,
+  [MessageTypes.GUILD_DISCOVERY_REQUALIFIED]: false,
 });
 
 export enum MfaLevels {

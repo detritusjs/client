@@ -1,17 +1,7 @@
-import {
-  Constants as SocketConstants,
-  Media,
-  MediaUdp,
-} from 'detritus-client-socket';
-
-const {
-  MediaCodecs,
-  MediaCodecTypes,
-  MediaOpCodes,
-  MediaSpeakingFlags,
-} = SocketConstants;
+import { Media, MediaUdp } from 'detritus-client-socket';
 
 import { ShardClient } from '../client';
+import { MediaCodecs, MediaCodecTypes, MediaOpCodes, SpeakingFlags } from '../constants';
 
 import { Opus } from './encoders';
 import { MediaEvents } from './mediaevents';
@@ -137,9 +127,9 @@ export class MediaGatewayOpHandler {
   }
 
   [MediaOpCodes.SPEAKING](data: MediaRawEvents.Speaking) {
-    const priority = (data['speaking'] & MediaSpeakingFlags.PRIORITY) === MediaSpeakingFlags.PRIORITY;
-    const soundshare = (data['speaking'] & MediaSpeakingFlags.SOUNDSHARE) === MediaSpeakingFlags.SOUNDSHARE;
-    const voice = (data['speaking'] & MediaSpeakingFlags.VOICE) === MediaSpeakingFlags.VOICE;
+    const priority = (data['speaking'] & SpeakingFlags.PRIORITY) === SpeakingFlags.PRIORITY;
+    const soundshare = (data['speaking'] & SpeakingFlags.SOUNDSHARE) === SpeakingFlags.SOUNDSHARE;
+    const voice = (data['speaking'] & SpeakingFlags.VOICE) === SpeakingFlags.VOICE;
     const userId = data['user_id'];
 
     const payload: MediaEvents.Speaking = {
