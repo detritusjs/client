@@ -107,7 +107,7 @@ export class VoiceState extends BaseStructure {
     return this.client.rest.editGuildMember(this.guildId, this.userId, options);
   }
 
-  joinVoice(options: VoiceConnectOptions) {
+  joinVoice(options?: VoiceConnectOptions) {
     return this.client.voiceConnect(this.guildId, this.channelId, options);
   }
 
