@@ -1,3 +1,6 @@
+import { SocketStates } from '../constants';
+
+
 export namespace ClusterIPCTypes {
   export interface IPCMessage {
     op: number,
@@ -9,6 +12,7 @@ export namespace ClusterIPCTypes {
   export interface Close {
     code: number,
     reason: string,
+    shardId: number,
   }
 
   export interface Eval {
@@ -22,5 +26,14 @@ export namespace ClusterIPCTypes {
     nonce: string,
     result?: any,
     results?: Array<[any, boolean]>,
+  }
+
+  export interface IdentifyRequest {
+    shardId: number,
+  }
+
+  export interface ShardState {
+    shardId: number,
+    state: SocketStates,
   }
 }

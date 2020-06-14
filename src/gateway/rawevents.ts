@@ -181,6 +181,7 @@ export namespace GatewayRawEvents {
     guild_id: string,
     members: Array<RawMember>,
     presences?: Array<RawPresence>,
+    nonce?: string,
     not_found?: Array<Snowflake>,
   }
 

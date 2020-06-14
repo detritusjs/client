@@ -3,6 +3,7 @@ import {
 } from 'detritus-client-rest';
 import { EventSpewer, Timers } from 'detritus-utils';
 
+import { Bucket } from './bucket';
 import {
   ShardClient,
   ShardClientOptions,
@@ -11,27 +12,32 @@ import {
 import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
-import { AuthTypes, ClientEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
+import { AuthTypes, ClientEvents, SocketStates, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { GatewayClientEvents } from './gateway/clientevents';
 
 
 export interface ClusterClientOptions extends ShardClientOptions {
+  maxConcurrency?: number,
   shardCount?: number,
   shards?: [number, number],
 }
 
 export interface ClusterClientRunOptions extends ShardClientRunOptions {
-  shardCount?: number,
   delay?: number,
+  maxConcurrency?: number,
+  shardCount?: number,
 }
 
 export class ClusterClient extends EventSpewer {
+  readonly _shardsWaiting = new BaseCollection<number, {resolve: Function, reject: Function}>();
   readonly token: string;
 
   readonly commandClient: CommandClient | null = null;
   readonly manager: ClusterProcessChild | null = null;
   readonly rest: DetritusRestClient;
 
+  buckets = new BaseCollection<number, Bucket>();
+  maxConcurrency: number = 1;
   ran: boolean = false;
   shardCount: number = 0;
   shardEnd: number = -1;
@@ -48,6 +54,7 @@ export class ClusterClient extends EventSpewer {
 
     if (process.env.CLUSTER_MANAGER === 'true') {
       token = <string> process.env.CLUSTER_TOKEN;
+      options.maxConcurrency = +(<string> process.env.MAX_CONCURRENCY);
       options.shardCount = +(<string> process.env.CLUSTER_SHARD_COUNT);
       options.shards = [
         +(<string> process.env.CLUSTER_SHARD_START),
@@ -60,6 +67,7 @@ export class ClusterClient extends EventSpewer {
     }
     this.token = token;
 
+    this.maxConcurrency = options.maxConcurrency || this.maxConcurrency;
     this.shardCount = +(options.shardCount || this.shardCount);
     if (Array.isArray(options.shards)) {
       if (options.shards.length !== 2) {
@@ -154,24 +162,36 @@ export class ClusterClient extends EventSpewer {
     options = Object.assign({
       delay: DEFAULT_SHARD_LAUNCH_DELAY,
       url: process.env.GATEWAY_URL,
-    }, options);
+    }, options, {
+      wait: false,
+    });
 
-    const delay = <number> options.delay;
+    const delay = +(<number> options.delay);
+
+    let maxConcurrency: number = +(options.maxConcurrency || this.maxConcurrency);
     let shardCount: number = options.shardCount || this.shardCount || 0;
-    if (options.url === undefined || !shardCount) {
+    if (options.url === undefined || !shardCount || !maxConcurrency) {
       const data = await this.rest.fetchGatewayBot();
+      maxConcurrency = data.session_start_limit.max_concurrency;
       shardCount = shardCount || data.shards;
       options.url = options.url || data.url;
     }
     if (!shardCount) {
       throw new Error('Shard Count cannot be 0, pass in one via the options or the constructor.');
     }
+    this.maxConcurrency = maxConcurrency;
     this.setShardCount(shardCount);
     if (this.shardEnd === -1) {
       this.setShardEnd(shardCount - 1);
     }
 
     for (let shardId = this.shardStart; shardId <= this.shardEnd; shardId++) {
+      const ratelimitKey = this.getRatelimitKey(shardId);
+      if (!this.buckets.has(ratelimitKey)) {
+        const bucket = new Bucket(1, delay, true);
+        this.buckets.set(ratelimitKey, bucket);
+      }
+
       const shardOptions = Object.assign({}, this.shardOptions);
       shardOptions.gateway = Object.assign({}, shardOptions.gateway, {shardCount, shardId});
       if (this.commandClient) {
@@ -185,16 +205,46 @@ export class ClusterClient extends EventSpewer {
         emit: {value: this.hookedEmit.bind(this, shard)},
       });
       this.shards.set(shardId, shard);
+      if (!this.manager) {
+        shard.gateway.on('state', ({state}) => {
+          switch (state) {
+            case SocketStates.READY: {
+              const waiting = this._shardsWaiting.get(shardId);
+              if (waiting) {
+                waiting.resolve();
+              }
+              this._shardsWaiting.delete(shardId);
+            }; break;
+          }
+        });
+        shard.gateway.onIdentifyCheck = () => {
+          const bucket = this.buckets.get(ratelimitKey);
+          if (bucket) {
+            bucket.add(() => {
+              shard.gateway.identify();
+              return new Promise((resolve, reject) => {
+                const waiting = this._shardsWaiting.get(shardId);
+                if (waiting) {
+                  waiting.reject(new Error('Received new Identify Request with same shard id, unknown why'));
+                }
+                this._shardsWaiting.set(shardId, {resolve, reject});
+              });
+            });
+          }
+          return false;
+        };
+      }
       this.emit(ClientEvents.SHARD, {shard});
 
       await shard.run(options);
-      if (shardId < this.shardEnd) {
-        await Timers.sleep(delay);
-      }
     }
     Object.defineProperty(this, 'ran', {value: true});
     this.emit(ClientEvents.READY);
     return this;
+  }
+
+  getRatelimitKey(shardId: number): number {
+    return shardId % this.maxConcurrency;
   }
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;

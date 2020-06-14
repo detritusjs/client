@@ -1,38 +1,12 @@
-import { Constants as RestConstants, Endpoints } from 'detritus-client-rest';
-import { Constants as SocketConstants } from 'detritus-client-socket';
-import { Constants as UtilConstants, Tools } from 'detritus-utils';
+import { Endpoints } from 'detritus-client-rest';
+import { Tools } from 'detritus-utils';
 
-const {
-  AuthTypes,
-  DiscordAbortCodes,
-  HTTPMethods,
-} = RestConstants;
 export {
   AuthTypes,
   DiscordAbortCodes,
   HTTPMethods,
-};
+} from 'detritus-client-rest/lib/constants';
 
-const {
-  CompressTypes,
-  EncodingTypes,
-  GatewayActivityActionTypes,
-  GatewayActivityFlags,
-  GatewayActivityTypes,
-  GatewayDispatchEvents,
-  GatewayOpCodes,
-  GatewayPresenceStatuses,
-  MediaCodecs,
-  MediaCodecTypes,
-  MediaOpCodes,
-  MediaSpeakingFlags,
-  SocketCloseCodes,
-  SocketGatewayCloseCodes,
-  SocketMediaCloseCodes,
-  SocketStates,
-  SocketEvents,
-  DEFAULT_SHARD_LAUNCH_DELAY,
-} = SocketConstants;
 export {
   CompressTypes,
   EncodingTypes,
@@ -51,18 +25,17 @@ export {
   SocketMediaCloseCodes,
   SocketStates,
   DEFAULT_SHARD_LAUNCH_DELAY,
-};
+} from 'detritus-client-socket/lib/constants';
 
-const {
+export {
   DISCORD_SNOWFLAKE_EPOCH,
   DISCORD_TOKEN_EPOCH,
-} = UtilConstants;
-export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
+} from 'detritus-utils/lib/constants';
 
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.10.5',
+  VERSION: '0.10.6',
 });
 
 export type Snowflake = number | string;
@@ -351,9 +324,10 @@ export enum ClientEvents {
 export enum ClusterIPCOpCodes {
   READY = 0,
   CLOSE = 1,
-  RECONNECTING = 2,
+  SHARD_STATE = 2,
   RESPAWN_ALL = 3,
   EVAL = 4,
+  IDENTIFY_REQUEST = 5,
 };
 
 export enum Colors {

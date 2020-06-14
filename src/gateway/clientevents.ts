@@ -224,6 +224,7 @@ export namespace GatewayClientEvents {
     guild: Guild | null,
     guildId: string,
     members: BaseCollection<string, Member> | null,
+    nonce: null | string,
     notFound: Array<string> | null,
     presences: BaseCollection<string, Presence> | null,
   }

@@ -871,6 +871,8 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK](data: GatewayRawEvents.GuildMembersChunk) {
     const guildId = data['guild_id'];
+    const nonce = data['nonce'] || null;
+
     let guild: Guild | null = this.client.guilds.get(guildId) || null;
     let members: BaseCollection<string, Member> | null = null;
     let notFound: Array<string> | null = null;
@@ -942,6 +944,7 @@ export class GatewayDispatchHandler {
       guild,
       guildId,
       members,
+      nonce,
       notFound,
       presences,
     };

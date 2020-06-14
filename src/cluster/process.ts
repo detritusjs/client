@@ -4,7 +4,7 @@ import { EventSpewer, Timers } from 'detritus-utils';
 
 import { ClusterManager } from '../clustermanager';
 import { BaseCollection } from '../collections/basecollection';
-import { ClusterIPCOpCodes } from '../constants';
+import { ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 
 import { ClusterIPCTypes } from './ipctypes';
@@ -29,6 +29,7 @@ export class ClusterProcess extends EventSpewer {
     resolve: Function,
     reject: Function,
   }>();
+  readonly _shardsWaiting = new BaseCollection<number, {resolve: Function, reject: Function}>();
   readonly clusterId: number = -1;
   readonly manager: ClusterManager;
 
@@ -61,25 +62,14 @@ export class ClusterProcess extends EventSpewer {
     return this.manager.file;
   }
 
-  async onMessage(
-    message: ClusterIPCTypes.IPCMessage | any,
-  ): Promise<void> {
+  async onMessage(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {
     // our child has sent us something
     if (message && typeof(message) === 'object') {
       try {
         switch (message.op) {
-          case ClusterIPCOpCodes.READY: {
-            this.emit('ready');
-          }; return;
           case ClusterIPCOpCodes.CLOSE: {
             const data: ClusterIPCTypes.Close = message.data;
-            this.emit('shardClose', {...data, shardId: message.shard});
-          }; return;
-          case ClusterIPCOpCodes.RECONNECTING: {
-            this.emit('shardReconnecting');
-          }; return;
-          case ClusterIPCOpCodes.RESPAWN_ALL: {
-
+            this.emit('shardClose', data);
           }; return;
           case ClusterIPCOpCodes.EVAL: {
             if (message.request) {
@@ -104,6 +94,42 @@ export class ClusterProcess extends EventSpewer {
                 });
               }
             }
+          }; return;
+          case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
+            const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
+            const ratelimitKey = this.manager.getRatelimitKey(shardId);
+            const bucket = this.manager.buckets.get(ratelimitKey);
+            if (bucket) {
+              bucket.add(() => {
+                return new Promise(async (resolve, reject) => {
+                  await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
+                  const waiting = this._shardsWaiting.get(shardId);
+                  if (waiting) {
+                    waiting.reject(new Error('Received new Identify Request with same shard id, unknown why'));
+                  }
+                  this._shardsWaiting.set(shardId, {resolve, reject});
+                });
+              });
+            }
+          }; return;
+          case ClusterIPCOpCodes.READY: {
+            this.emit('ready');
+          }; return;
+          case ClusterIPCOpCodes.RESPAWN_ALL: {
+
+          }; return;
+          case ClusterIPCOpCodes.SHARD_STATE: {
+            const data: ClusterIPCTypes.ShardState = message.data;
+            switch (data.state) {
+              case SocketStates.READY: {
+                const waiting = this._shardsWaiting.get(data.shardId);
+                if (waiting) {
+                  waiting.resolve();
+                }
+                this._shardsWaiting.delete(data.shardId);
+              }; break;
+            }
+            this.emit('shardState', data);
           }; return;
         }
       } catch(error) {
@@ -220,9 +246,7 @@ export class ClusterProcess extends EventSpewer {
     if (this.process) {
       return this.process;
     }
-    const process = fork(this.file, [], {
-      env: this.env,
-    });
+    const process = fork(this.file, [], {env: this.env});
     this.process = process;
     this.process.on('message', this.onMessage.bind(this));
     this.process.on('exit', this.onExit.bind(this));
@@ -246,5 +270,15 @@ export class ClusterProcess extends EventSpewer {
       });
     }
     return process;
+  }
+
+  on(event: string | symbol, listener: (...args: any[]) => void): this;
+  on(event: 'ready', listener: () => any): this;
+  on(event: 'shardClose', listener: (data: ClusterIPCTypes.Close) => any): this;
+  on(event: 'shardState', listener: (data: ClusterIPCTypes.ShardState) => any): this;
+  on(event: 'warn', listener: () => any): this;
+  on(event: string | symbol, listener: (...args: any[]) => void): this {
+    super.on(event, listener);
+    return this;
   }
 }
