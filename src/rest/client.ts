@@ -973,7 +973,7 @@ export class RestClient extends Client {
   async fetchPinnedMessages(
     channelId: string,
   ): Promise<BaseCollection<string, Message>> {
-    const data = await super.fetchMessages(channelId);
+    const data = await super.fetchPinnedMessages(channelId);
 
     let guildId: null | string = null;
     if (data.length) {
