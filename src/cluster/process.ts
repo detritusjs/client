@@ -105,7 +105,9 @@ export class ClusterProcess extends EventSpewer {
                   await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
                   const waiting = this._shardsWaiting.get(shardId);
                   if (waiting) {
-                    waiting.reject(new Error('Received new Identify Request with same shard id, unknown why'));
+                    const error = new Error('Received new Identify Request with same shard id, unknown why');
+                    waiting.reject(error);
+                    this.emit('warn', {error});
                   }
                   this._shardsWaiting.set(shardId, {resolve, reject});
                 });
@@ -133,7 +135,7 @@ export class ClusterProcess extends EventSpewer {
           }; return;
         }
       } catch(error) {
-        this.emit('warn', error);
+        this.emit('warn', {error});
       }
     }
     this.emit('message', message);
@@ -144,16 +146,22 @@ export class ClusterProcess extends EventSpewer {
     Object.defineProperty(this, 'ran', {value: false});
     this.process = null;
 
+    const error = new Error(`Process has closed with '${code}' code and '${signal}' signal.`);
     for (let [nonce, item] of this._evalsWaiting) {
-      item.resolve([new Error(`Process has closed with '${code}' code and '${signal}' signal.`), true]);
+      item.resolve([error, true]);
       this._evalsWaiting.delete(nonce);
+    }
+
+    for (let [shardId, item] of this._shardsWaiting) {
+      item.reject(error);
+      this._shardsWaiting.delete(shardId);
     }
 
     if (this.manager.respawn) {
       try {
         await this.run();
       } catch(error) {
-        this.emit('warn', error);
+        this.emit('warn', {error});
       }
     }
   }
