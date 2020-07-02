@@ -284,7 +284,7 @@ export class ClusterProcess extends EventSpewer {
   on(event: 'ready', listener: () => any): this;
   on(event: 'shardClose', listener: (data: ClusterIPCTypes.Close) => any): this;
   on(event: 'shardState', listener: (data: ClusterIPCTypes.ShardState) => any): this;
-  on(event: 'warn', listener: () => any): this;
+  on(event: 'warn', listener: (payload: {error: Error}) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
