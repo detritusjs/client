@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.11.0-beta.3',
+  VERSION: '0.11.0-beta.7',
 });
 
 export type Snowflake = number | string;
@@ -1218,6 +1218,7 @@ export const DiscordKeys = Object.freeze({
   PARTY_ID: 'party_id',
   PAYOUT_ACCOUNT_STATUS: 'payout_account_status',
   PERMISSIONS: 'permissions',
+  PERMISSIONS_NEW: 'permissions_new',
   PERMISSION_OVERWRITES: 'permission_overwrites',
   PHONE: 'phone',
   PINNED: 'pinned',
@@ -1296,6 +1297,7 @@ export const DiscordKeys = Object.freeze({
   SYSTEM_CHANNEL_ID: 'system_channel_id',
   SYSTEM_REQUIREMENTS: 'system_requirements',
   TAGLINE: 'tagline',
+  TAGS: 'tags',
   TARGET: 'target',
   TARGET_ID: 'target_id',
   TARGET_USER: 'target_user',
@@ -1518,6 +1520,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PARTY_ID]: 'partyId',
   [DiscordKeys.PAYOUT_ACCOUNT_STATUS]: 'payoutAccountStatus',
   [DiscordKeys.PERMISSIONS]: 'permissions',
+  [DiscordKeys.PERMISSIONS_NEW]: 'permissionsNew',
   [DiscordKeys.PERMISSION_OVERWRITES]: 'permissionOverwrites',
   [DiscordKeys.PHONE]: 'phone',
   [DiscordKeys.PINNED]: 'pinned',
@@ -1596,6 +1599,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SYSTEM_CHANNEL_ID]: 'systemChannelId',
   [DiscordKeys.SYSTEM_REQUIREMENTS]: 'systemRequirements',
   [DiscordKeys.TAGLINE]: 'tagline',
+  [DiscordKeys.TAGS]: 'tags',
   [DiscordKeys.TARGET]: 'target',
   [DiscordKeys.TARGET_ID]: 'targetId',
   [DiscordKeys.TARGET_USER]: 'targetUser',

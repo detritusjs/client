@@ -360,6 +360,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.fetchGuildMembers(this.id, options);
   }
 
+  async fetchMembersSearch(options: RequestTypes.FetchGuildMembersSearch) {
+    return this.client.rest.fetchGuildMembersSearch(this.id, options);
+  }
+
   async fetchPremiumSubscriptions() {
     return this.client.rest.fetchGuildPremiumSubscriptions(this.id);
   }
@@ -420,6 +424,19 @@ export class BaseGuild extends BaseStructure {
 
   async removeMemberRole(userId: string, roleId: string, options: RequestTypes.RemoveGuildBan = {}) {
     return this.client.rest.removeGuildMemberRole(this.id, userId, roleId, options);
+  }
+
+
+  async requestMembers(
+    options: {
+      limit?: number,
+      presences?: boolean,
+      query: string,
+      timeout?: number,
+      userIds?: Array<string>,
+    },
+  ) {
+    return this.client.requestGuildMembers(this.id, options);
   }
 
 
@@ -542,6 +559,7 @@ export class Guild extends BaseGuild {
   icon: null | string = null;
   id: string = '';
   isPartial: boolean = false;
+  isReady: boolean = false;
   joinedAtUnix: number = 0;
   large: boolean = false;
   lazy: boolean = false;

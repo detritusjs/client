@@ -1,6 +1,6 @@
 import { ClientOptions as RestOptions, Endpoints } from 'detritus-client-rest';
 import { Gateway } from 'detritus-client-socket';
-import { EventSpewer } from 'detritus-utils';
+import { EventSpewer, Snowflake, Timers } from 'detritus-utils';
 
 
 import { ClusterClient } from './clusterclient';
@@ -16,6 +16,7 @@ import { GatewayClientEvents } from './gateway/clientevents';
 import { RestClient } from './rest';
 
 import { BaseCollection } from './collections/basecollection';
+import { BaseSet } from './collections/baseset';
 import {
   Applications,
   ApplicationsOptions,
@@ -59,7 +60,9 @@ import {
 } from './media/voiceconnection';
 
 import {
+  Member,
   Oauth2Application,
+  Presence,
   User,
   UserMe,
 } from './structures';
@@ -321,6 +324,27 @@ export class ShardClient extends EventSpewer {
     return this.gateway.userId || '';
   }
 
+  _mergeOauth2Application(data: any) {
+    let oauth2Application: Oauth2Application;
+    if (this.application) {
+      oauth2Application = this.application;
+      oauth2Application.merge(data);
+    } else {
+      oauth2Application = new Oauth2Application(this, data);
+      this.application = oauth2Application;
+    }
+    if (oauth2Application.owner) {
+      this.owners.clear();
+      this.owners.set(oauth2Application.owner.id, oauth2Application.owner);
+      if (oauth2Application.team) {
+        for (let [userId, member] of oauth2Application.team.members) {
+          this.owners.set(userId, member.user);
+        }
+      }
+    }
+    return oauth2Application;
+  }
+
   isOwner(userId: string): boolean {
     return this.owners.has(userId);
   }
@@ -336,7 +360,7 @@ export class ShardClient extends EventSpewer {
         this.cluster.shards.delete(this.shardId);
       }
       this.emit(ClientEvents.KILLED, {error});
-      this.rest.removeAllListeners();
+      this.rest.raw.removeAllListeners();
       this.removeAllListeners();
     }
   }
@@ -352,6 +376,52 @@ export class ShardClient extends EventSpewer {
       }),
     ]);
     return {gateway, rest: response.took};
+  }
+
+  async requestGuildMembers(
+    guildId: string,
+    oldOptions: {
+      limit?: number,
+      presences?: boolean,
+      query: string,
+      timeout?: number,
+      userIds?: Array<string>,
+    },
+  ): Promise<{
+    members: BaseCollection<string, Member>,
+    nonce: string,
+    notFound: BaseSet<string>,
+    presences: BaseCollection<string, Presence>,
+  }> {
+    const nonce = Snowflake.generate().id;
+    const options = Object.assign({
+      limit: 0,
+      timeout: 1500,
+    }, oldOptions, {nonce}) as {
+      limit: number,
+      nonce: string,
+      presences?: boolean,
+      query: string,
+      timeout: number,
+      userIds?: Array<string>,
+    };
+
+    const timeout = new Timers.Timeout();
+    const members = new BaseCollection<string, Member>();
+    const notFound = new BaseSet<string>();
+    const presences = new BaseCollection<string, Presence>();
+    return new Promise((resolve, reject) => {
+      this.gatewayHandler._chunksWaiting.set(nonce, {members, notFound, presences, reject, resolve});
+      this.gateway.requestGuildMembers(guildId, options);
+  
+      timeout.start(options.timeout, () => {
+        reject(new Error(`Guild chunking took longer than ${options.timeout}ms.`));
+        this.gatewayHandler._chunksWaiting.delete(nonce);
+      })
+    }).then(() => {
+      this.gatewayHandler._chunksWaiting.delete(nonce);
+      return {members, nonce, notFound, presences};
+    });
   }
 
   reset(): void {

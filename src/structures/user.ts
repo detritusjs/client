@@ -159,7 +159,7 @@ export class User extends BaseStructure {
 
   // https://github.com/discordapp/discord-api-docs/issues/1107
   get isPartial(): boolean {
-    return !!this.username;
+    return !this.username;
   }
 
   get isSystem(): boolean {

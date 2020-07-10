@@ -1,12 +1,10 @@
 import {
   Client,
   ClientOptions,
-  Constants,
   RequestTypes,
   RestClientEvents,
 } from 'detritus-client-rest';
-
-const { RestEvents } = Constants;
+import { RestEvents } from 'detritus-client-rest/lib/constants';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
@@ -47,28 +45,123 @@ import {
 import { RestResponses } from './types';
 
 
-export class RestClient extends Client {
+export class RestClient {
   readonly client: ShardClient;
+  readonly raw: Client;
 
   constructor(
     token: string,
     options: ClientOptions,
     client: ShardClient,
   ) {
-    super(token, options);
+    this.raw = new Client(token, options);
 
     this.client = client;
     Object.defineProperty(this, 'client', {enumerable: false, writable: false});
 
-    this.on(RestEvents.REQUEST, (payload: RestClientEvents.RequestPayload) => this.client.emit(ClientEvents.REST_REQUEST, payload));
-    this.on(RestEvents.RESPONSE, (payload: RestClientEvents.ResponsePayload) => this.client.emit(ClientEvents.REST_RESPONSE, payload));
+    this.raw.on(RestEvents.REQUEST, (payload: RestClientEvents.RequestPayload) => this.client.emit(ClientEvents.REST_REQUEST, payload));
+    this.raw.on(RestEvents.RESPONSE, (payload: RestClientEvents.ResponsePayload) => this.client.emit(ClientEvents.REST_RESPONSE, payload));
+  }
+
+  get isBot(): boolean {
+    return this.raw.isBot;
+  }
+
+  get isUser(): boolean {
+    return this.raw.isUser;
+  }
+
+  setAuthType(type: string | number) {
+    return this.raw.setAuthType(type);
+  }
+
+  async request(
+    info: RequestTypes.Options | string | URL,
+    init?: RequestTypes.Options,
+  ) {
+    return this.raw.request(info, init);
+  }
+
+  async delete(
+    info: RequestTypes.Options | string | URL,
+    init?: RequestTypes.Options,
+  ) {
+    return this.raw.delete(info, init);
+  }
+
+  async get(
+    info: RequestTypes.Options | string | URL,
+    init?: RequestTypes.Options,
+  ) {
+    return this.raw.get(info, init);
+  }
+
+  async head(
+    info: RequestTypes.Options | string | URL,
+    init?: RequestTypes.Options,
+  ) {
+    return this.raw.head(info, init);
+  }
+
+  async options(
+    info: RequestTypes.Options | string | URL,
+    init?: RequestTypes.Options,
+  ) {
+    return this.raw.options(info, init);
+  }
+
+  async patch(
+    info: RequestTypes.Options | string | URL,
+    init?: RequestTypes.Options,
+  ) {
+    return this.raw.patch(info, init);
+  }
+
+  async put(
+    info: RequestTypes.Options | string | URL,
+    init?: RequestTypes.Options,
+  ) {
+    return this.raw.put(info, init);
+  }
+
+  /* -- Rest Requests Start -- */
+
+  acceptAgreements(
+    privacy: boolean = true,
+    terms: boolean = true,
+  ) {
+    return this.raw.acceptAgreements(privacy, terms);
+  }
+
+  acceptInvite(code: string) {
+    return this.raw.acceptInvite(code);
+  }
+
+  acceptTeamInvite(token: string) {
+    return this.raw.acceptTeamInvite(token);
+  }
+
+  ackChannelMessage(
+    channelId: string,
+    messageId: string,
+    token: string,
+  ) {
+    return this.raw.ackChannelMessage(channelId, messageId, token);
+  }
+
+  ackChannelPins(channelId: string) {
+    return this.raw.ackChannelPins(channelId);
+  }
+
+  ackGuild(guildId: string) {
+    return this.raw.ackGuild(guildId);
   }
 
   async acceptTemplate(
     templateId: string,
     options: RequestTypes.AcceptTemplate,
   ): Promise<Guild> {
-    const data = await super.acceptTemplate(templateId, options);
+    const data = await this.raw.acceptTemplate(templateId, options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
       guild = <Guild> this.client.guilds.get(data.id);
@@ -80,33 +173,118 @@ export class RestClient extends Client {
     return guild;
   }
 
-  async createChannelInvite(
-    channelId: string,
-    options: RequestTypes.CreateChannelInvite = {},
-  ): Promise<Invite> {
-    const data = await super.createChannelInvite(channelId, options);
-    return new Invite(this.client, data);
+  activateOauth2ApplicationLicense(
+    applicationId: string,
+    options: RequestTypes.ActivateOauth2ApplicationLicense,
+  ) {
+    return this.raw.activateOauth2ApplicationLicense(applicationId, options);
   }
 
-  async editChannelOverwrite(
+  addConnection(
+    platform: string,
+    accountId: string,
+    options: RequestTypes.AddConnection,
+  ) {
+    return this.raw.addConnection(platform, accountId, options);
+  }
+
+  addGuildMember(
+    guildId: string,
+    userId: string,
+    options: RequestTypes.AddGuildMember,
+  ) {
+    return this.raw.addGuildMember(guildId, userId, options);
+  }
+
+  addGuildMemberRole(
+    guildId: string,
+    userId: string,
+    roleId: string,
+    options: RequestTypes.AddGuildMemberRole = {},
+  ) {
+    return this.raw.addGuildMemberRole(guildId, userId, roleId, options);
+  }
+
+  addPinnedMessage(
     channelId: string,
-    overwriteId: string,
-    options: RequestTypes.EditChannelOverwrite = {},
-  ): Promise<any> {
-    return super.editChannelOverwrite(channelId, overwriteId, options);
+    messageId: string,
+  ) {
+    return this.raw.addPinnedMessage(channelId, messageId);
+  }
+
+  addRecipient(
+    channelId: string,
+    userId: string,
+  ) {
+    return this.raw.addRecipient(channelId, userId);
+  }
+
+  addOauth2ApplicationWhitelistUser(
+    applicationId: string,
+    options: RequestTypes.AddOauth2ApplicationWhitelistUser,
+  ) {
+    return this.raw.addOauth2ApplicationWhitelistUser(applicationId, options);
+  }
+
+  addTeamMember(
+    teamId: string,
+    options: RequestTypes.AddTeamMember,
+  ) {
+    return this.raw.addTeamMember(teamId, options);
+  }
+
+  authorizeIpAddress(
+    options: RequestTypes.AuthorizeIpAddress,
+  ) {
+    return this.raw.authorizeIpAddress(options);
+  }
+
+  beginGuildPrune(
+    guildId: string,
+    options: RequestTypes.BeginGuildPrune = {},
+  ) {
+    return this.raw.beginGuildPrune(guildId, options);
+  }
+
+  bulkDeleteMessages(
+    channelId: string,
+    messageIds: Array<string>,
+  ) {
+    return this.raw.bulkDeleteMessages(channelId, messageIds);
+  }
+
+  connectionCallback(
+    platform: string,
+    options: RequestTypes.ConnectionCallback,
+  ) {
+    return this.raw.connectionCallback(platform, options);
   }
 
   async createApplicationNews(
     options: RequestTypes.CreateApplicationNews,
   ): Promise<ApplicationNews> {
-    const data = await super.createApplicationNews(options);
+    const data = await this.raw.createApplicationNews(options);
     return new ApplicationNews(this.client, data);
+  }
+
+  async createChannelInvite(
+    channelId: string,
+    options: RequestTypes.CreateChannelInvite = {},
+  ): Promise<Invite> {
+    const data = await this.raw.createChannelInvite(channelId, options);
+    return new Invite(this.client, data);
+  }
+
+  createChannelStoreListingGrantEntitlement(
+    channelId: string,
+  ) {
+    return this.raw.createChannelStoreListingGrantEntitlement(channelId);
   }
 
   async createDm(
     options: RequestTypes.CreateDm = {},
   ): Promise<ChannelDM> {
-    const data = await super.createDm(options);
+    const data = await this.raw.createDm(options);
     let channel: ChannelDM;
     if (this.client.channels.has(data.id)) {
       channel = <ChannelDM> this.client.channels.get(data.id);
@@ -122,7 +300,7 @@ export class RestClient extends Client {
   async createGuild(
     options: RequestTypes.CreateGuild,
   ): Promise<Guild> {
-    const data = await super.createGuild(options);
+    const data = await this.raw.createGuild(options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
       guild = <Guild> this.client.guilds.get(data.id);
@@ -134,11 +312,20 @@ export class RestClient extends Client {
     return guild;
   }
 
+  createGuildBan(
+    guildId: string,
+    userId: string,
+    options: RequestTypes.CreateGuildBan = {},
+  ) {
+    // make into object?
+    return this.raw.createGuildBan(guildId, userId, options);
+  }
+
   async createGuildChannel(
     guildId: string,
     options: RequestTypes.CreateGuildChannel,
   ): Promise<Channel> {
-    const data = await super.createGuildChannel(guildId, options);
+    const data = await this.raw.createGuildChannel(guildId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -155,7 +342,7 @@ export class RestClient extends Client {
     guildId: string,
     options: RequestTypes.CreateGuildEmoji,
   ): Promise<Emoji> {
-    const data = await super.createGuildEmoji(guildId, options);
+    const data = await this.raw.createGuildEmoji(guildId, options);
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
@@ -169,11 +356,19 @@ export class RestClient extends Client {
     return emoji;
   }
 
+  createGuildIntegration(
+    guildId: string,
+    options: RequestTypes.CreateGuildIntegration,
+  ) {
+    // make this into object?
+    return this.raw.createGuildIntegration(guildId, options);
+  }
+
   async createGuildRole(
     guildId: string,
     options: RequestTypes.CreateGuildRole = {},
   ): Promise<Role> {
-    const data = await super.createGuildRole(guildId, options);
+    const data = await this.raw.createGuildRole(guildId, options);
     data.guild_id = guildId;
     const role = new Role(this.client, data);
     if (this.client.guilds.has(guildId)) {
@@ -186,15 +381,34 @@ export class RestClient extends Client {
     guildId: string,
     options: RequestTypes.CreateGuildTemplate,
   ): Promise<Template> {
-    const data = await super.createGuildTemplate(guildId, options);
+    const data = await this.raw.createGuildTemplate(guildId, options);
     return new Template(this.client, data);
+  }
+
+  createLobby(
+    applicationId: string,
+    options: RequestTypes.CreateLobby = {},
+  ) {
+    return this.raw.createLobby(applicationId, options);
+  }
+
+  createMeBillingPaymentSource(
+    options: RequestTypes.CreateMeBillingPaymentSource,
+  ) {
+    return this.raw.createMeBillingPaymentSource(options);
+  }
+
+  createMeBillingSubscription(
+    options: RequestTypes.CreateMeBillingSubscription,
+  ) {
+    return this.raw.createMeBillingSubscription(options);
   }
 
   async createMessage(
     channelId: string,
     options: RequestTypes.CreateMessage | string = {},
   ): Promise<Message> {
-    const data = await super.createMessage(channelId, options);
+    const data = await this.raw.createMessage(channelId, options);
     if (this.client.channels.has(data.channel_id)) {
       const channel = <Channel> this.client.channels.get(data.channel_id);
       if (channel.guildId) {
@@ -206,34 +420,70 @@ export class RestClient extends Client {
     return message;
   }
 
+  createOauth2Application(
+    options: RequestTypes.CreateOauth2Application,
+  ) {
+    return this.raw.createOauth2Application(options);
+  }
+
   async createOauth2ApplicationAsset(
     applicationId: string,
     options: RequestTypes.CreateOauth2ApplicationAsset,
   ): Promise<Oauth2ApplicationAsset> {
-    const data = await super.createOauth2ApplicationAsset(applicationId, options);
+    const data = await this.raw.createOauth2ApplicationAsset(applicationId, options);
     data.application_id = applicationId;
     return new Oauth2ApplicationAsset(this.client, data);
+  }
+
+  createOauth2ApplicationBot(
+    applicationId: string,
+  ) {
+    return this.raw.createOauth2ApplicationBot(applicationId);
+  }
+
+  createReaction(
+    channelId: string,
+    messageId: string,
+    emoji: string,
+  ) {
+    return this.raw.createReaction(channelId, messageId, emoji);
   }
 
   async createStoreApplicationAsset(
     applicationId: string,
     options: RequestTypes.CreateStoreApplicationAsset,
   ): Promise<StoreApplicationAsset> {
-    const data = await super.createStoreApplicationAsset(applicationId, options);
+    const data = await this.raw.createStoreApplicationAsset(applicationId, options);
     data.application_id = applicationId;
     return new StoreApplicationAsset(this.client, data);
+  }
+
+  createTeam(
+    options: RequestTypes.CreateTeam = {},
+  ) {
+    // make this an object?
+    return this.raw.createTeam(options);
   }
 
   async createWebhook(
     channelId: string,
     options: RequestTypes.CreateWebhook,
   ): Promise<Webhook> {
-    const data = await super.createWebhook(channelId, options);
+    const data = await this.raw.createWebhook(channelId, options);
     return new Webhook(this.client, data);
   }
 
-  async deleteChannel(channelId: string, options: RequestTypes.DeleteChannel = {}): Promise<Channel> {
-    const data = await super.deleteChannel(channelId, options);
+  deleteAccount(
+    options: RequestTypes.DeleteAccount,
+  ) {
+    return this.raw.deleteAccount(options);
+  }
+
+  async deleteChannel(
+    channelId: string,
+    options: RequestTypes.DeleteChannel = {},
+  ): Promise<Channel> {
+    const data = await this.raw.deleteChannel(channelId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -245,9 +495,191 @@ export class RestClient extends Client {
     return channel;
   }
 
-  async deleteInvite(code: string, options: RequestTypes.DeleteInvite = {}): Promise<Invite> {
-    const data = await super.deleteInvite(code, options);
+  deleteChannelOverwrite(
+    channelId: string,
+    overwriteId: string,
+    options: RequestTypes.DeleteChannelOverwrite = {},
+  ) {
+    return this.raw.deleteChannelOverwrite(channelId, overwriteId, options);
+  }
+
+  deleteConnection(
+    platform: string,
+    accountId: string,
+  ) {
+    return this.raw.deleteConnection(platform, accountId);
+  }
+
+  deleteGuild(
+    guildId: string,
+    options: RequestTypes.DeleteGuild = {},
+  ) {
+    return this.raw.deleteGuild(guildId, options);
+  }
+
+  deleteGuildEmoji(
+    guildId: string,
+    emojiId: string,
+    options: RequestTypes.DeleteGuildEmoji = {},
+  ) {
+    return this.raw.deleteGuildEmoji(guildId, emojiId, options);
+  }
+
+  deleteGuildIntegration(
+    guildId: string,
+    integrationId: string,
+    options: RequestTypes.DeleteGuildIntegration = {},
+  ) {
+    return this.raw.deleteGuildIntegration(guildId, integrationId, options);
+  }
+
+  deleteGuildPremiumSubscription(
+    guildId: string,
+    subscriptionId: string,
+  ) {
+    return this.raw.deleteGuildPremiumSubscription(guildId, subscriptionId);
+  }
+
+  deleteGuildRole(
+    guildId: string,
+    roleId: string,
+    options: RequestTypes.DeleteGuildRole = {},
+  ) {
+    return this.raw.deleteGuildRole(guildId, roleId, options);
+  }
+
+  deleteGuildTemplate(
+    guildId: string,
+    templateId: string,
+  ) {
+    return this.raw.deleteGuildTemplate(guildId, templateId);
+  }
+
+  async deleteInvite(
+    code: string,
+    options: RequestTypes.DeleteInvite = {},
+  ): Promise<Invite> {
+    const data = await this.raw.deleteInvite(code, options);
     return new Invite(this.client, data);
+  }
+
+  deleteLobby(
+    lobbyId: string,
+  ) {
+    return this.raw.deleteLobby(lobbyId);
+  }
+
+  deleteMeBillingPaymentSource(
+    paymentSourceId: string,
+  ) {
+    return this.raw.deleteMeBillingPaymentSource(paymentSourceId);
+  }
+
+  deleteMeBillingSubscription(
+    subscriptionId: string,
+  ) {
+    return this.raw.deleteMeBillingSubscription(subscriptionId);
+  }
+
+  deleteMessage(
+    channelId: string,
+    messageId: string,
+    options: RequestTypes.DeleteMessage = {},
+  ) {
+    return this.raw.deleteMessage(channelId, messageId, options);
+  }
+
+  deleteOauth2Application(
+    applicationId: string,
+    options: RequestTypes.DeleteOauth2Application = {},
+  ) {
+    return this.raw.deleteOauth2Application(applicationId, options);
+  }
+
+  deleteOauth2ApplicationAsset(
+    applicationId: string,
+    assetId: string,
+  ) {
+    return this.raw.deleteOauth2ApplicationAsset(applicationId, assetId);
+  }
+
+  deletePinnedMessage(
+    channelId: string,
+    messageId: string,
+  ) {
+    return this.raw.deletePinnedMessage(channelId, messageId);
+  }
+
+  deleteReactions(
+    channelId: string,
+    messageId: string,
+  ) {
+    return this.raw.deleteReactions(channelId, messageId);
+  }
+
+  deleteReactionsEmoji(
+    channelId: string,
+    messageId: string,
+    emoji: string,
+  ) {
+    return this.raw.deleteReactionsEmoji(channelId, messageId, emoji);
+  }
+
+  deleteReaction(
+    channelId: string,
+    messageId: string,
+    emoji: string,
+    userId: string = '@me',
+  ) {
+    return this.raw.deleteReaction(channelId, messageId, emoji, userId);
+  }
+
+  deleteRelationship(
+    userId: string,
+  ) {
+    return this.raw.deleteRelationship(userId);
+  }
+
+  deleteStoreApplicationAsset(
+    applicationId: string,
+    assetId: string,
+  ) {
+    return this.raw.deleteStoreApplicationAsset(applicationId, assetId);
+  }
+
+  deleteTeam(
+    teamId: string,
+    options: RequestTypes.DeleteTeam = {},
+  ) {
+    return this.raw.deleteTeam(teamId, options);
+  }
+
+  deleteWebhook(
+    webhookId: string,
+    options: RequestTypes.DeleteWebhook = {},
+  ) {
+    return this.raw.deleteWebhook(webhookId, options);
+  }
+
+  deleteWebhookToken(
+    webhookId: string,
+    token: string,
+    options: RequestTypes.DeleteWebhook = {},
+  ) {
+    return this.raw.deleteWebhookToken(webhookId, token, options);
+  }
+
+  disableAccount(
+    options: RequestTypes.DisableAccount,
+  ) {
+    return this.raw.disableAccount(options);
+  }
+
+  editApplicationNews(
+    newsId: string,
+    options: RequestTypes.EditApplicationNews = {},
+  ) {
+    return this.raw.editApplicationNews(newsId, options);
   }
 
   /* Issue with merging data with these edited objects is that the gateway event wont have differences then */
@@ -255,7 +687,7 @@ export class RestClient extends Client {
     channelId: string,
     options: RequestTypes.EditChannel = {},
   ): Promise<Channel> {
-    const data = await super.editChannel(channelId, options);
+    const data = await this.raw.editChannel(channelId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -267,11 +699,27 @@ export class RestClient extends Client {
     return channel;
   }
 
+  editChannelOverwrite(
+    channelId: string,
+    overwriteId: string,
+    options: RequestTypes.EditChannelOverwrite = {},
+  ) {
+    return this.raw.editChannelOverwrite(channelId, overwriteId, options);
+  }
+
+  editConnection(
+    platform: string,
+    accountId: string,
+    options: RequestTypes.EditConnection = {},
+  ) {
+    return this.raw.editConnection(platform, accountId, options);
+  }
+
   async editGuild(
     guildId: string,
     options: RequestTypes.EditGuild = {},
   ): Promise<Guild> {
-    const data = await super.editGuild(guildId, options);
+    const data = await this.raw.editGuild(guildId, options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
       guild = <Guild> this.client.guilds.get(data.id);
@@ -282,12 +730,27 @@ export class RestClient extends Client {
     return guild;
   }
 
+  editGuildChannels(
+    guildId: string,
+    channels: RequestTypes.EditGuildChannels,
+    options: RequestTypes.EditGuildChannelsExtra = {},
+  ) {
+    return this.raw.editGuildChannels(guildId, channels, options);
+  }
+
+  editGuildEmbed(
+    guildId: string,
+    options: RequestTypes.EditGuildEmbed,
+  ) {
+    return this.raw.editGuildEmbed(guildId, options);
+  }
+
   async editGuildEmoji(
     guildId: string,
     emojiId: string,
     options: RequestTypes.EditGuildEmoji = {},
   ): Promise<Emoji> {
-    const data = await super.editGuildEmoji(guildId, emojiId, options);
+    const data = await this.raw.editGuildEmoji(guildId, emojiId, options);
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
@@ -300,12 +763,43 @@ export class RestClient extends Client {
     return emoji;
   }
 
+  editGuildIntegration(
+    guildId: string,
+    integrationId: string,
+    options: RequestTypes.EditGuildIntegration = {},
+  ) {
+    return this.raw.editGuildIntegration(guildId, integrationId, options);
+  }
+
+  editGuildMember(
+    guildId: string,
+    userId: string,
+    options: RequestTypes.EditGuildMember = {},
+  ) {
+    return this.raw.editGuildMember(guildId, userId, options);
+  }
+
+  editGuildMfaLevel(
+    guildId: string,
+    options: RequestTypes.EditGuildMfaLevel,
+  ) {
+    return this.raw.editGuildMfaLevel(guildId, options);
+  }
+
+  editGuildNick(
+    guildId: string,
+    nick: string,
+    options: RequestTypes.EditGuildNick = {},
+  ) {
+    return this.raw.editGuildNick(guildId, nick, options);
+  }
+
   async editGuildRole(
     guildId: string,
     roleId: string,
     options: RequestTypes.EditGuildRole = {},
   ): Promise<Role> {
-    const data = await super.editGuildRole(guildId, roleId, options);
+    const data = await this.raw.editGuildRole(guildId, roleId, options);
     let role: Role;
     if (this.client.guilds.has(guildId)) {
       const guild = <Guild> this.client.guilds.get(guildId);
@@ -329,7 +823,7 @@ export class RestClient extends Client {
     roles: RequestTypes.EditGuildRolePositions,
     options: RequestTypes.EditGuildRolePositionsExtra = {}
   ): Promise<BaseCollection<string, Role>> {
-    const data = await super.editGuildRolePositions(guildId, roles, options);
+    const data = await this.raw.editGuildRolePositions(guildId, roles, options);
 
     const collection = new BaseCollection<string, Role>();
     if (this.client.guilds.has(guildId)) {
@@ -351,10 +845,33 @@ export class RestClient extends Client {
     return collection;
   }
 
+  editGuildVanity(
+    guildId: string,
+    code: string,
+    options: RequestTypes.EditGuildVanity = {},
+  ) {
+    return this.raw.editGuildVanity(guildId, code, options);
+  }
+
+  editLobby(
+    lobbyId: string,
+    options: RequestTypes.EditLobby = {},
+  ) {
+    return this.raw.editLobby(lobbyId, options);
+  }
+
+  editLobbyMember(
+    lobbyId: string,
+    userId: string,
+    options: RequestTypes.EditLobbyMember = {},
+  ) {
+    return this.raw.editLobbyMember(lobbyId, userId, options);
+  }
+
   async editMe(
     options: RequestTypes.EditMe = {},
   ): Promise<UserMe> {
-    const data = await super.editMe(options);
+    const data = await this.raw.editMe(options);
     let user: UserMe;
     if (this.client.user !== null) {
       user = <UserMe> this.client.user;
@@ -365,12 +882,26 @@ export class RestClient extends Client {
     return user;
   }
 
+  editMeBillingPaymentSource(
+    paymentSourceId: string,
+    options: RequestTypes.EditMeBillingPaymentSource = {},
+  ) {
+    return this.raw.editMeBillingPaymentSource(paymentSourceId, options);
+  }
+
+  editMeBillingSubscription(
+    subscriptionId: string,
+    options: RequestTypes.EditMeBillingSubscription = {},
+  ) {
+    return this.raw.editMeBillingSubscription(subscriptionId, options);
+  }
+
   async editMessage(
     channelId: string,
     messageId: string,
     options: RequestTypes.EditMessage | string = {},
   ): Promise<Message> {
-    const data = await super.editMessage(channelId, messageId, options);
+    const data = await this.raw.editMessage(channelId, messageId, options);
     let message: Message;
     if (this.client.messages.has(data.id)) {
       message = <Message> this.client.messages.get(data.id);
@@ -383,11 +914,38 @@ export class RestClient extends Client {
     return message;
   }
 
+  editNote(
+    userId: string,
+    note: string,
+  ) {
+    return this.raw.editNote(userId, note);
+  }
+
+  editOauth2Application(
+    applicationId: string,
+    options: RequestTypes.EditOauth2Application = {},
+  ) {
+    return this.raw.editOauth2Application(applicationId, options);
+  }
+
+  editRelationship(
+    userId: string,
+    type: number,
+  ) {
+    return this.raw.editRelationship(userId, type);
+  }
+
+  editSettings(
+    options: RequestTypes.EditSettings = {},
+  ) {
+    return this.raw.editSettings(options);
+  }
+
   async editTeam(
     teamId: string,
     options: RequestTypes.EditTeam = {},
-  ): Promise<any> {
-    return super.editTeam(teamId, options);
+  ) {
+    return this.raw.editTeam(teamId, options);
   }
 
   async editUser(options: RequestTypes.EditMe = {}) {
@@ -398,7 +956,7 @@ export class RestClient extends Client {
     webhookId: string,
     options: RequestTypes.EditWebhook = {},
   ): Promise<Webhook> {
-    const data = await super.editWebhook(webhookId, options);
+    const data = await this.raw.editWebhook(webhookId, options);
     return new Webhook(this.client, data);
   }
 
@@ -407,8 +965,20 @@ export class RestClient extends Client {
     token: string,
     options: RequestTypes.EditWebhook = {},
   ): Promise<Webhook> {
-    const data = await super.editWebhookToken(webhookId, token, options);
+    const data = await this.raw.editWebhookToken(webhookId, token, options);
     return new Webhook(this.client, data);
+  }
+
+  enableOauth2ApplicationAssets(
+    applicationId: string,
+  ) {
+    return this.raw.enableOauth2ApplicationAssets(applicationId);
+  }
+
+  enableOauth2ApplicationRpc(
+    applicationId: string,
+  ) {
+    return this.raw.enableOauth2ApplicationRpc(applicationId);
   }
 
   async executeWebhook(
@@ -417,7 +987,7 @@ export class RestClient extends Client {
     options: RequestTypes.ExecuteWebhook | string = {},
     compatibleType?: string,
   ): Promise<Message | null> {
-    const data = await super.executeWebhook(webhookId, token, options, compatibleType);
+    const data = await this.raw.executeWebhook(webhookId, token, options, compatibleType);
     if (typeof(options) !== 'string' && options.wait) {
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
@@ -426,10 +996,14 @@ export class RestClient extends Client {
     return data;
   }
 
+  fetchActivities() {
+    return this.raw.fetchActivities();
+  }
+
   async fetchApplicationNews(
     applicationIds?: Array<string> | string,
   ): Promise<BaseCollection<string, ApplicationNews>> {
-    const data = await super.fetchApplicationNews(applicationIds);
+    const data = await this.raw.fetchApplicationNews(applicationIds);
     const collection = new BaseCollection<string, ApplicationNews>();
     for (let raw of data) {
       const applicationNews = new ApplicationNews(this.client, raw);
@@ -439,19 +1013,23 @@ export class RestClient extends Client {
   }
 
   async fetchApplicationNewsId(newsId: string): Promise<ApplicationNews> {
-    const data = await super.fetchApplicationNewsId(newsId);
+    const data = await this.raw.fetchApplicationNewsId(newsId);
     return new ApplicationNews(this.client, data);
+  }
+
+  fetchApplications() {
+    return this.raw.fetchApplications();
   }
 
   async fetchApplication(
     applicationId: string,
   ): Promise<Application> {
-    const data = await super.fetchApplication(applicationId);
+    const data = await this.raw.fetchApplication(applicationId);
     return new Application(this.client, data);
   }
 
   async fetchApplicationsDetectable(): Promise<BaseCollection<string, Application>> {
-    const data = await super.fetchApplicationsDetectable.call(this);
+    const data = await this.raw.fetchApplicationsDetectable.call(this);
     const collection = new BaseCollection<string, Application>();
     for (let raw of data) {
       const application = new Application(this.client, raw);
@@ -460,8 +1038,22 @@ export class RestClient extends Client {
     return collection;
   }
 
+  fetchApplicationsPublic(
+    applicationIds: string | Array<string>,
+  ) {
+    return this.raw.fetchApplicationsPublic(applicationIds);
+  }
+
+  fetchApplicationsTrendingGlobal() {
+    return this.raw.fetchApplicationsTrendingGlobal();
+  }
+
+  fetchAuthConsentRequired() {
+    return this.raw.fetchAuthConsentRequired();
+  }
+
   async fetchChannel(channelId: string): Promise<Channel> {
-    const data = await super.fetchChannel(channelId);
+    const data = await this.raw.fetchChannel(channelId);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
       channel = <Channel> this.client.channels.get(data.id);
@@ -472,10 +1064,16 @@ export class RestClient extends Client {
     return channel;
   }
 
+  fetchChannelCall(
+    channelId: string,
+  ) {
+    return this.raw.fetchChannelCall(channelId);
+  }
+
   async fetchChannelInvites(
     channelId: string,
   ): Promise<BaseCollection<string, Invite>> {
-    const data: Array<any> = await super.fetchChannelInvites(channelId);
+    const data: Array<any> = await this.raw.fetchChannelInvites(channelId);
     const collection = new BaseCollection<string, Invite>();
     for (let raw of data) {
       const invite = new Invite(this.client, raw);
@@ -485,14 +1083,14 @@ export class RestClient extends Client {
   }
 
   async fetchChannelStoreListing(channelId: string): Promise<StoreListing> {
-    const data = await super.fetchChannelStoreListing(channelId);
+    const data = await this.raw.fetchChannelStoreListing(channelId);
     return new StoreListing(this.client, data);
   }
 
   async fetchChannelWebhooks(
     channelId: string,
   ): Promise<BaseCollection<string, Webhook>> {
-    const data = await super.fetchChannelWebhooks(channelId);
+    const data = await this.raw.fetchChannelWebhooks(channelId);
     const collection = new BaseCollection<string, Webhook>();
     for (let raw of data) {
       const webhook = new Webhook(this.client, raw);
@@ -501,10 +1099,24 @@ export class RestClient extends Client {
     return collection;
   }
 
+  fetchConsentRequired() {
+    return this.raw.fetchConsentRequired();
+  }
+
+  fetchConnectionAuthorizeUrl(
+    platform: string,
+  ) {
+    return this.raw.fetchConnectionAuthorizeUrl(platform);
+  }
+
+  fetchDiscoverableGuilds() {
+    return this.raw.fetchDiscoverableGuilds();
+  }
+
   async fetchDms(
     userId: string = '@me',
   ): Promise<BaseCollection<string, Channel>> {
-    const data: Array<any> = await super.fetchDms(userId);
+    const data: Array<any> = await this.raw.fetchDms(userId);
     const collection = new BaseCollection<string, Channel>();
     for (let raw of data) {
       let channel: Channel;
@@ -519,16 +1131,30 @@ export class RestClient extends Client {
     return collection;
   }
 
+  fetchExperiments(
+    fingerprint?: string,
+  ) {
+    return this.raw.fetchExperiments(fingerprint);
+  }
+
+  fetchGateway() {
+    return this.raw.fetchGateway();
+  }
+
+  fetchGatewayBot() {
+    return this.raw.fetchGatewayBot();
+  }
+
   async fetchGiftCode(
     code: string,
     options: RequestTypes.FetchGiftCode = {},
   ): Promise<Gift> {
-    const data = await super.fetchGiftCode(code, options);
+    const data = await this.raw.fetchGiftCode(code, options);
     return new Gift(this.client, data);
   }
 
   async fetchGuild(guildId: string): Promise<Guild> {
-    const data = await super.fetchGuild(guildId);
+    const data = await this.raw.fetchGuild(guildId);
 
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
@@ -541,11 +1167,18 @@ export class RestClient extends Client {
     return guild;
   }
 
+  fetchGuildApplications(
+    guildId: string,
+    channelId?: string,
+  ) {
+    return this.raw.fetchGuildApplications(guildId, channelId);
+  }
+
   async fetchGuildAuditLogs(
     guildId: string,
     options: RequestTypes.FetchGuildAuditLogs = {},
   ): Promise<BaseCollection<string, AuditLog>> {
-    const data = await super.fetchGuildAuditLogs(guildId, options);
+    const data = await this.raw.fetchGuildAuditLogs(guildId, options);
     const collection = new BaseCollection<string, AuditLog>();
     for (let raw of data.audit_log_entries) {
       let target: null | User | Webhook = null;
@@ -586,7 +1219,7 @@ export class RestClient extends Client {
   async fetchGuildBans(
     guildId: string,
   ): Promise<RestResponses.FetchGuildBans> {
-    const data = await super.fetchGuildBans(guildId);
+    const data = await this.raw.fetchGuildBans(guildId);
     const collection: RestResponses.FetchGuildBans = new BaseCollection();
     for (let raw of data) {
       let user: User;
@@ -607,7 +1240,7 @@ export class RestClient extends Client {
   async fetchGuildChannels(
     guildId: string,
   ): Promise<BaseCollection<string, Channel>> {
-    const data = await super.fetchGuildChannels(guildId);
+    const data = await this.raw.fetchGuildChannels(guildId);
     const collection = new BaseCollection<string, Channel>();
 
     for (let raw of data) {
@@ -623,27 +1256,16 @@ export class RestClient extends Client {
     return collection;
   }
 
-  async fetchGuildEmoji(
+  fetchGuildEmbed(
     guildId: string,
-    emojiId: string,
-  ): Promise<Emoji> {
-    const data = await super.fetchGuildEmoji(guildId, emojiId);
-
-    let emoji: Emoji;
-    if (this.client.emojis.has(guildId, data.id)) {
-      emoji = <Emoji> this.client.emojis.get(guildId, data.id);
-      emoji.merge(data);
-    } else {
-      data.guild_id = guildId;
-      emoji = new Emoji(this.client, data);
-    }
-    return emoji;
+  ) {
+    return this.raw.fetchGuildEmbed(guildId);
   }
 
   async fetchGuildEmojis(
     guildId: string,
   ): Promise<BaseCollection<string, Emoji>> {
-    const data = await super.fetchGuildEmojis(guildId);
+    const data = await this.raw.fetchGuildEmojis(guildId);
 
     if (this.client.guilds.has(guildId)) {
       const guild = <Guild> this.client.guilds.get(guildId);
@@ -666,10 +1288,27 @@ export class RestClient extends Client {
     }
   }
 
+  async fetchGuildEmoji(
+    guildId: string,
+    emojiId: string,
+  ): Promise<Emoji> {
+    const data = await this.raw.fetchGuildEmoji(guildId, emojiId);
+
+    let emoji: Emoji;
+    if (this.client.emojis.has(guildId, data.id)) {
+      emoji = <Emoji> this.client.emojis.get(guildId, data.id);
+      emoji.merge(data);
+    } else {
+      data.guild_id = guildId;
+      emoji = new Emoji(this.client, data);
+    }
+    return emoji;
+  }
+
   async fetchGuildIntegrations(
     guildId: string,
   ): Promise<BaseCollection<string, Integration>> {
-    const data = await super.fetchGuildIntegrations(guildId);
+    const data = await this.raw.fetchGuildIntegrations(guildId);
     const collection = new BaseCollection<string, Integration>();
 
     for (let raw of data) {
@@ -683,7 +1322,7 @@ export class RestClient extends Client {
   async fetchGuildInvites(
     guildId: string,
   ): Promise<BaseCollection<string, Invite>> {
-    const data = await super.fetchGuildInvites(guildId);
+    const data = await this.raw.fetchGuildInvites(guildId);
     const collection = new BaseCollection<string, Invite>();
 
     for (let raw of data) {
@@ -693,28 +1332,11 @@ export class RestClient extends Client {
     return collection;
   }
 
-  async fetchGuildMember(
-    guildId: string,
-    userId: string,
-  ): Promise<Member> {
-    const data = await super.fetchGuildMember(guildId, userId);
-    let member: Member;
-    if (this.client.members.has(guildId, userId)) {
-      member = <Member> this.client.members.get(guildId, userId);
-      member.merge(data);
-    } else {
-      data.guild_id = guildId;
-      member = new Member(this.client, data);
-      this.client.members.insert(member);
-    }
-    return member;
-  }
-
   async fetchGuildMembers(
     guildId: string,
     options: RequestTypes.FetchGuildMembers = {},
   ): Promise<BaseCollection<string, Member>> {
-    const data = await super.fetchGuildMembers(guildId, options);
+    const data = await this.raw.fetchGuildMembers(guildId, options);
     const collection = new BaseCollection<string, Member>();
 
     for (let raw of data) {
@@ -732,10 +1354,49 @@ export class RestClient extends Client {
     return collection;
   }
 
+  async fetchGuildMembersSearch(
+    guildId: string,
+    options: RequestTypes.FetchGuildMembersSearch,
+  ): Promise<BaseCollection<string, Member>> {
+    const data = await this.raw.fetchGuildMembersSearch(guildId, options);
+    const collection = new BaseCollection<string, Member>();
+
+    for (let raw of data) {
+      let member: Member;
+      if (this.client.members.has(guildId, raw.user.id)) {
+        member = <Member> this.client.members.get(guildId, raw.user.id);
+        member.merge(raw);
+      } else {
+        raw.guild_id = guildId;
+        member = new Member(this.client, raw);
+        this.client.members.insert(member);
+      }
+      collection.set(member.id, member);
+    }
+    return collection;
+  }
+
+  async fetchGuildMember(
+    guildId: string,
+    userId: string,
+  ): Promise<Member> {
+    const data = await this.raw.fetchGuildMember(guildId, userId);
+    let member: Member;
+    if (this.client.members.has(guildId, userId)) {
+      member = <Member> this.client.members.get(guildId, userId);
+      member.merge(data);
+    } else {
+      data.guild_id = guildId;
+      member = new Member(this.client, data);
+      this.client.members.insert(member);
+    }
+    return member;
+  }
+
   async fetchGuildPremiumSubscriptions(
     guildId: string,
   ): Promise<BaseCollection<string, PremiumSubscription>> {
-    const data = await super.fetchGuildPremiumSubscriptions(guildId);
+    const data = await this.raw.fetchGuildPremiumSubscriptions(guildId);
     const subscriptions = new BaseCollection<string, PremiumSubscription>();
     for (let raw of data) {
       const subscription = new PremiumSubscription(this.client, raw);
@@ -744,10 +1405,23 @@ export class RestClient extends Client {
     return subscriptions;
   }
 
+  fetchGuildPreview(
+    guildId: string,
+  ) {
+    return this.raw.fetchGuildPreview(guildId);
+  }
+
+  fetchGuildPruneCount(
+    guildId: string,
+    options: RequestTypes.FetchGuildPruneCount = {},
+  ) {
+    return this.raw.fetchGuildPruneCount(guildId, options);
+  }
+
   async fetchGuildRoles(
     guildId: string,
   ): Promise<BaseCollection<string, Role>> {
-    const data = await super.fetchGuildRoles(guildId);
+    const data = await this.raw.fetchGuildRoles(guildId);
     const collection = new BaseCollection<string, Role>();
 
     if (this.client.guilds.has(guildId)) {
@@ -783,7 +1457,7 @@ export class RestClient extends Client {
   async fetchGuildTemplates(
     guildId: string,
   ): Promise<BaseCollection<string, Template>> {
-    const data = await super.fetchGuildTemplates(guildId);
+    const data = await this.raw.fetchGuildTemplates(guildId);
     const collection = new BaseCollection<string, Template>();
 
     for (let raw of data) {
@@ -793,10 +1467,16 @@ export class RestClient extends Client {
     return collection;
   }
 
+  fetchGuildVanityUrl(
+    guildId: string,
+  ) {
+    return this.raw.fetchGuildVanityUrl(guildId);
+  }
+
   async fetchGuildWebhooks(
     guildId: string,
   ): Promise<BaseCollection<string, Webhook>> {
-    const data = await super.fetchGuildWebhooks(guildId);
+    const data = await this.raw.fetchGuildWebhooks(guildId);
     const collection = new BaseCollection<string, Webhook>();
 
     for (let raw of data) {
@@ -806,21 +1486,54 @@ export class RestClient extends Client {
     return collection;
   }
 
+  fetchGuildWidget(
+    guildId: string,
+  ) {
+    return this.raw.fetchGuildWidget(guildId);
+  }
+
+  fetchGuildWidgetJson(
+    guildId: string,
+  ) {
+    return this.raw.fetchGuildWidgetJson(guildId);
+  }
+
+  fetchGuildWidgetPng(
+    guildId: string,
+    options: RequestTypes.FetchGuildWidgetPng = {},
+  ) {
+    return this.raw.fetchGuildWidgetPng(guildId, options);
+  }
+
   async fetchInvite(
     code: string,
     options: RequestTypes.FetchInvite = {},
   ): Promise<Invite> {
-    const data = await super.fetchInvite(code, options);
+    const data = await this.raw.fetchInvite(code, options);
     return new Invite(this.client, data);
   }
 
   async fetchMe(options: RequestTypes.FetchMe = {}): Promise<UserMe> {
-    const data = await super.fetchMe.call(this, options);
+    const data = await this.raw.fetchMe.call(this, options);
     return new UserMe(this.client, data);
   }
 
+  fetchMeBillingPaymentSources() {
+    return this.raw.fetchMeBillingPaymentSources();
+  }
+
+  fetchMeBillingPayments(
+    options: RequestTypes.FetchMeBillingPayments = {},
+  ) {
+    return this.raw.fetchMeBillingPayments(options);
+  }
+
+  fetchMeBillingSubscriptions() {
+    return this.raw.fetchMeBillingSubscriptions();
+  }
+
   async fetchMeChannels(): Promise<BaseCollection<string, Channel>> {
-    const data = await super.fetchMeChannels();
+    const data = await this.raw.fetchMeChannels();
     const collection = new BaseCollection<string, Channel>();
 
     for (let raw of data) {
@@ -837,7 +1550,7 @@ export class RestClient extends Client {
   }
 
   async fetchMeConnections(): Promise<BaseCollection<string, ConnectedAccount>> {
-    const data = await super.fetchMeConnections.call(this);
+    const data = await this.raw.fetchMeConnections.call(this);
     const collection = new BaseCollection<string, ConnectedAccount>();
     for (let raw of data) {
       const account = new ConnectedAccount(this.client, raw);
@@ -846,10 +1559,29 @@ export class RestClient extends Client {
     return collection;
   }
 
+  fetchMeConnectionAccessToken(
+    platform: string,
+    accountId: string,
+  ) {
+    return this.raw.fetchMeConnectionAccessToken(platform, accountId);
+  }
+
+  fetchMeConnectionSubreddits(
+    accountId: string,
+  ) {
+    return this.raw.fetchMeConnectionSubreddits(accountId);
+  }
+
+  fetchMeFeedSettings(
+    options: RequestTypes.FetchMeFeedSettings = {},
+  ) {
+    return this.raw.fetchMeFeedSettings(options);
+  }
+
   async fetchMeGuilds(
     options: RequestTypes.FetchMeGuilds = {},
   ): Promise<BaseCollection<string, GuildMe>> {
-    const data = await super.fetchMeGuilds(options);
+    const data = await this.raw.fetchMeGuilds(options);
     const collection = new BaseCollection<string, GuildMe>();
 
     for (let raw of data) {
@@ -859,11 +1591,42 @@ export class RestClient extends Client {
     return collection;
   }
 
+  async fetchMentions(
+    options: RequestTypes.FetchMentions = {},
+  ): Promise<BaseCollection<string, Message>> {
+    const data = await this.raw.fetchMentions(options);
+
+    let guildId: string | undefined;
+    if (data.length) {
+      const raw = data[0];
+      if (this.client.channels.has(raw.channel_id)) {
+        const channel = <Channel> this.client.channels.get(raw.channel_id);
+        if (channel.guildId) {
+          guildId = channel.guildId;
+        }
+      }
+    }
+
+    const collection = new BaseCollection<string, Message>();
+    for (let raw of data) {
+      let message: Message;
+      if (this.client.messages.has(raw.id)) {
+        message = <Message> this.client.messages.get(raw.id);
+        message.merge(raw);
+      } else {
+        raw.guild_id = guildId;
+        message = new Message(this.client, raw);
+      }
+      collection.set(message.id, message);
+    }
+    return collection;
+  }
+
   async fetchMessage(
     channelId: string,
     messageId: string,
   ): Promise<Message> {
-    const data = await super.fetchMessage(channelId, messageId);
+    const data = await this.raw.fetchMessage(channelId, messageId);
 
     let guildId: string | undefined;
     if (this.client.channels.has(data.channel_id)) {
@@ -888,7 +1651,7 @@ export class RestClient extends Client {
     channelId: string,
     options: RequestTypes.FetchMessages = {},
   ): Promise<BaseCollection<string, Message>> {
-    const data = await super.fetchMessages(channelId, options);
+    const data = await this.raw.fetchMessages(channelId, options);
 
     let guildId: string | undefined;
     if (data.length) {
@@ -917,7 +1680,7 @@ export class RestClient extends Client {
   }
 
   async fetchOauth2Applications(): Promise<BaseCollection<string, Oauth2Application>> {
-    const data = await super.fetchOauth2Applications.call(this);
+    const data = await this.raw.fetchOauth2Applications.call(this);
 
     const collection = new BaseCollection<string, Oauth2Application>();
     for (let raw of data) {
@@ -930,26 +1693,11 @@ export class RestClient extends Client {
   async fetchOauth2Application(
     userId: string = '@me',
   ): Promise<Oauth2Application> {
-    const data = await super.fetchOauth2Application(userId);
+    const data = await this.raw.fetchOauth2Application(userId);
 
     let oauth2Application: Oauth2Application;
     if (userId === '@me') {
-      if (this.client.application) {
-        oauth2Application = this.client.application;
-        oauth2Application.merge(data);
-      } else {
-        oauth2Application = new Oauth2Application(this.client, data);
-        this.client.application = oauth2Application;
-      }
-      if (oauth2Application.owner) {
-        this.client.owners.clear();
-        this.client.owners.set(oauth2Application.owner.id, oauth2Application.owner);
-        if (oauth2Application.team) {
-          for (let [userId, member] of oauth2Application.team.members) {
-            this.client.owners.set(userId, member.user);
-          }
-        }
-      }
+      oauth2Application = this.client._mergeOauth2Application(data);
     } else {
       oauth2Application = new Oauth2Application(this.client, data);
     }
@@ -959,7 +1707,7 @@ export class RestClient extends Client {
   async fetchOauth2ApplicationAssets(
     applicationId: string,
   ): Promise<BaseCollection<string, Oauth2ApplicationAsset>> {
-    const data = await super.fetchOauth2ApplicationAssets(applicationId);
+    const data = await this.raw.fetchOauth2ApplicationAssets(applicationId);
 
     const collection = new BaseCollection<string, Oauth2ApplicationAsset>();
     for (let raw of data) {
@@ -970,10 +1718,38 @@ export class RestClient extends Client {
     return collection;
   }
 
+  fetchOauth2ApplicationWhitelist(
+    applicationId: string,
+  ) {
+    return this.raw.fetchOauth2ApplicationWhitelist(applicationId);
+  }
+
+  fetchOauth2Authorize(
+    options: RequestTypes.FetchOauth2Authorize = {},
+  ) {
+    return this.raw.fetchOauth2Authorize(options);
+  }
+
+  fetchOauth2AuthorizeWebhookChannels(
+    guildId: string,
+  ) {
+    return this.raw.fetchOauth2AuthorizeWebhookChannels(guildId);
+  }
+
+  fetchOauth2Tokens() {
+    return this.raw.fetchOauth2Tokens();
+  }
+
+  fetchOauth2Token(
+    tokenId: string,
+  ) {
+    return this.raw.fetchOauth2Token(tokenId);
+  }
+
   async fetchPinnedMessages(
     channelId: string,
   ): Promise<BaseCollection<string, Message>> {
-    const data = await super.fetchPinnedMessages(channelId);
+    const data = await this.raw.fetchPinnedMessages(channelId);
 
     let guildId: null | string = null;
     if (data.length) {
@@ -999,27 +1775,13 @@ export class RestClient extends Client {
     return collection;
   }
 
-  async fetchStoreApplicationAssets(
-    applicationId: string,
-  ): Promise<BaseCollection<string, StoreApplicationAsset>> {
-    const data = await super.fetchStoreApplicationAssets(applicationId);
-
-    const collection = new BaseCollection<string, StoreApplicationAsset>();
-    for (let raw of data) {
-      raw.application_id = applicationId;
-      const asset = new StoreApplicationAsset(this.client, raw);
-      collection.set(asset.id, asset);
-    }
-    return collection;
-  }
-
   async fetchReactions(
     channelId: string,
     messageId: string,
     emoji: string,
     options: RequestTypes.FetchReactions = {},
   ): Promise<BaseCollection<string, User>> {
-    const data = await super.fetchReactions(channelId, messageId, emoji, options);
+    const data = await this.raw.fetchReactions(channelId, messageId, emoji, options);
     const collection = new BaseCollection<string, User>();
     for (let raw of data) {
       let user: User;
@@ -1034,13 +1796,69 @@ export class RestClient extends Client {
     return collection;
   }
 
-  async fetchTeam(teamId: string): Promise<Team> {
-    const data = await super.fetchTeam(teamId);
+  async fetchStoreApplicationAssets(
+    applicationId: string,
+  ): Promise<BaseCollection<string, StoreApplicationAsset>> {
+    const data = await this.raw.fetchStoreApplicationAssets(applicationId);
+
+    const collection = new BaseCollection<string, StoreApplicationAsset>();
+    for (let raw of data) {
+      raw.application_id = applicationId;
+      const asset = new StoreApplicationAsset(this.client, raw);
+      collection.set(asset.id, asset);
+    }
+    return collection;
+  }
+
+  fetchStorePublishedListingsSkus(
+    applicationId: string,
+  ) {
+    return this.raw.fetchStorePublishedListingsSkus(applicationId);
+  }
+
+  fetchStorePublishedListingsSku(
+    skuId: string,
+  ) {
+    return this.raw.fetchStorePublishedListingsSku(skuId);
+  }
+
+  fetchStorePublishedListingsSkuSubscriptionPlans(
+    skuId: string,
+  ) {
+    return this.raw.fetchStorePublishedListingsSkuSubscriptionPlans(skuId);
+  }
+
+  fetchStreamPreview(
+    streamKey: string,
+  ) {
+    return this.raw.fetchStreamPreview(streamKey);
+  }
+
+  async fetchTeams(): Promise<BaseCollection<string, Team>> {
+    const data = await this.raw.fetchTeams();
+    const collection = new BaseCollection<string, Team>();
+    for (let raw of data) {
+      const team = new Team(this.client, data);
+      collection.set(team.id, team);
+    }
+    return collection;
+  }
+
+  async fetchTeam(
+    teamId: string,
+  ): Promise<Team> {
+    const data = await this.raw.fetchTeam(teamId);
     return new Team(this.client, data);
   }
 
+  fetchTeamApplications(
+    teamId: string,
+  ) {
+    return this.raw.fetchTeamApplications(teamId);
+  }
+
   async fetchTeamMembers(teamId: string): Promise<BaseCollection<string, TeamMember>> {
-    const data: Array<any> = await super.fetchTeamMembers(teamId);
+    const data: Array<any> = await this.raw.fetchTeamMembers(teamId);
     const collection = new BaseCollection<string, TeamMember>();
     for (let raw of data) {
       collection.set(raw.user.id, new TeamMember(this.client, raw));
@@ -1049,19 +1867,26 @@ export class RestClient extends Client {
   }
 
   async fetchTeamMember(teamId: string, userId: string): Promise<TeamMember> {
-    const data = await super.fetchTeamMember(teamId, userId);
+    const data = await this.raw.fetchTeamMember(teamId, userId);
     return new TeamMember(this.client, data);
   }
 
+  fetchTeamPayouts(
+    teamId: string,
+    options: RequestTypes.FetchTeamPayouts = {},
+  ) {
+    return this.raw.fetchTeamPayouts(teamId, options);
+  }
+
   async fetchTemplate(templateId: string): Promise<Template> {
-    const data = await super.fetchTemplate(templateId);
+    const data = await this.raw.fetchTemplate(templateId);
     return new Template(this.client, data);
   }
 
   async fetchUser(
     userId: string,
   ): Promise<User> {
-    const data = await super.fetchUser(userId);
+    const data = await this.raw.fetchUser(userId);
     let user: User;
     if (this.client.users.has(data.id)) {
       user = <User> this.client.users.get(data.id);
@@ -1072,15 +1897,46 @@ export class RestClient extends Client {
     return user;
   }
 
+  fetchUserActivityMetadata(
+    userId: string,
+    sessionId: string,
+    activityId: string,
+  ) {
+    return this.raw.fetchUserActivityMetadata(userId, sessionId, activityId);
+  }
+
+  async fetchUserChannels(
+    userId: string,
+  ): Promise<BaseCollection<string, Channel>> {
+    const data = await this.raw.fetchUserChannels(userId);
+    const collection = new BaseCollection<string, Channel>();
+
+    for (let raw of data) {
+      let channel: Channel;
+      if (this.client.channels.has(raw.id)) {
+        channel = <Channel> this.client.channels.get(raw.id);
+        channel.merge(raw);
+      } else {
+        channel = createChannelFromData(this.client, raw);
+      }
+      collection.set(channel.id, channel);
+    }
+    return collection;
+  }
+
   async fetchUserProfile(userId: string): Promise<Profile> {
-    const data = await super.fetchUserProfile(userId);
+    const data = await this.raw.fetchUserProfile(userId);
     return new Profile(this.client, data);
+  }
+
+  fetchVoiceIce() {
+    return this.raw.fetchVoiceIce();
   }
 
   async fetchVoiceRegions(
     guildId?: string,
   ): Promise<BaseCollection<string, VoiceRegion>> {
-    const data = await super.fetchVoiceRegions(guildId);
+    const data = await this.raw.fetchVoiceRegions(guildId);
     const regions = new BaseCollection<string, VoiceRegion>();
     for (let raw of data) {
       const region = new VoiceRegion(this.client, raw);
@@ -1092,7 +1948,7 @@ export class RestClient extends Client {
   async fetchWebhook(
     webhookId: string,
   ): Promise<Webhook> {
-    const data = await super.fetchWebhook(webhookId);
+    const data = await this.raw.fetchWebhook(webhookId);
     return new Webhook(this.client, data);
   }
 
@@ -1100,7 +1956,288 @@ export class RestClient extends Client {
     webhookId: string,
     token: string,
   ): Promise<Webhook> {
-    const data = await super.fetchWebhookToken(webhookId, token);
+    const data = await this.raw.fetchWebhookToken(webhookId, token);
     return new Webhook(this.client, data);
+  }
+
+  forgotPassword(
+    options: RequestTypes.ForgotPassword,
+  ) {
+    return this.raw.forgotPassword(options);
+  }
+
+  integrationJoin(
+    integrationId: string,
+  ) {
+    return this.raw.integrationJoin(integrationId);
+  }
+
+  joinGuild(
+    guildId: string,
+    options: RequestTypes.JoinGuild = {},
+  ) {
+    return this.raw.joinGuild(guildId, options);
+  }
+
+  leaveGuild(
+    guildId: string,
+  ) {
+    return this.raw.leaveGuild(guildId);
+  }
+
+  login(
+    options: RequestTypes.Login,
+  ) {
+    return this.raw.login(options);
+  }
+
+  loginMfaSms(
+    options: RequestTypes.LoginMfaSms,
+  ) {
+    return this.raw.loginMfaSms(options);
+  }
+
+  loginMfaSmsSend(
+    options: RequestTypes.LoginMfaSmsSend,
+  ) {
+    return this.raw.loginMfaSmsSend(options);
+  }
+
+  loginMfaTotp(
+    options: RequestTypes.LoginMfaTotp,
+  ) {
+    return this.raw.loginMfaTotp(options);
+  }
+
+  logout(
+    options: RequestTypes.Logout = {},
+  ) {
+    return this.raw.logout(options);
+  }
+
+  messageSuppressEmbeds(
+    channelId: string,
+    messageId: string,
+    options: RequestTypes.MessageSuppressEmbeds = {},
+  ) {
+    return this.raw.messageSuppressEmbeds(channelId, messageId, options);
+  }
+
+  oauth2Authorize(
+    options: RequestTypes.Oauth2Authorize = {},
+  ) {
+    return this.raw.oauth2Authorize(options);
+  }
+
+  redeemGiftCode(
+    code: string,
+    options: RequestTypes.RedeemGiftCode = {},
+  ) {
+    return this.raw.redeemGiftCode(code, options);
+  }
+
+  register(
+    options: RequestTypes.Register,
+  ) {
+    return this.raw.register(options);
+  }
+
+  removeGuildBan(
+    guildId: string,
+    userId: string,
+    options: RequestTypes.RemoveGuildBan = {},
+  ) {
+    return this.raw.removeGuildBan(guildId, userId, options);
+  }
+
+  removeGuildMember(
+    guildId: string,
+    userId: string,
+    options: RequestTypes.RemoveGuildMember = {},
+  ) {
+    return this.raw.removeGuildMember(guildId, userId, options);
+  }
+
+  removeGuildMemberRole(
+    guildId: string,
+    userId: string,
+    roleId: string,
+    options: RequestTypes.RemoveGuildMemberRole = {},
+  ) {
+    return this.raw.removeGuildMemberRole(guildId, userId, roleId, options);
+  }
+
+  removeMention(
+    messageId: string,
+  ) {
+    return this.raw.removeMention(messageId);
+  }
+
+  removeOauth2ApplicationWhitelistUser(
+    applicationId: string,
+    userId: string,
+  ) {
+    return this.raw.removeOauth2ApplicationWhitelistUser(applicationId, userId);
+  }
+
+  removeRecipient(
+    channelId: string,
+    userId: string,
+  ) {
+    return this.raw.removeRecipient(channelId, userId);
+  }
+
+  removeTeamMember(
+    teamId: string,
+    userId: string,
+  ) {
+    return this.raw.removeTeamMember(teamId, userId);
+  }
+
+  resetOauth2Application(
+    applicationId: string,
+  ) {
+    return this.raw.resetOauth2Application(applicationId);
+  }
+
+  resetOauth2ApplicationBot(
+    applicationId: string,
+  ) {
+    return this.raw.resetOauth2ApplicationBot(applicationId);
+  }
+
+  resetPassword(
+    options: RequestTypes.ResetPassword,
+  ) {
+    return this.raw.resetPassword(options);
+  }
+
+  resetPasswordMfa(
+    options: RequestTypes.ResetPasswordMfa,
+  ) {
+    return this.raw.resetPasswordMfa(options);
+  }
+
+  search(
+    searchType: 'channel' | 'guild',
+    searchId: string,
+    options: RequestTypes.SearchOptions = {},
+    retry: boolean = true,
+    retryNumber: number = 0,
+  ) {
+    return this.raw.search(searchType, searchId, options, retry, retryNumber);
+  }
+
+  searchChannel(
+    channelId: string,
+    options: RequestTypes.SearchOptions = {},
+    retry: boolean = true,
+    retryNumber: number = 0,
+  ) {
+    return this.raw.searchChannel(channelId, options, retry, retryNumber);
+  }
+
+  searchGuild(
+    guildId: string,
+    options: RequestTypes.SearchOptions = {},
+    retry: boolean = true,
+    retryNumber: number = 0,
+  ) {
+    return this.raw.searchGuild(guildId, options, retry, retryNumber);
+  }
+
+  searchLobbies(
+    applicationId: string,
+    options: RequestTypes.SearchLobbies = {},
+  ) {
+    return this.raw.searchLobbies(applicationId, options);
+  }
+
+  sendDownloadText(
+    number: string,
+  ) {
+    return this.raw.sendDownloadText(number);
+  }
+
+  sendFriendRequest(
+    options: RequestTypes.SendFriendRequest,
+  ) {
+    return this.raw.sendFriendRequest(options);
+  }
+
+  sendLobbyData(
+    lobbyId: string,
+    data: string,
+  ) {
+    return this.raw.sendLobbyData(lobbyId, data);
+  }
+
+  startChannelCallRinging(
+    channelId: string,
+    options: RequestTypes.StartChannelCallRinging = {},
+  ) {
+    return this.raw.startChannelCallRinging(channelId, options);
+  }
+
+  stopChannelCallRinging(
+    channelId: string,
+    options: RequestTypes.StopChannelCallRinging = {},
+  ) {
+    return this.raw.stopChannelCallRinging(channelId, options);
+  }
+
+  submitConnectionPinCode(
+    platform: string,
+    pin: string,
+  ) {
+    return this.raw.submitConnectionPinCode(platform, pin);
+  }
+
+  submitOauth2ApplicationApproval(
+    applicationId: string,
+  ) {
+    return this.raw.submitOauth2ApplicationApproval(applicationId);
+  }
+
+  syncGuildIntegration(
+    guildId: string,
+    integrationId: string,
+  ) {
+    return this.raw.syncGuildIntegration(guildId, integrationId);
+  }
+
+  transferOauth2Application(
+    applicationId: string,
+    options: RequestTypes.TransferOauth2Application,
+  ) {
+    return this.raw.transferOauth2Application(applicationId, options);
+  }
+
+  triggerTyping(
+    channelId: string,
+  ) {
+    return this.raw.triggerTyping(channelId);
+  }
+
+  unAckChannel(
+    channelId: string,
+  ) {
+    return this.raw.unAckChannel(channelId);
+  }
+
+  verify(
+    options: RequestTypes.Verify,
+  ) {
+    return this.raw.verify(options);
+  }
+
+  verifyCaptcha(
+    options: RequestTypes.VerifyCaptcha,
+  ) {
+    return this.raw.verifyCaptcha(options);
+  }
+
+  verifyResend() {
+    return this.raw.verifyResend();
   }
 }

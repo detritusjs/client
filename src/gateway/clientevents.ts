@@ -221,6 +221,8 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildMembersChunk {
+    chunkCount: number,
+    chunkIndex: number,
     guild: Guild | null,
     guildId: string,
     members: BaseCollection<string, Member> | null,

@@ -97,10 +97,10 @@ export class CommandClient extends EventSpewer {
     options: CommandClientOptions = {},
   ) {
     super();
-    options = Object.assign({}, options);
+    options = Object.assign({useClusterClient: true}, options);
 
     if (process.env.CLUSTER_MANAGER === 'true') {
-      token = <string> process.env.CLUSTER_TOKEN;
+      token = process.env.CLUSTER_TOKEN as string;
       options.useClusterClient = true;
     }
 
@@ -258,7 +258,10 @@ export class CommandClient extends EventSpewer {
     return this;
   }
 
-  async addMultipleIn(directory: string, options: {isAbsolute?: boolean, subdirectories?: boolean} = {}): Promise<CommandClient> {
+  async addMultipleIn(
+    directory: string,
+    options: {isAbsolute?: boolean, subdirectories?: boolean} = {},
+  ): Promise<CommandClient> {
     options = Object.assign({}, options);
     if (!options.isAbsolute) {
       if (require.main) {
@@ -282,12 +285,15 @@ export class CommandClient extends EventSpewer {
         }
 
         const addCommand = (imported: any): void => {
+          if (!imported) {
+            return;
+          }
           if (typeof(imported) === 'function') {
             this.add({_file: filepath, _class: imported, name: ''});
           } else if (imported instanceof Command) {
             Object.defineProperty(imported, '_file', {value: filepath});
             this.add(imported);
-          } else if (typeof(imported) === 'object') {
+          } else if (typeof(imported) === 'object' && Object.keys(imported).length) {
             if (Array.isArray(imported)) {
               for (let child of imported) {
                 addCommand(child);
