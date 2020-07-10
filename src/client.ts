@@ -1,3 +1,5 @@
+import * as Crypto from 'crypto';
+
 import { ClientOptions as RestOptions, Endpoints } from 'detritus-client-rest';
 import { Gateway } from 'detritus-client-socket';
 import { EventSpewer, Snowflake, Timers } from 'detritus-utils';
@@ -11,7 +13,7 @@ import {
   ImageFormats,
   IMAGE_FORMATS,
 } from './constants';
-import { GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
+import { ChunkWaiting, GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { RestClient } from './rest';
 
@@ -393,11 +395,10 @@ export class ShardClient extends EventSpewer {
     notFound: BaseSet<string>,
     presences: BaseCollection<string, Presence>,
   }> {
-    const nonce = Snowflake.generate().id;
     const options = Object.assign({
       limit: 0,
       timeout: 1500,
-    }, oldOptions, {nonce}) as {
+    }, oldOptions) as {
       limit: number,
       nonce: string,
       presences?: boolean,
@@ -405,28 +406,59 @@ export class ShardClient extends EventSpewer {
       timeout: number,
       userIds?: Array<string>,
     };
+    let key = `${guildId}:${options.limit}:${options.query}:${options.presences}`;
+    if (options.userIds && options.userIds.length) {
+      if (options.userIds.length <= 10) {
+        key += `:${options.userIds.join('.')}`;
+      } else {
+        key += `:amount.${options.userIds.length}`;
+      }
+    }
+    const nonce = options.nonce = Crypto.createHash('md5').update(key).digest('hex');
+    let cache: ChunkWaiting;
+    if (this.gatewayHandler._chunksWaiting.has(nonce)) {
+      cache = this.gatewayHandler._chunksWaiting.get(nonce) as ChunkWaiting;
+    } else {
+      const promise: any = {};
+      promise.wait = new Promise((res, rej) => {
+        promise.resolve = res;
+        promise.reject = rej;
+      });
+      cache = {
+        members: new BaseCollection<string, Member>(),
+        notFound: new BaseSet<string>(),
+        presences: new BaseCollection<string, Presence>(),
+        promise,
+        waiting: 0,
+      };
+      this.gatewayHandler._chunksWaiting.set(nonce, cache);
+      this.gateway.requestGuildMembers(guildId, options);
+    }
+    cache.waiting++;
 
     const timeout = new Timers.Timeout();
-    const members = new BaseCollection<string, Member>();
-    const notFound = new BaseSet<string>();
-    const presences = new BaseCollection<string, Presence>();
     return new Promise((resolve, reject) => {
-      this.gatewayHandler._chunksWaiting.set(nonce, {members, notFound, presences, reject, resolve});
-      this.gateway.requestGuildMembers(guildId, options);
-  
+      cache.promise.wait.then(resolve).catch(reject);
       timeout.start(options.timeout, () => {
         reject(new Error(`Guild chunking took longer than ${options.timeout}ms.`));
-        this.gatewayHandler._chunksWaiting.delete(nonce);
-      })
+        cache.waiting--;
+        if (cache.waiting <= 0) {
+          this.gatewayHandler._chunksWaiting.delete(nonce);
+        }
+      });
     }).then(() => {
+      timeout.stop();
       this.gatewayHandler._chunksWaiting.delete(nonce);
-      return {members, nonce, notFound, presences};
+      return {
+        members: cache.members,
+        nonce,
+        notFound: cache.notFound,
+        presences: cache.presences,
+      };
     });
   }
 
   reset(): void {
-    this.owners.clear();
-
     this.applications.clear();
     this.channels.clear();
     this.connectedAccounts.clear();

@@ -42,19 +42,21 @@ export interface GatewayHandlerOptions {
   whitelistedEvents?: Array<string>,
 }
 
+export interface ChunkWaiting {
+  members: BaseCollection<string, Member>,
+  notFound: BaseSet<string>,
+  presences: BaseCollection<string, Presence>,
+  promise: {reject: Function, resolve: Function, wait: Promise<unknown>},
+  waiting: number,
+}
+
 /**
  * Gateway Handler
  * @category Handler
  */
 export class GatewayHandler {
   readonly client: ShardClient;
-  readonly _chunksWaiting = new BaseCollection<string, {
-    members: BaseCollection<string, Member>,
-    notFound: BaseSet<string>,
-    presences: BaseCollection<string, Presence>,
-    reject: Function,
-    resolve: Function,
-  }>();
+  readonly _chunksWaiting = new BaseCollection<string, ChunkWaiting>();
 
   disabledEvents: BaseSet<string>;
   dispatchHandler: GatewayDispatchHandler;
@@ -145,7 +147,7 @@ export class GatewayDispatchHandler {
     this.client.reset();
 
     for (let [nonce, cache] of this.handler._chunksWaiting) {
-      cache.reject(new Error('Gateway re-identified before a result came.'));
+      cache.promise.reject(new Error('Gateway re-identified before a result came.'));
     }
     this.handler._chunksWaiting.clear();
 
@@ -919,7 +921,7 @@ export class GatewayDispatchHandler {
     }
 
     if (cache && chunkIndex + 1 === chunkCount) {
-      cache.resolve();
+      cache.promise.resolve();
     }
 
     const payload: GatewayClientEvents.GuildMembersChunk = {
