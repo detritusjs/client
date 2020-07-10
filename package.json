@@ -4,7 +4,7 @@
     "url": "https://github.com/detritusjs/client/issues"
   },
   "dependencies": {
-    "detritus-client-rest": "^0.8.0-beta.8",
+    "detritus-client-rest": "^0.8.0-beta.9",
     "detritus-client-socket": "^0.6.0-beta.2",
     "detritus-utils": "^0.2.6"
   },
