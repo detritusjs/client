@@ -114,7 +114,7 @@ export class Argument {
         names.push((prefix) ? prefix + alias : alias);
       }
     }
-    return names;
+    return names.sort((x, y) => y.length - x.length);
   }
 
   get type(): ArgumentType {
