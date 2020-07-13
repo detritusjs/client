@@ -135,10 +135,12 @@ export class Argument {
     }
 
     this._type = (value || this.type);
-    switch (this.type) {
-      case CommandArgumentTypes.BOOL: {
-        this.default = !!this.default;
-      }; break;
+    if (typeof(this.default) !== 'function') {
+      switch (this.type) {
+        case CommandArgumentTypes.BOOL: {
+          this.default = !!this.default;
+        }; break;
+      }
     }
   }
 
@@ -211,7 +213,7 @@ export class Argument {
   }
 
   async parse(value: string, context: Context): Promise<any> {
-    let parsedValue: any = value || this.default;
+    let parsedValue: any;
     if (typeof(this.type) === 'function') {
       parsedValue = await Promise.resolve(this.type(value, context));
     } else {
@@ -224,6 +226,12 @@ export class Argument {
         }; break;
         case CommandArgumentTypes.NUMBER: {
           parsedValue = parseInt(value);
+        }; break;
+        case CommandArgumentTypes.STRING: {
+          parsedValue = value || this.default || value;
+        }; break;
+        default: {
+          parsedValue = value || this.default;
         }; break;
       }
     }

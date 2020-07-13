@@ -315,14 +315,14 @@ export class Message extends BaseStructure {
     const guildSpecific = !!(options.guildSpecific || options.guildSpecific === undefined);
     const nick = !!(options.nick || options.nick === undefined);
 
-    let content = options.text || this.systemContent;
+    let content = (options.text !== undefined) ? options.text : this.systemContent;
     content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_CHANNEL], (match, id) => {
       if (this.mentionChannels.has(id)) {
-        const channel = <Channel> this.mentionChannels.get(id);
+        const channel = this.mentionChannels.get(id) as Channel;
         return channel.toString();
       } else {
         if (this.client.channels.has(id)) {
-          const channel = <Channel> this.client.channels.get(id);
+          const channel = this.client.channels.get(id) as Channel;
           if (guildSpecific && this.guildId) {
             if (this.guildId === channel.guildId) {
               return channel.toString();
@@ -346,7 +346,7 @@ export class Message extends BaseStructure {
 
     content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_USER], (match, mentionType, id) => {
       if (this.mentions.has(id)) {
-        const memberOrUser = <Member | User> this.mentions.get(id);
+        const memberOrUser = this.mentions.get(id) as Member | User;
         if (nick) {
           return `@${memberOrUser.name}`;
         }
@@ -354,7 +354,7 @@ export class Message extends BaseStructure {
       } else {
         if (guildSpecific && this.guildId) {
           if (this.client.members.has(this.guildId, id)) {
-            const member = <Member> this.client.members.get(this.guildId, id);
+            const member = this.client.members.get(this.guildId, id) as Member;
             if (nick) {
               return `@${member.name}`;
             }
@@ -362,7 +362,7 @@ export class Message extends BaseStructure {
           }
         } else {
           if (this.client.users.has(id)) {
-            const user = <User> this.client.users.get(id);
+            const user = this.client.users.get(id) as User;
             return `@${user}`;
           }
         }

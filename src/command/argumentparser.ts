@@ -46,6 +46,7 @@ export class ArgumentParser {
     const errors: ParsedErrors = {};
     for (const {arg, info} of args) {
       const value = attributes.content.slice(info.index + info.name.length);
+      // incase something like `.command -argSOMEVALUE` happens, we the arg
       if (value && !value.startsWith(' ')) {
         continue;
       }
@@ -61,25 +62,19 @@ export class ArgumentParser {
     for (let arg of this.args) {
       if (!(arg.label in parsed)) {
         let value: any;
-        if (typeof(arg.default) === 'function') {
-          try {
+        try {
+          if (typeof(arg.default) === 'function') {
             value = await Promise.resolve(arg.default(context));
-          } catch(error) {
-            errors[arg.label] = error;
-            continue;
+          } else {
+            value = arg.default;
           }
-        } else {
-          value = arg.default;
-        }
 
-        if (typeof(value) === 'string') {
-          try {
-            parsed[arg.label] = await arg.parse(value, context);
-          } catch(error) {
-            errors[arg.label] = error;
+          if (typeof(value) === 'string') {
+            value = await arg.parse(value, context);
           }
-        } else {
           parsed[arg.label] = value;
+        } catch(error) {
+          errors[arg.label] = error;
         }
       }
     }
