@@ -182,7 +182,7 @@ export class Message extends BaseStructure {
     return this.editedTimestamp;
   }
 
-  get editedAtUnix(): null | number {
+  get editedAtUnix(): number {
     return this.editedTimestampUnix;
   }
 

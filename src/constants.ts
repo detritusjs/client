@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.11.0-beta.10',
+  VERSION: '0.11.0-beta.11',
 });
 
 export type Snowflake = number | string;
@@ -356,24 +356,28 @@ export enum DiscordOpusFormat {
   SAMPLE_RATE = 48000,
 };
 
-export const DiscordRegexNames = Tools.normalize({
-  EMOJI: null,
-  MENTION_CHANNEL: null,
-  MENTION_ROLE: null,
-  MENTION_USER: null,
-  TEXT_BOLD: null,
-  TEXT_CODEBLOCK: null,
-  TEXT_CODESTRING: null,
-  TEXT_ITALICS: null,
-  TEXT_SNOWFLAKE: null,
-  TEXT_SPOILER: null,
-  TEXT_STRIKE: null,
-  TEXT_UNDERLINE: null,
-  TEXT_URL: null,
-});
+export enum DiscordRegexNames {
+  EMOJI = 'EMOJI',
+  JUMP_CHANNEL = 'JUMP_CHANNEL',
+  JUMP_CHANNEL_MESSAGE = 'JUMP_CHANNEL_MESSAGE',
+  MENTION_CHANNEL = 'MENTION_CHANNEL',
+  MENTION_ROLE = 'MENTION_ROLE',
+  MENTION_USER = 'MENTION_USER',
+  TEXT_BOLD = 'TEXT_BOLD',
+  TEXT_CODEBLOCK = 'TEXT_CODEBLOCK',
+  TEXT_CODESTRING = 'TEXT_CODESTRING',
+  TEXT_ITALICS = 'TEXT_ITALICS',
+  TEXT_SNOWFLAKE = 'TEXT_SNOWFLAKE',
+  TEXT_SPOILER = 'TEXT_SPOILER',
+  TEXT_STRIKE = 'TEXT_STRIKE',
+  TEXT_UNDERLINE = 'TEXT_UNDERLINE',
+  TEXT_URL = 'TEXT_URL',
+}
 
 export const DiscordRegex = Object.freeze({
   [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/g,
+  [DiscordRegexNames.JUMP_CHANNEL]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)$/g,
+  [DiscordRegexNames.JUMP_CHANNEL_MESSAGE]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)\/(\d+)$/g,
   [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/g,
   [DiscordRegexNames.MENTION_ROLE]: /<@&(\d+)>/g,
   [DiscordRegexNames.MENTION_USER]: /<@(!?)(\d+)>/g,

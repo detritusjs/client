@@ -1332,9 +1332,12 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_UPDATE](data: GatewayRawEvents.MessageUpdate) {
+    let channelId = data['channel_id'];
     let differences: any = null;
+    let guildId = data['guild_id'];
     let isEmbedUpdate: boolean = false;
     let message: Message | null = null;
+    let messageId = data['id'];
 
     if (!data['author']) {
       isEmbedUpdate = true;
@@ -1349,15 +1352,19 @@ export class GatewayDispatchHandler {
     } else {
       if (data['author']) {
         // else it's an embed update and we dont have it in cache
+        // only embed updates we cannot create a message object
         message = new Message(this.client, data);
         this.client.messages.insert(message);
       }
     }
 
     const payload: GatewayClientEvents.MessageUpdate = {
+      channelId,
       differences,
+      guildId,
       isEmbedUpdate,
       message,
+      messageId,
       raw: data,
     };
     this.client.emit(ClientEvents.MESSAGE_UPDATE, payload);

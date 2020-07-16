@@ -82,6 +82,7 @@ export interface CommandOptions extends ArgumentOptions {
   name: string,
   permissions?: Array<Permissions>,
   permissionsClient?: Array<Permissions>,
+  permissionsIgnoreClientOwner?: boolean,
   priority?: number,
   ratelimit?: boolean | CommandRatelimitOptions | null,
   ratelimits?: Array<CommandRatelimitOptions>,
@@ -104,6 +105,7 @@ export interface CommandOptions extends ArgumentOptions {
 
 /**
  * Command itself
+ * Command flow is ratelimit check -> permission check -> `onBefore` -> arg parse -> `onBeforeRun` -> `run` -> `onSuccess | onRunError`
  * @category Command
  */
 export class Command<ParsedArgsFinished = ParsedArgs> {
@@ -117,6 +119,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   metadata: {[key: string]: any} = {};
   permissions?: Array<Permissions>;
   permissionsClient?: Array<Permissions>;
+  permissionsIgnoreClientOwner?: boolean = false;
   priority: number = 0;
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
@@ -147,6 +150,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.metadata = Object.assign(this.metadata, options.metadata);
     this.permissions = options.permissions;
     this.permissionsClient = options.permissionsClient;
+    this.permissionsIgnoreClientOwner = !!options.permissionsIgnoreClientOwner;
     this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;
 

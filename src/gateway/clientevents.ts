@@ -81,7 +81,7 @@ export namespace GatewayClientEvents {
   export interface CallUpdate {
     call: VoiceCall,
     channelId: string,
-    differences: any | null,
+    differences: {[key: string]: any} | null,
   }
 
   export interface ChannelCreate {
@@ -105,7 +105,7 @@ export namespace GatewayClientEvents {
 
   export interface ChannelUpdate {
     channel: Channel,
-    differences: any | null,
+    differences: {[key: string]: any} | null,
   }
 
   export interface ChannelRecipientAdd {
@@ -214,7 +214,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildMemberUpdate {
-    differences: any | null,
+    differences: {[key: string]: any} | null,
     guildId: string,
     member: Member,
     userId: string,
@@ -249,14 +249,14 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildRoleUpdate {
-    differences: any | null,
+    differences: {[key: string]: any} | null,
     guild: Guild | null,
     guildId: string,
     role: Role,
   }
 
   export interface GuildUpdate {
-    differences: any | null,
+    differences: {[key: string]: any} | null,
     guild: Guild,
   }
 
@@ -374,9 +374,12 @@ export namespace GatewayClientEvents {
   }
 
   export interface MessageUpdate {
-    differences: any | null,
+    channelId: string,
+    differences: {[key: string]: any} | null,
+    guildId: string | undefined,
     isEmbedUpdate: boolean,
     message: Message | null,
+    messageId: string,
     raw: GatewayRawEvents.MessageUpdate,
   }
 
@@ -385,7 +388,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface PresenceUpdate {
-    differences: any | null,
+    differences: {[key: string]: any} | null,
     guildId: string | null,
     isGuildPresence: boolean,
     member: Member | null,
@@ -402,7 +405,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface RelationshipAdd {
-    differences: any | null,
+    differences: {[key: string]: any} | null,
     relationship: Relationship,
     userId: string,
   }
@@ -491,12 +494,12 @@ export namespace GatewayClientEvents {
   }
 
   export interface UserUpdate {
-    differences: any | null,
+    differences: {[key: string]: any} | null,
     user: UserMe,
   }
 
   export interface UsersUpdate {
-    differences: any | null,
+    differences: {[key: string]: any} | null,
     from: ClientEvents,
     user: User,
   }
@@ -509,7 +512,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface VoiceStateUpdate {
-    differences: any | null,
+    differences: {[key: string]: any} | null,
     leftChannel: boolean,
     voiceState: VoiceState,
   }

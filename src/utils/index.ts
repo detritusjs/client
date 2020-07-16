@@ -198,10 +198,13 @@ export function intToRGB(int: number): {
 
 export interface DiscordRegexMatch {
   animated?: boolean,
+  channelId?: string,
+  guildId?: string,
   id?: string,
   language?: string,
   matched: string,
   mentionType?: string,
+  messageId?: string,
   name?: string,
   text?: string,
 }
@@ -236,21 +239,30 @@ export function regex(
     const result: DiscordRegexMatch = {matched: match[0]};
     switch (type) {
       case DiscordRegexNames.EMOJI: {
-        result.name = <string> match[1];
-        result.id = <string> match[2];
+        result.name = match[1] as string;
+        result.id = match[2] as string;
         result.animated = content.startsWith('<a:');
+      }; break;
+      case DiscordRegexNames.JUMP_CHANNEL: {
+        result.guildId = match[1] as string;
+        result.channelId = match[2] as string;
+      }; break;
+      case DiscordRegexNames.JUMP_CHANNEL_MESSAGE: {
+        result.guildId = match[1] as string;
+        result.channelId = match[2] as string;
+        result.messageId = match[3] as string;
       }; break;
       case DiscordRegexNames.MENTION_CHANNEL:
       case DiscordRegexNames.MENTION_ROLE: {
-        result.id = <string> match[1];
+        result.id = match[1] as string;
       }; break;
       case DiscordRegexNames.MENTION_USER: {
-        result.id = <string> match[2];
-        result.mentionType = <string> match[1];
+        result.id = match[2] as string;
+        result.mentionType = match[1] as string;
       }; break;
       case DiscordRegexNames.TEXT_CODEBLOCK: {
-        result.language = <string> match[2];
-        result.text = <string> match[3];
+        result.language = match[2] as string;
+        result.text = match[3] as string;
       }; break;
       case DiscordRegexNames.TEXT_BOLD:
       case DiscordRegexNames.TEXT_CODESTRING:
@@ -260,7 +272,7 @@ export function regex(
       case DiscordRegexNames.TEXT_STRIKE:
       case DiscordRegexNames.TEXT_UNDERLINE:
       case DiscordRegexNames.TEXT_URL: {
-        result.text = <string> match[1];
+        result.text = match[1] as string;
       }; break;
       default: {
         throw new Error(`Unknown regex type: ${type}`);
