@@ -110,7 +110,7 @@ export function getExceededRatelimits(
       };
     }
 
-    const item = <CommandRatelimitItem> ratelimit.get(cacheId);
+    const item = ratelimit.get(cacheId) as CommandRatelimitItem;
     if (ratelimit.limit <= item.usages++) {
       const remaining = (item.start + ratelimit.duration) - now;
       exceeded.push({item, ratelimit, remaining});
@@ -223,7 +223,7 @@ export function regex(
   onlyFirst: boolean = false,
 ): DiscordRegexPayload {
   type = String(type || '').toUpperCase();
-  const regex = (<any> DiscordRegex)[type];
+  const regex = (DiscordRegex as any)[type];
   if (regex === undefined) {
     throw new Error(`Unknown regex type: ${type}`);
   }

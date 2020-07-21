@@ -87,6 +87,7 @@ export interface CommandOptions extends ArgumentOptions {
   ratelimit?: boolean | CommandRatelimitOptions | null,
   ratelimits?: Array<CommandRatelimitOptions>,
   responseOptional?: boolean,
+  triggerTypingAfter?: number,
 
   onBefore?: CommandCallbackBefore,
   onBeforeRun?: CommandCallbackBeforeRun,
@@ -123,6 +124,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   priority: number = 0;
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
+  triggerTypingAfter: number = -1;
 
   onBefore?(context: Context): Promise<boolean> | boolean;
   onBeforeRun?(context: Context, args: ParsedArgs): Promise<boolean> | boolean;
@@ -153,6 +155,10 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.permissionsIgnoreClientOwner = !!options.permissionsIgnoreClientOwner;
     this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;
+
+    if (options.triggerTypingAfter !== undefined) {
+      this.triggerTypingAfter = Math.max(options.triggerTypingAfter, this.triggerTypingAfter);
+    }
 
     if (options._file) {
       this._file = options._file;

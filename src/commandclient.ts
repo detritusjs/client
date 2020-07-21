@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import { EventSpewer, EventSubscription } from 'detritus-utils';
+import { EventSpewer, EventSubscription, Timers } from 'detritus-utils';
 
 import { ShardClient } from './client';
 import {
@@ -327,13 +327,13 @@ export class CommandClient extends EventSpewer {
     if (this.client instanceof ClusterClient) {
       for (let [shardId, shard] of this.client.shards) {
         if (shard.user != null) {
-          user = <User> shard.user;
+          user = shard.user as User;
           break;
         }
       }
     } else if (this.client instanceof ShardClient) {
       if (this.client.user != null) {
-        user = <User> this.client.user;
+        user = this.client.user as User;
       }
     }
     if (user !== null) {
@@ -405,7 +405,7 @@ export class CommandClient extends EventSpewer {
     if (typeof(this.onPrefixCheck) === 'function') {
       const prefixes = await Promise.resolve(this.onPrefixCheck(context));
       if (prefixes === this.prefixes.custom) {
-        return <BaseSet<string>> prefixes;
+        return prefixes as BaseSet<string>;
       }
 
       let sorted: Array<string>;
@@ -757,10 +757,30 @@ export class CommandClient extends EventSpewer {
         }
       }
 
+      let timeout: Timers.Timeout | null = null;
       try {
+        if (command.triggerTypingAfter !== -1) {
+          if (command.triggerTypingAfter) {
+            timeout = new Timers.Timeout();
+            timeout.start(command.triggerTypingAfter, async () => {
+              try {
+                await context.triggerTyping();
+              } catch(error) {
+                // do something maybe?
+              }
+            });
+          } else {
+            await context.triggerTyping();
+          }
+        }
+
         if (typeof(command.run) === 'function') {
           const reply = await Promise.resolve(command.run(context, args));
           this.storeReply(message.id, command, context, reply);
+        }
+
+        if (timeout) {
+          timeout.stop();
         }
 
         const payload: CommandEvents.CommandRan = {args, command, context, prefix};
@@ -769,6 +789,10 @@ export class CommandClient extends EventSpewer {
           await Promise.resolve(command.onSuccess(context, args));
         }
       } catch(error) {
+        if (timeout) {
+          timeout.stop();
+        }
+
         const payload: CommandEvents.CommandRunError = {args, command, context, error, prefix};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(command.onRunError) === 'function') {
@@ -787,11 +811,20 @@ export class CommandClient extends EventSpewer {
   async handleDelete(name: string, deletePayload: {raw: {id: string}}): Promise<void> {
     const messageId = deletePayload.raw.id;
     if (this.replies.has(messageId)) {
-      const { command, context, reply } = <CommandReply> this.replies.get(messageId);
+      const { command, context, reply } = this.replies.get(messageId) as CommandReply;
       this.replies.delete(messageId);
 
       const payload: CommandEvents.CommandDelete = {command, context, reply};
       this.emit(ClientEvents.COMMAND_DELETE, payload);
+    } else {
+      for (let [commandId, { command, context, reply }] of this.replies) {
+        if (reply.id === messageId) {
+          this.replies.delete(commandId);
+
+          const payload: CommandEvents.CommandResponseDelete = { command, context, reply };
+          this.emit(ClientEvents.COMMAND_RESPONSE_DELETE, payload);
+        }
+      }
     }
   }
 
@@ -804,6 +837,7 @@ export class CommandClient extends EventSpewer {
   on(event: 'commandPermissionsFail', listener: (payload: CommandEvents.CommandPermissionsFail) => any): this;
   on(event: 'commandRan', listener: (payload: CommandEvents.CommandRan) => any): this;
   on(event: 'commandRatelimit', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
+  on(event: 'commandResponseDelete', listener: (payload: CommandEvents.CommandResponseDelete) => any): this;
   on(event: 'commandRunError', listener: (payload: CommandEvents.CommandRunError) => any): this;
   on(event: 'killed', listener: () => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {

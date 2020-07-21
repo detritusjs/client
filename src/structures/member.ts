@@ -417,13 +417,15 @@ export class Member extends UserMixin {
     }
   }
 
-  toJSON() {
-    const data = <any> super.toJSON();
-    if (DiscordKeys.HOISTED_ROLE in data) {
-      data[DiscordKeys.HOISTED_ROLE] = this.hoistedRoleId;
-    }
-    if (DiscordKeys.ROLES in data) {
-      data[DiscordKeys.ROLES] = Array.from(data.roles.keys());
+  toJSON(withRoles?: boolean) {
+    const data = super.toJSON() as any;
+    if (!withRoles) {
+      if (DiscordKeys.HOISTED_ROLE in data) {
+        data[DiscordKeys.HOISTED_ROLE] = this.hoistedRoleId;
+      }
+      if (DiscordKeys.ROLES in data) {
+        data[DiscordKeys.ROLES] = Array.from(data.roles.keys());
+      }
     }
     return data;
   }
