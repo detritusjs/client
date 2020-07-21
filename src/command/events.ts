@@ -65,6 +65,12 @@ export namespace CommandEvents {
     prefix: string,
   }
 
+  export interface CommandResponseDelete {
+    command: Command,
+    context: Context,
+    reply: Message,
+  }
+
   export interface CommandRunError {
     args: ParsedArgs,
     command: Command,

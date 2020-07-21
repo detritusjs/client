@@ -1,6 +1,7 @@
 import { EventSpewer } from 'detritus-utils';
 
 import { ClusterClient } from '../clusterclient';
+import { BaseSet } from '../collections/baseset';
 import { ClientEvents, ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 import { GatewayClientEvents } from '../gateway/clientevents';
@@ -10,6 +11,7 @@ import { ClusterIPCTypes } from './ipctypes';
 
 
 export class ClusterProcessChild extends EventSpewer {
+  readonly _shardsIdentifying = new BaseSet<number>();
   readonly cluster: ClusterClient;
 
   clusterCount: number = 1;
@@ -26,10 +28,11 @@ export class ClusterProcessChild extends EventSpewer {
     this.cluster.on('ready', () => this.sendIPC(ClusterIPCOpCodes.READY));
     this.cluster.on('shard', ({shard}) => {
       shard.gateway.on('state', async ({state}) => {
-        const data: ClusterIPCTypes.ShardState = {
-          shardId: shard.shardId,
-          state,
-        };
+        const { shardId } = shard;
+        if (state === SocketStates.READY) {
+          this._shardsIdentifying.delete(shardId);
+        }
+        const data: ClusterIPCTypes.ShardState = {shardId, state};
         await this.sendIPCOrWarn(ClusterIPCOpCodes.SHARD_STATE, data, false);
       });
       shard.gateway.on('close', async (payload: {code: number, reason: string}) => {
@@ -40,7 +43,12 @@ export class ClusterProcessChild extends EventSpewer {
         await this.sendIPCOrWarn(ClusterIPCOpCodes.CLOSE, data, false);
       });
       shard.gateway.onIdentifyCheck = async () => {
-        await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId: shard.shardId});
+        const { shardId } = shard;
+        if (this._shardsIdentifying.has(shardId)) {
+          return true;
+        } else {
+          await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId: shard.shardId});
+        }
         return false;
       };
     });
@@ -91,6 +99,7 @@ export class ClusterProcessChild extends EventSpewer {
           const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
           const shard = this.cluster.shards.get(shardId);
           if (shard) {
+            this._shardsIdentifying.add(shardId);
             shard.gateway.identify();
           }
         }; return;

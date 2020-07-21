@@ -191,16 +191,3 @@ export class ClusterManager extends EventSpewer {
     return this;
   }
 }
-
-
-/*
-Manager.onIdentifyCheck(shardId, ratelimitKey) {
-  return true;
-}
-(async () => {
-  const shouldIdentify = await Promise.resolve(Manager.onIdentifyCheck(shardId, ratelimitKey));
-  if (shouldIdentify) {
-    await ClusterProcess.identify(shardId);
-  }
-})();
-*/

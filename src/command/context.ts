@@ -1,4 +1,5 @@
 import { RequestTypes } from 'detritus-client-rest';
+import { Timers } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
@@ -29,6 +30,7 @@ export class Context {
   command?: Command;
   metadata?: {[key: string]: any};
   prefix?: string;
+  typingTimeout?: Timers.Timeout;
 
   constructor(
     message: Message,
@@ -84,7 +86,7 @@ export class Context {
 
   get response(): Message | null {
     if (this.commandClient.replies.has(this.messageId)) {
-      const { reply } = <CommandReply> this.commandClient.replies.get(this.messageId);
+      const { reply } = this.commandClient.replies.get(this.messageId) as CommandReply;
       return reply;
     }
     return null;
@@ -268,7 +270,7 @@ export class Context {
     if (this.commandClient.replies.has(this.messageId)) {
       options = Object.assign({content: '', embed: null}, options);
 
-      const old = <CommandReply> this.commandClient.replies.get(this.messageId);
+      const old = this.commandClient.replies.get(this.messageId) as CommandReply;
       if (old.reply.hasAttachment || options.activity || options.applicationId || options.file || options.files) {
         if (options.delete || options.delete === undefined) {
           await old.reply.delete();

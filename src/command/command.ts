@@ -2,7 +2,7 @@ import { CommandAttributes, CommandClient } from '../commandclient';
 import { CommandArgumentTypes, Permissions } from '../constants';
 import { Message } from '../structures/message';
 
-import { ArgumentConverter, ArgumentOptions, Argument } from './argument';
+import {  ArgumentOptions, Argument, ArgumentDefault, ArgumentType } from './argument';
 import { ArgumentParser, ParsedArgs, ParsedErrors } from './argumentparser';
 import { Context } from './context';
 import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from './ratelimit';
@@ -82,10 +82,12 @@ export interface CommandOptions extends ArgumentOptions {
   name: string,
   permissions?: Array<Permissions>,
   permissionsClient?: Array<Permissions>,
+  permissionsIgnoreClientOwner?: boolean,
   priority?: number,
   ratelimit?: boolean | CommandRatelimitOptions | null,
   ratelimits?: Array<CommandRatelimitOptions>,
   responseOptional?: boolean,
+  triggerTypingAfter?: number,
 
   onBefore?: CommandCallbackBefore,
   onBeforeRun?: CommandCallbackBeforeRun,
@@ -104,6 +106,7 @@ export interface CommandOptions extends ArgumentOptions {
 
 /**
  * Command itself
+ * Command flow is ratelimit check -> permission check -> `onBefore` -> arg parse -> `onBeforeRun` -> `run` -> `onSuccess | onRunError`
  * @category Command
  */
 export class Command<ParsedArgsFinished = ParsedArgs> {
@@ -117,9 +120,11 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   metadata: {[key: string]: any} = {};
   permissions?: Array<Permissions>;
   permissionsClient?: Array<Permissions>;
+  permissionsIgnoreClientOwner?: boolean = false;
   priority: number = 0;
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
+  triggerTypingAfter: number = -1;
 
   onBefore?(context: Context): Promise<boolean> | boolean;
   onBeforeRun?(context: Context, args: ParsedArgs): Promise<boolean> | boolean;
@@ -147,8 +152,13 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.metadata = Object.assign(this.metadata, options.metadata);
     this.permissions = options.permissions;
     this.permissionsClient = options.permissionsClient;
+    this.permissionsIgnoreClientOwner = !!options.permissionsIgnoreClientOwner;
     this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;
+
+    if (options.triggerTypingAfter !== undefined) {
+      this.triggerTypingAfter = Math.max(options.triggerTypingAfter, this.triggerTypingAfter);
+    }
 
     if (options._file) {
       this._file = options._file;
@@ -195,6 +205,10 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.arg.aliases = value;
   }
 
+  set default(value: ArgumentDefault) {
+    this.arg.default = value;
+  }
+
   get label(): string {
     return this.arg.label;
   }
@@ -215,7 +229,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     return this.arg.names;
   }
 
-  set type(value: ArgumentConverter | Boolean | Number | String | CommandArgumentTypes) {
+  set type(value: ArgumentType) {
     this.arg.type = value;
   }
 
@@ -228,10 +242,24 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     context: Context,
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
     const {errors, parsed} = await this.args.parse(attributes, context);
+    const { arg } = this;
     try {
-      parsed[this.label] = await this.arg.parse(attributes.content, context);
+      let value: any = attributes.content.trim();
+      if (!value && arg.default !== undefined) {
+        if (typeof(arg.default) === 'function') {
+          value = await Promise.resolve(arg.default(context));
+        } else {
+          value = arg.default;
+        }
+        if (typeof(value) === 'string') {
+          value = await arg.parse(value, context);
+        }
+      } else {
+        value = await arg.parse(attributes.content, context);
+      }
+      parsed[arg.label] = value;
     } catch(error) {
-      errors[this.label] = error;
+      errors[arg.label] = error;
     }
     return {errors, parsed};
   }

@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.10.6',
+  VERSION: '0.11.0',
 });
 
 export type Snowflake = number | string;
@@ -308,6 +308,7 @@ export enum ClientEvents {
   COMMAND_PERMISSIONS_FAIL_CLIENT = 'commandPermissionsFailClient',
   COMMAND_RAN = 'commandRan',
   COMMAND_RATELIMIT = 'commandRatelimit',
+  COMMAND_RESPONSE_DELETE = 'commandResponseDelete',
   COMMAND_RUN_ERROR = 'commandRunError',
   GATEWAY_READY = 'gatewayReady',
   GATEWAY_RESUMED = 'gatewayResumed',
@@ -356,24 +357,28 @@ export enum DiscordOpusFormat {
   SAMPLE_RATE = 48000,
 };
 
-export const DiscordRegexNames = Tools.normalize({
-  EMOJI: null,
-  MENTION_CHANNEL: null,
-  MENTION_ROLE: null,
-  MENTION_USER: null,
-  TEXT_BOLD: null,
-  TEXT_CODEBLOCK: null,
-  TEXT_CODESTRING: null,
-  TEXT_ITALICS: null,
-  TEXT_SNOWFLAKE: null,
-  TEXT_SPOILER: null,
-  TEXT_STRIKE: null,
-  TEXT_UNDERLINE: null,
-  TEXT_URL: null,
-});
+export enum DiscordRegexNames {
+  EMOJI = 'EMOJI',
+  JUMP_CHANNEL = 'JUMP_CHANNEL',
+  JUMP_CHANNEL_MESSAGE = 'JUMP_CHANNEL_MESSAGE',
+  MENTION_CHANNEL = 'MENTION_CHANNEL',
+  MENTION_ROLE = 'MENTION_ROLE',
+  MENTION_USER = 'MENTION_USER',
+  TEXT_BOLD = 'TEXT_BOLD',
+  TEXT_CODEBLOCK = 'TEXT_CODEBLOCK',
+  TEXT_CODESTRING = 'TEXT_CODESTRING',
+  TEXT_ITALICS = 'TEXT_ITALICS',
+  TEXT_SNOWFLAKE = 'TEXT_SNOWFLAKE',
+  TEXT_SPOILER = 'TEXT_SPOILER',
+  TEXT_STRIKE = 'TEXT_STRIKE',
+  TEXT_UNDERLINE = 'TEXT_UNDERLINE',
+  TEXT_URL = 'TEXT_URL',
+}
 
 export const DiscordRegex = Object.freeze({
   [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/g,
+  [DiscordRegexNames.JUMP_CHANNEL]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)$/g,
+  [DiscordRegexNames.JUMP_CHANNEL_MESSAGE]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)\/(\d+)$/g,
   [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/g,
   [DiscordRegexNames.MENTION_ROLE]: /<@&(\d+)>/g,
   [DiscordRegexNames.MENTION_USER]: /<@(!?)(\d+)>/g,
@@ -1218,6 +1223,7 @@ export const DiscordKeys = Object.freeze({
   PARTY_ID: 'party_id',
   PAYOUT_ACCOUNT_STATUS: 'payout_account_status',
   PERMISSIONS: 'permissions',
+  PERMISSIONS_NEW: 'permissions_new',
   PERMISSION_OVERWRITES: 'permission_overwrites',
   PHONE: 'phone',
   PINNED: 'pinned',
@@ -1296,6 +1302,7 @@ export const DiscordKeys = Object.freeze({
   SYSTEM_CHANNEL_ID: 'system_channel_id',
   SYSTEM_REQUIREMENTS: 'system_requirements',
   TAGLINE: 'tagline',
+  TAGS: 'tags',
   TARGET: 'target',
   TARGET_ID: 'target_id',
   TARGET_USER: 'target_user',
@@ -1518,6 +1525,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PARTY_ID]: 'partyId',
   [DiscordKeys.PAYOUT_ACCOUNT_STATUS]: 'payoutAccountStatus',
   [DiscordKeys.PERMISSIONS]: 'permissions',
+  [DiscordKeys.PERMISSIONS_NEW]: 'permissionsNew',
   [DiscordKeys.PERMISSION_OVERWRITES]: 'permissionOverwrites',
   [DiscordKeys.PHONE]: 'phone',
   [DiscordKeys.PINNED]: 'pinned',
@@ -1596,6 +1604,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SYSTEM_CHANNEL_ID]: 'systemChannelId',
   [DiscordKeys.SYSTEM_REQUIREMENTS]: 'systemRequirements',
   [DiscordKeys.TAGLINE]: 'tagline',
+  [DiscordKeys.TAGS]: 'tags',
   [DiscordKeys.TARGET]: 'target',
   [DiscordKeys.TARGET_ID]: 'targetId',
   [DiscordKeys.TARGET_USER]: 'targetUser',

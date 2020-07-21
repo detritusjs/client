@@ -1,6 +1,6 @@
 import * as path from 'path';
 
-import { EventSpewer, EventSubscription } from 'detritus-utils';
+import { EventSpewer, EventSubscription, Timers } from 'detritus-utils';
 
 import { ShardClient } from './client';
 import {
@@ -10,6 +10,7 @@ import {
 } from './clusterclient';
 import { ClientEvents, Permissions } from './constants';
 import { ImportedCommandsError } from './errors';
+import { GatewayClientEvents } from './gateway/clientevents';
 import { PermissionTools, getExceededRatelimits, getFiles } from './utils';
 
 import {
@@ -34,6 +35,7 @@ export interface CommandClientOptions extends ClusterClientOptions {
   maxEditDuration?: number,
   mentionsEnabled?: boolean,
   onCommandCheck?: CommandClientCommandCheck,
+  onMessageCheck?: CommandClientMessageCheck,
   onPrefixCheck?: CommandClientPrefixCheck,
   prefix?: string,
   prefixes?: Array<string>,
@@ -44,6 +46,7 @@ export interface CommandClientOptions extends ClusterClientOptions {
 }
 
 export type CommandClientCommandCheck = (context: Context, command: Command) => boolean | Promise<boolean>;
+export type CommandClientMessageCheck = (context: Context) => boolean | Promise<boolean>;
 
 export type CommandClientPrefixes = Array<string> | BaseSet<string> | Set<string> | string;
 export type CommandClientPrefixCheck = (context: Context) => CommandClientPrefixes | Promise<CommandClientPrefixes>;
@@ -70,6 +73,7 @@ export interface CommandReply {
 
 /**
  * Command Client, hooks onto the ShardClient to provide easier command handling
+ * Flow is `onMessageCheck` -> `onPrefixCheck` -> `onCommandCheck`
  * @category Clients
  */
 export class CommandClient extends EventSpewer {
@@ -90,6 +94,7 @@ export class CommandClient extends EventSpewer {
   replies: BaseCollection<string, CommandReply>;
 
   onCommandCheck?(context: Context, command: Command): boolean | Promise<boolean>;
+  onMessageCheck?(context: Context): boolean | Promise<boolean>;
   onPrefixCheck?(context: Context): CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
   constructor(
@@ -97,10 +102,10 @@ export class CommandClient extends EventSpewer {
     options: CommandClientOptions = {},
   ) {
     super();
-    options = Object.assign({}, options);
+    options = Object.assign({useClusterClient: true}, options);
 
     if (process.env.CLUSTER_MANAGER === 'true') {
-      token = <string> process.env.CLUSTER_TOKEN;
+      token = process.env.CLUSTER_TOKEN as string;
       options.useClusterClient = true;
     }
 
@@ -134,6 +139,7 @@ export class CommandClient extends EventSpewer {
     this.replies = new BaseCollection({expire: this.maxEditDuration});
 
     this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
+    this.onMessageCheck = options.onMessageCheck || this.onMessageCheck;
     this.onPrefixCheck = options.onPrefixCheck || this.onPrefixCheck;
 
     if (options.prefix !== undefined) {
@@ -258,7 +264,10 @@ export class CommandClient extends EventSpewer {
     return this;
   }
 
-  async addMultipleIn(directory: string, options: {isAbsolute?: boolean, subdirectories?: boolean} = {}): Promise<CommandClient> {
+  async addMultipleIn(
+    directory: string,
+    options: {isAbsolute?: boolean, subdirectories?: boolean} = {},
+  ): Promise<CommandClient> {
     options = Object.assign({}, options);
     if (!options.isAbsolute) {
       if (require.main) {
@@ -282,12 +291,15 @@ export class CommandClient extends EventSpewer {
         }
 
         const addCommand = (imported: any): void => {
+          if (!imported) {
+            return;
+          }
           if (typeof(imported) === 'function') {
             this.add({_file: filepath, _class: imported, name: ''});
           } else if (imported instanceof Command) {
             Object.defineProperty(imported, '_file', {value: filepath});
             this.add(imported);
-          } else if (typeof(imported) === 'object') {
+          } else if (typeof(imported) === 'object' && Object.keys(imported).length) {
             if (Array.isArray(imported)) {
               for (let child of imported) {
                 addCommand(child);
@@ -315,13 +327,13 @@ export class CommandClient extends EventSpewer {
     if (this.client instanceof ClusterClient) {
       for (let [shardId, shard] of this.client.shards) {
         if (shard.user != null) {
-          user = <User> shard.user;
+          user = shard.user as User;
           break;
         }
       }
     } else if (this.client instanceof ShardClient) {
       if (this.client.user != null) {
-        user = <User> this.client.user;
+        user = this.client.user as User;
       }
     }
     if (user !== null) {
@@ -393,7 +405,7 @@ export class CommandClient extends EventSpewer {
     if (typeof(this.onPrefixCheck) === 'function') {
       const prefixes = await Promise.resolve(this.onPrefixCheck(context));
       if (prefixes === this.prefixes.custom) {
-        return <BaseSet<string>> prefixes;
+        return prefixes as BaseSet<string>;
       }
 
       let sorted: Array<string>;
@@ -424,9 +436,9 @@ export class CommandClient extends EventSpewer {
     this.resetSubscriptions();
 
     const subscriptions = this._clientSubscriptions;
-    subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_CREATE, this.handle.bind(this, ClientEvents.MESSAGE_CREATE)));
+    subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_CREATE, this.handleMessageCreate.bind(this)));
     subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_DELETE, this.handleDelete.bind(this, ClientEvents.MESSAGE_DELETE)));
-    subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_UPDATE, this.handle.bind(this, ClientEvents.MESSAGE_UPDATE)));
+    subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_UPDATE, this.handleMessageUpdate.bind(this)));
   }
 
   /* Kill/Run */
@@ -456,28 +468,59 @@ export class CommandClient extends EventSpewer {
   }
 
   /* Handler */
+  async handleMessageCreate(event: GatewayClientEvents.MessageCreate) {
+    return this.handle(ClientEvents.MESSAGE_CREATE, event);
+  }
+
+  async handleMessageUpdate(event: GatewayClientEvents.MessageUpdate) {
+    if (event.isEmbedUpdate) {
+      return;
+    }
+    return this.handle(ClientEvents.MESSAGE_UPDATE, event);
+  }
+
+  async handle(name: ClientEvents.MESSAGE_CREATE, event: GatewayClientEvents.MessageCreate): Promise<void>
+  async handle(name: ClientEvents.MESSAGE_UPDATE, event: GatewayClientEvents.MessageUpdate): Promise<void>
   async handle(
-    name: string,
-    event: {
-      differences: any | null | undefined,
-      message: Message | null,
-      typing: Typing | null | undefined,
-    },
+    name: ClientEvents.MESSAGE_CREATE | ClientEvents.MESSAGE_UPDATE,
+    event: GatewayClientEvents.MessageCreate | GatewayClientEvents.MessageUpdate,
   ): Promise<void> {
-    const { differences, message, typing } = event;
+    const { message } = event;
+    // message will only be null on embed updates
     if (!message || (this.ignoreMe && message.fromMe)) {
       return;
     }
-    if (name === ClientEvents.MESSAGE_UPDATE) {
-      if (!this.activateOnEdits) {
-        return;
-      }
-      if (!differences || !differences.content) {
+    let typing: Typing | null = null;
+    if (name === ClientEvents.MESSAGE_CREATE) {
+      ({typing} = event as GatewayClientEvents.MessageCreate);
+    }
+
+    const context = new Context(message, typing, this);
+    if (typeof(this.onMessageCheck) === 'function') {
+      try {
+        const shouldContinue = await Promise.resolve(this.onMessageCheck(context));
+        if (!shouldContinue) {
+          const error = new Error('Message check returned false');
+          const payload: CommandEvents.CommandNone = {context, error};
+          this.emit(ClientEvents.COMMAND_NONE, payload);
+          return;
+        }
+      } catch(error) {
+        const payload: CommandEvents.CommandNone = {context, error};
+        this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
       }
     }
 
-    const context = new Context(message, typing || null, this);
+    if (name === ClientEvents.MESSAGE_UPDATE) {
+      if (!this.activateOnEdits) {
+        return;
+      }
+      const { differences } = event as GatewayClientEvents.MessageUpdate;
+      if (!differences || !differences.content) {
+        return;
+      }
+    }
 
     let attributes: CommandAttributes | null = null;
     try {
@@ -486,7 +529,7 @@ export class CommandClient extends EventSpewer {
       }
 
       if (message.isEdited) {
-        const difference = (<number> message.editedAtUnix) - message.timestampUnix;
+        const difference = message.editedAtUnix - message.timestampUnix;
         if (this.maxEditDuration < difference) {
           throw new Error('Edit timestamp is higher than max edit duration');
         }
@@ -596,6 +639,8 @@ export class CommandClient extends EventSpewer {
         return;
       }
     } else {
+      // check the bot's permissions in the server
+      // should never be ignored since it's most likely the bot will rely on this permission to do whatever action
       if (Array.isArray(command.permissionsClient) && command.permissionsClient.length) {
         const failed = [];
 
@@ -630,37 +675,42 @@ export class CommandClient extends EventSpewer {
         }
       }
 
-      if (Array.isArray(command.permissions) && command.permissions.length) {
-        const failed = [];
+      // if command doesn't specify it should ignore the client owner, or if the user isn't a client owner
+      // continue to permission checking
+      if (!command.permissionsIgnoreClientOwner || !context.user.isClientOwner) {
+        // check the user's permissions
+        if (Array.isArray(command.permissions) && command.permissions.length) {
+          const failed = [];
 
-        const channel = context.channel;
-        const member = context.member;
-        if (channel && member) {
-          const total = member.permissionsIn(channel);
-          if (!member.isOwner && !PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
-            for (let permission of command.permissions) {
-              if (!PermissionTools.checkPermissions(total, permission)) {
-                failed.push(permission);
+          const channel = context.channel;
+          const member = context.member;
+          if (channel && member) {
+            const total = member.permissionsIn(channel);
+            if (!member.isOwner && !PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+              for (let permission of command.permissions) {
+                if (!PermissionTools.checkPermissions(total, permission)) {
+                  failed.push(permission);
+                }
               }
             }
-          }
-        } else {
-          for (let permission of command.permissions) {
-            failed.push(permission);
-          }
-        }
-
-        if (failed.length) {
-          const payload: CommandEvents.CommandPermissionsFail = {command, context, permissions: failed};
-          this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL, payload);
-          if (typeof(command.onPermissionsFail) === 'function') {
-            try {
-              await Promise.resolve(command.onPermissionsFail(context, failed));
-            } catch(error) {
-              // do something with this error?
+          } else {
+            for (let permission of command.permissions) {
+              failed.push(permission);
             }
           }
-          return;
+
+          if (failed.length) {
+            const payload: CommandEvents.CommandPermissionsFail = {command, context, permissions: failed};
+            this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL, payload);
+            if (typeof(command.onPermissionsFail) === 'function') {
+              try {
+                await Promise.resolve(command.onPermissionsFail(context, failed));
+              } catch(error) {
+                // do something with this error?
+              }
+            }
+            return;
+          }
         }
       }
     }
@@ -707,10 +757,30 @@ export class CommandClient extends EventSpewer {
         }
       }
 
+      let timeout: Timers.Timeout | null = null;
       try {
+        if (command.triggerTypingAfter !== -1) {
+          if (command.triggerTypingAfter) {
+            timeout = new Timers.Timeout();
+            timeout.start(command.triggerTypingAfter, async () => {
+              try {
+                await context.triggerTyping();
+              } catch(error) {
+                // do something maybe?
+              }
+            });
+          } else {
+            await context.triggerTyping();
+          }
+        }
+
         if (typeof(command.run) === 'function') {
           const reply = await Promise.resolve(command.run(context, args));
           this.storeReply(message.id, command, context, reply);
+        }
+
+        if (timeout) {
+          timeout.stop();
         }
 
         const payload: CommandEvents.CommandRan = {args, command, context, prefix};
@@ -719,6 +789,10 @@ export class CommandClient extends EventSpewer {
           await Promise.resolve(command.onSuccess(context, args));
         }
       } catch(error) {
+        if (timeout) {
+          timeout.stop();
+        }
+
         const payload: CommandEvents.CommandRunError = {args, command, context, error, prefix};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(command.onRunError) === 'function') {
@@ -737,11 +811,20 @@ export class CommandClient extends EventSpewer {
   async handleDelete(name: string, deletePayload: {raw: {id: string}}): Promise<void> {
     const messageId = deletePayload.raw.id;
     if (this.replies.has(messageId)) {
-      const { command, context, reply } = <CommandReply> this.replies.get(messageId);
+      const { command, context, reply } = this.replies.get(messageId) as CommandReply;
       this.replies.delete(messageId);
 
       const payload: CommandEvents.CommandDelete = {command, context, reply};
       this.emit(ClientEvents.COMMAND_DELETE, payload);
+    } else {
+      for (let [commandId, { command, context, reply }] of this.replies) {
+        if (reply.id === messageId) {
+          this.replies.delete(commandId);
+
+          const payload: CommandEvents.CommandResponseDelete = { command, context, reply };
+          this.emit(ClientEvents.COMMAND_RESPONSE_DELETE, payload);
+        }
+      }
     }
   }
 
@@ -754,6 +837,7 @@ export class CommandClient extends EventSpewer {
   on(event: 'commandPermissionsFail', listener: (payload: CommandEvents.CommandPermissionsFail) => any): this;
   on(event: 'commandRan', listener: (payload: CommandEvents.CommandRan) => any): this;
   on(event: 'commandRatelimit', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
+  on(event: 'commandResponseDelete', listener: (payload: CommandEvents.CommandResponseDelete) => any): this;
   on(event: 'commandRunError', listener: (payload: CommandEvents.CommandRunError) => any): this;
   on(event: 'killed', listener: () => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {

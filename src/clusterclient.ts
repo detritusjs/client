@@ -29,6 +29,10 @@ export interface ClusterClientRunOptions extends ShardClientRunOptions {
 }
 
 export class ClusterClient extends EventSpewer {
+  readonly _refresh = {
+    applications: {last: 0, time: 4 * (60 * 60) * 1000},
+    oauth2Application: {last: 0, time: 4 * (60 * 60) * 1000},
+  };
   readonly _shardsWaiting = new BaseCollection<number, {resolve: Function, reject: Function}>();
   readonly token: string;
 
@@ -52,13 +56,21 @@ export class ClusterClient extends EventSpewer {
     super();
     options = Object.assign({}, options);
 
-    if (process.env.CLUSTER_MANAGER === 'true') {
-      token = <string> process.env.CLUSTER_TOKEN;
-      options.maxConcurrency = +(<string> process.env.MAX_CONCURRENCY);
-      options.shardCount = +(<string> process.env.CLUSTER_SHARD_COUNT);
+    const isUsingClusterManager = process.env.CLUSTER_MANAGER === 'true';
+    if (isUsingClusterManager) {
+      const { 
+        CLUSTER_SHARD_COUNT,
+        CLUSTER_SHARD_END,
+        CLUSTER_SHARD_START,
+        CLUSTER_TOKEN,
+        MAX_CONCURRENCY,
+      } = process.env;
+      token = CLUSTER_TOKEN as string;
+      options.maxConcurrency = +(MAX_CONCURRENCY as string);
+      options.shardCount = +(CLUSTER_SHARD_COUNT as string);
       options.shards = [
-        +(<string> process.env.CLUSTER_SHARD_START),
-        +(<string> process.env.CLUSTER_SHARD_END),
+        +(CLUSTER_SHARD_START as string),
+        +(CLUSTER_SHARD_END as string),
       ];
     }
 
@@ -94,7 +106,7 @@ export class ClusterClient extends EventSpewer {
       this.commandClient = this.shardOptions.pass.commandClient;
     }
 
-    if (process.env.CLUSTER_MANAGER === 'true') {
+    if (isUsingClusterManager) {
       this.manager = new ClusterProcessChild(this);
     }
 
@@ -153,6 +165,34 @@ export class ClusterClient extends EventSpewer {
     return super.emit.call(shard, name, event);
   }
 
+  async fillApplications(): Promise<void> {
+    const refresh = this._refresh.applications;
+    if (Date.now() - refresh.last < refresh.time) {
+      return;
+    }
+    const firstShard = this.shards.first();
+    const enabled = (firstShard) ? firstShard.applications.enabled : false;
+    if (enabled) {
+      const applications = await this.rest.fetchApplicationsDetectable();
+      refresh.last = Date.now();
+      for (let [shardId, shard] of this.shards) {
+        shard.applications.fill(applications);
+      }
+    }
+  }
+
+  async fillOauth2Application(): Promise<void> {
+    const refresh = this._refresh.oauth2Application;
+    if (Date.now() - refresh.last < refresh.time) {
+      return;
+    }
+    const data = await this.rest.fetchOauth2Application();
+    refresh.last = Date.now();
+    for (let [shardId, shard] of this.shards) {
+      shard._mergeOauth2Application(data);
+    }
+  }
+
   async run(
     options: ClusterClientRunOptions = {},
   ): Promise<ClusterClient> {
@@ -166,7 +206,7 @@ export class ClusterClient extends EventSpewer {
       wait: false,
     });
 
-    const delay = +(<number> options.delay);
+    const delay = +(options.delay as number);
 
     let maxConcurrency: number = +(options.maxConcurrency || this.maxConcurrency);
     let shardCount: number = options.shardCount || this.shardCount || 0;
@@ -235,7 +275,10 @@ export class ClusterClient extends EventSpewer {
         };
       }
       this.emit(ClientEvents.SHARD, {shard});
-
+    }
+    await this.fillApplications();
+    await this.fillOauth2Application();
+    for (let [shardId, shard] of this.shards) {
       await shard.run(options);
     }
     Object.defineProperty(this, 'ran', {value: true});

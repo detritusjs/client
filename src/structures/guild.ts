@@ -61,6 +61,7 @@ import { VoiceState } from './voicestate';
 
 export interface GuildCacheOptions {
   emojis?: EmojisOptions,
+  fromRest?: boolean,
   members?: MembersOptions,
   roles?: RolesOptions,
 }
@@ -360,6 +361,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.fetchGuildMembers(this.id, options);
   }
 
+  async fetchMembersSearch(options: RequestTypes.FetchGuildMembersSearch) {
+    return this.client.rest.fetchGuildMembersSearch(this.id, options);
+  }
+
   async fetchPremiumSubscriptions() {
     return this.client.rest.fetchGuildPremiumSubscriptions(this.id);
   }
@@ -420,6 +425,19 @@ export class BaseGuild extends BaseStructure {
 
   async removeMemberRole(userId: string, roleId: string, options: RequestTypes.RemoveGuildBan = {}) {
     return this.client.rest.removeGuildMemberRole(this.id, userId, roleId, options);
+  }
+
+
+  async requestMembers(
+    options: {
+      limit?: number,
+      presences?: boolean,
+      query: string,
+      timeout?: number,
+      userIds?: Array<string>,
+    },
+  ) {
+    return this.client.requestGuildMembers(this.id, options);
   }
 
 
@@ -525,6 +543,7 @@ export class Guild extends BaseGuild {
   readonly _keys = keysGuild;
   readonly _keysMerge = keysMergeGuild;
   readonly _keysSkipDifference = keysSkipDifferenceGuild;
+  readonly _fromRest: boolean = false;
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
@@ -542,6 +561,7 @@ export class Guild extends BaseGuild {
   icon: null | string = null;
   id: string = '';
   isPartial: boolean = false;
+  isReady: boolean = false;
   joinedAtUnix: number = 0;
   large: boolean = false;
   lazy: boolean = false;
@@ -575,6 +595,7 @@ export class Guild extends BaseGuild {
     this.emojis = new BaseCollection<string, Emoji>(cache.emojis || this.client.emojis.options);
     this.members = new BaseCollection<string, Member>(cache.members || this.client.members.options);
     this.roles = new BaseCollection<string, Role>(cache.roles || this.client.roles.options);
+    this._fromRest = !!cache.fromRest;
     this.merge(data);
   }
 
@@ -634,20 +655,20 @@ export class Guild extends BaseGuild {
 
   get maxAttachmentSize(): number {
     const max = MAX_ATTACHMENT_SIZE;
-    return Math.max(max, (<any> PremiumGuildLimits)[this.premiumTier].attachment);
+    return Math.max(max, (PremiumGuildLimits as any)[this.premiumTier].attachment);
   }
 
   get maxBitrate(): number {
     let max = MAX_BITRATE;
     if (this.canHaveVipRegions) {
-      max = (<any> PremiumGuildLimits)[PremiumGuildTiers.TIER_3].bitrate;
+      max = (PremiumGuildLimits as any)[PremiumGuildTiers.TIER_3].bitrate;
     }
-    return Math.max(max, (<any> PremiumGuildLimits)[this.premiumTier].bitrate);
+    return Math.max(max, (PremiumGuildLimits as any)[this.premiumTier].bitrate);
   }
 
   get maxEmojis(): number {
     const max = (this.hasFeature(GuildFeatures.MORE_EMOJI) ? MAX_EMOJI_SLOTS_MORE : MAX_EMOJI_SLOTS);
-    return Math.max(max, (<any> PremiumGuildLimits)[this.premiumTier].emoji);
+    return Math.max(max, (PremiumGuildLimits as any)[this.premiumTier].emoji);
   }
 
   get me(): Member | null {
@@ -745,7 +766,7 @@ export class Guild extends BaseGuild {
 
   get voiceStates(): BaseCollection<string, VoiceState> {
     if (this.client.voiceStates.has(this.id)) {
-      return <BaseCollection<string, VoiceState>> this.client.voiceStates.get(this.id);
+      return this.client.voiceStates.get(this.id) as BaseCollection<string, VoiceState>;
     }
     return emptyBaseCollection;
   }
@@ -845,11 +866,11 @@ export class Guild extends BaseGuild {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.CHANNELS: {
-          if (this.client.channels.enabled) {
+          if (this.client.channels.enabled && !this._fromRest) {
             for (let raw of value) {
               let channel: Channel;
               if (this.client.channels.has(raw.id)) {
-                channel = <Channel> this.client.channels.get(raw.id);
+                channel = this.client.channels.get(raw.id) as Channel;
                 channel.merge(raw);
               } else {
                 raw.guild_id = this.id;
@@ -865,7 +886,7 @@ export class Guild extends BaseGuild {
             for (let raw of value) {
               let emoji: Emoji;
               if (this.emojis.has(raw.id)) {
-                emoji = <Emoji> this.emojis.get(raw.id);
+                emoji = this.emojis.get(raw.id) as Emoji;
                 emoji.merge(raw);
               } else {
                 raw.guild_id = this.id;
@@ -900,7 +921,7 @@ export class Guild extends BaseGuild {
             if (this.client.members.enabled) {
               let member: Member;
               if (this.members.has(raw.user.id)) {
-                member = <Member> this.members.get(raw.user.id);
+                member = this.members.get(raw.user.id) as Member;
                 member.merge(raw);
               } else {
                 raw.guild_id = this.id;
@@ -910,7 +931,7 @@ export class Guild extends BaseGuild {
             } else if (this.client.presences.enabled || this.client.users.enabled) {
               let user: User;
               if (this.client.users.has(raw.user.id)) {
-                user = <User> this.client.users.get(raw.user.id);
+                user = this.client.users.get(raw.user.id) as User;
                 user.merge(raw.user);
               } else {
                 user = new User(this.client, raw.user);
@@ -925,7 +946,7 @@ export class Guild extends BaseGuild {
             for (let raw of value) {
               let role: Role;
               if (this.roles.has(raw.id)) {
-                role = <Role> this.roles.get(raw.id);
+                role = this.roles.get(raw.id) as Role;
                 role.merge(raw);
               } else {
                 raw.guild_id = this.id;
@@ -957,13 +978,13 @@ export class Guild extends BaseGuild {
             cache.clear();
             for (let raw of value) {
               if (cache.has(raw.user_id)) {
-                const voiceState = <VoiceState> cache.get(raw.user_id);
+                const voiceState = cache.get(raw.user_id) as VoiceState;
                 voiceState.merge(raw);
               } else {
                 raw.guild_id = this.id;
                 const voiceState = new VoiceState(this.client, raw);
                 if (!voiceState.member && this.members.has(voiceState.userId)) {
-                  voiceState.member = <Member> this.members.get(voiceState.userId);
+                  voiceState.member = this.members.get(voiceState.userId) as Member;
                 }
                 cache.set(voiceState.userId, voiceState);
               }

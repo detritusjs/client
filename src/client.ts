@@ -1,6 +1,8 @@
+import * as Crypto from 'crypto';
+
 import { ClientOptions as RestOptions, Endpoints } from 'detritus-client-rest';
 import { Gateway } from 'detritus-client-socket';
-import { EventSpewer } from 'detritus-utils';
+import { EventSpewer, Snowflake, Timers } from 'detritus-utils';
 
 
 import { ClusterClient } from './clusterclient';
@@ -11,11 +13,12 @@ import {
   ImageFormats,
   IMAGE_FORMATS,
 } from './constants';
-import { GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
+import { ChunkWaiting, GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { RestClient } from './rest';
 
 import { BaseCollection } from './collections/basecollection';
+import { BaseSet } from './collections/baseset';
 import {
   Applications,
   ApplicationsOptions,
@@ -59,7 +62,9 @@ import {
 } from './media/voiceconnection';
 
 import {
+  Member,
   Oauth2Application,
+  Presence,
   User,
   UserMe,
 } from './structures';
@@ -321,6 +326,27 @@ export class ShardClient extends EventSpewer {
     return this.gateway.userId || '';
   }
 
+  _mergeOauth2Application(data: any) {
+    let oauth2Application: Oauth2Application;
+    if (this.application) {
+      oauth2Application = this.application;
+      oauth2Application.merge(data);
+    } else {
+      oauth2Application = new Oauth2Application(this, data);
+      this.application = oauth2Application;
+    }
+    if (oauth2Application.owner) {
+      this.owners.clear();
+      this.owners.set(oauth2Application.owner.id, oauth2Application.owner);
+      if (oauth2Application.team) {
+        for (let [userId, member] of oauth2Application.team.members) {
+          this.owners.set(userId, member.user);
+        }
+      }
+    }
+    return oauth2Application;
+  }
+
   isOwner(userId: string): boolean {
     return this.owners.has(userId);
   }
@@ -336,7 +362,7 @@ export class ShardClient extends EventSpewer {
         this.cluster.shards.delete(this.shardId);
       }
       this.emit(ClientEvents.KILLED, {error});
-      this.rest.removeAllListeners();
+      this.rest.raw.removeAllListeners();
       this.removeAllListeners();
     }
   }
@@ -354,9 +380,85 @@ export class ShardClient extends EventSpewer {
     return {gateway, rest: response.took};
   }
 
-  reset(): void {
-    this.owners.clear();
+  async requestGuildMembers(
+    guildId: string,
+    oldOptions: {
+      limit?: number,
+      presences?: boolean,
+      query: string,
+      timeout?: number,
+      userIds?: Array<string>,
+    },
+  ): Promise<{
+    members: BaseCollection<string, Member>,
+    nonce: string,
+    notFound: BaseSet<string>,
+    presences: BaseCollection<string, Presence>,
+  }> {
+    const options = Object.assign({
+      limit: 0,
+      timeout: 1500,
+    }, oldOptions) as {
+      limit: number,
+      nonce: string,
+      presences?: boolean,
+      query: string,
+      timeout: number,
+      userIds?: Array<string>,
+    };
+    let key = `${guildId}:${options.limit}:${options.query}:${options.presences}`;
+    if (options.userIds && options.userIds.length) {
+      if (options.userIds.length <= 10) {
+        key += `:${options.userIds.join('.')}`;
+      } else {
+        key += `:amount.${options.userIds.length}`;
+      }
+    }
+    const nonce = options.nonce = Crypto.createHash('md5').update(key).digest('hex');
+    let cache: ChunkWaiting;
+    if (this.gatewayHandler._chunksWaiting.has(nonce)) {
+      cache = this.gatewayHandler._chunksWaiting.get(nonce) as ChunkWaiting;
+    } else {
+      const promise: any = {};
+      promise.wait = new Promise((res, rej) => {
+        promise.resolve = res;
+        promise.reject = rej;
+      });
+      cache = {
+        members: new BaseCollection<string, Member>(),
+        notFound: new BaseSet<string>(),
+        presences: new BaseCollection<string, Presence>(),
+        promise,
+        waiting: 0,
+      };
+      this.gatewayHandler._chunksWaiting.set(nonce, cache);
+      this.gateway.requestGuildMembers(guildId, options);
+    }
+    cache.waiting++;
 
+    const timeout = new Timers.Timeout();
+    return new Promise((resolve, reject) => {
+      cache.promise.wait.then(resolve).catch(reject);
+      timeout.start(options.timeout, () => {
+        reject(new Error(`Guild chunking took longer than ${options.timeout}ms.`));
+        cache.waiting--;
+        if (cache.waiting <= 0) {
+          this.gatewayHandler._chunksWaiting.delete(nonce);
+        }
+      });
+    }).then(() => {
+      timeout.stop();
+      this.gatewayHandler._chunksWaiting.delete(nonce);
+      return {
+        members: cache.members,
+        nonce,
+        notFound: cache.notFound,
+        presences: cache.presences,
+      };
+    });
+  }
+
+  reset(): void {
     this.applications.clear();
     this.channels.clear();
     this.connectedAccounts.clear();

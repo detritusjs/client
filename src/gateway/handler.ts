@@ -1,5 +1,3 @@
-import { Timers } from 'detritus-utils';
-
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
@@ -41,10 +39,16 @@ import { GatewayRawEvents } from './rawevents';
 export interface GatewayHandlerOptions {
   disabledEvents?: Array<string>,
   loadAllMembers?: boolean,
-  memberChunksDelay?: number,
   whitelistedEvents?: Array<string>,
 }
 
+export interface ChunkWaiting {
+  members: BaseCollection<string, Member>,
+  notFound: BaseSet<string>,
+  presences: BaseCollection<string, Presence>,
+  promise: {reject: Function, resolve: Function, wait: Promise<unknown>},
+  waiting: number,
+}
 
 /**
  * Gateway Handler
@@ -52,6 +56,8 @@ export interface GatewayHandlerOptions {
  */
 export class GatewayHandler {
   readonly client: ShardClient;
+  readonly _chunksWaiting = new BaseCollection<string, ChunkWaiting>();
+
   disabledEvents: BaseSet<string>;
   dispatchHandler: GatewayDispatchHandler;
   loadAllMembers: boolean = false;
@@ -59,15 +65,6 @@ export class GatewayHandler {
   // I've witnessed some duplicate events happening with almost a second in between
   // Some member add/remove events might not even happen due to "State Repair"
   duplicateMemberEventsCache = new BaseCollection<string, string>({expire: 2000});
-
-  memberChunks = {
-    delay: 1500,
-    done: new BaseSet<string>(),
-    left: new BaseSet<string>(),
-    sending: new BaseSet<string>(),
-    timer: new Timers.Timeout(),
-    waiting: new BaseSet<string>(),
-  };
 
   constructor(
     client: ShardClient,
@@ -82,10 +79,6 @@ export class GatewayHandler {
       return v.toUpperCase();
     }));
     this.loadAllMembers = !!options.loadAllMembers;
-
-    if (options.memberChunksDelay !== undefined) {
-      this.memberChunks.delay = options.memberChunksDelay;
-    }
 
     if (options.whitelistedEvents) {
       this.disabledEvents.clear();
@@ -153,6 +146,11 @@ export class GatewayDispatchHandler {
   async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
     this.client.reset();
 
+    for (let [nonce, cache] of this.handler._chunksWaiting) {
+      cache.promise.reject(new Error('Gateway re-identified before a result came.'));
+    }
+    this.handler._chunksWaiting.clear();
+
     let me: UserMe;
     if (this.client.user) {
       me = this.client.user;
@@ -186,29 +184,18 @@ export class GatewayDispatchHandler {
           guild = new Guild(this.client, raw);
           this.client.guilds.insert(guild);
         }
-        if (this.handler.shouldLoadAllMembers) {
-          if (guild.unavailable) {
-            this.handler.memberChunks.left.add(guild.id);
-          } else {
-            if (guild.members.length === guild.memberCount) {
-              const payload: GatewayClientEvents.GuildReady = {guild};
-              this.client.emit(ClientEvents.GUILD_READY, payload);
-            } else {
-              requestChunksNow.push(guild.id);
-              this.handler.memberChunks.done.add(guild.id);
-            }
+        guild.isReady = guild.memberCount === guild.members.length;
+        if (guild.isReady) {
+          // emit guild ready
+        } else {
+          if (this.handler.shouldLoadAllMembers) {
+            this.client.gateway.requestGuildMembers(guild.id, {
+              limit: 0,
+              presences: true,
+              query: '',
+            });
           }
         }
-      }
-      if (requestChunksNow.length) {
-        for (let guildId of requestChunksNow) {
-          this.handler.memberChunks.waiting.add(guildId);
-        }
-        this.client.gateway.requestGuildMembers(requestChunksNow, {
-          limit: 0,
-          presences: true,
-          query: '',
-        });
       }
     }
 
@@ -256,7 +243,11 @@ export class GatewayDispatchHandler {
 
     if (this.client.isBot) {
       try {
-        await this.client.rest.fetchOauth2Application();
+        if (this.client.cluster) {
+          await this.client.cluster.fillOauth2Application();
+        } else {
+          await this.client.rest.fetchOauth2Application();
+        }
       } catch(error) {
         const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch OAuth2 Application Information', error)};
         this.client.emit(ClientEvents.WARN, payload);
@@ -267,7 +258,11 @@ export class GatewayDispatchHandler {
     }
 
     try {
-      await this.client.applications.fill();
+      if (this.client.cluster) {
+        await this.client.cluster.fillApplications();
+      } else {
+        await this.client.applications.fill();
+      }
     } catch(error) {
       const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Applications', error)};
       this.client.emit(ClientEvents.WARN, payload);
@@ -566,46 +561,17 @@ export class GatewayDispatchHandler {
       guild = new Guild(this.client, data);
       this.client.guilds.insert(guild);
     }
+    guild.isReady = guild.memberCount === guild.members.length;
 
-    if (this.handler.shouldLoadAllMembers) {
-      if (!this.handler.memberChunks.done.has(guild.id)) {
-        this.handler.memberChunks.left.add(guild.id);
-      }
-
-      if (this.handler.memberChunks.left.has(guild.id)) {
-        if (guild.members.length === guild.memberCount) {
-          const payload: GatewayClientEvents.GuildReady = {guild};
-          this.client.emit(ClientEvents.GUILD_READY, payload);
-        } else {
-          this.handler.memberChunks.sending.add(guild.id);
-
-          if (this.handler.memberChunks.delay) {
-            this.handler.memberChunks.timer.start(this.handler.memberChunks.delay, () => {
-              const guildIds = this.handler.memberChunks.sending.toArray();
-              this.handler.memberChunks.sending.clear();
-              if (guildIds.length) {
-                for (let guildId of guildIds) {
-                  this.handler.memberChunks.waiting.add(guildId);
-                }
-                this.client.gateway.requestGuildMembers(guildIds, {
-                  limit: 0,
-                  presences: true,
-                  query: '',
-                });
-              }
-            });
-          } else {
-            this.handler.memberChunks.sending.delete(guild.id);
-            this.handler.memberChunks.waiting.add(guild.id);
-            this.client.gateway.requestGuildMembers(guild.id, {
-              limit: 0,
-              presences: true,
-              query: '',
-            });
-          }
-        }
-        this.handler.memberChunks.done.add(guild.id);
-        this.handler.memberChunks.left.delete(guild.id);
+    if (guild.isReady) {
+      // emit GUILD_READY
+    } else {
+      if (this.handler.shouldLoadAllMembers) {
+        this.client.gateway.requestGuildMembers(guild.id, {
+          limit: 0,
+          presences: true,
+          query: '',
+        });
       }
     }
 
@@ -618,10 +584,6 @@ export class GatewayDispatchHandler {
     let guild: Guild | null = null;
     const guildId = data['id'];
     const isUnavailable = !!data['unavailable'];
-
-    this.handler.memberChunks.done.delete(guildId);
-    this.handler.memberChunks.left.delete(guildId);
-    this.handler.memberChunks.sending.delete(guildId);
 
     let isNew: boolean;
     if (this.client.guilds.has(data['id'])) {
@@ -675,6 +637,7 @@ export class GatewayDispatchHandler {
       guild.emojis.clear();
       guild.members.clear(); // should we check each member and see if we should clear the user obj from cache too?
       guild.roles.clear();
+      guild.isReady = false;
     }
 
     if (!isUnavailable) {
@@ -870,6 +833,8 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_MEMBERS_CHUNK](data: GatewayRawEvents.GuildMembersChunk) {
+    const chunkCount = data['chunk_count'];
+    const chunkIndex = data['chunk_index'];
     const guildId = data['guild_id'];
     const nonce = data['nonce'] || null;
 
@@ -878,7 +843,11 @@ export class GatewayDispatchHandler {
     let notFound: Array<string> | null = null;
     let presences: BaseCollection<string, Presence> | null = null;
 
-    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBERS_CHUNK);
+    const isListening = (
+      this.client.hasEventListener(ClientEvents.GUILD_MEMBERS_CHUNK) ||
+      !!(nonce && this.handler._chunksWaiting.has(nonce))
+    );
+    let cache = nonce && this.handler._chunksWaiting.get(nonce);
 
     // do presences first since the members cache might depend on it (storeOffline = false)
     if (data['presences']) {
@@ -889,6 +858,9 @@ export class GatewayDispatchHandler {
           const presence = this.client.presences.insert(value);
           if (isListening) {
             presences.set(presence.user.id, presence);
+          }
+          if (cache) {
+            cache.presences.set(presence.user.id, presence);
           }
         }
       }
@@ -912,6 +884,9 @@ export class GatewayDispatchHandler {
           if (isListening) {
             members.set(member.id, member);
           }
+          if (cache) {
+            cache.members.set(member.id, member);
+          }
         }
       } else if (this.client.presences.enabled || this.client.users.enabled) {
         for (let value of data['members']) {
@@ -932,15 +907,26 @@ export class GatewayDispatchHandler {
       // user ids
       // if the userId is not a big int, it'll be an integer..
       notFound = data['not_found'].map((userId) => String(userId));
+      if (cache) {
+        for (let userId of notFound) {
+          cache.notFound.add(userId);
+        }
+      }
     }
 
-    if (guild && this.handler.memberChunks.waiting.has(guild.id) && guild.members.length === guild.memberCount) {
-      this.handler.memberChunks.waiting.delete(guild.id)
+    if (guild && !guild.isReady && guild.memberCount === guild.members.length) {
+      guild.isReady = true;
       const payload: GatewayClientEvents.GuildReady = {guild};
       this.client.emit(ClientEvents.GUILD_READY, payload);
     }
 
+    if (cache && chunkIndex + 1 === chunkCount) {
+      cache.promise.resolve();
+    }
+
     const payload: GatewayClientEvents.GuildMembersChunk = {
+      chunkCount,
+      chunkIndex,
       guild,
       guildId,
       members,
@@ -1346,9 +1332,12 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_UPDATE](data: GatewayRawEvents.MessageUpdate) {
+    let channelId = data['channel_id'];
     let differences: any = null;
+    let guildId = data['guild_id'];
     let isEmbedUpdate: boolean = false;
     let message: Message | null = null;
+    let messageId = data['id'];
 
     if (!data['author']) {
       isEmbedUpdate = true;
@@ -1363,15 +1352,19 @@ export class GatewayDispatchHandler {
     } else {
       if (data['author']) {
         // else it's an embed update and we dont have it in cache
+        // only embed updates we cannot create a message object
         message = new Message(this.client, data);
         this.client.messages.insert(message);
       }
     }
 
     const payload: GatewayClientEvents.MessageUpdate = {
+      channelId,
       differences,
+      guildId,
       isEmbedUpdate,
       message,
+      messageId,
       raw: data,
     };
     this.client.emit(ClientEvents.MESSAGE_UPDATE, payload);

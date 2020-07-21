@@ -26,6 +26,12 @@ const keysRole = new BaseSet<string>([
   DiscordKeys.NAME,
   DiscordKeys.PERMISSIONS,
   DiscordKeys.POSITION,
+  DiscordKeys.TAGS,
+]);
+
+const keysMergeRole = new BaseSet<string>([
+  DiscordKeys.ID,
+  DiscordKeys.TAGS,
 ]);
 
 /**
@@ -34,6 +40,7 @@ const keysRole = new BaseSet<string>([
  */
 export class Role extends BaseStructure {
   readonly _keys = keysRole;
+  readonly _keysMerge = keysMergeRole;
 
   color: number = 0;
   guildId: string = '';
@@ -44,10 +51,22 @@ export class Role extends BaseStructure {
   name: string = '';
   permissions: number = 0;
   position: number = 0;
+  tags: {
+    bot?: string,
+    integration?: string,
+    premium_subscriber?: null,
+  } | null = null;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get botId(): null | string {
+    if (this.tags && this.tags.bot) {
+      return this.tags.bot;
+    }
+    return null;
   }
 
   get createdAt(): Date {
@@ -60,6 +79,20 @@ export class Role extends BaseStructure {
 
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
+  }
+
+  get integrationId(): null | string {
+    if (this.tags && this.tags.integration) {
+      return this.tags.integration;
+    }
+    return null;
+  }
+
+  get isBoosterRole(): boolean {
+    if (this.tags) {
+      return 'premium_subscriber' in this.tags;
+    }
+    return false;
   }
 
   get isDefault(): boolean {
@@ -125,6 +158,15 @@ export class Role extends BaseStructure {
 
   edit(options: RequestTypes.EditGuildRole) {
     return this.client.rest.editGuildRole(this.guildId, this.id, options);
+  }
+
+  mergeValue(key: string, value: any): void {
+    switch (key) {
+      case DiscordKeys.TAGS: {
+        value = value || null;
+      }; break;
+    }
+    return super.mergeValue(key, value);
   }
 
   toString(): string {
