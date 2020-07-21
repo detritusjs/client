@@ -164,10 +164,10 @@ export class RestClient {
     const data = await this.raw.acceptTemplate(templateId, options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
-      guild = <Guild> this.client.guilds.get(data.id);
+      guild = this.client.guilds.get(data.id) as Guild;
       guild.merge(data);
     } else {
-      guild = <Guild> new Guild(this.client, data);
+      guild = new Guild(this.client, data);
       this.client.guilds.insert(guild);
     }
     return guild;
@@ -287,11 +287,11 @@ export class RestClient {
     const data = await this.raw.createDm(options);
     let channel: ChannelDM;
     if (this.client.channels.has(data.id)) {
-      channel = <ChannelDM> this.client.channels.get(data.id);
+      channel = this.client.channels.get(data.id) as ChannelDM;
       channel.merge(data);
       // this should never happen lmao
     } else {
-      channel = <ChannelDM> createChannelFromData(this.client, data);
+      channel = createChannelFromData(this.client, data) as ChannelDM;
       this.client.channels.insert(channel);
     }
     return channel;
@@ -303,10 +303,10 @@ export class RestClient {
     const data = await this.raw.createGuild(options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
-      guild = <Guild> this.client.guilds.get(data.id);
+      guild = this.client.guilds.get(data.id) as Guild;
       guild.merge(data);
     } else {
-      guild = <Guild> new Guild(this.client, data);
+      guild = new Guild(this.client, data);
       this.client.guilds.insert(guild);
     }
     return guild;
@@ -328,7 +328,7 @@ export class RestClient {
     const data = await this.raw.createGuildChannel(guildId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
-      channel = <Channel> this.client.channels.get(data.id);
+      channel = this.client.channels.get(data.id) as Channel;
       channel.merge(data);
       // this should never happen lmao
     } else {
@@ -346,7 +346,7 @@ export class RestClient {
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
-      emoji = <Emoji> this.client.emojis.get(guildId, data.id);
+      emoji = this.client.emojis.get(guildId, data.id) as Emoji;
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -372,7 +372,7 @@ export class RestClient {
     data.guild_id = guildId;
     const role = new Role(this.client, data);
     if (this.client.guilds.has(guildId)) {
-      (<Guild> this.client.guilds.get(guildId)).roles.set(role.id, role);
+      (this.client.guilds.get(guildId) as Guild).roles.set(role.id, role);
     }
     return role;
   }
@@ -410,7 +410,7 @@ export class RestClient {
   ): Promise<Message> {
     const data = await this.raw.createMessage(channelId, options);
     if (this.client.channels.has(data.channel_id)) {
-      const channel = <Channel> this.client.channels.get(data.channel_id);
+      const channel = this.client.channels.get(data.channel_id) as Channel;
       if (channel.guildId) {
         data.guild_id = channel.guildId;
       }
@@ -486,7 +486,7 @@ export class RestClient {
     const data = await this.raw.deleteChannel(channelId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
-      channel = <Channel> this.client.channels.get(data.id);
+      channel = this.client.channels.get(data.id) as Channel;
       this.client.channels.delete(data.id);
       channel.merge(data);
     } else {
@@ -690,7 +690,7 @@ export class RestClient {
     const data = await this.raw.editChannel(channelId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
-      channel = <Channel> this.client.channels.get(data.id);
+      channel = this.client.channels.get(data.id) as Channel;
       channel.merge(data);
     } else {
       channel = createChannelFromData(this.client, data);
@@ -722,7 +722,7 @@ export class RestClient {
     const data = await this.raw.editGuild(guildId, options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
-      guild = <Guild> this.client.guilds.get(data.id);
+      guild = this.client.guilds.get(data.id) as Guild;
       guild.merge(data);
     } else {
       guild = new Guild(this.client, data);
@@ -754,7 +754,7 @@ export class RestClient {
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
-      emoji = <Emoji> this.client.emojis.get(guildId, data.id);
+      emoji = this.client.emojis.get(guildId, data.id) as Emoji;
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -802,9 +802,9 @@ export class RestClient {
     const data = await this.raw.editGuildRole(guildId, roleId, options);
     let role: Role;
     if (this.client.guilds.has(guildId)) {
-      const guild = <Guild> this.client.guilds.get(guildId);
+      const guild = this.client.guilds.get(guildId) as Guild;
       if (guild.roles.has(data.id)) {
-        role = <Role> guild.roles.get(data.id);
+        role = guild.roles.get(data.id) as Role;
         role.merge(data);
       } else {
         data.guild_id = guildId;
@@ -827,7 +827,7 @@ export class RestClient {
 
     const collection = new BaseCollection<string, Role>();
     if (this.client.guilds.has(guildId)) {
-      const guild = <Guild> this.client.guilds.get(guildId);
+      const guild = this.client.guilds.get(guildId) as Guild;
       guild.roles.clear();
       for (let raw of data) {
         raw.guild_id = guildId;
@@ -874,7 +874,7 @@ export class RestClient {
     const data = await this.raw.editMe(options);
     let user: UserMe;
     if (this.client.user !== null) {
-      user = <UserMe> this.client.user;
+      user = this.client.user as UserMe;
       user.merge(data);
     } else {
       user = new UserMe(this.client, data);
@@ -904,7 +904,7 @@ export class RestClient {
     const data = await this.raw.editMessage(channelId, messageId, options);
     let message: Message;
     if (this.client.messages.has(data.id)) {
-      message = <Message> this.client.messages.get(data.id);
+      message = this.client.messages.get(data.id) as Message;
       message.merge(data);
       // should we really merge? the message_update event wont have differences then
     } else {
@@ -1056,7 +1056,7 @@ export class RestClient {
     const data = await this.raw.fetchChannel(channelId);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
-      channel = <Channel> this.client.channels.get(data.id);
+      channel = this.client.channels.get(data.id) as Channel;
       channel.merge(data);
     } else {
       channel = createChannelFromData(this.client, data);
@@ -1121,7 +1121,7 @@ export class RestClient {
     for (let raw of data) {
       let channel: Channel;
       if (this.client.channels.has(raw.id)) {
-        channel = <Channel> this.client.channels.get(raw.id);
+        channel = this.client.channels.get(raw.id) as Channel;
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
@@ -1158,10 +1158,15 @@ export class RestClient {
 
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
-      guild = <Guild> this.client.guilds.get(data.id);
+      guild = this.client.guilds.get(data.id) as Guild;
       guild.merge(data);
     } else {
-      guild = new Guild(this.client, data, {emojis: {}, members: {}, roles: {}});
+      guild = new Guild(this.client, data, {
+        emojis: {},
+        fromRest: true,
+        members: {},
+        roles: {},
+      });
     }
     guild.hasMetadata = true;
     return guild;
@@ -1183,7 +1188,7 @@ export class RestClient {
     for (let raw of data.audit_log_entries) {
       let target: null | User | Webhook = null;
       if (this.client.users.has(raw.target_id)) {
-        target = <User> this.client.users.get(raw.target_id);
+        target = this.client.users.get(raw.target_id) as User;
         // target.merge(data.users.find((user) => user.id === raw.target_id));
       } else {
         let rawTarget = data.users.find((user: any) => user.id === raw.target_id);
@@ -1199,7 +1204,7 @@ export class RestClient {
 
       let user: null | User = null;
       if (this.client.users.has(raw.user_id)) {
-        user = <User> this.client.users.get(raw.user_id);
+        user = this.client.users.get(raw.user_id) as User;
       } else {
         const rawUser = data.users.find((u: any) => u.id === raw.user_id);
         if (rawUser !== undefined) {
@@ -1224,7 +1229,7 @@ export class RestClient {
     for (let raw of data) {
       let user: User;
       if (this.client.users.has(raw.user.id)) {
-        user = <User> this.client.users.get(raw.user.id);
+        user = this.client.users.get(raw.user.id) as User;
         user.merge(raw.user);
       } else {
         user = new User(this.client, raw.user);
@@ -1246,7 +1251,7 @@ export class RestClient {
     for (let raw of data) {
       let channel: Channel;
       if (this.client.channels.has(raw.id)) {
-        channel = <Channel> this.client.channels.get(raw.id);
+        channel = this.client.channels.get(raw.id) as Channel;
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
@@ -1268,7 +1273,7 @@ export class RestClient {
     const data = await this.raw.fetchGuildEmojis(guildId);
 
     if (this.client.guilds.has(guildId)) {
-      const guild = <Guild> this.client.guilds.get(guildId);
+      const guild = this.client.guilds.get(guildId) as Guild;
       guild.merge({emojis: data});
       return guild.emojis;
     } else {
@@ -1276,7 +1281,7 @@ export class RestClient {
       for (let raw of data) {
         let emoji: Emoji;
         if (this.client.emojis.has(guildId, raw.id)) {
-          emoji = <Emoji> this.client.emojis.get(guildId, raw.id);
+          emoji = this.client.emojis.get(guildId, raw.id) as Emoji;
           emoji.merge(raw);
         } else {
           raw.guild_id = guildId;
@@ -1296,7 +1301,7 @@ export class RestClient {
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
-      emoji = <Emoji> this.client.emojis.get(guildId, data.id);
+      emoji = this.client.emojis.get(guildId, data.id) as Emoji;
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -1342,7 +1347,7 @@ export class RestClient {
     for (let raw of data) {
       let member: Member;
       if (this.client.members.has(guildId, raw.user.id)) {
-        member = <Member> this.client.members.get(guildId, raw.user.id);
+        member = this.client.members.get(guildId, raw.user.id) as Member;
         member.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1364,7 +1369,7 @@ export class RestClient {
     for (let raw of data) {
       let member: Member;
       if (this.client.members.has(guildId, raw.user.id)) {
-        member = <Member> this.client.members.get(guildId, raw.user.id);
+        member = this.client.members.get(guildId, raw.user.id) as Member;
         member.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1383,7 +1388,7 @@ export class RestClient {
     const data = await this.raw.fetchGuildMember(guildId, userId);
     let member: Member;
     if (this.client.members.has(guildId, userId)) {
-      member = <Member> this.client.members.get(guildId, userId);
+      member = this.client.members.get(guildId, userId) as Member;
       member.merge(data);
     } else {
       data.guild_id = guildId;
@@ -1425,7 +1430,7 @@ export class RestClient {
     const collection = new BaseCollection<string, Role>();
 
     if (this.client.guilds.has(guildId)) {
-      const guild = <Guild> this.client.guilds.get(guildId);
+      const guild = this.client.guilds.get(guildId) as Guild;
       for (let [roleId, role] of guild.roles) {
         if (!data.some((r: Role) => r.id === roleId)) {
           guild.roles.delete(roleId);
@@ -1435,7 +1440,7 @@ export class RestClient {
       for (let raw of data) {
         let role: Role;
         if (guild.roles.has(raw.id)) {
-          role = <Role> guild.roles.get(raw.id);
+          role = guild.roles.get(raw.id) as Role;
           role.merge(raw);
         } else {
           raw.guild_id = guildId;
@@ -1539,7 +1544,7 @@ export class RestClient {
     for (let raw of data) {
       let channel: Channel;
       if (this.client.channels.has(raw.id)) {
-        channel = <Channel> this.client.channels.get(raw.id);
+        channel = this.client.channels.get(raw.id) as Channel;
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
@@ -1600,7 +1605,7 @@ export class RestClient {
     if (data.length) {
       const raw = data[0];
       if (this.client.channels.has(raw.channel_id)) {
-        const channel = <Channel> this.client.channels.get(raw.channel_id);
+        const channel = this.client.channels.get(raw.channel_id) as Channel;
         if (channel.guildId) {
           guildId = channel.guildId;
         }
@@ -1611,7 +1616,7 @@ export class RestClient {
     for (let raw of data) {
       let message: Message;
       if (this.client.messages.has(raw.id)) {
-        message = <Message> this.client.messages.get(raw.id);
+        message = this.client.messages.get(raw.id) as Message;
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1630,7 +1635,7 @@ export class RestClient {
 
     let guildId: string | undefined;
     if (this.client.channels.has(data.channel_id)) {
-      const channel = <Channel> this.client.channels.get(data.channel_id);
+      const channel = this.client.channels.get(data.channel_id) as Channel;
       if (channel.guildId) {
         guildId = channel.guildId;
       }
@@ -1638,7 +1643,7 @@ export class RestClient {
 
     let message: Message;
     if (this.client.messages.has(data.id)) {
-      message = <Message> this.client.messages.get(data.id);
+      message = this.client.messages.get(data.id) as Message;
       message.merge(data);
     } else {
       data.guild_id = guildId;
@@ -1657,7 +1662,7 @@ export class RestClient {
     if (data.length) {
       const raw = data[0];
       if (this.client.channels.has(raw.channel_id)) {
-        const channel = <Channel> this.client.channels.get(raw.channel_id);
+        const channel = this.client.channels.get(raw.channel_id) as Channel;
         if (channel.guildId) {
           guildId = channel.guildId;
         }
@@ -1668,7 +1673,7 @@ export class RestClient {
     for (let raw of data) {
       let message: Message;
       if (this.client.messages.has(raw.id)) {
-        message = <Message> this.client.messages.get(raw.id);
+        message = this.client.messages.get(raw.id) as Message;
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1755,7 +1760,7 @@ export class RestClient {
     if (data.length) {
       const raw = data[0];
       if (this.client.channels.has(raw.channel_id)) {
-        const channel = <Channel> this.client.channels.get(raw.channel_id);
+        const channel = this.client.channels.get(raw.channel_id) as Channel;
         guildId = channel.guildId;
       }
     }
@@ -1764,7 +1769,7 @@ export class RestClient {
     for (let raw of data) {
       let message: Message;
       if (this.client.messages.has(raw.id)) {
-        message = <Message> this.client.messages.get(raw.id);
+        message = this.client.messages.get(raw.id) as Message;
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1786,7 +1791,7 @@ export class RestClient {
     for (let raw of data) {
       let user: User;
       if (this.client.users.has(raw.id)) {
-        user = <User> this.client.users.get(raw.id);
+        user = this.client.users.get(raw.id) as User;
         user.merge(raw);
       } else {
         user = new User(this.client, raw);
@@ -1889,7 +1894,7 @@ export class RestClient {
     const data = await this.raw.fetchUser(userId);
     let user: User;
     if (this.client.users.has(data.id)) {
-      user = <User> this.client.users.get(data.id);
+      user = this.client.users.get(data.id) as User;
       user.merge(data);
     } else {
       user = new User(this.client, data);
@@ -1914,7 +1919,7 @@ export class RestClient {
     for (let raw of data) {
       let channel: Channel;
       if (this.client.channels.has(raw.id)) {
-        channel = <Channel> this.client.channels.get(raw.id);
+        channel = this.client.channels.get(raw.id) as Channel;
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
