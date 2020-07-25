@@ -2,7 +2,7 @@ import { CommandAttributes, CommandClient } from '../commandclient';
 import { CommandArgumentTypes, Permissions } from '../constants';
 import { Message } from '../structures/message';
 
-import {  ArgumentOptions, Argument, ArgumentDefault, ArgumentType } from './argument';
+import { ArgumentOptions, Argument, ArgumentDefault, ArgumentType } from './argument';
 import { ArgumentParser, ParsedArgs, ParsedErrors } from './argumentparser';
 import { Context } from './context';
 import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from './ratelimit';
@@ -111,10 +111,10 @@ export interface CommandOptions extends ArgumentOptions {
  */
 export class Command<ParsedArgsFinished = ParsedArgs> {
   readonly _file?: string;
+  readonly argParser = new ArgumentParser();
   readonly commandClient: CommandClient;
 
   arg: Argument;
-  args: ArgumentParser;
   disableDm: boolean = false;
   disableDmReply: boolean = false;
   metadata: {[key: string]: any} = {};
@@ -144,9 +144,9 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     options: CommandOptions,
   ) {
     this.commandClient = commandClient;
+    options = Object.assign({}, options);
 
     this.arg = new Argument(Object.assign({prefix: ''}, options, {metadata: undefined}));
-    this.args = new ArgumentParser(options.args);
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
     this.metadata = Object.assign(this.metadata, options.metadata);
@@ -155,6 +155,10 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.permissionsIgnoreClientOwner = !!options.permissionsIgnoreClientOwner;
     this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;
+
+    if (options.args) {
+      this.args = options.args;
+    }
 
     if (options.triggerTypingAfter !== undefined) {
       this.triggerTypingAfter = Math.max(options.triggerTypingAfter, this.triggerTypingAfter);
@@ -202,35 +206,99 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   }
 
   set aliases(value: Array<string>) {
-    this.arg.aliases = value;
+    this.setAliases(value);
+  }
+
+  set args(value: Array<ArgumentOptions>) {
+    this.setArgs(value);
+  }
+
+  get choices() {
+    return this.arg.choices;
+  }
+
+  set choices(value: Array<any> | undefined) {
+    this.setChoices(value);
+  }
+
+  get default(): ArgumentDefault {
+    return this.arg.default;
   }
 
   set default(value: ArgumentDefault) {
-    this.arg.default = value;
+    this.setDefault(value);
   }
 
-  get label(): string {
+  get help() {
+    return this.arg.help;
+  }
+
+  set help(value: string) {
+    this.setHelp(value);
+  }
+
+  get label() {
     return this.arg.label;
   }
 
   set label(value: string) {
-    this.arg.label = value;
+    this.setLabel(value);
   }
 
-  get name(): string {
+  get name() {
     return this.arg.name;
   }
 
   set name(value: string) {
-    this.arg.name = value.toLowerCase();
+    this.setName(value);
   }
 
-  get names(): Array<string> {
+  get names() {
     return this.arg.names;
   }
 
   set type(value: ArgumentType) {
+    this.setType(value);
+  }
+
+  setAliases(value: Array<string>) {
+    this.arg.aliases = value;
+    return this;
+  }
+
+  setArgs(value: Array<ArgumentOptions>) {
+    this.argParser.initialize(value);
+    return this;
+  }
+
+  setChoices(value: Array<any> | undefined) {
+    this.arg.choices = value;
+    return this;
+  }
+
+  setDefault(value: ArgumentDefault) {
+    this.arg.default = value;
+    return this;
+  }
+
+  setHelp(value: string) {
+    this.arg.help = value;
+    return this;
+  }
+
+  setLabel(value: string) {
+    this.arg.label = value;
+    return this;
+  }
+
+  setName(value: string) {
+    this.arg.name = value.toLowerCase();
+    return this;
+  }
+
+  setType(value: ArgumentType): this {
     this.arg.type = value;
+    return this;
   }
 
   check(name: string): boolean {
@@ -241,7 +309,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     attributes: CommandAttributes,
     context: Context,
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
-    const {errors, parsed} = await this.args.parse(attributes, context);
+    const {errors, parsed} = await this.argParser.parse(attributes, context);
     const { arg } = this;
     try {
       let value: any = attributes.content.trim();
@@ -255,7 +323,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
           value = await arg.parse(value, context);
         }
       } else {
-        value = await arg.parse(attributes.content, context);
+        value = await arg.parse(value, context);
       }
       parsed[arg.label] = value;
     } catch(error) {

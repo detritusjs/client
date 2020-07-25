@@ -278,38 +278,39 @@ export class CommandClient extends EventSpewer {
 
     const files: Array<string> = await getFiles(directory, options.subdirectories);
     const errors: {[key: string]: Error} = {};
+
+    const addCommand = (imported: any, filepath: string): void => {
+      if (!imported) {
+        return;
+      }
+      if (typeof(imported) === 'function') {
+        this.add({_file: filepath, _class: imported, name: ''});
+      } else if (imported instanceof Command) {
+        Object.defineProperty(imported, '_file', {value: filepath});
+        this.add(imported);
+      } else if (typeof(imported) === 'object' && Object.keys(imported).length) {
+        if (Array.isArray(imported)) {
+          for (let child of imported) {
+            addCommand(child, filepath);
+          }
+        } else {
+          if ('name' in imported) {
+            this.add({...imported, _file: filepath});
+          }
+        }
+      }
+    };
     for (let file of files) {
       if (!file.endsWith('.js')) {
         continue;
       }
       const filepath = path.resolve(directory, file);
-
       try {
         let importedCommand: any = require(filepath);
         if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
           importedCommand = importedCommand.default;
         }
-
-        const addCommand = (imported: any): void => {
-          if (!imported) {
-            return;
-          }
-          if (typeof(imported) === 'function') {
-            this.add({_file: filepath, _class: imported, name: ''});
-          } else if (imported instanceof Command) {
-            Object.defineProperty(imported, '_file', {value: filepath});
-            this.add(imported);
-          } else if (typeof(imported) === 'object' && Object.keys(imported).length) {
-            if (Array.isArray(imported)) {
-              for (let child of imported) {
-                addCommand(child);
-              }
-            } else {
-              this.add({...imported, _file: filepath});
-            }
-          }
-        };
-        addCommand(importedCommand);
+        addCommand(importedCommand, filepath);
       } catch(error) {
         errors[filepath] = error;
       }

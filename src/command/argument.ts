@@ -15,7 +15,9 @@ export type ArgumentType = ArgumentConverter | Boolean | Number | String | Comma
  */
 export interface ArgumentOptions {
   aliases?: Array<string>,
+  choices?: Array<any>,
   default?: ArgumentDefault,
+  help?: string,
   label?: string,
   metadata?: {[key: string]: any},
   name: string,
@@ -37,9 +39,11 @@ export class Argument {
   private _label?: string;
   private _type: ArgumentType = CommandArgumentTypes.STRING;
 
+  choices?: Array<any>;
   default: ArgumentDefault = undefined;
+  help: string = '';
   metadata?: {[key: string]: any};
-  name: string;
+  name: string = '';
   prefixes: Set<string> = new Set(['-']);
 
   constructor(options: ArgumentOptions) {
@@ -76,8 +80,10 @@ export class Argument {
       }
     }
 
+    this.choices = options.choices;
     this.default = options.default;
-    this.name = options.name.toLowerCase();
+    this.help = options.help || this.help;
+    this.name = (options.name || this.name).toLowerCase();
     if (options.aliases) {
       this.aliases = options.aliases;
     }
@@ -217,22 +223,35 @@ export class Argument {
     if (typeof(this.type) === 'function') {
       parsedValue = await Promise.resolve(this.type(value, context));
     } else {
-      switch (this.type) {
-        case CommandArgumentTypes.BOOL: {
-          parsedValue = !this.default;
-        }; break;
-        case CommandArgumentTypes.FLOAT: {
-          parsedValue = parseFloat(value);
-        }; break;
-        case CommandArgumentTypes.NUMBER: {
-          parsedValue = parseInt(value);
-        }; break;
-        case CommandArgumentTypes.STRING: {
-          parsedValue = value || this.default || value;
-        }; break;
-        default: {
-          parsedValue = value || this.default;
-        }; break;
+      try {
+        switch (this.type) {
+          case CommandArgumentTypes.BOOL: {
+            parsedValue = !this.default;
+          }; break;
+          case CommandArgumentTypes.FLOAT: {
+            parsedValue = parseFloat(value);
+          }; break;
+          case CommandArgumentTypes.NUMBER: {
+            parsedValue = parseInt(value);
+          }; break;
+          case CommandArgumentTypes.STRING: {
+            parsedValue = value || this.default || value;
+          }; break;
+          default: {
+            parsedValue = value || this.default;
+          }; break;
+        }
+      } catch(error) {
+        if (this.help) {
+          throw new Error(this.help.replace(/:error/g, error.message));
+        } else {
+          throw error;
+        }
+      }
+    }
+    if (this.choices) {
+      if (!this.choices.includes(parsedValue)) {
+        throw new Error(this.help || `${parsedValue} is not a valid choice`);
       }
     }
     return parsedValue;
