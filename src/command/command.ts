@@ -1,5 +1,5 @@
 import { CommandAttributes, CommandClient } from '../commandclient';
-import { CommandArgumentTypes, Permissions } from '../constants';
+import { Permissions } from '../constants';
 import { Message } from '../structures/message';
 
 import { ArgumentOptions, Argument, ArgumentDefault, ArgumentType } from './argument';
@@ -309,23 +309,35 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     attributes: CommandAttributes,
     context: Context,
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
-    const {errors, parsed} = await this.argParser.parse(attributes, context);
+    const { errors, parsed } = await this.argParser.parse(attributes, context);
     const { arg } = this;
     try {
-      let value: any = attributes.content.trim();
-      if (!value && arg.default !== undefined) {
-        if (typeof(arg.default) === 'function') {
-          value = await Promise.resolve(arg.default(context));
-        } else {
-          value = arg.default;
-        }
-        if (typeof(value) === 'string') {
-          value = await arg.parse(value, context);
-        }
+      if (this.arg.positionalArgs) {
+        const positional = await this.arg.positionalArgs.parse(attributes, context);
+        Object.assign(errors, positional.errors);
+        Object.assign(parsed, positional.parsed);
       } else {
-        value = await arg.parse(value, context);
+        let value: any = attributes.content.trim();
+        if (value) {
+          value = await arg.parse(value, context);
+        } else {
+          if (arg.default !== undefined) {
+            if (typeof(arg.default) === 'function') {
+              value = await Promise.resolve(arg.default(context));
+            } else {
+              value = arg.default;
+            }
+            if (typeof(value) === 'string') {
+              value = await arg.parse(value, context);
+            }
+          } else if (arg.required) {
+            throw new Error(arg.help || 'Missing required parameter');
+          } else {
+            value = await arg.parse(value, context);
+          }
+        }
+        parsed[arg.label] = value;
       }
-      parsed[arg.label] = value;
     } catch(error) {
       errors[arg.label] = error;
     }

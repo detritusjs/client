@@ -1,5 +1,5 @@
 import { CommandAttributes } from '../commandclient';
-import { CommandArgumentTypes } from '../constants';
+import { getFirstArgument } from '../utils';
 
 import {
   Argument,
@@ -25,7 +25,10 @@ export type ParsedErrors = {[key: string]: Error} | any;
 export class ArgumentParser {
   readonly args: Array<Argument> = [];
 
-  constructor(args: Array<ArgumentOptions> = []) {
+  positional: boolean = false;
+
+  constructor(args: Array<ArgumentOptions> = [], positional?: boolean) {
+    this.positional = !!positional;
     this.initialize(args);
   }
 
@@ -43,40 +46,74 @@ export class ArgumentParser {
     const errors: ParsedErrors = {};
     const parsed: ParsedArgs = {};
     if (this.args.length) {
-      const insensitive = attributes.content.toLowerCase();
-      const args = this.args
-        .map((arg) => ({arg, info: arg.getInfo(insensitive)}))
-        .filter((x) => x.info.index !== -1)
-        .sort((x, y) => y.info.index - x.info.index);
-      for (const {arg, info} of args) {
-        const value = attributes.content.slice(info.index + info.name.length);
-        // incase something like `.command -argSOMEVALUE` happens, we the arg
-        if (value && !value.startsWith(' ')) {
-          continue;
+      if (this.positional) {
+        for (const arg of this.args) {
+          try {
+            let value: string;
+            if (arg.consume) {
+              value = attributes.content;
+              attributes.content = '';
+            } else {
+              if (attributes.content) {
+                // get first value from attributes.content;
+                let [ x, content ] = getFirstArgument(attributes.content);
+                value = x;
+                attributes.content = content;
+              } else {
+                continue;
+              }
+            }
+            parsed[arg.label] = await arg.parse(value.trim(), context);
+          } catch(error) {
+            errors[arg.label] = error;
+          }
         }
-        attributes.content = attributes.content.slice(0, info.index).trim();
-
-        try {
-          parsed[arg.label] = await arg.parse(value.trim(), context);
-        } catch(error) {
-          errors[arg.label] = error;
+      } else {
+        const insensitive = attributes.content.toLowerCase();
+        const args = this.args
+          .map((arg) => ({arg, info: arg.getInfo(insensitive)}))
+          .filter((x) => x.info.index !== -1)
+          .sort((x, y) => y.info.index - x.info.index);
+        for (const {arg, info} of args) {
+          const value = attributes.content.slice(info.index + info.name.length);
+          // incase something like `.command -argSOMEVALUE` happens, we the arg
+          if (value && !value.startsWith(' ')) {
+            continue;
+          }
+          attributes.content = attributes.content.slice(0, info.index).trim();
+          try {
+            if (arg.positionalArgs) {
+              const positional = await arg.positionalArgs.parse({content: value, prefix: ''}, context);
+              Object.assign(parsed, positional.parsed);
+              Object.assign(errors, positional.errors);
+            } else {
+              parsed[arg.label] = await arg.parse(value.trim(), context);
+            }
+          } catch(error) {
+            errors[arg.label] = error;
+          }
         }
       }
 
       for (let arg of this.args) {
-        if (!(arg.label in parsed)) {
-          let value: any;
+        if (!(arg.label in parsed) && !(arg.label in errors)) {
           try {
-            if (typeof(arg.default) === 'function') {
-              value = await Promise.resolve(arg.default(context));
-            } else {
-              value = arg.default;
+            if (arg.default !== undefined) {
+              let value: any;
+              if (typeof(arg.default) === 'function') {
+                value = await Promise.resolve(arg.default(context));
+              } else {
+                value = arg.default;
+              }
+  
+              if (typeof(value) === 'string') {
+                value = await arg.parse(value, context);
+              }
+              parsed[arg.label] = value;
+            } else if (arg.required) {
+              throw new Error(arg.help || 'Missing required parameter');
             }
-
-            if (typeof(value) === 'string') {
-              value = await arg.parse(value, context);
-            }
-            parsed[arg.label] = value;
+            // or else ignore the arg
           } catch(error) {
             errors[arg.label] = error;
           }

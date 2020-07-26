@@ -1,5 +1,6 @@
 import { CommandArgumentTypes } from '../constants';
 
+import { ArgumentParser } from './argumentparser';
 import { Context } from './context';
 
 
@@ -7,7 +8,7 @@ export type ArgumentConverter = (value: string, context: Context) => Promise<any
 
 export type ArgumentDefault = ((context: Context) => Promise<any> | any) | any;
 
-export type ArgumentType = ArgumentConverter | Boolean | Number | String | CommandArgumentTypes;
+export type ArgumentType = ArgumentConverter | Boolean | Number | String | CommandArgumentTypes | Array<ArgumentOptions>;
 
 /**
  * Command Argument Options
@@ -16,6 +17,7 @@ export type ArgumentType = ArgumentConverter | Boolean | Number | String | Comma
 export interface ArgumentOptions {
   aliases?: Array<string>,
   choices?: Array<any>,
+  consume?: boolean,
   default?: ArgumentDefault,
   help?: string,
   label?: string,
@@ -24,6 +26,7 @@ export interface ArgumentOptions {
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
+  required?: boolean,
   type?: ArgumentType,
 }
 
@@ -36,15 +39,18 @@ const blankPrefixes = Object.freeze(['']);
  */
 export class Argument {
   private _aliases: Array<string> = [];
-  private _label?: string;
+  private _label: string = '';
   private _type: ArgumentType = CommandArgumentTypes.STRING;
 
+  positionalArgs?: ArgumentParser;
   choices?: Array<any>;
+  consume?: boolean = false;
   default: ArgumentDefault = undefined;
   help: string = '';
   metadata?: {[key: string]: any};
   name: string = '';
   prefixes: Set<string> = new Set(['-']);
+  required: boolean = false;
 
   constructor(options: ArgumentOptions) {
     options = Object.assign({}, options);
@@ -81,9 +87,11 @@ export class Argument {
     }
 
     this.choices = options.choices;
+    this.consume = !!options.consume;
     this.default = options.default;
     this.help = options.help || this.help;
     this.name = (options.name || this.name).toLowerCase();
+    this.required = !!options.required;
     if (options.aliases) {
       this.aliases = options.aliases;
     }
@@ -147,6 +155,12 @@ export class Argument {
           this.default = !!this.default;
         }; break;
       }
+    }
+
+    if (Array.isArray(value)) {
+      this.positionalArgs = new ArgumentParser(value, true);
+    } else {
+      this.positionalArgs = undefined;
     }
   }
 
