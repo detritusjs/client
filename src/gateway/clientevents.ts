@@ -322,7 +322,10 @@ export namespace GatewayClientEvents {
   }
 
   export interface MessageDelete {
+    channelId: string,
+    guildId: string | undefined,
     message: Message | null,
+    messageId: string,
     raw: GatewayRawEvents.MessageDelete,
   }
 

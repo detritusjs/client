@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 import { Client as DetritusRestClient } from 'detritus-client-rest';
-import { EventSpewer, Timers } from 'detritus-utils';
+import { EventSpewer, EventSubscription } from 'detritus-utils';
 
 import { Bucket } from './bucket';
 import { ClusterProcess } from './cluster/process';
@@ -97,7 +97,7 @@ export class ClusterManager extends EventSpewer {
       delay: DEFAULT_SHARD_LAUNCH_DELAY,
     }, options);
 
-    const delay = +(<number> options.delay);
+    const delay = +(options.delay as number);
 
     let maxConcurrency: number = +(options.maxConcurrency || this.maxConcurrency);
     let shardCount: number = +(options.shardCount || this.shardCount || 0);
@@ -185,9 +185,25 @@ export class ClusterManager extends EventSpewer {
   }
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;
+  on(event: ClientEvents.CLUSTER_PROCESS, listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
   on(event: 'clusterProcess', listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
+  }
+
+  once(event: string | symbol, listener: (...args: any[]) => void): this;
+  once(event: ClientEvents.CLUSTER_PROCESS, listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
+  once(event: 'clusterProcess', listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
+  once(event: string | symbol, listener: (...args: any[]) => void): this {
+    super.once(event, listener);
+    return this;
+  }
+
+  subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription;
+  subscribe(event: ClientEvents.CLUSTER_PROCESS, listener: (payload: {clusterProcess: ClusterProcess}) => any): EventSubscription;
+  subscribe(event: 'clusterProcess', listener: (payload: {clusterProcess: ClusterProcess}) => any): EventSubscription;
+  subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription {
+    return super.subscribe(event, listener);
   }
 }

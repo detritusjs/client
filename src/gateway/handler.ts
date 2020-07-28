@@ -1128,15 +1128,18 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_DELETE](data: GatewayRawEvents.MessageDelete) {
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
     let message: Message | null = null;
+    const messageId = data['id'];
 
-    if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(data['id']);
+    if (this.client.messages.has(messageId)) {
+      message = this.client.messages.get(messageId) as Message;
       message.deleted = true;
-      this.client.messages.delete(data['id']);
+      this.client.messages.delete(messageId);
     }
 
-    const payload: GatewayClientEvents.MessageDelete = {message, raw: data};
+    const payload: GatewayClientEvents.MessageDelete = {channelId, guildId, message, messageId, raw: data};
     this.client.emit(ClientEvents.MESSAGE_DELETE, payload);
   }
 
