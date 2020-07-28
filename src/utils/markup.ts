@@ -19,6 +19,7 @@ export const Regexes = Object.freeze({
   [Strings.STRIKE]: new RegExp(Strings.STRIKE, 'g'),
   [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
   EVERYONE: /@(everyone|here)/g,
+  LINK: /\]\(/g,
   MENTION: /<@([!&]?[0-9]{16,21})>/g,
   MENTION_HARDCORE: /@/g,
   URL: /\)/g,
@@ -39,6 +40,7 @@ export const Replacements = Object.freeze({
 
 export interface MarkupFilter {
   limit: number,
+  links: boolean,
   mentions: boolean,
   mentionEscapeCharacter: string,
   replacement: string,
@@ -46,6 +48,7 @@ export interface MarkupFilter {
 
 export interface MarkupFilterOptions {
   limit?: number,
+  links?: boolean,
   mentions?: boolean,
   mentionEscapeCharacter?: string,
   replacement?: string,
@@ -53,6 +56,7 @@ export interface MarkupFilterOptions {
 
 const defaultMarkupFilter: MarkupFilter = Object.freeze({
   limit: 2000,
+  links: true,
   mentions: true,
   mentionEscapeCharacter: '\u200b',
   replacement: '',
@@ -185,6 +189,9 @@ export const escape = Object.freeze({
     text = text.replace(Regexes[Strings.STRIKE], Replacements[Strings.STRIKE]);
     text = text.replace(Regexes[Strings.UNDERLINE], Replacements[Strings.UNDERLINE]);
 
+    if (filter.links) {
+      text = escape.links(text, filter.mentionEscapeCharacter);
+    }
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
@@ -228,6 +235,10 @@ export const escape = Object.freeze({
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
     return trueSlice(text, filter.limit);
+  },
+  links: (text: string, replacement: string = Replacements.MENTION): string => {
+    text = text.replace(Regexes.LINK, `]${replacement}(`);
+    return text;
   },
   mentions: (text: string, replacement: string = Replacements.MENTION): string => {
     text = text.replace(Regexes.MENTION_HARDCORE, `@${replacement}`);
