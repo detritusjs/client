@@ -2,6 +2,7 @@ export const Strings = Object.freeze({
   BOLD: '**',
   CODEBLOCK: '```',
   CODESTRING: '`',
+  CODESTRING_DOUBLE: '``',
   ESCAPE: '\\',
   ITALICS: '_',
   SPOILER: '||',
@@ -93,9 +94,9 @@ const defaultCodeblockFilter: CodeblockFilter = Object.freeze(Object.assign({}, 
 export function codeblock(text: string, options: CodeblockFilterOptions = {}): string {
   text = escape.codeblock(text, options);
   return [
-    '```' + (options.language || defaultCodeblockFilter.language),
+    Strings.CODEBLOCK + (options.language || defaultCodeblockFilter.language),
     text,
-    '```',
+    Strings.CODEBLOCK,
   ].join('\n');
 }
 
@@ -107,8 +108,21 @@ const defaultCodestringFilter: MarkupFilter = Object.freeze(Object.assign({}, de
 }));
 
 export function codestring(text: string, options: MarkupFilterOptions = {}): string {
-  text = escape.codestring(text, options);
-  return `\`${text}\``;
+  let wrap = Strings.CODESTRING;
+  if (text.includes(Strings.CODESTRING)) {
+    options = Object.assign({
+      limit: 1995,
+      replacement: Strings.CODESTRING + Replacements.MENTION,
+    }, options);
+    text = escape.codestring(text, options);
+    wrap = Strings.CODESTRING_DOUBLE;
+    if (text.endsWith(Strings.CODESTRING)) {
+      text += Replacements.MENTION;
+    }
+  } else {
+    text = escape.codestring(text, options);
+  }
+  return `${wrap}${text}${wrap}`;
 }
 
 
