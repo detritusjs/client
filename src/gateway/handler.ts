@@ -111,7 +111,7 @@ export class GatewayHandler {
     }
     if (!this.disabledEvents.has(name)) {
       if (name in this.dispatchHandler) {
-        (<any> this.dispatchHandler)[name](data);
+        (this.dispatchHandler as any)[name](data);
       } else {
         this.client.emit(ClientEvents.UNKNOWN, packet);
       }
@@ -174,11 +174,10 @@ export class GatewayDispatchHandler {
     }
 
     if (this.client.guilds.enabled) {
-      const requestChunksNow: Array<string> = [];
       for (let raw of data['guilds']) {
         let guild: Guild;
         if (this.client.guilds.has(raw.id)) {
-          guild = <Guild> this.client.guilds.get(raw.id);
+          guild = this.client.guilds.get(raw.id) as Guild;
           guild.merge(raw);
         } else {
           guild = new Guild(this.client, raw);
@@ -214,7 +213,7 @@ export class GatewayDispatchHandler {
     if (this.client.channels.enabled && data['private_channels']) {
       for (let raw of data['private_channels']) {
         if (this.client.channels.has(raw.id)) {
-          (<Channel> this.client.channels.get(raw.id)).merge(raw);
+          (this.client.channels.get(raw.id) as Channel).merge(raw);
         } else {
           this.client.channels.insert(createChannelFromData(this.client, raw));
         }
@@ -224,7 +223,7 @@ export class GatewayDispatchHandler {
     if (this.client.relationships.enabled && data['relationships']) {
       for (let raw of data['relationships']) {
         if (this.client.relationships.has(raw.id)) {
-          (<Relationship> this.client.relationships.get(raw.id)).merge(raw);
+          (this.client.relationships.get(raw.id) as Relationship).merge(raw);
         } else {
           this.client.relationships.insert(new Relationship(this.client, raw));
         }
@@ -298,7 +297,7 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.CALL_CREATE](data: GatewayRawEvents.CallCreate) {
     let call: VoiceCall;
     if (this.client.voiceCalls.has(data['channel_id'])) {
-      call = <VoiceCall> this.client.voiceCalls.get(data['channel_id']);
+      call = this.client.voiceCalls.get(data['channel_id']) as VoiceCall;
       call.merge(data);
     } else {
       call = new VoiceCall(this.client, data);
@@ -312,7 +311,7 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.CALL_DELETE](data: GatewayRawEvents.CallDelete) {
     let channelId: string = data['channel_id'];
     if (this.client.voiceCalls.has(channelId)) {
-      const call = <VoiceCall> this.client.voiceCalls.get(channelId);
+      const call = this.client.voiceCalls.get(channelId) as VoiceCall;
       call.kill();
     }
 
@@ -323,9 +322,9 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.CALL_UPDATE](data: GatewayRawEvents.CallUpdate) {
     let call: VoiceCall;
     let channelId: string = data['channel_id'];
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     if (this.client.voiceCalls.has(data['channel_id'])) {
-      call = <VoiceCall> this.client.voiceCalls.get(data['channel_id']);
+      call = this.client.voiceCalls.get(data['channel_id']) as VoiceCall;
       if (this.client.hasEventListener(ClientEvents.CALL_UPDATE)) {
         differences = call.differences(data);
       }
@@ -342,7 +341,7 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.CHANNEL_CREATE](data: GatewayRawEvents.ChannelCreate) {
     let channel: Channel;
     if (this.client.channels.has(data['id'])) {
-      channel = <Channel> this.client.channels.get(data['id']);
+      channel = this.client.channels.get(data['id']) as Channel;
       channel.merge(data);
     } else {
       channel = createChannelFromData(this.client, data);
@@ -356,7 +355,7 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.CHANNEL_DELETE](data: GatewayRawEvents.ChannelDelete) {
     let channel: Channel;
     if (this.client.channels.has(data['id'])) {
-      channel = <Channel> this.client.channels.get(data['id']);
+      channel = this.client.channels.get(data['id']) as Channel;
       this.client.channels.delete(data['id']);
     } else {
       channel = createChannelFromData(this.client, data);
@@ -382,7 +381,7 @@ export class GatewayDispatchHandler {
   [GatewayDispatchEvents.CHANNEL_PINS_UPDATE](data: GatewayRawEvents.ChannelPinsUpdate) {
     let channel: Channel | null = null;
     if (this.client.channels.has(data['channel_id'])) {
-      channel = <Channel> this.client.channels.get(data['channel_id']);
+      channel = this.client.channels.get(data['channel_id']) as Channel;
       channel.merge({
         last_pin_timestamp: data['last_pin_timestamp'],
       });
@@ -399,9 +398,9 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.CHANNEL_UPDATE](data: GatewayRawEvents.ChannelUpdate) {
     let channel: Channel;
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     if (this.client.channels.has(data['id'])) {
-      channel = <Channel> this.client.channels.get(data['id']);
+      channel = this.client.channels.get(data['id']) as Channel;
       if (this.client.hasEventListener(ClientEvents.CHANNEL_UPDATE)) {
         differences = channel.differences(data);
       }
@@ -422,7 +421,7 @@ export class GatewayDispatchHandler {
     let user: User;
 
     if (this.client.users.has(data['user']['id'])) {
-      user = <User> this.client.users.get(data['user']['id']);
+      user = this.client.users.get(data['user']['id']) as User;
       user.merge(data);
     } else {
       user = new User(this.client, data);
@@ -430,7 +429,7 @@ export class GatewayDispatchHandler {
     }
 
     if (this.client.channels.has(channelId)) {
-      channel = <ChannelDM> this.client.channels.get(channelId);
+      channel = this.client.channels.get(channelId) as ChannelDM;
       channel.recipients.set(user.id, user);
       if (nick) {
         channel.nicks.set(user.id, nick);
@@ -455,7 +454,7 @@ export class GatewayDispatchHandler {
     let user: User;
 
     if (this.client.users.has(data['user']['id'])) {
-      user = <User> this.client.users.get(data['user']['id']);
+      user = this.client.users.get(data['user']['id']) as User;
       user.merge(data);
     } else {
       user = new User(this.client, data);
@@ -463,7 +462,7 @@ export class GatewayDispatchHandler {
     }
 
     if (this.client.channels.has(channelId)) {
-      channel = <ChannelDM> this.client.channels.get(channelId);
+      channel = this.client.channels.get(channelId) as ChannelDM;
       channel.recipients.delete(user.id);
       channel.nicks.delete(user.id);
     }
@@ -517,7 +516,7 @@ export class GatewayDispatchHandler {
     let user: User;
 
     if (this.client.users.has(data['user']['id'])) {
-      user = <User> this.client.users.get(data['user']['id']);
+      user = this.client.users.get(data['user']['id']) as User;
       user.merge(data['user']);
     } else {
       user = new User(this.client, data['user']);
@@ -536,7 +535,7 @@ export class GatewayDispatchHandler {
     let user: User;
 
     if (this.client.users.has(data['user']['id'])) {
-      user = <User> this.client.users.get(data['user']['id']);
+      user = this.client.users.get(data['user']['id']) as User;
       user.merge(data['user']);
     } else {
       user = new User(this.client, data['user'])
@@ -554,7 +553,7 @@ export class GatewayDispatchHandler {
     let guild: Guild;
 
     if (this.client.guilds.has(data['id'])) {
-      guild = <Guild> this.client.guilds.get(data['id']);
+      guild = this.client.guilds.get(data['id']) as Guild;
       fromUnavailable = guild.unavailable;
       guild.merge(data);
     } else {
@@ -587,7 +586,7 @@ export class GatewayDispatchHandler {
 
     let isNew: boolean;
     if (this.client.guilds.has(data['id'])) {
-      guild = <Guild> this.client.guilds.get(data['id']);
+      guild = this.client.guilds.get(data['id']) as Guild;
       guild.merge(data);
       isNew = false;
     } else {
@@ -614,7 +613,7 @@ export class GatewayDispatchHandler {
 
           if (channel.isText) {
             if (this.client.typings.get(channelId)) {
-              const typings = <BaseCollection<string, Typing>> this.client.typings.get(channelId);
+              const typings = this.client.typings.get(channelId) as BaseCollection<string, Typing>;
               for (let [userId, typing] of typings) {
                 typing.timeout.stop();
                 typings.delete(userId);
@@ -655,7 +654,7 @@ export class GatewayDispatchHandler {
     const guildId = data['guild_id'];
 
     if (this.client.guilds.has(guildId)) {
-      guild = <Guild> this.client.guilds.get(guildId);
+      guild = this.client.guilds.get(guildId) as Guild;
       if (this.client.hasEventListener(ClientEvents.GUILD_EMOJIS_UPDATE)) {
         emojisOld = guild.emojis.clone();
       }
@@ -666,11 +665,11 @@ export class GatewayDispatchHandler {
 
       emojis = new BaseCollection();
       for (let raw of data['emojis']) {
-        const emojiId = <string> raw.id;
+        const emojiId = raw.id as string;
 
         let emoji: Emoji;
         if (this.client.emojis.has(guildId, emojiId)) {
-          emoji = <Emoji> this.client.emojis.get(guildId, emojiId);
+          emoji = this.client.emojis.get(guildId, emojiId) as Emoji;
           emoji.merge(raw);
         } else {
           Object.assign(raw, {guild_id: guildId});
@@ -697,7 +696,7 @@ export class GatewayDispatchHandler {
     const userId: string = data['user']['id'];
 
     if (this.client.members.has(guildId, userId)) {
-      member = <Member> this.client.members.get(guildId, userId);
+      member = this.client.members.get(guildId, userId) as Member;
       member.merge(data);
     } else {
       member = new Member(this.client, data);
@@ -713,7 +712,7 @@ export class GatewayDispatchHandler {
         isDuplicate = true;
       } else {
         if (this.client.guilds.has(guildId)) {
-          const guild = <Guild> this.client.guilds.get(guildId);
+          const guild = this.client.guilds.get(guildId) as Guild;
           guild.memberCount++;
         }
       }
@@ -738,14 +737,14 @@ export class GatewayDispatchHandler {
     const userId: string = data['user']['id'];
 
     if (this.client.users.has(userId)) {
-      user = <User> this.client.users.get(userId);
+      user = this.client.users.get(userId) as User;
       user.merge(data['user']);
     } else {
       user = new User(this.client, data['user']);
     }
 
     if (this.client.members.has(guildId, userId)) {
-      member = <Member> this.client.members.get(guildId, userId);
+      member = this.client.members.get(guildId, userId) as Member;
       member.left = true;
     }
     this.client.members.delete(guildId, userId);
@@ -759,7 +758,7 @@ export class GatewayDispatchHandler {
         isDuplicate = true;
       } else {
         if (this.client.guilds.has(guildId)) {
-          const guild = <Guild> this.client.guilds.get(guildId);
+          const guild = this.client.guilds.get(guildId) as Guild;
           guild.memberCount--;
         }
       }
@@ -767,7 +766,7 @@ export class GatewayDispatchHandler {
     }
 
     if (this.client.presences.has(userId)) {
-      const presence = <Presence> this.client.presences.get(userId);
+      const presence = this.client.presences.get(userId) as Presence;
       presence._deleteGuildId(guildId);
       if (!presence.guildIds.length) {
         this.client.presences.delete(userId);
@@ -776,7 +775,7 @@ export class GatewayDispatchHandler {
 
     for (let [cacheId, cache] of this.client.typings.caches) {
       if (cache.has(userId)) {
-        const typing = <Typing> cache.get(userId);
+        const typing = cache.get(userId) as Typing;
         typing._stop(false);
       }
     }
@@ -801,17 +800,30 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_MEMBER_UPDATE](data: GatewayRawEvents.GuildMemberUpdate) {
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     const guildId: string = data['guild_id'];
     let member: Member;
     const userId: string = data['user']['id'];
 
-    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE) || this.client.hasEventListener(ClientEvents.USERS_UPDATE);
+    if (this.client.hasEventListener(ClientEvents.USERS_UPDATE)) {
+      if (this.client.users.has(userId)) {
+        const user = this.client.users.get(userId) as User;
+        const userDifferences = user.differences(data['user']);
+        if (userDifferences) {
+          differences = {user: userDifferences};
+        }
+      }
+    }
 
+    const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_UPDATE);
     if (this.client.members.has(guildId, userId)) {
-      member = <Member> this.client.members.get(guildId, userId);
+      member = this.client.members.get(guildId, userId) as Member;
       if (isListening) {
-        differences = member.differences(data);
+        if (differences) {
+          Object.assign(differences, member.differences(data));
+        } else {
+          differences = member.differences(data);
+        }
       }
       member.merge(data);
     } else {
@@ -871,10 +883,10 @@ export class GatewayDispatchHandler {
       if (this.client.members.enabled || isListening) {
         members = new BaseCollection<string, Member>();
         for (let value of data['members']) {
-          let rawUser = <GatewayRawEvents.RawUser> value.user;
+          let rawUser = value.user as GatewayRawEvents.RawUser;
           let member: Member;
           if (this.client.members.has(guildId, rawUser.id)) {
-            member = <Member> this.client.members.get(guildId, rawUser.id);
+            member = this.client.members.get(guildId, rawUser.id) as Member;
             member.merge(value);
           } else {
             member = new Member(this.client, Object.assign(value, {guild_id: guildId}));
@@ -890,10 +902,10 @@ export class GatewayDispatchHandler {
         }
       } else if (this.client.presences.enabled || this.client.users.enabled) {
         for (let value of data['members']) {
-          let raw = <GatewayRawEvents.RawUser> value.user;
+          let raw = value.user as GatewayRawEvents.RawUser;
           let user: User;
           if (this.client.users.has(raw.id)) {
-            user = <User> this.client.users.get(raw.id);
+            user = this.client.users.get(raw.id) as User;
             user.merge(raw);
           } else {
             user = new User(this.client, raw);
@@ -943,9 +955,9 @@ export class GatewayDispatchHandler {
     let role: Role;
 
     if (this.client.guilds.has(guildId)) {
-      guild = <Guild> this.client.guilds.get(guildId);
+      guild = this.client.guilds.get(guildId) as Guild;
       if (guild.roles.has(data['role']['id'])) {
-        role = <Role> guild.roles.get(data['role']['id']);
+        role = guild.roles.get(data['role']['id']) as Role;
         role.merge(data['role']);
       } else {
         data['role']['guild_id'] = guildId;
@@ -968,9 +980,9 @@ export class GatewayDispatchHandler {
     const roleId = data['role_id'];
 
     if (this.client.guilds.has(guildId)) {
-      guild = <Guild> this.client.guilds.get(guildId);
+      guild = this.client.guilds.get(guildId) as Guild;
       if (guild.roles.has(roleId)) {
-        role = <Role> guild.roles.get(roleId);
+        role = guild.roles.get(roleId) as Role;
         guild.roles.delete(roleId);
       }
 
@@ -989,15 +1001,15 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_ROLE_UPDATE](data: GatewayRawEvents.GuildRoleUpdate) {
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     let guild: Guild | null = null;
     const guildId = data['guild_id'];
     let role: Role;
 
     if (this.client.guilds.has(guildId)) {
-      guild = <Guild> this.client.guilds.get(guildId);
+      guild = this.client.guilds.get(guildId) as Guild;
       if (guild.roles.has(data['role']['id'])) {
-        role = <Role> guild.roles.get(data['role']['id']);
+        role = guild.roles.get(data['role']['id']) as Role;
         if (this.client.hasEventListener(ClientEvents.GUILD_ROLE_UPDATE)) {
           differences = role.differences(data['role']);
         }
@@ -1017,11 +1029,11 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_UPDATE](data: GatewayRawEvents.GuildUpdate) {
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     let guild: Guild;
 
     if (this.client.guilds.has(data['id'])) {
-      guild = <Guild> this.client.guilds.get(data['id']);
+      guild = this.client.guilds.get(data['id']) as Guild;
       if (this.client.hasEventListener(ClientEvents.GUILD_UPDATE)) {
         differences = guild.differences(data);
       }
@@ -1103,7 +1115,7 @@ export class GatewayDispatchHandler {
     let typing: null | Typing = null;
 
     if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(data['id']);
+      message = this.client.messages.get(data['id']) as Message;
       message.merge(data);
     } else {
       message = new Message(this.client, data);
@@ -1111,14 +1123,14 @@ export class GatewayDispatchHandler {
     }
 
     if (this.client.channels.has(message.channelId)) {
-      const channel = <Channel> this.client.channels.get(message.channelId);
+      const channel = this.client.channels.get(message.channelId) as Channel;
       channel.merge({last_message_id: message.id});
     }
 
     if (this.client.typings.has(message.channelId)) {
-      const typings = <BaseCollection<string, Typing>> this.client.typings.get(message.channelId);
+      const typings = this.client.typings.get(message.channelId) as BaseCollection<string, Typing>;
       if (typings.has(message.author.id)) {
-        typing = <Typing> typings.get(message.author.id);
+        typing = typings.get(message.author.id) as Typing;
         typing._stop();
       }
     }
@@ -1151,7 +1163,7 @@ export class GatewayDispatchHandler {
 
     for (let messageId of data['ids']) {
       if (this.client.messages.has(messageId)) {
-        const message = <Message> this.client.messages.get(messageId);
+        const message = this.client.messages.get(messageId) as Message;
         message.deleted = true;
         messages.set(messageId, message);
         this.client.messages.delete(messageId);
@@ -1175,12 +1187,12 @@ export class GatewayDispatchHandler {
     const userId = data['user_id'];
 
     if (this.client.users.has(userId)) {
-      user = <User> this.client.users.get(userId);
+      user = this.client.users.get(userId) as User;
     }
 
     if (data.member) {
       if (this.client.members.has(guildId, userId)) {
-        member = <Member> this.client.members.get(guildId, userId);
+        member = this.client.members.get(guildId, userId) as Member;
         member.merge(data.member);
       } else {
         member = new Member(this.client, data.member);
@@ -1190,9 +1202,9 @@ export class GatewayDispatchHandler {
 
     const emojiId = data.emoji.id || data.emoji.name;
     if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(messageId);
+      message = this.client.messages.get(messageId) as Message;
       if (message._reactions && message._reactions.has(emojiId)) {
-        reaction = <Reaction> message._reactions.get(emojiId);
+        reaction = message._reactions.get(emojiId) as Reaction;
       }
     }
 
@@ -1236,14 +1248,14 @@ export class GatewayDispatchHandler {
     const userId = data['user_id'];
 
     if (this.client.users.has(userId)) {
-      user = <User> this.client.users.get(userId);
+      user = this.client.users.get(userId) as User;
     }
 
     const emojiId = data.emoji.id || data.emoji.name;
     if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(messageId);
+      message = this.client.messages.get(messageId) as Message;
       if (message._reactions && message._reactions.has(emojiId)) {
-        reaction = <Reaction> message._reactions.get(emojiId);
+        reaction = message._reactions.get(emojiId) as Reaction;
         reaction.count = Math.min(reaction.count - 1, 0);
         reaction.me = reaction.me && userId !== this.client.userId;
 
@@ -1282,7 +1294,7 @@ export class GatewayDispatchHandler {
     const messageId = data['message_id'];
 
     if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(messageId);
+      message = this.client.messages.get(messageId) as Message;
       if (message._reactions) {
         message._reactions.clear();
         message._reactions = undefined;
@@ -1307,9 +1319,9 @@ export class GatewayDispatchHandler {
 
     const emojiId = data.emoji.id || data.emoji.name;
     if (this.client.messages.has(messageId)) {
-      message = <Message> this.client.messages.get(messageId);
+      message = this.client.messages.get(messageId) as Message;
       if (message._reactions && message._reactions.has(emojiId)) {
-        reaction = <Reaction> message._reactions.get(emojiId);
+        reaction = message._reactions.get(emojiId) as Reaction;
         message._reactions.delete(emojiId);
         if (!message._reactions.length) {
           message._reactions = undefined;
@@ -1336,7 +1348,7 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.MESSAGE_UPDATE](data: GatewayRawEvents.MessageUpdate) {
     let channelId = data['channel_id'];
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     let guildId = data['guild_id'];
     let isEmbedUpdate: boolean = false;
     let message: Message | null = null;
@@ -1347,7 +1359,7 @@ export class GatewayDispatchHandler {
     }
 
     if (this.client.messages.has(data['id'])) {
-      message = <Message> this.client.messages.get(data['id']);
+      message = this.client.messages.get(data['id']) as Message;
       if (this.client.hasEventListener(ClientEvents.MESSAGE_UPDATE)) {
         differences = message.differences(data);
       }
@@ -1378,7 +1390,7 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.PRESENCE_UPDATE](data: GatewayRawEvents.PresenceUpdate) {
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     const guildId = data['guild_id'] || null;
     let isGuildPresence = !!guildId;
     let member: Member | null = null;
@@ -1387,14 +1399,14 @@ export class GatewayDispatchHandler {
 
     if (this.client.hasEventListener(ClientEvents.PRESENCE_UPDATE) || this.client.hasEventListener(ClientEvents.USERS_UPDATE)) {
       if (this.client.presences.has(data['user']['id'])) {
-        differences = (<Presence> this.client.presences.get(data['user']['id'])).differences(data);
+        differences = (this.client.presences.get(data['user']['id']) as Presence).differences(data);
       }
     }
     presence = this.client.presences.insert(data);
 
     if (guildId) {
       if (this.client.members.has(guildId, data['user']['id'])) {
-        member = <Member> this.client.members.get(guildId, data['user']['id']);
+        member = this.client.members.get(guildId, data['user']['id']) as Member;
         member.merge(data);
       } else {
         member = new Member(this.client, data);
@@ -1435,12 +1447,12 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.RELATIONSHIP_ADD](data: GatewayRawEvents.RelationshipAdd) {
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     let relationship: Relationship;
     const userId = data['id'];
 
     if (this.client.relationships.has(userId)) {
-      relationship = <Relationship> this.client.relationships.get(userId);
+      relationship = this.client.relationships.get(userId) as Relationship;
       if (this.client.hasEventListener(ClientEvents.RELATIONSHIP_ADD)) {
         differences = relationship.differences(data);
       }
@@ -1459,7 +1471,7 @@ export class GatewayDispatchHandler {
     const userId = data['id'];
 
     if (this.client.relationships.has(data['id'])) {
-      relationship = <Relationship> this.client.relationships.get(data['id']);
+      relationship = this.client.relationships.get(data['id']) as Relationship;
       this.client.relationships.delete(data['id']);
     } else {
       relationship = new Relationship(this.client, data);
@@ -1526,7 +1538,7 @@ export class GatewayDispatchHandler {
     const userId = data['user_id'];
 
     if (this.client.typings.has(channelId, userId)) {
-      typing = <Typing> this.client.typings.get(channelId, userId);
+      typing = this.client.typings.get(channelId, userId) as Typing;
       typing.merge(data);
     } else {
       typing = new Typing(this.client, data);
@@ -1569,7 +1581,7 @@ export class GatewayDispatchHandler {
     const userId = data['id'];
 
     if (this.client.users.has(userId)) {
-      user = <User> this.client.users.get(userId);
+      user = this.client.users.get(userId) as User;
     }
     this.client.notes.insert(userId, note);
 
@@ -1602,7 +1614,7 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.USER_UPDATE](data: GatewayRawEvents.UserUpdate) {
     // this updates this.client.user, us
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     let user: UserMe;
 
     if (this.client.user) {
@@ -1631,13 +1643,13 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.VOICE_STATE_UPDATE](data: GatewayRawEvents.VoiceStateUpdate) {
-    let differences: any = null;
+    let differences: GatewayClientEvents.Differences = null;
     let leftChannel = false;
     let voiceState: VoiceState;
 
     const serverId = data['guild_id'] || data['channel_id'];
     if (this.client.voiceStates.has(serverId, data['user_id'])) {
-      voiceState = <VoiceState> this.client.voiceStates.get(serverId, data['user_id']);
+      voiceState = this.client.voiceStates.get(serverId, data['user_id']) as VoiceState;
       if (this.client.hasEventListener(ClientEvents.VOICE_STATE_UPDATE)) {
         differences = voiceState.differences(data);
       }
