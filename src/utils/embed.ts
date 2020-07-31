@@ -55,17 +55,20 @@ export class Embed extends Structure {
 
   get size(): number {
     let size = 0;
+    if (this.author) {
+      size += (this.author.name || '').length;
+    }
     if (this.title) {
-      size += this.title.length;
+      size += (this.title || '').length;
     }
     if (this.description) {
-      size += this.description.length;
+      size += (this.description || '').length;
     }
     if (this.fields) {
-      size += this.fields.reduce((s, field) => s + field.name.length + field.value.length, 0);
+      size += this.fields.reduce((s, field) => s + (field.name || '').length + (field.value || '').length, 0);
     }
     if (this.footer) {
-      size += this.footer.text.length;
+      size += (this.footer.text || '').length;
     }
     return size;
   }
