@@ -1017,6 +1017,7 @@ export class GuildMe extends BaseGuild {
 
   owner: boolean = false;
   permissions: number = 0;
+  permissionsNew: bigint = 0n;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client, data, false);
@@ -1044,5 +1045,14 @@ export class GuildMe extends BaseGuild {
       return true;
     }
     return PermissionTools.checkPermissions(total, permissions);
+  }
+
+  mergeValue(key: string, value: any): void {
+    switch (key) {
+      case DiscordKeys.PERMISSIONS_NEW: {
+        value = BigInt(value);
+      }; break;
+    }
+    return super.mergeValue(key, value);
   }
 }

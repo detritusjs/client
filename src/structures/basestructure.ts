@@ -151,7 +151,11 @@ export class Structure {
     const obj: BaseStructureData = {};
     if (this._keys) {
       for (let key of this._keys) {
-        obj[key] = this._getFromSnake(key);
+        let value = this._getFromSnake(key);
+        if (typeof(value) === 'bigint') {
+          value = String(value);
+        }
+        obj[key] = value;
       }
     }
     return obj;
