@@ -65,25 +65,7 @@ export class Argument {
       options.prefixes.push(options.prefix);
     }
     if (options.prefixes) {
-      options.prefixes.sort((x: string, y: string) => y.length - x.length);
-      if (options.prefixes.some((prefix) => prefix.endsWith(' '))) {
-        options.prefixSpace = true;
-      }
-
-      this.prefixes.clear();
-      for (let prefix of options.prefixes) {
-        if (!prefix) {
-          continue;
-        }
-
-        prefix = prefix.trim();
-        if (options.prefixSpace) {
-          prefix += ' ';
-        }
-        if (prefix) {
-          this.prefixes.add(prefix);
-        }
-      }
+      this.setPrefixes(options.prefixes, options.prefixSpace);
     }
 
     this.choices = options.choices;
@@ -230,6 +212,29 @@ export class Argument {
       }
     }
     return null;
+  }
+
+  setPrefixes(prefixes: Array<string>, prefixSpace: boolean = false): void {
+    prefixes = prefixes.slice().sort((x, y) => y.length - x.length);
+
+    if (prefixes.some((prefix) => prefix.endsWith(' '))) {
+      prefixSpace = true;
+    }
+
+    this.prefixes.clear();
+    for (let prefix of prefixes) {
+      if (!prefix) {
+        continue;
+      }
+
+      prefix = prefix.trim();
+      if (prefixSpace) {
+        prefix += ' ';
+      }
+      if (prefix) {
+        this.prefixes.add(prefix);
+      }
+    }
   }
 
   async parse(value: string, context: Context): Promise<any> {

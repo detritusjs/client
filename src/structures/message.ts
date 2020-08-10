@@ -29,6 +29,7 @@ import { Channel, createChannelFromData } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
 import { MessageEmbed } from './messageembed';
+import { PresenceActivity } from './presence';
 import { Reaction } from './reaction';
 import { Role } from './role';
 import { User } from './user';
@@ -254,6 +255,10 @@ export class Message extends BaseStructure {
 
   get jumpLink(): string {
     return Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(this.guildId, this.channelId, this.id);
+  }
+
+  get mentionHere(): boolean {
+    return this.mentionEveryone && !this.content.includes('@everyone');
   }
 
   get mentions(): BaseCollection<string, Member | User> {
@@ -725,6 +730,18 @@ export class MessageActivity extends BaseStructure {
     this.message = message;
     this.merge(data);
     Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get activity(): null | PresenceActivity {
+    const presence = this.message.author.presence;
+    if (presence) {
+      for (let [activityId, activity] of presence.activities) {
+        if (activity.party && activity.party.id === this.partyId) {
+          return activity;
+        }
+      }
+    }
+    return null;
   }
 
   get group(): BaseCollection<string, User> {

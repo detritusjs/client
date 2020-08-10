@@ -257,6 +257,10 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     return this.arg.names;
   }
 
+  set prefixes(value: Array<string>) {
+    this.setPrefixes(value);
+  }
+
   set type(value: ArgumentType) {
     this.setType(value);
   }
@@ -293,6 +297,11 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
 
   setName(value: string) {
     this.arg.name = value.toLowerCase();
+    return this;
+  }
+
+  setPrefixes(value: Array<string>) {
+    this.arg.setPrefixes(value);
     return this;
   }
 
