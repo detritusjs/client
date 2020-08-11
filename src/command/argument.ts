@@ -40,6 +40,8 @@ const blankPrefixes = Object.freeze(['']);
 export class Argument {
   private _aliases: Array<string> = [];
   private _label: string = '';
+  private _name: string = '';
+  private _names?: Array<string>;
   private _type: ArgumentType = CommandArgumentTypes.STRING;
 
   positionalArgs?: ArgumentParser;
@@ -48,7 +50,6 @@ export class Argument {
   default: ArgumentDefault = undefined;
   help: string = '';
   metadata?: {[key: string]: any};
-  name: string = '';
   prefixes: Set<string> = new Set(['-']);
   required: boolean = false;
 
@@ -91,6 +92,7 @@ export class Argument {
 
   set aliases(value: Array<string>) {
     this._aliases = (value || []).map((alias) => alias.toLowerCase());
+    this._names = undefined;
   }
 
   get label(): string {
@@ -101,7 +103,19 @@ export class Argument {
     this._label = value;
   }
 
+  get name(): string {
+    return this._name;
+  }
+
+  set name(value: string) {
+    this._name = value;
+    this._names = undefined;
+  }
+
   get names(): Array<string> {
+    if (this._names) {
+      return this._names;
+    }
     const names: Array<string> = [];
     const prefixes = (this.prefixes.size) ? this.prefixes : blankPrefixes;
     for (let prefix of prefixes) {
@@ -110,7 +124,7 @@ export class Argument {
         names.push((prefix) ? prefix + alias : alias);
       }
     }
-    return names.sort((x, y) => y.length - x.length);
+    return this._names = names.sort((x, y) => y.length - x.length);
   }
 
   get type(): ArgumentType {
@@ -235,6 +249,7 @@ export class Argument {
         this.prefixes.add(prefix);
       }
     }
+    this._names = undefined;
   }
 
   async parse(value: string, context: Context): Promise<any> {
