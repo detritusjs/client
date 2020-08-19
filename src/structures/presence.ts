@@ -212,27 +212,6 @@ export class Presence extends BaseStructure {
     }
   }
 
-  difference(key: string, value: any): [boolean, any] {
-    let differences: any;
-    switch (key) {
-      case DiscordKeys.ACTIVITIES: {
-        const hasDifference = (this.activities.length !== value.length) || value.some((raw: any) => {
-          return !this.activities.has(raw.id);
-        });
-        if (hasDifference) {
-          differences = this.activities.clone();
-        }
-      }; break;
-      default: {
-        return super.difference(key, value);
-      };
-    }
-    if (differences !== undefined) {
-      return [true, differences];
-    }
-    return [false, null];
-  }
-
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {

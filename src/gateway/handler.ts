@@ -1395,11 +1395,27 @@ export class GatewayDispatchHandler {
     let isGuildPresence = !!guildId;
     let member: Member | null = null;
     let presence: Presence;
+    let userId = data['user']['id'];
     let wentOffline: boolean = data['status'] === PresenceStatuses.OFFLINE;
 
-    if (this.client.hasEventListener(ClientEvents.PRESENCE_UPDATE) || this.client.hasEventListener(ClientEvents.USERS_UPDATE)) {
-      if (this.client.presences.has(data['user']['id'])) {
-        differences = (this.client.presences.get(data['user']['id']) as Presence).differences(data);
+    if (this.client.hasEventListener(ClientEvents.USERS_UPDATE)) {
+      if (this.client.users.has(userId)) {
+        const user = this.client.users.get(userId) as User;
+        const userDifferences = user.differences(data['user']);
+        if (userDifferences) {
+          differences = {user: userDifferences};
+        }
+      }
+    }
+
+    if (this.client.hasEventListener(ClientEvents.PRESENCE_UPDATE)) {
+      if (this.client.presences.has(userId)) {
+        let presenceDifferences = (this.client.presences.get(userId) as Presence).differences(data);
+        if (differences) {
+          Object.assign(differences, presenceDifferences);
+        } else {
+          differences = presenceDifferences;
+        }
       }
     }
     presence = this.client.presences.insert(data);
@@ -1423,7 +1439,7 @@ export class GatewayDispatchHandler {
       this.client.emit(ClientEvents.USERS_UPDATE, payload);
     }
 
-    const payload: GatewayClientEvents.PresenceUpdate = {differences, guildId, isGuildPresence, member, presence, wentOffline};
+    const payload: GatewayClientEvents.PresenceUpdate = {differences, guildId, isGuildPresence, member, presence, userId, wentOffline};
     this.client.emit(ClientEvents.PRESENCE_UPDATE, payload);
   }
 

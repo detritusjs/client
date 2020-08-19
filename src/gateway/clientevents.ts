@@ -398,6 +398,7 @@ export namespace GatewayClientEvents {
     isGuildPresence: boolean,
     member: Member | null,
     presence: Presence,
+    userId: string,
     wentOffline: boolean,
   }
 
