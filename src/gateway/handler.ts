@@ -1421,8 +1421,8 @@ export class GatewayDispatchHandler {
     presence = this.client.presences.insert(data);
 
     if (guildId) {
-      if (this.client.members.has(guildId, data['user']['id'])) {
-        member = this.client.members.get(guildId, data['user']['id']) as Member;
+      if (this.client.members.has(guildId, userId)) {
+        member = this.client.members.get(guildId, userId) as Member;
         member.merge(data);
       } else {
         member = new Member(this.client, data);
