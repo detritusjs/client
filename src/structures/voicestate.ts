@@ -52,6 +52,7 @@ export class VoiceState extends BaseStructure {
   deaf: boolean = false;
   guildId?: null | string;
   member!: Member;
+  mute: boolean = false;
   selfDeaf: boolean = false;
   selfMute: boolean = false;
   selfStream: boolean = false;

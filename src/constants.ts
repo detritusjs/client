@@ -1,38 +1,12 @@
-import { Constants as RestConstants, Endpoints } from 'detritus-client-rest';
-import { Constants as SocketConstants } from 'detritus-client-socket';
-import { Constants as UtilConstants, Tools } from 'detritus-utils';
+import { Endpoints } from 'detritus-client-rest';
+import { Tools } from 'detritus-utils';
 
-const {
-  AuthTypes,
-  DiscordAbortCodes,
-  HTTPMethods,
-} = RestConstants;
 export {
   AuthTypes,
   DiscordAbortCodes,
   HTTPMethods,
-};
+} from 'detritus-client-rest/lib/constants';
 
-const {
-  CompressTypes,
-  EncodingTypes,
-  GatewayActivityActionTypes,
-  GatewayActivityFlags,
-  GatewayActivityTypes,
-  GatewayDispatchEvents,
-  GatewayOpCodes,
-  GatewayPresenceStatuses,
-  MediaCodecs,
-  MediaCodecTypes,
-  MediaOpCodes,
-  MediaSpeakingFlags,
-  SocketCloseCodes,
-  SocketGatewayCloseCodes,
-  SocketMediaCloseCodes,
-  SocketStates,
-  SocketEvents,
-  DEFAULT_SHARD_LAUNCH_DELAY,
-} = SocketConstants;
 export {
   CompressTypes,
   EncodingTypes,
@@ -51,18 +25,17 @@ export {
   SocketMediaCloseCodes,
   SocketStates,
   DEFAULT_SHARD_LAUNCH_DELAY,
-};
+} from 'detritus-client-socket/lib/constants';
 
-const {
+export {
   DISCORD_SNOWFLAKE_EPOCH,
   DISCORD_TOKEN_EPOCH,
-} = UtilConstants;
-export { DISCORD_SNOWFLAKE_EPOCH, DISCORD_TOKEN_EPOCH };
+} from 'detritus-utils/lib/constants';
 
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.10.5',
+  VERSION: '0.11.1',
 });
 
 export type Snowflake = number | string;
@@ -172,6 +145,8 @@ export const AuditLogTargetTypes = Tools.normalize({
 export enum AuditLogChangeKeys {
   AFK_CHANNEL_ID = 'afk_channel_id',
   AFK_TIMEOUT = 'afk_timeout',
+  ALLOW = 'allow',
+  ALLOW_NEW = 'allow_new',
   APPLICATION_ID = 'application_id',
   AVATAR_HASH = 'avatar_hash',
   BANNER_HASH = 'banner_hash',
@@ -181,6 +156,8 @@ export enum AuditLogChangeKeys {
   COLOR = 'color',
   DEAF = 'deaf',
   DEFAULT_MESSAGE_NOTIFICATIONS = 'default_message_notifications',
+  DENY = 'deny',
+  DENY_NEW = 'deny_new',
   DESCRIPTION = 'description',
   ENABLE_EMOTICONS = 'enable_emoticons',
   EXPIRE_BEHAVIOR = 'expire_behavior',
@@ -201,8 +178,11 @@ export enum AuditLogChangeKeys {
   OWNER_ID = 'owner_id',
   PERMISSION_OVERWRITES = 'permission_overwrites',
   PERMISSIONS = 'permissions',
+  PERMISSIONS_NEW = 'permissions_new',
+
   PERMISSIONS_DENIED = 'deny',
   PERMISSIONS_GRANTED = 'allow',
+
   POSITION = 'position',
   PREFERRED_LOCALE = 'preferred_locale',
   PRUNE_DELETE_DAYS = 'prune_delete_days',
@@ -335,6 +315,7 @@ export enum ClientEvents {
   COMMAND_PERMISSIONS_FAIL_CLIENT = 'commandPermissionsFailClient',
   COMMAND_RAN = 'commandRan',
   COMMAND_RATELIMIT = 'commandRatelimit',
+  COMMAND_RESPONSE_DELETE = 'commandResponseDelete',
   COMMAND_RUN_ERROR = 'commandRunError',
   GATEWAY_READY = 'gatewayReady',
   GATEWAY_RESUMED = 'gatewayResumed',
@@ -351,9 +332,10 @@ export enum ClientEvents {
 export enum ClusterIPCOpCodes {
   READY = 0,
   CLOSE = 1,
-  RECONNECTING = 2,
+  SHARD_STATE = 2,
   RESPAWN_ALL = 3,
   EVAL = 4,
+  IDENTIFY_REQUEST = 5,
 };
 
 export enum Colors {
@@ -382,24 +364,28 @@ export enum DiscordOpusFormat {
   SAMPLE_RATE = 48000,
 };
 
-export const DiscordRegexNames = Tools.normalize({
-  EMOJI: null,
-  MENTION_CHANNEL: null,
-  MENTION_ROLE: null,
-  MENTION_USER: null,
-  TEXT_BOLD: null,
-  TEXT_CODEBLOCK: null,
-  TEXT_CODESTRING: null,
-  TEXT_ITALICS: null,
-  TEXT_SNOWFLAKE: null,
-  TEXT_SPOILER: null,
-  TEXT_STRIKE: null,
-  TEXT_UNDERLINE: null,
-  TEXT_URL: null,
-});
+export enum DiscordRegexNames {
+  EMOJI = 'EMOJI',
+  JUMP_CHANNEL = 'JUMP_CHANNEL',
+  JUMP_CHANNEL_MESSAGE = 'JUMP_CHANNEL_MESSAGE',
+  MENTION_CHANNEL = 'MENTION_CHANNEL',
+  MENTION_ROLE = 'MENTION_ROLE',
+  MENTION_USER = 'MENTION_USER',
+  TEXT_BOLD = 'TEXT_BOLD',
+  TEXT_CODEBLOCK = 'TEXT_CODEBLOCK',
+  TEXT_CODESTRING = 'TEXT_CODESTRING',
+  TEXT_ITALICS = 'TEXT_ITALICS',
+  TEXT_SNOWFLAKE = 'TEXT_SNOWFLAKE',
+  TEXT_SPOILER = 'TEXT_SPOILER',
+  TEXT_STRIKE = 'TEXT_STRIKE',
+  TEXT_UNDERLINE = 'TEXT_UNDERLINE',
+  TEXT_URL = 'TEXT_URL',
+}
 
 export const DiscordRegex = Object.freeze({
   [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/g,
+  [DiscordRegexNames.JUMP_CHANNEL]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)$/g,
+  [DiscordRegexNames.JUMP_CHANNEL_MESSAGE]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)\/(\d+)$/g,
   [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/g,
   [DiscordRegexNames.MENTION_ROLE]: /<@&(\d+)>/g,
   [DiscordRegexNames.MENTION_USER]: /<@(!?)(\d+)>/g,
@@ -741,7 +727,7 @@ export enum Permissions {
   MANAGE_EMOJIS = 1 << 30,
 };
 
-export const PERMISSIONS_ALL = (<Array<Permissions>> Object.values(Permissions)).reduce(
+export const PERMISSIONS_ALL = (Object.values(Permissions) as Array<Permissions>).reduce(
   (permissions: number, permission: number) => permissions | permission,
   Permissions.NONE,
 );
@@ -1078,6 +1064,7 @@ export const DiscordKeys = Object.freeze({
   AFK_TIMEOUT: 'afk_timeout',
   ALIASES: 'aliases',
   ALLOW: 'allow',
+  ALLOW_NEW: 'allow_new',
   ANALYTICS_TOKEN: 'analytics_token',
   ANIMATED: 'animated',
   APPLICATION: 'application',
@@ -1122,6 +1109,7 @@ export const DiscordKeys = Object.freeze({
   DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
   DELETE_MEMBER_DAYS: 'delete_member_days',
   DENY: 'deny',
+  DENY_NEW: 'deny_new',
   DEPENDENT_SKU_ID: 'dependent_sku_id',
   DEPRECATED: 'deprecated',
   DESCRIPTION: 'description',
@@ -1244,6 +1232,7 @@ export const DiscordKeys = Object.freeze({
   PARTY_ID: 'party_id',
   PAYOUT_ACCOUNT_STATUS: 'payout_account_status',
   PERMISSIONS: 'permissions',
+  PERMISSIONS_NEW: 'permissions_new',
   PERMISSION_OVERWRITES: 'permission_overwrites',
   PHONE: 'phone',
   PINNED: 'pinned',
@@ -1322,6 +1311,7 @@ export const DiscordKeys = Object.freeze({
   SYSTEM_CHANNEL_ID: 'system_channel_id',
   SYSTEM_REQUIREMENTS: 'system_requirements',
   TAGLINE: 'tagline',
+  TAGS: 'tags',
   TARGET: 'target',
   TARGET_ID: 'target_id',
   TARGET_USER: 'target_user',
@@ -1378,6 +1368,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.AFK_TIMEOUT]: 'afkTimeout',
   [DiscordKeys.ALIASES]: 'aliases',
   [DiscordKeys.ALLOW]: 'allow',
+  [DiscordKeys.ALLOW_NEW]: 'allowNew',
   [DiscordKeys.ANALYTICS_TOKEN]: 'analyticsToken',
   [DiscordKeys.ANIMATED]: 'animated',
   [DiscordKeys.APPLICATION]: 'application',
@@ -1422,6 +1413,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS]: 'defaultMessageNotifications',
   [DiscordKeys.DELETE_MEMBER_DAYS]: 'deleteMemberDays',
   [DiscordKeys.DENY]: 'deny',
+  [DiscordKeys.DENY_NEW]: 'denyNew',
   [DiscordKeys.DEPENDENT_SKU_ID]: 'dependentSkuId',
   [DiscordKeys.DEPRECATED]: 'deprecated',
   [DiscordKeys.DESCRIPTION]: 'description',
@@ -1544,6 +1536,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PARTY_ID]: 'partyId',
   [DiscordKeys.PAYOUT_ACCOUNT_STATUS]: 'payoutAccountStatus',
   [DiscordKeys.PERMISSIONS]: 'permissions',
+  [DiscordKeys.PERMISSIONS_NEW]: 'permissionsNew',
   [DiscordKeys.PERMISSION_OVERWRITES]: 'permissionOverwrites',
   [DiscordKeys.PHONE]: 'phone',
   [DiscordKeys.PINNED]: 'pinned',
@@ -1622,6 +1615,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SYSTEM_CHANNEL_ID]: 'systemChannelId',
   [DiscordKeys.SYSTEM_REQUIREMENTS]: 'systemRequirements',
   [DiscordKeys.TAGLINE]: 'tagline',
+  [DiscordKeys.TAGS]: 'tags',
   [DiscordKeys.TARGET]: 'target',
   [DiscordKeys.TARGET_ID]: 'targetId',
   [DiscordKeys.TARGET_USER]: 'targetUser',

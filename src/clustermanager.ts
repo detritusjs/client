@@ -1,9 +1,9 @@
 import * as path from 'path';
 
 import { Client as DetritusRestClient } from 'detritus-client-rest';
-import { EventSpewer, Timers } from 'detritus-utils';
+import { EventSpewer, EventSubscription } from 'detritus-utils';
 
-
+import { Bucket } from './bucket';
 import { ClusterProcess } from './cluster/process';
 import { BaseCollection } from './collections/basecollection';
 import { AuthTypes, ClientEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
@@ -13,6 +13,7 @@ import { Snowflake } from './utils';
 
 export interface ClusterManagerOptions {
   isAbsolute?: boolean,
+  maxConcurrency?: number,
   respawn?: boolean,
   shardCount?: number,
   shards?: [number, number],
@@ -21,12 +22,15 @@ export interface ClusterManagerOptions {
 
 export interface ClusterManagerRunOptions {
   delay?: number,
+  maxConcurrency?: number,
   shardCount?: number,
   url?: string,
 }
 
 export class ClusterManager extends EventSpewer {
+  buckets = new BaseCollection<number, Bucket>();
   file: string;
+  maxConcurrency: number = 1;
   processes = new BaseCollection<number, ClusterProcess>();
   ran: boolean = false;
   respawn: boolean = true;
@@ -54,6 +58,7 @@ export class ClusterManager extends EventSpewer {
     }
     this.token = token;
 
+    this.maxConcurrency = options.maxConcurrency || this.maxConcurrency;
     this.respawn = (options.respawn || options.respawn === undefined);
     this.rest = new DetritusRestClient(token, {authType: AuthTypes.BOT});
 
@@ -92,22 +97,32 @@ export class ClusterManager extends EventSpewer {
       delay: DEFAULT_SHARD_LAUNCH_DELAY,
     }, options);
 
-    const delay = <number> options.delay;
+    const delay = +(options.delay as number);
 
+    let maxConcurrency: number = +(options.maxConcurrency || this.maxConcurrency);
     let shardCount: number = +(options.shardCount || this.shardCount || 0);
     let url: string = options.url || '';
-    if (!url || !shardCount) {
+    if (!url || !shardCount || !maxConcurrency) {
       const data = await this.rest.fetchGatewayBot();
+      maxConcurrency = data.session_start_limit.max_concurrency;
       shardCount = shardCount || data.shards;
       url = url || data.url;
     }
     if (!shardCount) {
       throw new Error('Shard Count cannot be 0, pass in one via the options or the constructor.');
     }
+    this.maxConcurrency = maxConcurrency;
     this.shardCount = shardCount;
     if (this.shardEnd === -1) {
       this.shardEnd = shardCount - 1;
     }
+
+    this.buckets.clear();
+    for (let ratelimitKey = 0; ratelimitKey < maxConcurrency; ratelimitKey++) {
+      const bucket = new Bucket(1, delay, true);
+      this.buckets.set(ratelimitKey, bucket);
+    }
+    // now use these buckets whenever we identify
 
     let clusterId = 0;
     for (let shardStart = this.shardStart; shardStart <= this.shardEnd; shardStart += this.shardsPerCluster) {
@@ -118,6 +133,7 @@ export class ClusterManager extends EventSpewer {
         clusterId,
         env: {
           GATEWAY_URL: url,
+          MAX_CONCURRENCY: String(maxConcurrency),
         },
         shardCount,
         shardEnd,
@@ -127,9 +143,6 @@ export class ClusterManager extends EventSpewer {
       this.emit(ClientEvents.CLUSTER_PROCESS, {clusterProcess});
 
       await clusterProcess.run();
-      if (shardEnd < this.shardEnd) {
-        await Timers.sleep(delay * (shardEnd - shardStart));
-      }
       clusterId++;
     }
     Object.defineProperty(this, 'ran', {value: true});
@@ -167,10 +180,30 @@ export class ClusterManager extends EventSpewer {
     });
   }
 
+  getRatelimitKey(shardId: number): number {
+    return shardId % this.maxConcurrency;
+  }
+
   on(event: string | symbol, listener: (...args: any[]) => void): this;
+  on(event: ClientEvents.CLUSTER_PROCESS, listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
   on(event: 'clusterProcess', listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
+  }
+
+  once(event: string | symbol, listener: (...args: any[]) => void): this;
+  once(event: ClientEvents.CLUSTER_PROCESS, listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
+  once(event: 'clusterProcess', listener: (payload: {clusterProcess: ClusterProcess}) => any): this;
+  once(event: string | symbol, listener: (...args: any[]) => void): this {
+    super.once(event, listener);
+    return this;
+  }
+
+  subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription;
+  subscribe(event: ClientEvents.CLUSTER_PROCESS, listener: (payload: {clusterProcess: ClusterProcess}) => any): EventSubscription;
+  subscribe(event: 'clusterProcess', listener: (payload: {clusterProcess: ClusterProcess}) => any): EventSubscription;
+  subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription {
+    return super.subscribe(event, listener);
   }
 }

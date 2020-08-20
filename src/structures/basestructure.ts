@@ -31,17 +31,17 @@ export class Structure {
   readonly _keysSkipDifference?: BaseSet<string>;
 
   _getFromSnake(key: string): any {
-    return (<any> this)[convertKey(key)];
+    return (this as any)[convertKey(key)];
   }
 
   _setFromSnake(key: string, value: any): any {
-    return (<any> this)[convertKey(key)] = value;
+    return (this as any)[convertKey(key)] = value;
   }
 
   difference(key: string, value: any): [boolean, any] {
     if (value !== undefined) {
       const camelKey = convertKey(key);
-      const old = (<any> this)[camelKey];
+      const old = (this as any)[camelKey];
       if (old !== undefined && old !== value) {
         if (!!old !== !!value) {
           return [true, old];
@@ -97,7 +97,7 @@ export class Structure {
     return [false, null];
   }
 
-  differences(data: BaseStructureData): null | object {
+  differences(data?: BaseStructureData): null | object {
     let hasDifferences = false;
     const obj: BaseStructureData = {};
     for (let key in data) {
@@ -151,7 +151,11 @@ export class Structure {
     const obj: BaseStructureData = {};
     if (this._keys) {
       for (let key of this._keys) {
-        obj[key] = this._getFromSnake(key);
+        let value = this._getFromSnake(key);
+        if (typeof(value) === 'bigint') {
+          value = String(value);
+        }
+        obj[key] = value;
       }
     }
     return obj;
@@ -159,11 +163,11 @@ export class Structure {
 
   [inspect.custom](): object {
     // https://github.com/abalabahaha/eris/blob/master/lib/structures/Base.js#L59
-    const copy = <any> new ({[this.constructor.name]: class {}})[this.constructor.name]();
+    const copy = new ({[this.constructor.name]: class {}})[this.constructor.name]() as any;
     if (this._keys) {
       for (let key of this._keys) {
         key = convertKey(key)
-        copy[key] = (<any> this)[key];
+        copy[key] = (this as any)[key];
       }
     }
     return copy;

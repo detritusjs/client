@@ -13,17 +13,34 @@ export interface ApplicationsOptions extends BaseClientCollectionOptions {};
  * @category Collections
  */
 export class Applications extends BaseClientCollection<string, Application> {
+  lastRefresh = 0;
+  refreshTime = 4 * (60 * 60) * 1000;
+  // 4 hours minimum in between application fetches
+
+  get shouldRefresh(): boolean {
+    return !this.length || this.refreshTime <= Date.now() - this.lastRefresh;
+  }
+
   insert(application: Application): void {
     if (this.enabled) {
       this.set(application.id, application);
     }
   }
 
-  async fill(): Promise<void> {
+  async fill(applications?: Array<any>): Promise<void> {
     if (this.enabled) {
+      if (applications) {
+        this.lastRefresh = Date.now();
+      } else {
+        if (!this.shouldRefresh) {
+          return;
+        }
+        applications = await this.client.rest.raw.fetchApplicationsDetectable() as Array<any>;
+        this.lastRefresh = Date.now();
+      }
       this.clear();
-      const applications = await this.client.rest.fetchApplicationsDetectable();
-      for (let [applicationId, application] of applications) {
+      for (let raw of applications) {
+        const application = new Application(this.client, raw);
         this.insert(application);
       }
     }

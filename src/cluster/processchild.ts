@@ -1,7 +1,8 @@
 import { EventSpewer } from 'detritus-utils';
 
 import { ClusterClient } from '../clusterclient';
-import { ClientEvents, ClusterIPCOpCodes } from '../constants';
+import { BaseSet } from '../collections/baseset';
+import { ClientEvents, ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 import { GatewayClientEvents } from '../gateway/clientevents';
 import { Snowflake } from '../utils';
@@ -10,6 +11,7 @@ import { ClusterIPCTypes } from './ipctypes';
 
 
 export class ClusterProcessChild extends EventSpewer {
+  readonly _shardsIdentifying = new BaseSet<number>();
   readonly cluster: ClusterClient;
 
   clusterCount: number = 1;
@@ -25,14 +27,30 @@ export class ClusterProcessChild extends EventSpewer {
     process.on('message', this.emit.bind(this, 'ipc'));
     this.cluster.on('ready', () => this.sendIPC(ClusterIPCOpCodes.READY));
     this.cluster.on('shard', ({shard}) => {
-      shard.gateway.on('close', async (payload: {code: number, reason: string}) => {
-        try {
-          await this.sendIPC(ClusterIPCOpCodes.CLOSE, payload, false, shard.shardId);
-        } catch(error) {
-          const payload: GatewayClientEvents.Warn = {error};
-          this.cluster.emit(ClientEvents.WARN, payload);
+      shard.gateway.on('state', async ({state}) => {
+        const { shardId } = shard;
+        if (state === SocketStates.READY) {
+          this._shardsIdentifying.delete(shardId);
         }
+        const data: ClusterIPCTypes.ShardState = {shardId, state};
+        await this.sendIPCOrWarn(ClusterIPCOpCodes.SHARD_STATE, data, false);
       });
+      shard.gateway.on('close', async (payload: {code: number, reason: string}) => {
+        const data: ClusterIPCTypes.Close = {
+          ...payload,
+          shardId: shard.shardId,
+        };
+        await this.sendIPCOrWarn(ClusterIPCOpCodes.CLOSE, data, false);
+      });
+      shard.gateway.onIdentifyCheck = async () => {
+        const { shardId } = shard;
+        if (this._shardsIdentifying.has(shardId)) {
+          return true;
+        } else {
+          await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId: shard.shardId});
+        }
+        return false;
+      };
     });
 
     Object.defineProperties(this, {
@@ -76,6 +94,15 @@ export class ClusterProcessChild extends EventSpewer {
             }
           }
         }; return;
+        case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
+          // we received an ok to identify
+          const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
+          const shard = this.cluster.shards.get(shardId);
+          if (shard) {
+            this._shardsIdentifying.add(shardId);
+            shard.gateway.identify();
+          }
+        }; return;
       }
     } catch(error) {
       const payload: GatewayClientEvents.Warn = {error};
@@ -103,6 +130,20 @@ export class ClusterProcessChild extends EventSpewer {
     shard?: number,
   ): Promise<void> {
     return this.send({op, data, request, shard});
+  }
+
+  async sendIPCOrWarn(
+    op: number,
+    data: any = null,
+    request: boolean = false,
+    shard?: number,
+  ): Promise<void> {
+    try {
+      await this.sendIPC(op, data, request, shard);
+    } catch(error) {
+      const payload: GatewayClientEvents.Warn = {error};
+      this.cluster.emit(ClientEvents.WARN, payload);
+    }
   }
 
   async broadcastEval(code: Function | string, ...args: any[]): Promise<Array<any>> {

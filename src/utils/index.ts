@@ -110,7 +110,7 @@ export function getExceededRatelimits(
       };
     }
 
-    const item = <CommandRatelimitItem> ratelimit.get(cacheId);
+    const item = ratelimit.get(cacheId) as CommandRatelimitItem;
     if (ratelimit.limit <= item.usages++) {
       const remaining = (item.start + ratelimit.duration) - now;
       exceeded.push({item, ratelimit, remaining});
@@ -175,6 +175,58 @@ export function getFormatFromHash(
   return format;
 }
 
+
+const QuotesAll = {
+  '"': '"',
+  '\'': '\'',
+  '’': '’',
+  '‚': '‛',
+  '“': '”',
+  '„': '‟',
+  '「': '」',
+  '『': '』',
+  '〝': '〞',
+  '﹁': '﹂',
+  '﹃': '﹄',
+  '＂': '＂',
+  '｢': '｣',
+  '«': '»',
+  '《': '》',
+  '〈': '〉',
+};
+
+const Quotes = {
+  END: Object.values(QuotesAll),
+  START: Object.keys(QuotesAll),
+};
+
+export function getFirstArgument(value: string): [string, string] {
+  let result = value.slice(0, 1);
+  value = value.slice(1);
+
+  // check to see if this word starts with any of the quote starts
+  // if yes, then continue onto the next word
+  if (Quotes.START.includes(result)) {
+    let index = value.indexOf((QuotesAll as any)[result], 1);
+    if (index !== -1) {
+      result = value.slice(0, index);
+      value = value.slice(index + 1).trim();
+      return [result, value];
+    }
+  }
+  // check for the next space, if not then we consume the whole thing
+  let index = value.indexOf(' ');
+  if (index === -1) {
+    result += value.slice(0, value.length);
+    value = '';
+  } else {
+    result += value.slice(0, index);
+    value = value.slice(index).trim();
+  }
+  return [result, value];
+}
+
+
 export function hexToInt(hex: string): number {
   return parseInt(hex.replace(/#/, ''), 16);
 }
@@ -198,10 +250,13 @@ export function intToRGB(int: number): {
 
 export interface DiscordRegexMatch {
   animated?: boolean,
+  channelId?: string,
+  guildId?: string,
   id?: string,
   language?: string,
   matched: string,
   mentionType?: string,
+  messageId?: string,
   name?: string,
   text?: string,
 }
@@ -220,7 +275,7 @@ export function regex(
   onlyFirst: boolean = false,
 ): DiscordRegexPayload {
   type = String(type || '').toUpperCase();
-  const regex = (<any> DiscordRegex)[type];
+  const regex = (DiscordRegex as any)[type];
   if (regex === undefined) {
     throw new Error(`Unknown regex type: ${type}`);
   }
@@ -236,21 +291,30 @@ export function regex(
     const result: DiscordRegexMatch = {matched: match[0]};
     switch (type) {
       case DiscordRegexNames.EMOJI: {
-        result.name = <string> match[1];
-        result.id = <string> match[2];
+        result.name = match[1] as string;
+        result.id = match[2] as string;
         result.animated = content.startsWith('<a:');
+      }; break;
+      case DiscordRegexNames.JUMP_CHANNEL: {
+        result.guildId = match[1] as string;
+        result.channelId = match[2] as string;
+      }; break;
+      case DiscordRegexNames.JUMP_CHANNEL_MESSAGE: {
+        result.guildId = match[1] as string;
+        result.channelId = match[2] as string;
+        result.messageId = match[3] as string;
       }; break;
       case DiscordRegexNames.MENTION_CHANNEL:
       case DiscordRegexNames.MENTION_ROLE: {
-        result.id = <string> match[1];
+        result.id = match[1] as string;
       }; break;
       case DiscordRegexNames.MENTION_USER: {
-        result.id = <string> match[2];
-        result.mentionType = <string> match[1];
+        result.id = match[2] as string;
+        result.mentionType = match[1] as string;
       }; break;
       case DiscordRegexNames.TEXT_CODEBLOCK: {
-        result.language = <string> match[2];
-        result.text = <string> match[3];
+        result.language = match[2] as string;
+        result.text = match[3] as string;
       }; break;
       case DiscordRegexNames.TEXT_BOLD:
       case DiscordRegexNames.TEXT_CODESTRING:
@@ -260,7 +324,7 @@ export function regex(
       case DiscordRegexNames.TEXT_STRIKE:
       case DiscordRegexNames.TEXT_UNDERLINE:
       case DiscordRegexNames.TEXT_URL: {
-        result.text = <string> match[1];
+        result.text = match[1] as string;
       }; break;
       default: {
         throw new Error(`Unknown regex type: ${type}`);

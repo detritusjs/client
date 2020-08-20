@@ -30,7 +30,9 @@ export class Overwrite extends BaseStructure {
   readonly channel: Channel;
 
   allow: number = 0;
+  allowNew: bigint = 0n;
   deny: number = 0;
+  denyNew: bigint = 0n;
   id: string = '';
   type!: OverwriteTypes;
 
@@ -96,5 +98,17 @@ export class Overwrite extends BaseStructure {
       reason: options.reason,
       type: this.type,
     });
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.ALLOW_NEW:
+        case DiscordKeys.DENY_NEW: {
+          value = BigInt(value);
+        }; break;
+      }
+      return super.mergeValue(key, value);
+    }
   }
 }

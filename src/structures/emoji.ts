@@ -205,4 +205,14 @@ export class Emoji extends BaseStructure {
   toString(): string {
     return this.format;
   }
+
+  toJSON(withRoles?: boolean) {
+    const data = super.toJSON() as any;
+    if (!withRoles) {
+      if (DiscordKeys.ROLES in data) {
+        data[DiscordKeys.ROLES] = Array.from(data.roles.keys());
+      }
+    }
+    return data;
+  }
 }

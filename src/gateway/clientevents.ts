@@ -26,6 +26,8 @@ import {
 
 
 export namespace GatewayClientEvents {
+  export type Differences = {[key: string]: any} | null;
+
   export interface ClusterEvent {
     shard: ShardClient,
   }
@@ -81,7 +83,7 @@ export namespace GatewayClientEvents {
   export interface CallUpdate {
     call: VoiceCall,
     channelId: string,
-    differences: any | null,
+    differences: Differences,
   }
 
   export interface ChannelCreate {
@@ -105,7 +107,7 @@ export namespace GatewayClientEvents {
 
   export interface ChannelUpdate {
     channel: Channel,
-    differences: any | null,
+    differences: Differences,
   }
 
   export interface ChannelRecipientAdd {
@@ -214,16 +216,19 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildMemberUpdate {
-    differences: any | null,
+    differences: Differences,
     guildId: string,
     member: Member,
     userId: string,
   }
 
   export interface GuildMembersChunk {
+    chunkCount: number,
+    chunkIndex: number,
     guild: Guild | null,
     guildId: string,
     members: BaseCollection<string, Member> | null,
+    nonce: null | string,
     notFound: Array<string> | null,
     presences: BaseCollection<string, Presence> | null,
   }
@@ -246,14 +251,14 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildRoleUpdate {
-    differences: any | null,
+    differences: Differences,
     guild: Guild | null,
     guildId: string,
     role: Role,
   }
 
   export interface GuildUpdate {
-    differences: any | null,
+    differences: Differences,
     guild: Guild,
   }
 
@@ -319,7 +324,10 @@ export namespace GatewayClientEvents {
   }
 
   export interface MessageDelete {
+    channelId: string,
+    guildId: string | undefined,
     message: Message | null,
+    messageId: string,
     raw: GatewayRawEvents.MessageDelete,
   }
 
@@ -371,9 +379,12 @@ export namespace GatewayClientEvents {
   }
 
   export interface MessageUpdate {
-    differences: any | null,
+    channelId: string,
+    differences: Differences,
+    guildId: string | undefined,
     isEmbedUpdate: boolean,
     message: Message | null,
+    messageId: string,
     raw: GatewayRawEvents.MessageUpdate,
   }
 
@@ -382,11 +393,12 @@ export namespace GatewayClientEvents {
   }
 
   export interface PresenceUpdate {
-    differences: any | null,
+    differences: Differences,
     guildId: string | null,
     isGuildPresence: boolean,
     member: Member | null,
     presence: Presence,
+    userId: string,
     wentOffline: boolean,
   }
 
@@ -399,7 +411,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface RelationshipAdd {
-    differences: any | null,
+    differences: Differences,
     relationship: Relationship,
     userId: string,
   }
@@ -488,12 +500,12 @@ export namespace GatewayClientEvents {
   }
 
   export interface UserUpdate {
-    differences: any | null,
+    differences: Differences,
     user: UserMe,
   }
 
   export interface UsersUpdate {
-    differences: any | null,
+    differences: Differences,
     from: ClientEvents,
     user: User,
   }
@@ -506,7 +518,7 @@ export namespace GatewayClientEvents {
   }
 
   export interface VoiceStateUpdate {
-    differences: any | null,
+    differences: Differences,
     leftChannel: boolean,
     voiceState: VoiceState,
   }

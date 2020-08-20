@@ -291,7 +291,7 @@ export class Member extends UserMixin {
       channel = channelId;
     } else {
       if (this.client.channels.has(channelId)) {
-        channel = <ChannelGuildBase> this.client.channels.get(channelId);
+        channel = this.client.channels.get(channelId) as ChannelGuildBase;
       } else {
         return Permissions.NONE;
       }
@@ -299,7 +299,7 @@ export class Member extends UserMixin {
 
     let total = this.permissions;
     if (channel.permissionOverwrites.has(channel.guildId)) {
-      const overwrite = <Overwrite> channel.permissionOverwrites.get(channel.guildId);
+      const overwrite = channel.permissionOverwrites.get(channel.guildId) as Overwrite;
       total = (total & ~overwrite.deny) | overwrite.allow;
     }
 
@@ -307,7 +307,7 @@ export class Member extends UserMixin {
     for (let [roleId, role] of this.roles) {
       if (roleId === this.guildId) {continue;}
       if (channel.permissionOverwrites.has(roleId)) {
-        const overwrite = <Overwrite> channel.permissionOverwrites.get(roleId);
+        const overwrite = channel.permissionOverwrites.get(roleId) as Overwrite;
         allow |= overwrite.allow;
         deny |= overwrite.deny;
       }
@@ -315,7 +315,7 @@ export class Member extends UserMixin {
     total = (total & ~deny) | allow;
 
     if (channel.permissionOverwrites.has(this.id)) {
-      const overwrite = <Overwrite> channel.permissionOverwrites.get(this.id);
+      const overwrite = channel.permissionOverwrites.get(this.id) as Overwrite;
       total = (total & ~overwrite.deny) | overwrite.allow;
     }
     return total;
@@ -372,6 +372,18 @@ export class Member extends UserMixin {
           differences = this.hoistedRoleId;
         }
       }; break;
+      case DiscordKeys.ROLES: {
+        if (this._roles) {
+          const hasDifferences = (this._roles.length !== value.length) || this._roles.some((roleId) => {
+            return !value.includes(roleId);
+          });
+          if (hasDifferences) {
+            differences = this._roles;
+          }
+        } else {
+          differences = this._roles;
+        }
+      }; break;
       default: {
         return super.difference(key, value);
       };
@@ -404,7 +416,7 @@ export class Member extends UserMixin {
         case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
+            user = this.client.users.get(value.id) as User;
             user.merge(value);
           } else {
             user = new User(this.client, value);
@@ -417,13 +429,15 @@ export class Member extends UserMixin {
     }
   }
 
-  toJSON() {
-    const data = <any> super.toJSON();
-    if (DiscordKeys.HOISTED_ROLE in data) {
-      data[DiscordKeys.HOISTED_ROLE] = this.hoistedRoleId;
-    }
-    if (DiscordKeys.ROLES in data) {
-      data[DiscordKeys.ROLES] = Array.from(data.roles.keys());
+  toJSON(withRoles?: boolean) {
+    const data = super.toJSON() as any;
+    if (!withRoles) {
+      if (DiscordKeys.HOISTED_ROLE in data) {
+        data[DiscordKeys.HOISTED_ROLE] = this.hoistedRoleId;
+      }
+      if (DiscordKeys.ROLES in data) {
+        data[DiscordKeys.ROLES] = Array.from(data.roles.keys());
+      }
     }
     return data;
   }

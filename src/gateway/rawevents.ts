@@ -178,9 +178,12 @@ export namespace GatewayRawEvents {
   }
 
   export interface GuildMembersChunk {
+    chunk_count: number,
+    chunk_index: number,
     guild_id: string,
     members: Array<RawMember>,
     presences?: Array<RawPresence>,
+    nonce?: string,
     not_found?: Array<Snowflake>,
   }
 

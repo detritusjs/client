@@ -1,8 +1,8 @@
 import { CommandAttributes, CommandClient } from '../commandclient';
-import { CommandArgumentTypes, Permissions } from '../constants';
+import { Permissions } from '../constants';
 import { Message } from '../structures/message';
 
-import { ArgumentConverter, ArgumentOptions, Argument } from './argument';
+import { ArgumentOptions, Argument, ArgumentDefault, ArgumentType } from './argument';
 import { ArgumentParser, ParsedArgs, ParsedErrors } from './argumentparser';
 import { Context } from './context';
 import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from './ratelimit';
@@ -82,10 +82,12 @@ export interface CommandOptions extends ArgumentOptions {
   name: string,
   permissions?: Array<Permissions>,
   permissionsClient?: Array<Permissions>,
+  permissionsIgnoreClientOwner?: boolean,
   priority?: number,
   ratelimit?: boolean | CommandRatelimitOptions | null,
   ratelimits?: Array<CommandRatelimitOptions>,
   responseOptional?: boolean,
+  triggerTypingAfter?: number,
 
   onBefore?: CommandCallbackBefore,
   onBeforeRun?: CommandCallbackBeforeRun,
@@ -104,22 +106,25 @@ export interface CommandOptions extends ArgumentOptions {
 
 /**
  * Command itself
+ * Command flow is ratelimit check -> permission check -> `onBefore` -> arg parse -> `onBeforeRun` -> `run` -> `onSuccess | onRunError`
  * @category Command
  */
 export class Command<ParsedArgsFinished = ParsedArgs> {
   readonly _file?: string;
+  readonly argParser = new ArgumentParser();
   readonly commandClient: CommandClient;
 
   arg: Argument;
-  args: ArgumentParser;
   disableDm: boolean = false;
   disableDmReply: boolean = false;
   metadata: {[key: string]: any} = {};
   permissions?: Array<Permissions>;
   permissionsClient?: Array<Permissions>;
+  permissionsIgnoreClientOwner?: boolean = false;
   priority: number = 0;
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
+  triggerTypingAfter: number = -1;
 
   onBefore?(context: Context): Promise<boolean> | boolean;
   onBeforeRun?(context: Context, args: ParsedArgs): Promise<boolean> | boolean;
@@ -139,16 +144,25 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     options: CommandOptions,
   ) {
     this.commandClient = commandClient;
+    options = Object.assign({}, options);
 
     this.arg = new Argument(Object.assign({prefix: ''}, options, {metadata: undefined}));
-    this.args = new ArgumentParser(options.args);
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
     this.metadata = Object.assign(this.metadata, options.metadata);
     this.permissions = options.permissions;
     this.permissionsClient = options.permissionsClient;
+    this.permissionsIgnoreClientOwner = !!options.permissionsIgnoreClientOwner;
     this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;
+
+    if (options.args) {
+      this.args = options.args;
+    }
+
+    if (options.triggerTypingAfter !== undefined) {
+      this.triggerTypingAfter = Math.max(options.triggerTypingAfter, this.triggerTypingAfter);
+    }
 
     if (options._file) {
       this._file = options._file;
@@ -192,31 +206,108 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   }
 
   set aliases(value: Array<string>) {
-    this.arg.aliases = value;
+    this.setAliases(value);
   }
 
-  get label(): string {
+  set args(value: Array<ArgumentOptions>) {
+    this.setArgs(value);
+  }
+
+  get choices() {
+    return this.arg.choices;
+  }
+
+  set choices(value: Array<any> | undefined) {
+    this.setChoices(value);
+  }
+
+  get default(): ArgumentDefault {
+    return this.arg.default;
+  }
+
+  set default(value: ArgumentDefault) {
+    this.setDefault(value);
+  }
+
+  get help() {
+    return this.arg.help;
+  }
+
+  set help(value: string) {
+    this.setHelp(value);
+  }
+
+  get label() {
     return this.arg.label;
   }
 
   set label(value: string) {
-    this.arg.label = value;
+    this.setLabel(value);
   }
 
-  get name(): string {
+  get name() {
     return this.arg.name;
   }
 
   set name(value: string) {
-    this.arg.name = value.toLowerCase();
+    this.setName(value);
   }
 
-  get names(): Array<string> {
+  get names() {
     return this.arg.names;
   }
 
-  set type(value: ArgumentConverter | Boolean | Number | String | CommandArgumentTypes) {
+  set prefixes(value: Array<string>) {
+    this.setPrefixes(value);
+  }
+
+  set type(value: ArgumentType) {
+    this.setType(value);
+  }
+
+  setAliases(value: Array<string>) {
+    this.arg.aliases = value;
+    return this;
+  }
+
+  setArgs(value: Array<ArgumentOptions>) {
+    this.argParser.initialize(value);
+    return this;
+  }
+
+  setChoices(value: Array<any> | undefined) {
+    this.arg.choices = value;
+    return this;
+  }
+
+  setDefault(value: ArgumentDefault) {
+    this.arg.default = value;
+    return this;
+  }
+
+  setHelp(value: string) {
+    this.arg.help = value;
+    return this;
+  }
+
+  setLabel(value: string) {
+    this.arg.label = value;
+    return this;
+  }
+
+  setName(value: string) {
+    this.arg.name = value.toLowerCase();
+    return this;
+  }
+
+  setPrefixes(value: Array<string>) {
+    this.arg.setPrefixes(value);
+    return this;
+  }
+
+  setType(value: ArgumentType): this {
     this.arg.type = value;
+    return this;
   }
 
   check(name: string): boolean {
@@ -227,11 +318,37 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     attributes: CommandAttributes,
     context: Context,
   ): Promise<{errors: ParsedErrors, parsed: ParsedArgs}> {
-    const {errors, parsed} = await this.args.parse(attributes, context);
+    const { errors, parsed } = await this.argParser.parse(attributes, context);
+    const { arg } = this;
     try {
-      parsed[this.label] = await this.arg.parse(attributes.content, context);
+      if (this.arg.positionalArgs) {
+        const positional = await this.arg.positionalArgs.parse(attributes, context);
+        Object.assign(errors, positional.errors);
+        Object.assign(parsed, positional.parsed);
+      } else {
+        let value: any = attributes.content.trim();
+        if (value) {
+          value = await arg.parse(value, context);
+        } else {
+          if (arg.default !== undefined) {
+            if (typeof(arg.default) === 'function') {
+              value = await Promise.resolve(arg.default(context));
+            } else {
+              value = arg.default;
+            }
+            if (typeof(value) === 'string') {
+              value = await arg.parse(value, context);
+            }
+          } else if (arg.required) {
+            throw new Error(arg.help || 'Missing required parameter');
+          } else {
+            value = await arg.parse(value, context);
+          }
+        }
+        parsed[arg.label] = value;
+      }
     } catch(error) {
-      errors[this.label] = error;
+      errors[arg.label] = error;
     }
     return {errors, parsed};
   }

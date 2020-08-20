@@ -93,6 +93,30 @@ export class MessageEmbed extends BaseStructure {
     return this.type === MessageEmbedTypes.VIDEO;
   }
 
+  get length(): number {
+    return this.size;
+  }
+
+  get size(): number {
+    let size = 0;
+    if (this.author) {
+      size += (this.author.name || '').length;
+    }
+    if (this.title) {
+      size += (this.title || '').length;
+    }
+    if (this.description) {
+      size += (this.description || '').length;
+    }
+    if (this.fields) {
+      size += this.fields.reduce((s, field) => s + (field.name || '').length + (field.value || '').length, 0);
+    }
+    if (this.footer) {
+      size += (this.footer.text || '').length;
+    }
+    return size;
+  }
+
   async fetchApplicationNews() {
     if (!this.isApplicationNews) {
       throw new Error('Embed isn\'t of Application News Type');

@@ -2,6 +2,7 @@ export const Strings = Object.freeze({
   BOLD: '**',
   CODEBLOCK: '```',
   CODESTRING: '`',
+  CODESTRING_DOUBLE: '``',
   ESCAPE: '\\',
   ITALICS: '_',
   SPOILER: '||',
@@ -19,6 +20,7 @@ export const Regexes = Object.freeze({
   [Strings.STRIKE]: new RegExp(Strings.STRIKE, 'g'),
   [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
   EVERYONE: /@(everyone|here)/g,
+  LINK: /\]\(/g,
   MENTION: /<@([!&]?[0-9]{16,21})>/g,
   MENTION_HARDCORE: /@/g,
   URL: /\)/g,
@@ -39,6 +41,7 @@ export const Replacements = Object.freeze({
 
 export interface MarkupFilter {
   limit: number,
+  links: boolean,
   mentions: boolean,
   mentionEscapeCharacter: string,
   replacement: string,
@@ -46,6 +49,7 @@ export interface MarkupFilter {
 
 export interface MarkupFilterOptions {
   limit?: number,
+  links?: boolean,
   mentions?: boolean,
   mentionEscapeCharacter?: string,
   replacement?: string,
@@ -53,6 +57,7 @@ export interface MarkupFilterOptions {
 
 const defaultMarkupFilter: MarkupFilter = Object.freeze({
   limit: 2000,
+  links: true,
   mentions: true,
   mentionEscapeCharacter: '\u200b',
   replacement: '',
@@ -89,9 +94,9 @@ const defaultCodeblockFilter: CodeblockFilter = Object.freeze(Object.assign({}, 
 export function codeblock(text: string, options: CodeblockFilterOptions = {}): string {
   text = escape.codeblock(text, options);
   return [
-    '```' + (options.language || defaultCodeblockFilter.language),
+    Strings.CODEBLOCK + (options.language || defaultCodeblockFilter.language),
     text,
-    '```',
+    Strings.CODEBLOCK,
   ].join('\n');
 }
 
@@ -103,8 +108,21 @@ const defaultCodestringFilter: MarkupFilter = Object.freeze(Object.assign({}, de
 }));
 
 export function codestring(text: string, options: MarkupFilterOptions = {}): string {
-  text = escape.codestring(text, options);
-  return `\`${text}\``;
+  let wrap = Strings.CODESTRING;
+  if (text.includes(Strings.CODESTRING)) {
+    options = Object.assign({
+      limit: 1995,
+      replacement: Strings.CODESTRING + Replacements.MENTION,
+    }, options);
+    text = escape.codestring(text, options);
+    wrap = Strings.CODESTRING_DOUBLE;
+    if (text.endsWith(Strings.CODESTRING)) {
+      text += Replacements.MENTION;
+    }
+  } else {
+    text = escape.codestring(text, options);
+  }
+  return `${wrap}${text}${wrap}`;
 }
 
 
@@ -185,6 +203,9 @@ export const escape = Object.freeze({
     text = text.replace(Regexes[Strings.STRIKE], Replacements[Strings.STRIKE]);
     text = text.replace(Regexes[Strings.UNDERLINE], Replacements[Strings.UNDERLINE]);
 
+    if (filter.links) {
+      text = escape.links(text, filter.mentionEscapeCharacter);
+    }
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
@@ -228,6 +249,10 @@ export const escape = Object.freeze({
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }
     return trueSlice(text, filter.limit);
+  },
+  links: (text: string, replacement: string = Replacements.MENTION): string => {
+    text = text.replace(Regexes.LINK, `]${replacement}(`);
+    return text;
   },
   mentions: (text: string, replacement: string = Replacements.MENTION): string => {
     text = text.replace(Regexes.MENTION_HARDCORE, `@${replacement}`);

@@ -1,21 +1,33 @@
 {
-  "name": "detritus-client",
-  "version": "0.10.5",
+  "author": "cakedan",
+  "bugs": {
+    "url": "https://github.com/detritusjs/client/issues"
+  },
+  "dependencies": {
+    "detritus-client-rest": "^0.8.3",
+    "detritus-client-socket": "^0.6.1",
+    "detritus-utils": "^0.3.0"
+  },
   "description": "A Typescript NodeJS library to interact with Discord's API, both Rest and Gateway.",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "devDependencies": {
+    "@types/node": "^14.6.0",
+    "@types/node-fetch": "^2.5.7",
+    "typedoc": "^0.15.8"
+  },
   "files": [
     "lib/**/*"
   ],
-  "dependencies": {
-    "detritus-client-rest": "^0.7.1",
-    "detritus-client-socket": "^0.5.0",
-    "detritus-utils": "^0.2.6"
-  },
-  "devDependencies": {
-    "@types/node": "^13.13.5",
-    "typedoc": "^0.15.8"
-  },
+  "homepage": "https://github.com/detritusjs/client#readme",
+  "keywords": [
+    "discord",
+    "full",
+    "library",
+    "nodejs",
+    "typescript"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "name": "detritus-client",
   "peerDependencies": {
     "node-opus": "^0.3.2",
     "opusscript": "^0.0.6"
@@ -28,27 +40,16 @@
       "optional": true
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/detritusjs/client.git"
+  },
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "typedoc": "typedoc ./src"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/detritusjs/client.git"
-  },
-  "keywords": [
-    "discord",
-    "full",
-    "library",
-    "nodejs",
-    "typescript"
-  ],
-  "author": "cakedan",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/detritusjs/client/issues"
-  },
-  "homepage": "https://github.com/detritusjs/client#readme"
+  "types": "lib/index.d.ts",
+  "version": "0.11.1"
 }

@@ -25,7 +25,14 @@ const keysRole = new BaseSet<string>([
   DiscordKeys.MENTIONABLE,
   DiscordKeys.NAME,
   DiscordKeys.PERMISSIONS,
+  DiscordKeys.PERMISSIONS_NEW,
   DiscordKeys.POSITION,
+  DiscordKeys.TAGS,
+]);
+
+const keysMergeRole = new BaseSet<string>([
+  DiscordKeys.ID,
+  DiscordKeys.TAGS,
 ]);
 
 /**
@@ -34,6 +41,7 @@ const keysRole = new BaseSet<string>([
  */
 export class Role extends BaseStructure {
   readonly _keys = keysRole;
+  readonly _keysMerge = keysMergeRole;
 
   color: number = 0;
   guildId: string = '';
@@ -43,11 +51,24 @@ export class Role extends BaseStructure {
   mentionable: boolean = false;
   name: string = '';
   permissions: number = 0;
+  permissionsNew: bigint = 0n;
   position: number = 0;
+  tags: {
+    bot?: string,
+    integration?: string,
+    premium_subscriber?: null,
+  } | null = null;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client);
     this.merge(data);
+  }
+
+  get botId(): null | string {
+    if (this.tags && this.tags.bot) {
+      return this.tags.bot;
+    }
+    return null;
   }
 
   get createdAt(): Date {
@@ -60,6 +81,20 @@ export class Role extends BaseStructure {
 
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
+  }
+
+  get integrationId(): null | string {
+    if (this.tags && this.tags.integration) {
+      return this.tags.integration;
+    }
+    return null;
+  }
+
+  get isBoosterRole(): boolean {
+    if (this.tags) {
+      return 'premium_subscriber' in this.tags;
+    }
+    return false;
   }
 
   get isDefault(): boolean {
@@ -104,7 +139,7 @@ export class Role extends BaseStructure {
       channel = channelId;
     } else {
       if (this.client.channels.has(channelId)) {
-        channel = <ChannelGuildBase> this.client.channels.get(channelId);
+        channel = this.client.channels.get(channelId) as ChannelGuildBase;
       } else {
         return Permissions.NONE;
       }
@@ -112,7 +147,7 @@ export class Role extends BaseStructure {
 
     let allow = 0, deny = 0;
     if (channel.permissionOverwrites.has(this.id)) {
-      const overwrite = <Overwrite> channel.permissionOverwrites.get(this.id);
+      const overwrite = channel.permissionOverwrites.get(this.id) as Overwrite;
       allow |= overwrite.allow;
       deny |= overwrite.deny;
     }
@@ -125,6 +160,18 @@ export class Role extends BaseStructure {
 
   edit(options: RequestTypes.EditGuildRole) {
     return this.client.rest.editGuildRole(this.guildId, this.id, options);
+  }
+
+  mergeValue(key: string, value: any): void {
+    switch (key) {
+      case DiscordKeys.PERMISSIONS_NEW: {
+        value = BigInt(value);
+      }; break;
+      case DiscordKeys.TAGS: {
+        value = value || null;
+      }; break;
+    }
+    return super.mergeValue(key, value);
   }
 
   toString(): string {
