@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.11.0',
+  VERSION: '0.11.1',
 });
 
 export type Snowflake = number | string;
@@ -145,6 +145,8 @@ export const AuditLogTargetTypes = Tools.normalize({
 export enum AuditLogChangeKeys {
   AFK_CHANNEL_ID = 'afk_channel_id',
   AFK_TIMEOUT = 'afk_timeout',
+  ALLOW = 'allow',
+  ALLOW_NEW = 'allow_new',
   APPLICATION_ID = 'application_id',
   AVATAR_HASH = 'avatar_hash',
   BANNER_HASH = 'banner_hash',
@@ -154,6 +156,8 @@ export enum AuditLogChangeKeys {
   COLOR = 'color',
   DEAF = 'deaf',
   DEFAULT_MESSAGE_NOTIFICATIONS = 'default_message_notifications',
+  DENY = 'deny',
+  DENY_NEW = 'deny_new',
   DESCRIPTION = 'description',
   ENABLE_EMOTICONS = 'enable_emoticons',
   EXPIRE_BEHAVIOR = 'expire_behavior',
@@ -174,8 +178,11 @@ export enum AuditLogChangeKeys {
   OWNER_ID = 'owner_id',
   PERMISSION_OVERWRITES = 'permission_overwrites',
   PERMISSIONS = 'permissions',
+  PERMISSIONS_NEW = 'permissions_new',
+
   PERMISSIONS_DENIED = 'deny',
   PERMISSIONS_GRANTED = 'allow',
+
   POSITION = 'position',
   PREFERRED_LOCALE = 'preferred_locale',
   PRUNE_DELETE_DAYS = 'prune_delete_days',
@@ -720,7 +727,7 @@ export enum Permissions {
   MANAGE_EMOJIS = 1 << 30,
 };
 
-export const PERMISSIONS_ALL = (<Array<Permissions>> Object.values(Permissions)).reduce(
+export const PERMISSIONS_ALL = (Object.values(Permissions) as Array<Permissions>).reduce(
   (permissions: number, permission: number) => permissions | permission,
   Permissions.NONE,
 );
@@ -1057,6 +1064,7 @@ export const DiscordKeys = Object.freeze({
   AFK_TIMEOUT: 'afk_timeout',
   ALIASES: 'aliases',
   ALLOW: 'allow',
+  ALLOW_NEW: 'allow_new',
   ANALYTICS_TOKEN: 'analytics_token',
   ANIMATED: 'animated',
   APPLICATION: 'application',
@@ -1101,6 +1109,7 @@ export const DiscordKeys = Object.freeze({
   DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
   DELETE_MEMBER_DAYS: 'delete_member_days',
   DENY: 'deny',
+  DENY_NEW: 'deny_new',
   DEPENDENT_SKU_ID: 'dependent_sku_id',
   DEPRECATED: 'deprecated',
   DESCRIPTION: 'description',
@@ -1359,6 +1368,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.AFK_TIMEOUT]: 'afkTimeout',
   [DiscordKeys.ALIASES]: 'aliases',
   [DiscordKeys.ALLOW]: 'allow',
+  [DiscordKeys.ALLOW_NEW]: 'allowNew',
   [DiscordKeys.ANALYTICS_TOKEN]: 'analyticsToken',
   [DiscordKeys.ANIMATED]: 'animated',
   [DiscordKeys.APPLICATION]: 'application',
@@ -1403,6 +1413,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS]: 'defaultMessageNotifications',
   [DiscordKeys.DELETE_MEMBER_DAYS]: 'deleteMemberDays',
   [DiscordKeys.DENY]: 'deny',
+  [DiscordKeys.DENY_NEW]: 'denyNew',
   [DiscordKeys.DEPENDENT_SKU_ID]: 'dependentSkuId',
   [DiscordKeys.DEPRECATED]: 'deprecated',
   [DiscordKeys.DESCRIPTION]: 'description',

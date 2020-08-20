@@ -234,7 +234,7 @@ export class Presence extends BaseStructure {
               raw.position = position;
 
               if (this._activities.has(raw.id)) {
-                const activity = <PresenceActivity> this._activities.get(raw.id);
+                const activity = this._activities.get(raw.id) as PresenceActivity;
                 activity.merge(raw);
               } else {
                 const activity = new PresenceActivity(this.user, raw);
@@ -280,7 +280,7 @@ export class Presence extends BaseStructure {
         case DiscordKeys.USER: {
           let user: User;
           if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
+            user = this.client.users.get(value.id) as User;
             user.merge(value);
           } else {
             if (this.user) {
@@ -378,7 +378,7 @@ export class PresenceActivity extends BaseStructure {
 
   get application(): Application | null {
     if (this.applicationId && this.client.applications.has(this.applicationId)) {
-      return <Application> this.client.applications.get(this.applicationId);
+      return this.client.applications.get(this.applicationId) as Application;
     }
     if (!this.user.bot && this.name && this.isPlaying) {
       for (let [applicationId, application] of this.client.applications) {

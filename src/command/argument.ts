@@ -1,5 +1,6 @@
 import { CommandArgumentTypes } from '../constants';
 
+import { ArgumentParser } from './argumentparser';
 import { Context } from './context';
 
 
@@ -7,7 +8,7 @@ export type ArgumentConverter = (value: string, context: Context) => Promise<any
 
 export type ArgumentDefault = ((context: Context) => Promise<any> | any) | any;
 
-export type ArgumentType = ArgumentConverter | Boolean | Number | String | CommandArgumentTypes;
+export type ArgumentType = ArgumentConverter | Boolean | Number | String | CommandArgumentTypes | Array<ArgumentOptions>;
 
 /**
  * Command Argument Options
@@ -15,13 +16,17 @@ export type ArgumentType = ArgumentConverter | Boolean | Number | String | Comma
  */
 export interface ArgumentOptions {
   aliases?: Array<string>,
+  choices?: Array<any>,
+  consume?: boolean,
   default?: ArgumentDefault,
+  help?: string,
   label?: string,
   metadata?: {[key: string]: any},
   name: string,
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
+  required?: boolean,
   type?: ArgumentType,
 }
 
@@ -34,13 +39,19 @@ const blankPrefixes = Object.freeze(['']);
  */
 export class Argument {
   private _aliases: Array<string> = [];
-  private _label?: string;
+  private _label: string = '';
+  private _name: string = '';
+  private _names?: Array<string>;
   private _type: ArgumentType = CommandArgumentTypes.STRING;
 
+  positionalArgs?: ArgumentParser;
+  choices?: Array<any>;
+  consume?: boolean = false;
   default: ArgumentDefault = undefined;
+  help: string = '';
   metadata?: {[key: string]: any};
-  name: string;
   prefixes: Set<string> = new Set(['-']);
+  required: boolean = false;
 
   constructor(options: ArgumentOptions) {
     options = Object.assign({}, options);
@@ -55,29 +66,15 @@ export class Argument {
       options.prefixes.push(options.prefix);
     }
     if (options.prefixes) {
-      options.prefixes.sort((x: string, y: string) => y.length - x.length);
-      if (options.prefixes.some((prefix) => prefix.endsWith(' '))) {
-        options.prefixSpace = true;
-      }
-
-      this.prefixes.clear();
-      for (let prefix of options.prefixes) {
-        if (!prefix) {
-          continue;
-        }
-
-        prefix = prefix.trim();
-        if (options.prefixSpace) {
-          prefix += ' ';
-        }
-        if (prefix) {
-          this.prefixes.add(prefix);
-        }
-      }
+      this.setPrefixes(options.prefixes, options.prefixSpace);
     }
 
+    this.choices = options.choices;
+    this.consume = !!options.consume;
     this.default = options.default;
-    this.name = options.name.toLowerCase();
+    this.help = options.help || this.help;
+    this.name = (options.name || this.name).toLowerCase();
+    this.required = !!options.required;
     if (options.aliases) {
       this.aliases = options.aliases;
     }
@@ -95,6 +92,7 @@ export class Argument {
 
   set aliases(value: Array<string>) {
     this._aliases = (value || []).map((alias) => alias.toLowerCase());
+    this._names = undefined;
   }
 
   get label(): string {
@@ -105,7 +103,19 @@ export class Argument {
     this._label = value;
   }
 
+  get name(): string {
+    return this._name;
+  }
+
+  set name(value: string) {
+    this._name = value;
+    this._names = undefined;
+  }
+
   get names(): Array<string> {
+    if (this._names) {
+      return this._names;
+    }
     const names: Array<string> = [];
     const prefixes = (this.prefixes.size) ? this.prefixes : blankPrefixes;
     for (let prefix of prefixes) {
@@ -114,7 +124,7 @@ export class Argument {
         names.push((prefix) ? prefix + alias : alias);
       }
     }
-    return names.sort((x, y) => y.length - x.length);
+    return this._names = names.sort((x, y) => y.length - x.length);
   }
 
   get type(): ArgumentType {
@@ -141,6 +151,12 @@ export class Argument {
           this.default = !!this.default;
         }; break;
       }
+    }
+
+    if (Array.isArray(value)) {
+      this.positionalArgs = new ArgumentParser(value, true);
+    } else {
+      this.positionalArgs = undefined;
     }
   }
 
@@ -212,27 +228,64 @@ export class Argument {
     return null;
   }
 
+  setPrefixes(prefixes: Array<string>, prefixSpace: boolean = false): void {
+    prefixes = prefixes.slice().sort((x, y) => y.length - x.length);
+
+    if (prefixes.some((prefix) => prefix.endsWith(' '))) {
+      prefixSpace = true;
+    }
+
+    this.prefixes.clear();
+    for (let prefix of prefixes) {
+      if (!prefix) {
+        continue;
+      }
+
+      prefix = prefix.trim();
+      if (prefixSpace) {
+        prefix += ' ';
+      }
+      if (prefix) {
+        this.prefixes.add(prefix);
+      }
+    }
+    this._names = undefined;
+  }
+
   async parse(value: string, context: Context): Promise<any> {
     let parsedValue: any;
     if (typeof(this.type) === 'function') {
       parsedValue = await Promise.resolve(this.type(value, context));
     } else {
-      switch (this.type) {
-        case CommandArgumentTypes.BOOL: {
-          parsedValue = !this.default;
-        }; break;
-        case CommandArgumentTypes.FLOAT: {
-          parsedValue = parseFloat(value);
-        }; break;
-        case CommandArgumentTypes.NUMBER: {
-          parsedValue = parseInt(value);
-        }; break;
-        case CommandArgumentTypes.STRING: {
-          parsedValue = value || this.default || value;
-        }; break;
-        default: {
-          parsedValue = value || this.default;
-        }; break;
+      try {
+        switch (this.type) {
+          case CommandArgumentTypes.BOOL: {
+            parsedValue = !this.default;
+          }; break;
+          case CommandArgumentTypes.FLOAT: {
+            parsedValue = parseFloat(value);
+          }; break;
+          case CommandArgumentTypes.NUMBER: {
+            parsedValue = parseInt(value);
+          }; break;
+          case CommandArgumentTypes.STRING: {
+            parsedValue = value || this.default || value;
+          }; break;
+          default: {
+            parsedValue = value || this.default;
+          }; break;
+        }
+      } catch(error) {
+        if (this.help) {
+          throw new Error(this.help.replace(/:error/g, error.message));
+        } else {
+          throw error;
+        }
+      }
+    }
+    if (this.choices) {
+      if (!this.choices.includes(parsedValue)) {
+        throw new Error(this.help || `${parsedValue} is not a valid choice`);
       }
     }
     return parsedValue;

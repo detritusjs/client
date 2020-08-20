@@ -152,4 +152,17 @@ export class AuditLogOptions extends BaseStructure {
     this.merge(data);
     Object.defineProperty(this, 'log', {enumerable: false, writable: false});
   }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.COUNT:
+        case DiscordKeys.DELETE_MEMBER_DAYS:
+        case DiscordKeys.MEMBERS_REMOVED: {
+          value = parseInt(value);
+        }; break;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
 }

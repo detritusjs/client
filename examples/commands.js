@@ -12,6 +12,7 @@ const client = new CommandClient(token, {
   prefix,
 });
 
+client.addMultipleIn('/command-classes');
 client.addMultipleIn('/some-directory');
 
 client.add({
@@ -112,6 +113,31 @@ client.add({
   run: (context) => {
     context.voiceConnection.kill();
     return context.reply('ok i left');
+  },
+});
+
+client.add({
+  name: 'color',
+  choices: ['blue', 'red'],
+  help: 'Choose from `blue` or `red`',
+  type: (value) => value.toLowerCase(),
+  run: (context, args) => {
+    const { color } = args;
+    switch (color) {
+      case 'blue': {
+        return context.editOrReply('I love blue!');
+      };
+      case 'red': {
+        return context.editOrReply('I kinda like red');
+      };
+    }
+  },
+  onTypeError: (context, args, errors) => {
+    const description = ['ERRORS'];
+    for (let key in errors) {
+      description.push(`**${key}**: ${errors[key]}`);
+    }
+    return context.editOrReply(description.join('\n'));
   },
 });
 

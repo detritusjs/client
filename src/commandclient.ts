@@ -278,38 +278,39 @@ export class CommandClient extends EventSpewer {
 
     const files: Array<string> = await getFiles(directory, options.subdirectories);
     const errors: {[key: string]: Error} = {};
+
+    const addCommand = (imported: any, filepath: string): void => {
+      if (!imported) {
+        return;
+      }
+      if (typeof(imported) === 'function') {
+        this.add({_file: filepath, _class: imported, name: ''});
+      } else if (imported instanceof Command) {
+        Object.defineProperty(imported, '_file', {value: filepath});
+        this.add(imported);
+      } else if (typeof(imported) === 'object' && Object.keys(imported).length) {
+        if (Array.isArray(imported)) {
+          for (let child of imported) {
+            addCommand(child, filepath);
+          }
+        } else {
+          if ('name' in imported) {
+            this.add({...imported, _file: filepath});
+          }
+        }
+      }
+    };
     for (let file of files) {
       if (!file.endsWith('.js')) {
         continue;
       }
       const filepath = path.resolve(directory, file);
-
       try {
         let importedCommand: any = require(filepath);
         if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
           importedCommand = importedCommand.default;
         }
-
-        const addCommand = (imported: any): void => {
-          if (!imported) {
-            return;
-          }
-          if (typeof(imported) === 'function') {
-            this.add({_file: filepath, _class: imported, name: ''});
-          } else if (imported instanceof Command) {
-            Object.defineProperty(imported, '_file', {value: filepath});
-            this.add(imported);
-          } else if (typeof(imported) === 'object' && Object.keys(imported).length) {
-            if (Array.isArray(imported)) {
-              for (let child of imported) {
-                addCommand(child);
-              }
-            } else {
-              this.add({...imported, _file: filepath});
-            }
-          }
-        };
-        addCommand(importedCommand);
+        addCommand(importedCommand, filepath);
       } catch(error) {
         errors[filepath] = error;
       }
@@ -829,19 +830,85 @@ export class CommandClient extends EventSpewer {
   }
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;
+  on(event: ClientEvents.COMMAND_DELETE, listener: (payload: CommandEvents.CommandDelete) => any): this;
   on(event: 'commandDelete', listener: (payload: CommandEvents.CommandDelete) => any): this;
+  on(event: ClientEvents.COMMAND_ERROR, listener: (payload: CommandEvents.CommandError) => any): this;
   on(event: 'commandError', listener: (payload: CommandEvents.CommandError) => any): this;
+  on(event: ClientEvents.COMMAND_FAIL, listener: (payload: CommandEvents.CommandFail) => any): this;
   on(event: 'commandFail', listener: (payload: CommandEvents.CommandFail) => any): this;
+  on(event: ClientEvents.COMMAND_NONE, listener: (payload: CommandEvents.CommandNone) => any): this;
   on(event: 'commandNone', listener: (payload: CommandEvents.CommandNone) => any): this;
+  on(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: CommandEvents.CommandPermissionsFailClient) => any): this;
   on(event: 'commandPermissionsFailClient', listener: (payload: CommandEvents.CommandPermissionsFailClient) => any): this;
+  on(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: CommandEvents.CommandPermissionsFail) => any): this;
   on(event: 'commandPermissionsFail', listener: (payload: CommandEvents.CommandPermissionsFail) => any): this;
+  on(event: ClientEvents.COMMAND_RAN, listener: (payload: CommandEvents.CommandRan) => any): this;
   on(event: 'commandRan', listener: (payload: CommandEvents.CommandRan) => any): this;
+  on(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: CommandEvents.CommandRatelimit) => any): this;
   on(event: 'commandRatelimit', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
+  on(event: ClientEvents.COMMAND_RESPONSE_DELETE, listener: (payload: CommandEvents.CommandResponseDelete) => any): this;
   on(event: 'commandResponseDelete', listener: (payload: CommandEvents.CommandResponseDelete) => any): this;
+  on(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: CommandEvents.CommandRunError) => any): this;
   on(event: 'commandRunError', listener: (payload: CommandEvents.CommandRunError) => any): this;
+  on(event: ClientEvents.KILLED, listener: () => any): this;
   on(event: 'killed', listener: () => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
+  }
+
+  once(event: string | symbol, listener: (...args: any[]) => void): this;
+  once(event: ClientEvents.COMMAND_DELETE, listener: (payload: CommandEvents.CommandDelete) => any): this;
+  once(event: 'commandDelete', listener: (payload: CommandEvents.CommandDelete) => any): this;
+  once(event: ClientEvents.COMMAND_ERROR, listener: (payload: CommandEvents.CommandError) => any): this;
+  once(event: 'commandError', listener: (payload: CommandEvents.CommandError) => any): this;
+  once(event: ClientEvents.COMMAND_FAIL, listener: (payload: CommandEvents.CommandFail) => any): this;
+  once(event: 'commandFail', listener: (payload: CommandEvents.CommandFail) => any): this;
+  once(event: ClientEvents.COMMAND_NONE, listener: (payload: CommandEvents.CommandNone) => any): this;
+  once(event: 'commandNone', listener: (payload: CommandEvents.CommandNone) => any): this;
+  once(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: CommandEvents.CommandPermissionsFailClient) => any): this;
+  once(event: 'commandPermissionsFailClient', listener: (payload: CommandEvents.CommandPermissionsFailClient) => any): this;
+  once(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: CommandEvents.CommandPermissionsFail) => any): this;
+  once(event: 'commandPermissionsFail', listener: (payload: CommandEvents.CommandPermissionsFail) => any): this;
+  once(event: ClientEvents.COMMAND_RAN, listener: (payload: CommandEvents.CommandRan) => any): this;
+  once(event: 'commandRan', listener: (payload: CommandEvents.CommandRan) => any): this;
+  once(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: CommandEvents.CommandRatelimit) => any): this;
+  once(event: 'commandRatelimit', listener: (payload: CommandEvents.CommandRatelimit) => any): this;
+  once(event: ClientEvents.COMMAND_RESPONSE_DELETE, listener: (payload: CommandEvents.CommandResponseDelete) => any): this;
+  once(event: 'commandResponseDelete', listener: (payload: CommandEvents.CommandResponseDelete) => any): this;
+  once(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: CommandEvents.CommandRunError) => any): this;
+  once(event: 'commandRunError', listener: (payload: CommandEvents.CommandRunError) => any): this;
+  once(event: ClientEvents.KILLED, listener: () => any): this;
+  once(event: 'killed', listener: () => any): this;
+  once(event: string | symbol, listener: (...args: any[]) => void): this {
+    super.once(event, listener);
+    return this;
+  }
+
+  subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_DELETE, listener: (payload: CommandEvents.CommandDelete) => any): EventSubscription;
+  subscribe(event: 'commandDelete', listener: (payload: CommandEvents.CommandDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_ERROR, listener: (payload: CommandEvents.CommandError) => any): EventSubscription;
+  subscribe(event: 'commandError', listener: (payload: CommandEvents.CommandError) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_FAIL, listener: (payload: CommandEvents.CommandFail) => any): EventSubscription;
+  subscribe(event: 'commandFail', listener: (payload: CommandEvents.CommandFail) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_NONE, listener: (payload: CommandEvents.CommandNone) => any): EventSubscription;
+  subscribe(event: 'commandNone', listener: (payload: CommandEvents.CommandNone) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: CommandEvents.CommandPermissionsFailClient) => any): EventSubscription;
+  subscribe(event: 'commandPermissionsFailClient', listener: (payload: CommandEvents.CommandPermissionsFailClient) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: CommandEvents.CommandPermissionsFail) => any): EventSubscription;
+  subscribe(event: 'commandPermissionsFail', listener: (payload: CommandEvents.CommandPermissionsFail) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RAN, listener: (payload: CommandEvents.CommandRan) => any): EventSubscription;
+  subscribe(event: 'commandRan', listener: (payload: CommandEvents.CommandRan) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: CommandEvents.CommandRatelimit) => any): EventSubscription;
+  subscribe(event: 'commandRatelimit', listener: (payload: CommandEvents.CommandRatelimit) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RESPONSE_DELETE, listener: (payload: CommandEvents.CommandResponseDelete) => any): EventSubscription;
+  subscribe(event: 'commandResponseDelete', listener: (payload: CommandEvents.CommandResponseDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: CommandEvents.CommandRunError) => any): EventSubscription;
+  subscribe(event: 'commandRunError', listener: (payload: CommandEvents.CommandRunError) => any): EventSubscription;
+  subscribe(event: ClientEvents.KILLED, listener: () => any): EventSubscription;
+  subscribe(event: 'killed', listener: () => any): EventSubscription;
+  subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription {
+    return super.subscribe(event, listener);
   }
 }

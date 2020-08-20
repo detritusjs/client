@@ -175,6 +175,58 @@ export function getFormatFromHash(
   return format;
 }
 
+
+const QuotesAll = {
+  '"': '"',
+  '\'': '\'',
+  '’': '’',
+  '‚': '‛',
+  '“': '”',
+  '„': '‟',
+  '「': '」',
+  '『': '』',
+  '〝': '〞',
+  '﹁': '﹂',
+  '﹃': '﹄',
+  '＂': '＂',
+  '｢': '｣',
+  '«': '»',
+  '《': '》',
+  '〈': '〉',
+};
+
+const Quotes = {
+  END: Object.values(QuotesAll),
+  START: Object.keys(QuotesAll),
+};
+
+export function getFirstArgument(value: string): [string, string] {
+  let result = value.slice(0, 1);
+  value = value.slice(1);
+
+  // check to see if this word starts with any of the quote starts
+  // if yes, then continue onto the next word
+  if (Quotes.START.includes(result)) {
+    let index = value.indexOf((QuotesAll as any)[result], 1);
+    if (index !== -1) {
+      result = value.slice(0, index);
+      value = value.slice(index + 1).trim();
+      return [result, value];
+    }
+  }
+  // check for the next space, if not then we consume the whole thing
+  let index = value.indexOf(' ');
+  if (index === -1) {
+    result += value.slice(0, value.length);
+    value = '';
+  } else {
+    result += value.slice(0, index);
+    value = value.slice(index).trim();
+  }
+  return [result, value];
+}
+
+
 export function hexToInt(hex: string): number {
   return parseInt(hex.replace(/#/, ''), 16);
 }

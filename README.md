@@ -22,7 +22,9 @@ are provided through [`detritus-client-rest`](https://github.com/detritusjs/clie
 Detritus is operated through the Clients classes:
 
 - `ShardClient` provides a base client for connecting to the Discord API and receiving events.
-- `CommandClient` wraps over the `ShardClient` to provide support for bot commands.
+- `ClusterClient` provides a client that creates `ShardClient` classes inside of it for easier sharding
+- `CommandClient` wraps over the `ClusterClient` or `ShardClient` to provide support for bot commands.
+- `ClusterManager` provides a manager that'll spawn in multiple `ClusterClient` processes for big shardings
 
 More Examples are provided under the [`examples/`](https://github.com/detritusjs/client/tree/master/examples)
 directory.
@@ -36,7 +38,7 @@ const { CommandClient } = require('detritus-client');
 //
 // Tokens should be considered secrets and stored in a configuration file that is not
 // part of your version control system, or an environment variable.
-// By default, the CommandClient will use the ShardClient unless you use the ClusterManager to spawn processes
+// By default, the CommandClient will use the ClusterClient
 // The ShardClient/ClusterClient will be under CommandClient.client as soon as you create the object
 const token = '';
 const commandClient = new CommandClient(token, {

@@ -29,6 +29,7 @@ import { Channel, createChannelFromData } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
 import { MessageEmbed } from './messageembed';
+import { PresenceActivity } from './presence';
 import { Reaction } from './reaction';
 import { Role } from './role';
 import { User } from './user';
@@ -256,6 +257,10 @@ export class Message extends BaseStructure {
     return Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(this.guildId, this.channelId, this.id);
   }
 
+  get mentionHere(): boolean {
+    return this.mentionEveryone && !this.content.includes('@everyone');
+  }
+
   get mentions(): BaseCollection<string, Member | User> {
     if (this._mentions) {
       return this._mentions;
@@ -338,7 +343,7 @@ export class Message extends BaseStructure {
     const guild = this.guild;
     content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_ROLE], (match, id) => {
       if (guild && guild.roles.has(id)) {
-        const role = <Role> guild.roles.get(id);
+        const role = guild.roles.get(id) as Role;
         return `@${role}`;
       }
       return '@deleted-role';
@@ -441,6 +446,50 @@ export class Message extends BaseStructure {
     return this.client.rest.deletePinnedMessage(this.channelId, this.id);
   }
 
+  difference(key: string, value: any): [boolean, any] {
+    let differences: any;
+    switch (key) {
+      case DiscordKeys.ATTACHMENTS: {
+        // just check if any of the attachment ids are not in our own cache
+        const hasDifference = (this.attachments.length !== value.length) || value.some((raw: any) => {
+          return !this.attachments.has(raw.id);
+        });
+        if (hasDifference) {
+          differences = this.attachments.clone();
+        }
+      }; break;
+      case DiscordKeys.EMBEDS: {
+        // this one might be difficult, i guess we're gonna have to do a deep difference dive
+        const hasDifference = (this.embeds.length !== value.length) || value.some((raw: any, i: number) => {
+          const embed = this.embeds.get(i);
+          if (embed) {
+            return !!embed.differences(raw);
+          }
+          return true;
+        });
+        if (hasDifference) {
+          differences = this.embeds.clone();
+        }
+      }; break;
+      case DiscordKeys.MENTIONS: {
+        // just check the user id
+        const hasDifference = (this.mentions.length !== value.length) || value.some((raw: any) => {
+          return !this.mentions.has(raw.id);
+        });
+        if (hasDifference) {
+          differences = this.mentions.clone();
+        }
+      }; break;
+      default: {
+        return super.difference(key, value);
+      };
+    }
+    if (differences !== undefined) {
+      return [true, differences];
+    }
+    return [false, null];
+  }
+
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
@@ -450,7 +499,7 @@ export class Message extends BaseStructure {
         case DiscordKeys.APPLICATION: {
           let application: Application;
           if (this.client.applications.has(value.id)) {
-            application = <Application> this.client.applications.get(value.id);
+            application = this.client.applications.get(value.id) as Application;
             application.merge(value);
           } else {
             application = new Application(this.client, value);
@@ -479,7 +528,7 @@ export class Message extends BaseStructure {
             user = new User(this.client, value);
           } else {
             if (this.client.users.has(value.id)) {
-              user = <User> this.client.users.get(value.id);
+              user = this.client.users.get(value.id) as User;
               user.merge(value);
             } else {
               user = new User(this.client, value);
@@ -518,10 +567,10 @@ export class Message extends BaseStructure {
           }
         }; return;
         case DiscordKeys.MEMBER: {
-          const guildId = <string> this.guildId;
+          const guildId = this.guildId as string;
           let member: Member;
           if (this.client.members.has(guildId, this.author.id)) {
-            member = <Member> this.client.members.get(guildId, this.author.id);
+            member = this.client.members.get(guildId, this.author.id) as Member;
             // should we merge? this event is so common
           } else {
             value.guild_id = guildId;
@@ -537,12 +586,12 @@ export class Message extends BaseStructure {
             }
             this._mentions.clear();
 
-            const guildId = <string> this.guildId;
+            const guildId = this.guildId as string;
             for (let raw of value) {
               if (raw.member) {
                 let member: Member;
                 if (this.client.members.has(guildId, raw.id)) {
-                  member = <Member> this.client.members.get(guildId, raw.id);
+                  member = this.client.members.get(guildId, raw.id) as Member;
                   // should we merge?
                 } else {
                   raw.member.guild_id = guildId;
@@ -553,13 +602,13 @@ export class Message extends BaseStructure {
                 this._mentions.set(member.id, member);
               } else {
                 if (guildId && this.client.members.has(guildId, raw.id)) {
-                  const member = <Member> this.client.members.get(guildId, raw.id);
+                  const member = this.client.members.get(guildId, raw.id) as Member;
                   member.merge({user: raw});
                   this._mentions.set(member.id, member);
                 } else {
                   let user: User;
                   if (this.client.users.has(raw.id)) {
-                    user = <User> this.client.users.get(raw.id);
+                    user = this.client.users.get(raw.id) as User;
                     user.merge(raw);
                   } else {
                     user = new User(this.client, raw);
@@ -585,7 +634,7 @@ export class Message extends BaseStructure {
             for (let raw of value) {
               let channel: Channel;
               if (this.client.channels.has(raw.id)) {
-                channel = <Channel> this.client.channels.get(raw.id);
+                channel = this.client.channels.get(raw.id) as Channel;
                 channel.merge(raw);
               } else {
                 raw.is_partial = true;
@@ -681,6 +730,18 @@ export class MessageActivity extends BaseStructure {
     this.message = message;
     this.merge(data);
     Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get activity(): null | PresenceActivity {
+    const presence = this.message.author.presence;
+    if (presence) {
+      for (let [activityId, activity] of presence.activities) {
+        if (activity.party && activity.party.id === this.partyId) {
+          return activity;
+        }
+      }
+    }
+    return null;
   }
 
   get group(): BaseCollection<string, User> {
@@ -781,12 +842,14 @@ export class MessageReference extends BaseStructure {
 
 export function messageSystemContent(
   message: Message,
-  content?: string,
+  text?: string,
 ): string {
-  if (content === undefined) {
+  let content: string;
+  if (text === undefined) {
     content = message.content;
+  } else {
+    content = text;
   }
-
   switch (message.type) {
     case MessageTypes.RECIPIENT_ADD: {
       const otherUser = message.mentions.first();
@@ -817,7 +880,7 @@ export function messageSystemContent(
     }; break;
     case MessageTypes.GUILD_MEMBER_JOIN: {
       const number = message.createdAtUnix % SystemMessages.GuildMemberJoin.length;
-      content = (<any> SystemMessages.GuildMemberJoin)[number].replace(/:user:/g, message.author.mention);
+      content = (SystemMessages.GuildMemberJoin as any)[number].replace(/:user:/g, message.author.mention);
     }; break;
     case MessageTypes.GUILD_PREMIUM_SUBSCRIPTION: {
       content = SystemMessages.GuildMemberSubscribed.replace(/:user:/g, message.author.mention);
@@ -847,12 +910,12 @@ export function messageSystemContent(
       }
       content = SystemMessages.GuildMemberSubscribedAchievedTier.replace(/:user:/g, message.author.mention);
       content = content.replace(/:guild:/g, guild.toString());
-      content = content.replace(/:premiumTier:/g, (<any> PremiumGuildTierNames)[premiumTier]);
+      content = content.replace(/:premiumTier:/g, (PremiumGuildTierNames as any)[premiumTier]);
     }; break;
     case MessageTypes.CHANNEL_FOLLOW_ADD: {
       content = SystemMessages.ChannelFollowAdd.replace(/:user:/g, message.author.mention);
       content = content.replace(/:webhookName:/g, message.content);
     }; break;
   }
-  return <string> content;
+  return content;
 }
