@@ -673,15 +673,14 @@ export class GatewayDispatchHandler {
             differences.created.set(emojiId, emoji);
           }
         }
-        console.log(removed.size)
         if (removed.size > 0)
-        differences.deleted = removed;
+          differences.deleted = removed;
         else
-        delete differences.deleted;
+          delete differences.deleted;
         if (differences.created.size < 1)
-        delete differences.created;
+          delete differences.created;
         if (differences.updated.size < 1)
-        delete differences.updated;
+          delete differences.updated;
       }
       guild.merge({emojis: data['emojis']});
       emojis = guild.emojis;
