@@ -649,37 +649,67 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.GUILD_EMOJIS_UPDATE](data: GatewayRawEvents.GuildEmojisUpdate) {
     let emojis: BaseCollection<string, Emoji>;
-    let emojisOld: BaseCollection<string, Emoji> | null = null;
     let guild: Guild | null = null;
     const guildId = data['guild_id'];
+    let removed: Map<string, Emoji> = new Map();
+    let differences: GatewayClientEvents.Differences = { updated: new Map(), deleted: new Map(), created: new Map() };
 
     if (this.client.guilds.has(guildId)) {
       guild = this.client.guilds.get(guildId) as Guild;
       if (this.client.hasEventListener(ClientEvents.GUILD_EMOJIS_UPDATE)) {
-        emojisOld = guild.emojis.clone();
+        removed = guild.emojis.clone();
+        for (let raw of data['emojis']) {
+          let emojiId = raw.id as string;
+          let emoji: Emoji;
+          if (this.client.emojis.has(guildId, emojiId)) {
+            removed.delete(emojiId);
+            emoji = this.client.emojis.get(guildId, emojiId) as Emoji;
+            let diff = emoji.differences(raw);
+            if (diff)
+            differences.updated.set(emojiId, raw);
+          } else {
+            Object.assign(raw, {guild_id: guildId});
+            emoji = new Emoji(this.client, raw);
+            differences.created.set(emojiId, emoji);
+          }
+        }
+        console.log(removed.size)
+        if (removed.size > 0)
+        differences.deleted = removed;
+        else
+        delete differences.deleted;
+        if (differences.created.size < 1)
+        delete differences.created;
+        if (differences.updated.size < 1)
+        delete differences.updated;
       }
       guild.merge({emojis: data['emojis']});
       emojis = guild.emojis;
     } else {
-      emojisOld = new BaseCollection();
-
+      // Hopefully emoji cache is updated in the future.
+      // Until then since emojis aren't cached when guild
+      // caching is disabled I can't reliably say when
+      // an emoji is updated or created etc.
       emojis = new BaseCollection();
       for (let raw of data['emojis']) {
         const emojiId = raw.id as string;
 
         let emoji: Emoji;
         if (this.client.emojis.has(guildId, emojiId)) {
+          //removed.delete(emojiId);
           emoji = this.client.emojis.get(guildId, emojiId) as Emoji;
+          //updated.set(emojiId, raw);
           emoji.merge(raw);
         } else {
           Object.assign(raw, {guild_id: guildId});
           emoji = new Emoji(this.client, raw);
+          //created.set(emojiId, emoji)
         }
         emojis.set(emojiId, emoji);
       }
     }
 
-    const payload: GatewayClientEvents.GuildEmojisUpdate = {emojis, emojisOld, guild, guildId};
+    const payload: GatewayClientEvents.GuildEmojisUpdate = {emojis, differences, guild, guildId};
     this.client.emit(ClientEvents.GUILD_EMOJIS_UPDATE, payload);
   }
 

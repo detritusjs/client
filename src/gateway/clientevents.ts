@@ -187,7 +187,7 @@ export namespace GatewayClientEvents {
 
   export interface GuildEmojisUpdate {
     emojis: BaseCollection<string, Emoji>,
-    emojisOld: BaseCollection<string, Emoji> | null,
+    differences: Differences,
     guild: Guild | null,
     guildId: string,
   }
