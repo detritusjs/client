@@ -666,7 +666,7 @@ export class GatewayDispatchHandler {
             emoji = this.client.emojis.get(guildId, emojiId) as Emoji;
             let diff = emoji.differences(raw);
             if (diff)
-            differences.updated.set(emojiId, raw);
+              differences.updated.set(emojiId, raw);
           } else {
             Object.assign(raw, {guild_id: guildId});
             emoji = new Emoji(this.client, raw);
