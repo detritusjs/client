@@ -25,7 +25,7 @@
     "nodejs",
     "typescript"
   ],
-  "license": "MIT",
+  "license": "BSD-2-Clause",
   "main": "lib/index.js",
   "name": "detritus-client",
   "peerDependencies": {
