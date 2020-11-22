@@ -324,10 +324,11 @@ export class RestClient {
   async createGuildChannel(
     guildId: string,
     options: RequestTypes.CreateGuildChannel,
+    updateCache: boolean = true,
   ): Promise<Channel> {
     const data = await this.raw.createGuildChannel(guildId, options);
     let channel: Channel;
-    if (this.client.channels.has(data.id)) {
+    if (updateCache && this.client.channels.has(data.id)) {
       channel = this.client.channels.get(data.id) as Channel;
       channel.merge(data);
       // this should never happen lmao
@@ -341,11 +342,12 @@ export class RestClient {
   async createGuildEmoji(
     guildId: string,
     options: RequestTypes.CreateGuildEmoji,
+    updateCache: boolean = true,
   ): Promise<Emoji> {
     const data = await this.raw.createGuildEmoji(guildId, options);
 
     let emoji: Emoji;
-    if (this.client.emojis.has(guildId, data.id)) {
+    if (updateCache && this.client.emojis.has(guildId, data.id)) {
       emoji = this.client.emojis.get(guildId, data.id) as Emoji;
       emoji.merge(data);
     } else {
@@ -686,10 +688,11 @@ export class RestClient {
   async editChannel(
     channelId: string,
     options: RequestTypes.EditChannel = {},
+    updateCache: boolean = true,
   ): Promise<Channel> {
     const data = await this.raw.editChannel(channelId, options);
     let channel: Channel;
-    if (this.client.channels.has(data.id)) {
+    if (updateCache && this.client.channels.has(data.id)) {
       channel = this.client.channels.get(data.id) as Channel;
       channel.merge(data);
     } else {
@@ -718,10 +721,11 @@ export class RestClient {
   async editGuild(
     guildId: string,
     options: RequestTypes.EditGuild = {},
+    updateCache: boolean = true,
   ): Promise<Guild> {
     const data = await this.raw.editGuild(guildId, options);
     let guild: Guild;
-    if (this.client.guilds.has(data.id)) {
+    if (updateCache && this.client.guilds.has(data.id)) {
       guild = this.client.guilds.get(data.id) as Guild;
       guild.merge(data);
     } else {
@@ -749,11 +753,12 @@ export class RestClient {
     guildId: string,
     emojiId: string,
     options: RequestTypes.EditGuildEmoji = {},
+    updateCache: boolean = true,
   ): Promise<Emoji> {
     const data = await this.raw.editGuildEmoji(guildId, emojiId, options);
 
     let emoji: Emoji;
-    if (this.client.emojis.has(guildId, data.id)) {
+    if (updateCache && this.client.emojis.has(guildId, data.id)) {
       emoji = this.client.emojis.get(guildId, data.id) as Emoji;
       emoji.merge(data);
     } else {
@@ -798,10 +803,11 @@ export class RestClient {
     guildId: string,
     roleId: string,
     options: RequestTypes.EditGuildRole = {},
+    updateCache: boolean = true,
   ): Promise<Role> {
     const data = await this.raw.editGuildRole(guildId, roleId, options);
     let role: Role;
-    if (this.client.guilds.has(guildId)) {
+    if (updateCache && this.client.guilds.has(guildId)) {
       const guild = this.client.guilds.get(guildId) as Guild;
       if (guild.roles.has(data.id)) {
         role = guild.roles.get(data.id) as Role;
@@ -821,12 +827,13 @@ export class RestClient {
   async editGuildRolePositions(
     guildId: string,
     roles: RequestTypes.EditGuildRolePositions,
-    options: RequestTypes.EditGuildRolePositionsExtra = {}
+    options: RequestTypes.EditGuildRolePositionsExtra = {},
+    updateCache: boolean = true,
   ): Promise<BaseCollection<string, Role>> {
     const data = await this.raw.editGuildRolePositions(guildId, roles, options);
 
     const collection = new BaseCollection<string, Role>();
-    if (this.client.guilds.has(guildId)) {
+    if (updateCache && this.client.guilds.has(guildId)) {
       const guild = this.client.guilds.get(guildId) as Guild;
       guild.roles.clear();
       for (let raw of data) {
@@ -870,10 +877,11 @@ export class RestClient {
 
   async editMe(
     options: RequestTypes.EditMe = {},
+    updateCache: boolean = true,
   ): Promise<UserMe> {
     const data = await this.raw.editMe(options);
     let user: UserMe;
-    if (this.client.user !== null) {
+    if (updateCache && this.client.user !== null) {
       user = this.client.user as UserMe;
       user.merge(data);
     } else {
@@ -900,10 +908,11 @@ export class RestClient {
     channelId: string,
     messageId: string,
     options: RequestTypes.EditMessage | string = {},
+    updateCache: boolean = true,
   ): Promise<Message> {
     const data = await this.raw.editMessage(channelId, messageId, options);
     let message: Message;
-    if (this.client.messages.has(data.id)) {
+    if (updateCache && this.client.messages.has(data.id)) {
       message = this.client.messages.get(data.id) as Message;
       message.merge(data);
       // should we really merge? the message_update event wont have differences then
@@ -1052,10 +1061,10 @@ export class RestClient {
     return this.raw.fetchAuthConsentRequired();
   }
 
-  async fetchChannel(channelId: string): Promise<Channel> {
+  async fetchChannel(channelId: string, updateCache: boolean = true): Promise<Channel> {
     const data = await this.raw.fetchChannel(channelId);
     let channel: Channel;
-    if (this.client.channels.has(data.id)) {
+    if (updateCache && this.client.channels.has(data.id)) {
       channel = this.client.channels.get(data.id) as Channel;
       channel.merge(data);
     } else {
@@ -1115,12 +1124,13 @@ export class RestClient {
 
   async fetchDms(
     userId: string = '@me',
+    updateCache: boolean = true,
   ): Promise<BaseCollection<string, Channel>> {
     const data: Array<any> = await this.raw.fetchDms(userId);
     const collection = new BaseCollection<string, Channel>();
     for (let raw of data) {
       let channel: Channel;
-      if (this.client.channels.has(raw.id)) {
+      if (updateCache && this.client.channels.has(raw.id)) {
         channel = this.client.channels.get(raw.id) as Channel;
         channel.merge(raw);
       } else {
@@ -1153,11 +1163,14 @@ export class RestClient {
     return new Gift(this.client, data);
   }
 
-  async fetchGuild(guildId: string): Promise<Guild> {
+  async fetchGuild(
+    guildId: string,
+    updateCache: boolean = true,
+  ): Promise<Guild> {
     const data = await this.raw.fetchGuild(guildId);
 
     let guild: Guild;
-    if (this.client.guilds.has(data.id)) {
+    if (updateCache && this.client.guilds.has(data.id)) {
       guild = this.client.guilds.get(data.id) as Guild;
       guild.merge(data);
     } else {

@@ -348,6 +348,7 @@ export namespace GatewayRawEvents {
     },
     nonce: null | string,
     pinned: boolean,
+    stickers?: Array<RawSticker>,
     timestamp: string,
     tts: boolean,
     type: number,
@@ -400,7 +401,7 @@ export namespace GatewayRawEvents {
     
   }
 
-  export interface Oauth2TokenRevoke {
+  export interface Oauth2TokenRemove {
     access_token: string,
   }
 
@@ -887,6 +888,16 @@ export namespace GatewayRawEvents {
     last_modified?: string,
     session_id: string,
     status: string,
+  }
+
+  export interface RawSticker {
+    asset: string,
+    description: string,
+    id: string,
+    name: string,
+    pack_id: string,
+    preview_asset: null | string,
+    tags: string,
   }
 
   export interface RawUserPartial {

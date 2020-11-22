@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.11.1',
+  VERSION: '0.12.0',
 });
 
 export type Snowflake = number | string;
@@ -70,9 +70,15 @@ export enum ApplicationTypes {
   MUSIC = 2,
 }
 
+export enum ActivityPartyPrivacy {
+  PRIVATE = 0,
+  PUBLIC = 1,
+}
+
 export enum ActivityPlatformTypes {
   ANDROID = 'android',
   DESKTOP = 'desktop',
+  EMBEDDED = 'embedded',
   IOS = 'ios',
   SAMSUNG = 'samsung',
   XBOX = 'xbox',
@@ -612,6 +618,8 @@ export enum MessageFlags {
   SUPPRESS_EMBEDS = 1 << 2,
   SOURCE_MESSAGE_DELETED = 1 << 3,
   URGENT = 1 << 4,
+
+  EPHEMERAL = 1 << 6,
 };
 
 export enum MessageTypes {
@@ -632,6 +640,10 @@ export enum MessageTypes {
   GUILD_STREAM = 13,
   GUILD_DISCOVERY_DISQUALIFIED = 14,
   GUILD_DISCOVERY_REQUALIFIED = 15,
+  GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 17,
+  GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 18,
+  REPLY = 19,
+  APPLICATION_COMMAND = 20,
 };
 
 export const MessageTypesDeletable = Object.freeze({
@@ -652,6 +664,10 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_STREAM]: false,
   [MessageTypes.GUILD_DISCOVERY_DISQUALIFIED]: false,
   [MessageTypes.GUILD_DISCOVERY_REQUALIFIED]: false,
+  [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING]: false,
+  [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING]: false,
+  [MessageTypes.REPLY]: true,
+  [MessageTypes.APPLICATION_COMMAND]: true,
 });
 
 export enum MfaLevels {
@@ -797,12 +813,15 @@ export enum PlatformTypes {
   BATTLENET = 'battlenet',
   CONTACTS = 'contacts',
   FACEBOOK = 'facebook',
+  GITHUB = 'github',
+  INSTAGRAM = 'instagram',
   LEAGUE_OF_LEGENDS = 'leagueoflegends',
   REDDIT = 'reddit',
   SAMSUNG = 'samsung',
   SKYPE = 'skype',
   SPOTIFY = 'spotify',
   STEAM = 'steam',
+  SOUNDCLOUD = 'soundcloud',
   TWITCH = 'twitch',
   TWITTER = 'twitter',
   YOUTUBE = 'youtube',
@@ -891,6 +910,7 @@ export enum SkuFlags {
   HAS_FREE_PREMIUM_CONTENT = 1 << 1,
   AVAILABLE = 1 << 2,
   PREMIUM_AND_DISTRIBUTION = 1 << 3,
+  STICKER_PACK = 1 << 4,
 }
 
 export enum SkuTypes {
@@ -913,61 +933,55 @@ export const SpecialUrls = Tools.URIEncodeWrap({
     `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
 });
 
+export enum StickerFormats {
+  UNKNOWN = 0,
+  PNG = 1,
+  APNG = 2,
+  LOTTIE = 3,
+}
+
+export enum StickerExtensions {
+  PNG = 'png',
+  APNG = 'png',
+  LOTTIE = 'json',
+}
+
 export enum SystemChannelFlags {
   SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0,
   SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1,
 };
 
 export const SystemMessages = Object.freeze({
+  ApplicationCommandUsed: ':user: used :command: with :application:.',
   CallMissed: 'You missed a call from :user:.',
+  CallMissedWithDuration: 'You missed a call from :user: that lasted :duration:.',
   CallStarted: ':user: started a call.',
-  ChannelFollowAdd: ':user: has added **:webhookName:** to this channel',
+  CallStartedWithDuration: ':user: started a call that lasted :duration:.',
+  ChannelFollowAdd: ':user: has added **:webhookName:** to this channel.',
   ChannelIconChange: ':user: changed the channel name: **:name:**',
   ChannelNameChange: ':user: changed the channel icon.',
+  GuildDiscoveryDisqualified: 'This server has been removed from Server Discovery because it no longer passes all the requirements. Check Server Settings for more details.',
+  GuildDiscoveryGracePeriodFinalWarning: 'This server has failed Discovery activity requirements for 3 weeks in a row. If this server fails for 1 more week, it will be removed from Discovery.',
+  GuildDiscoveryGracePeriodInitialWarning: 'This server has failed Discovery activity requirements for 1 week. If this server fails for 4 weeks in a row, it will be automatically removed from Discovery.',
+  GuildDiscoveryRequalified: 'This server is eligible for Server Discovery again and has been automatically relisted!',
   PinnedMessage: ':user: pinned a message to this channel.',
   RecipientAdd: ':user: added :user2: to the group.',
   RecipientRemove: ':user: removed :user2: from the group.',
   RecipientRemoveSelf: ':user: left the group.',
   GuildMemberJoin: [
-    ":user: just joined the server - glhf!",
-    ":user: just joined. Everyone, look busy!",
-    ":user: just joined. Can I get a heal?",
-    ":user: joined your party.",
-    ":user: joined. You must construct additional pylons.",
-    "Ermagherd. :user: is here.",
-    "Welcome, :user:. Stay awhile and listen.",
-    "Welcome, :user:. We were expecting you ( ͡° ͜ʖ ͡°)",
+    ":user: joined the party.",
+    ":user: is here.",
     "Welcome, :user:. We hope you brought pizza.",
-    "Welcome :user:. Leave your weapons by the door.",
     "A wild :user: appeared.",
-    "Swoooosh. :user: just landed.",
-    "Brace yourselves. :user: just joined the server.",
-    ":user: just joined. Hide your bananas.",
-    ":user: just arrived. Seems OP - please nerf.",
+    ":user: just landed.",
     ":user: just slid into the server.",
-    "A :user: has spawned in the server.",
-    "Big :user: showed up!",
-    "Where’s :user:? In the server!",
-    ":user: hopped into the server. Kangaroo!!",
-    ":user: just showed up. Hold my beer.",
-    "Challenger approaching - :user: has appeared!",
-    "It's a bird! It's a plane! Nevermind, it's just :user:.",
-    "It's :user:! Praise the sun! \\\\[T]/",
-    "Never gonna give :user: up. Never gonna let :user: down.",
-    "Ha! :user: has joined! You activated my trap card!",
-    "Cheers, love! :user:'s here!",
-    "Hey! Listen! :user: has joined!",
-    "We've been expecting you :user:",
-    "It's dangerous to go alone, take :user:!",
-    ":user: has joined the server! It's super effective!",
-    "Cheers, love! :user: is here!",
-    ":user: is here, as the prophecy foretold.",
-    ":user: has arrived. Party's over.",
-    "Ready player :user:",
-    ":user: is here to kick butt and chew bubblegum. And :user: is all out of gum.",
-    "Hello. Is it :user: you're looking for?",
-    ":user: has joined. Stay a while and listen!",
-    "Roses are red, violets are blue, :user: joined this server with you",
+    ":user: just showed up!",
+    "Welcome :user:. Say hi!",
+    ":user: hopped into the server.",
+    "Everyone welcome :user:!",
+    "Glad you're here, :user:.",
+    "Good to see you, :user:.",
+    "Yay you made it, :user:!",
   ],
   GuildMemberSubscribed: ':user: just boosted the server!',
   GuildMemberSubscribedAchievedTier: ':user: just boosted the server! :guild: has achieved **:premiumTier:!**',
@@ -1071,6 +1085,7 @@ export const DiscordKeys = Object.freeze({
   APPLICATION_ID: 'application_id',
   APPROXIMATE_MEMBER_COUNT: 'approximate_member_count',
   APPROXIMATE_PRESENCE_COUNT: 'approximate_presence_count',
+  ASSET: 'asset',
   ASSETS: 'assets',
   ATTACHMENTS: 'attachments',
   AUTHOR: 'author',
@@ -1139,9 +1154,10 @@ export const DiscordKeys = Object.freeze({
   EXPLICIT_CONTENT_FILTER: 'explicit_content_filter',
   FEATURES: 'features',
   FIELDS: 'fields',
-  FLAGS: 'flags',
   FILENAME: 'filename',
+  FLAGS: 'flags',
   FOOTER: 'footer',
+  FORMAT_TYPE: 'format_type',
   FRIEND_SYNC: 'friend_sync',
   GAME: 'game',
   GAME_ID: 'game_id',
@@ -1226,6 +1242,7 @@ export const DiscordKeys = Object.freeze({
   OWNER: 'owner',
   OWNER_ID: 'owner_id',
   OWNER_USER_ID: 'owner_user_id',
+  PACK_ID: 'pack_id',
   PARENT_ID: 'parent_id',
   PARTICIPANTS: 'participants',
   PARTY: 'party',
@@ -1246,6 +1263,7 @@ export const DiscordKeys = Object.freeze({
   PREMIUM_TIER: 'premium_tier',
   PREMIUM_TYPE: 'premium_type',
   PRESENCES: 'presences',
+  PREVIEW_ASSET: 'preview_asset',
   PREVIEW_VIDEO: 'preview_video',
   PRICE: 'price',
   PRIMARY_SKU_ID: 'primary_sku_id',
@@ -1295,6 +1313,7 @@ export const DiscordKeys = Object.freeze({
   STARTED: 'started',
   STATE: 'state',
   STATUS: 'status',
+  STICKERS: 'stickers',
   STOPPED: 'stopped',
   STORE_APPLICATION_STATE: 'store_application_state',
   STORE_LISTING: 'store_listing',
@@ -1375,6 +1394,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.APPLICATION_ID]: 'applicationId',
   [DiscordKeys.APPROXIMATE_MEMBER_COUNT]: 'approximateMemberCount',
   [DiscordKeys.APPROXIMATE_PRESENCE_COUNT]: 'approximatePresenceCount',
+  [DiscordKeys.ASSET]: 'asset',
   [DiscordKeys.ASSETS]: 'assets',
   [DiscordKeys.ATTACHMENTS]: 'attachments',
   [DiscordKeys.AUTHOR]: 'author',
@@ -1443,9 +1463,10 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.EXPLICIT_CONTENT_FILTER]: 'explicitContentFilter',
   [DiscordKeys.FEATURES]: 'features',
   [DiscordKeys.FIELDS]: 'fields',
-  [DiscordKeys.FLAGS]: 'flags',
   [DiscordKeys.FILENAME]: 'filename',
+  [DiscordKeys.FLAGS]: 'flags',
   [DiscordKeys.FOOTER]: 'footer',
+  [DiscordKeys.FORMAT_TYPE]: 'formatType',
   [DiscordKeys.FRIEND_SYNC]: 'friendSync',
   [DiscordKeys.GAME]: 'game',
   [DiscordKeys.GAME_ID]: 'gameId',
@@ -1530,6 +1551,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.OWNER]: 'owner',
   [DiscordKeys.OWNER_ID]: 'ownerId',
   [DiscordKeys.OWNER_USER_ID]: 'ownerUserId',
+  [DiscordKeys.PACK_ID]: 'packId',
   [DiscordKeys.PARENT_ID]: 'parentId',
   [DiscordKeys.PARTICIPANTS]: 'participants',
   [DiscordKeys.PARTY]: 'party',
@@ -1550,6 +1572,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PREMIUM_TIER]: 'premiumTier',
   [DiscordKeys.PREMIUM_TYPE]: 'premiumType',
   [DiscordKeys.PRESENCES]: 'presences',
+  [DiscordKeys.PREVIEW_ASSET]: 'previewAsset',
   [DiscordKeys.PREVIEW_VIDEO]: 'previewVideo',
   [DiscordKeys.PRICE]: 'price',
   [DiscordKeys.PRIMARY_SKU_ID]: 'primarySkuId',
@@ -1599,6 +1622,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.STARTED]: 'started',
   [DiscordKeys.STATE]: 'state',
   [DiscordKeys.STATUS]: 'status',
+  [DiscordKeys.STICKERS]: 'stickers',
   [DiscordKeys.STOPPED]: 'stopped',
   [DiscordKeys.STORE_APPLICATION_STATE]: 'storeApplicationState',
   [DiscordKeys.STORE_LISTING]: 'storeListing',

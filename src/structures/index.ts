@@ -22,6 +22,7 @@ export * from './reaction';
 export * from './relationship';
 export * from './role';
 export * from './session';
+export * from './sticker';
 export * from './store';
 export * from './team';
 export * from './template';

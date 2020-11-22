@@ -32,6 +32,7 @@ import { MessageEmbed } from './messageembed';
 import { PresenceActivity } from './presence';
 import { Reaction } from './reaction';
 import { Role } from './role';
+import { Sticker } from './sticker';
 import { User } from './user';
 
 
@@ -57,6 +58,7 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.NONCE,
   DiscordKeys.PINNED,
   DiscordKeys.REACTIONS,
+  DiscordKeys.STICKERS,
   DiscordKeys.TIMESTAMP,
   DiscordKeys.TTS,
   DiscordKeys.TYPE,
@@ -97,6 +99,7 @@ export class Message extends BaseStructure {
   _mentionChannels?: BaseCollection<string, Channel>;
   _mentionRoles?: BaseCollection<string, null | Role>;
   _reactions?: BaseCollection<string, Reaction>;
+  _stickers?: BaseCollection<string, Sticker>;
 
   activity?: MessageActivity;
   application?: Application;
@@ -210,7 +213,7 @@ export class Message extends BaseStructure {
   }
 
   get fromSystem(): boolean {
-    return this.type !== MessageTypes.DEFAULT;
+    return this.type !== MessageTypes.DEFAULT && !this.isReply;
   }
 
   get fromUser(): boolean {
@@ -253,6 +256,10 @@ export class Message extends BaseStructure {
     return !!this.editedTimestampUnix;
   }
 
+  get isReply(): boolean {
+    return this.type === MessageTypes.REPLY;
+  }
+
   get jumpLink(): string {
     return Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(this.guildId, this.channelId, this.id);
   }
@@ -289,10 +296,18 @@ export class Message extends BaseStructure {
     return emptyBaseCollection;
   }
 
+  get stickers(): BaseCollection<string, Sticker> {
+    if (this._stickers) {
+      return this._stickers;
+    }
+    return emptyBaseCollection;
+  }
+
   get systemContent(): string {
     switch (this.type) {
       case MessageTypes.BASE:
-      case MessageTypes.DEFAULT: {
+      case MessageTypes.DEFAULT: 
+      case MessageTypes.REPLY: {
         return this.content;
       };
       default: {
@@ -691,6 +706,23 @@ export class Message extends BaseStructure {
             }
           }
         }; return;
+        case DiscordKeys.STICKERS: {
+          if (value.length) {
+            if (!this._stickers) {
+              this._stickers = new BaseCollection<string, Sticker>();
+            }
+            this._stickers.clear();
+            for (let raw of value) {
+              const sticker = new Sticker(this.client, raw);
+              this.stickers.set(sticker.id, sticker);
+            }
+          } else {
+            if (this._stickers) {
+              this._stickers.clear();
+              this._stickers = undefined;
+            }
+          }
+        }; return;
         case DiscordKeys.TIMESTAMP: {
           this.timestampUnix = (new Date(value)).getTime();
         }; return;
@@ -785,6 +817,13 @@ export class MessageCall extends BaseStructure {
     Object.defineProperty(this, 'message', {enumerable: false});
   }
 
+  get duration(): number {
+    if (this.endedTimestamp) {
+      return Math.max(Date.now() - this.endedTimestamp.getTime(), 0);
+    }
+    return 0;
+  }
+
   get isEnded(): boolean {
     return !!this.endedTimestamp;
   }
@@ -811,21 +850,21 @@ const keysMessageReference = new BaseSet<string>([
 ]);
 
 /**
- * Channel Message Reference Structure, used to tell the client that this is from a server webhook
+ * Channel Message Reference Structure, used to tell the client that this is from a server webhook or a reply
  * Used for crossposts
  * @category Structure
  */
 export class MessageReference extends BaseStructure {
   readonly _keys = keysMessageReference;
-  readonly message: Message;
+  readonly parent: Message;
 
   channelId: string = '';
-  guildId: string = '';
-  messageId?: string;
+  guildId?: string = '';
+  messageId?: string = '';
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client);
-    this.message = message;
+    this.parent = message;
     this.merge(data);
     Object.defineProperty(this, 'message', {enumerable: false});
   }
@@ -835,7 +874,17 @@ export class MessageReference extends BaseStructure {
   }
 
   get guild(): null | Guild {
-    return this.client.guilds.get(this.guildId) || null;
+    if (this.guildId) {
+      return this.client.guilds.get(this.guildId) || null;
+    }
+    return null;
+  }
+
+  get message(): null | Message {
+    if (this.messageId) {
+      return this.client.messages.get(this.messageId) || null;
+    }
+    return null;
   }
 }
 
@@ -867,6 +916,21 @@ export function messageSystemContent(
     }; break;
     case MessageTypes.CALL: {
       content = SystemMessages.CallStarted.replace(/:user:/g, message.author.mention);
+      if (message.call) {
+        if (message.call.isEnded) {
+          if (message.call.participants.includes(message.author.id)) {
+            content = SystemMessages.CallStartedWithDuration;
+          } else {
+            content = SystemMessages.CallMissedWithDuration;
+          }
+          content = content.replace(/:duration:/g, String(message.call.duration));
+        } else {
+          if (!message.call.participants.includes(message.author.id)) {
+            content = SystemMessages.CallMissed;
+          }
+        }
+      }
+      content = content.replace(/:user:/g, message.author.mention);
     }; break;
     case MessageTypes.CHANNEL_NAME_CHANGE: {
       content = SystemMessages.ChannelNameChange.replace(/:name:/g, content);
@@ -915,6 +979,24 @@ export function messageSystemContent(
     case MessageTypes.CHANNEL_FOLLOW_ADD: {
       content = SystemMessages.ChannelFollowAdd.replace(/:user:/g, message.author.mention);
       content = content.replace(/:webhookName:/g, message.content);
+    }; break;
+    case MessageTypes.GUILD_DISCOVERY_DISQUALIFIED: {
+      content = SystemMessages.GuildDiscoveryDisqualified;
+    }; break;
+    case MessageTypes.GUILD_DISCOVERY_REQUALIFIED: {
+      content = SystemMessages.GuildDiscoveryRequalified;
+    }; break;
+    case MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING: {
+      content = SystemMessages.GuildDiscoveryGracePeriodInitialWarning;
+    }; break;
+    case MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING: {
+      content = SystemMessages.GuildDiscoveryGracePeriodFinalWarning;
+    }; break;
+    case MessageTypes.APPLICATION_COMMAND: {
+      content = SystemMessages.ApplicationCommandUsed.replace(/:user:/g, message.author.mention);
+      if (message.application) {
+        content = content.replace(/:application:/g, message.application.name);
+      }
     }; break;
   }
   return content;

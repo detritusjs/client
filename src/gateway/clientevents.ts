@@ -388,7 +388,7 @@ export namespace GatewayClientEvents {
     raw: GatewayRawEvents.MessageUpdate,
   }
 
-  export interface Oauth2TokenRevoke {
+  export interface Oauth2TokenRemove {
 
   }
 

@@ -1385,7 +1385,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.MESSAGE_UPDATE, payload);
   }
 
-  [GatewayDispatchEvents.OAUTH2_TOKEN_REVOKE](data: GatewayRawEvents.Oauth2TokenRevoke) {
+  [GatewayDispatchEvents.OAUTH2_TOKEN_REMOVE](data: GatewayRawEvents.Oauth2TokenRemove) {
 
   }
 

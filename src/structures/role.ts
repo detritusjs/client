@@ -54,8 +54,8 @@ export class Role extends BaseStructure {
   permissionsNew: bigint = 0n;
   position: number = 0;
   tags: {
-    bot?: string,
-    integration?: string,
+    bot_id: string,
+    integration_id?: string,
     premium_subscriber?: null,
   } | null = null;
 
@@ -65,8 +65,8 @@ export class Role extends BaseStructure {
   }
 
   get botId(): null | string {
-    if (this.tags && this.tags.bot) {
-      return this.tags.bot;
+    if (this.tags && this.tags.bot_id) {
+      return this.tags.bot_id;
     }
     return null;
   }
@@ -84,8 +84,8 @@ export class Role extends BaseStructure {
   }
 
   get integrationId(): null | string {
-    if (this.tags && this.tags.integration) {
-      return this.tags.integration;
+    if (this.tags && this.tags.integration_id) {
+      return this.tags.integration_id;
     }
     return null;
   }

@@ -88,6 +88,7 @@ const keysMergeChannelBase = new BaseSet<string>();
 export class ChannelBase extends BaseStructure {
   readonly _keys = keysChannelBase;
   readonly _keysMerge = keysMergeChannelBase;
+  _name: string = '';
   _nicks?: BaseCollection<string, string>;
   _permissionOverwrites?: BaseCollection<string, Overwrite>;
   _recipients?: BaseCollection<string, User>;
@@ -101,7 +102,6 @@ export class ChannelBase extends BaseStructure {
   isPartial: boolean = false;
   lastMessageId?: null | string;
   lastPinTimestampUnix: number = 0;
-  name!: string;
   nsfw: boolean = false;
   parentId?: null | string;
   position: number = -1;
@@ -320,6 +320,10 @@ export class ChannelBase extends BaseStructure {
     return `<#${this.id}>`;
   }
 
+  get name(): string {
+    return this._name;
+  }
+
   get nicks(): BaseCollection<string, string> {
     if (this._nicks) {
       return this._nicks;
@@ -519,6 +523,17 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.NAME: {
+          this._name = value;
+        }; return;
+      }
+    }
+    return super.mergeValue(key, value);
+  }
+
   toString(): string {
     return `#${this.name}`;
   }
@@ -546,7 +561,6 @@ const keysChannelDm = new BaseSet<string>([
  */
 export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
-  _name: string = '';
   type = ChannelTypes.DM;
 
   lastMessageId?: null | string;
@@ -697,9 +711,6 @@ export class ChannelDM extends ChannelBase {
       switch (key) {
         case DiscordKeys.LAST_PIN_TIMESTAMP: {
           this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
-        case DiscordKeys.NAME: {
-          this._name = value;
         }; return;
         case DiscordKeys.NICKS: {
           if (Object.keys(value).length) {
