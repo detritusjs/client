@@ -307,6 +307,7 @@ export class Presence extends BaseStructure {
 const keysPresenceActivity = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.ASSETS,
+  DiscordKeys.BUTTONS,
   DiscordKeys.CREATED_AT,
   DiscordKeys.DETAILS,
   DiscordKeys.EMOJI,
@@ -351,6 +352,7 @@ export class PresenceActivity extends BaseStructure {
 
   applicationId?: string;
   assets?: PresenceActivityAssets;
+  buttons?: Array<string>;
   createdAt?: number;
   details?: string;
   emoji?: Emoji;
@@ -589,6 +591,23 @@ export class PresenceActivity extends BaseStructure {
       return this.client.rest.fetchApplication(this.applicationId);
     }
     return null;
+  }
+
+  async fetchButtonUrls() {
+    if (!this.sessionId) {
+      throw new Error('Activity has no Session Id');
+    }
+    if (!this.applicationId) {
+      throw new Error('Activity has no Application Id');
+    }
+    if (!this.buttons) {
+      throw new Error('Activity has no buttons');
+    }
+    return this.client.rest.fetchUserActivityMetadata(
+      this.user.id,
+      this.sessionId,
+      String(this.applicationId),
+    );
   }
 
   async fetchMetadata() {

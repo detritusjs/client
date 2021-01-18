@@ -58,6 +58,7 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.NONCE,
   DiscordKeys.PINNED,
   DiscordKeys.REACTIONS,
+  DiscordKeys.REFERENCED_MESSAGE,
   DiscordKeys.STICKERS,
   DiscordKeys.TIMESTAMP,
   DiscordKeys.TTS,
@@ -117,6 +118,7 @@ export class Message extends BaseStructure {
   messageReference?: MessageReference;
   nonce?: string;
   pinned: boolean = false;
+  referencedMessage: Message | null = null;
   timestampUnix: number = 0;
   tts: boolean = false;
   type: MessageTypes = MessageTypes.BASE;
@@ -162,12 +164,12 @@ export class Message extends BaseStructure {
 
   get canReact(): boolean {
     const channel = this.channel;
-    return !!(channel && channel.canAddReactions);
+    return (channel) ? channel.canAddReactions: this.inDm;
   }
 
   get canReply(): boolean {
     const channel = this.channel;
-    return !!(channel && channel.canMessage);
+    return (channel) ? channel.canMessage : this.inDm;
   }
 
   get channel(): Channel | null {
@@ -706,6 +708,18 @@ export class Message extends BaseStructure {
             }
           }
         }; return;
+        case DiscordKeys.REFERENCED_MESSAGE: {
+          if (value) {
+            let message: Message;
+            if (this.client.messages.has(value.id)) {
+              message = this.client.messages.get(value.id) as Message;
+              message.merge(value);
+            } else {
+              message = new Message(this.client, value);
+            }
+            value = message;
+          }
+        }; break;
         case DiscordKeys.STICKERS: {
           if (value.length) {
             if (!this._stickers) {

@@ -26,6 +26,7 @@ const keysMember = new BaseSet<string>([
   DiscordKeys.JOINED_AT,
   DiscordKeys.MUTE,
   DiscordKeys.NICK,
+  DiscordKeys.PENDING,
   DiscordKeys.PREMIUM_SINCE,
   DiscordKeys.ROLES,
   DiscordKeys.USER,
@@ -51,6 +52,7 @@ export class Member extends UserMixin {
   left: boolean = false;
   mute: boolean = false;
   nick: null | string = null;
+  pending: boolean = false;
   premiumSinceUnix: number = 0;
   user!: User;
 

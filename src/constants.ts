@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.12.0',
+  VERSION: '0.12.1',
 });
 
 export type Snowflake = number | string;
@@ -1097,6 +1097,7 @@ export const DiscordKeys = Object.freeze({
   BOT_PUBLIC: 'bot_public',
   BOT_REQUIRE_CODE_GRANT: 'bot_require_code_grant',
   BOX_ART: 'box_art',
+  BUTTONS: 'buttons',
   CALL: 'call',
   CAROUSEL_ITEMS: 'carousel_items',
   CATEGORY: 'category',
@@ -1186,6 +1187,7 @@ export const DiscordKeys = Object.freeze({
   INVITER: 'inviter',
   IS_DIRTY: 'is_dirty',
   IS_PARTIAL: 'is_partial',
+  IS_PENDING: 'is_pending',
   JOIN: 'join',
   JOINED_AT: 'joined_at',
   KEY: 'key',
@@ -1248,6 +1250,7 @@ export const DiscordKeys = Object.freeze({
   PARTY: 'party',
   PARTY_ID: 'party_id',
   PAYOUT_ACCOUNT_STATUS: 'payout_account_status',
+  PENDING: 'pending',
   PERMISSIONS: 'permissions',
   PERMISSIONS_NEW: 'permissions_new',
   PERMISSION_OVERWRITES: 'permission_overwrites',
@@ -1280,6 +1283,7 @@ export const DiscordKeys = Object.freeze({
   REDEEMED: 'redeemed',
   REDIRECT_URIS: 'redirect_uris',
   REFERENCE_ID: 'reference_id',
+  REFERENCED_MESSAGE: 'referenced_message',
   REGION: 'region',
   RELEASE_DATE: 'release_date',
   REQUIRE_COLONS: 'require_colons',
@@ -1406,6 +1410,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.BOT_PUBLIC]: 'botPublic',
   [DiscordKeys.BOT_REQUIRE_CODE_GRANT]: 'botRequireCodeGrant',
   [DiscordKeys.BOX_ART]: 'boxArt',
+  [DiscordKeys.BUTTONS]: 'buttons',
   [DiscordKeys.CALL]: 'call',
   [DiscordKeys.CAROUSEL_ITEMS]: 'carouselItems',
   [DiscordKeys.CATEGORY]: 'category',
@@ -1495,6 +1500,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.INVITER]: 'inviter',
   [DiscordKeys.IS_DIRTY]: 'isDirty',
   [DiscordKeys.IS_PARTIAL]: 'isPartial',
+  [DiscordKeys.IS_PENDING]: 'isPending',
   [DiscordKeys.JOIN]: 'join',
   [DiscordKeys.JOINED_AT]: 'joinedAt',
   [DiscordKeys.KEY]: 'key',
@@ -1557,6 +1563,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PARTY]: 'party',
   [DiscordKeys.PARTY_ID]: 'partyId',
   [DiscordKeys.PAYOUT_ACCOUNT_STATUS]: 'payoutAccountStatus',
+  [DiscordKeys.PENDING]: 'pending',
   [DiscordKeys.PERMISSIONS]: 'permissions',
   [DiscordKeys.PERMISSIONS_NEW]: 'permissionsNew',
   [DiscordKeys.PERMISSION_OVERWRITES]: 'permissionOverwrites',
@@ -1589,6 +1596,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.REDEEMED]: 'redeemed',
   [DiscordKeys.REDIRECT_URIS]: 'redirectUris',
   [DiscordKeys.REFERENCE_ID]: 'referenceId',
+  [DiscordKeys.REFERENCED_MESSAGE]: 'referencedMessage',
   [DiscordKeys.REGION]: 'region',
   [DiscordKeys.RELEASE_DATE]: 'releaseDate',
   [DiscordKeys.REQUIRE_COLONS]: 'requireColons',
