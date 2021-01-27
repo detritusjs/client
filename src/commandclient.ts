@@ -301,7 +301,7 @@ export class CommandClient extends EventSpewer {
       }
     };
     for (let file of files) {
-      if (!file.endsWith('.js')) {
+      if (!['js', 'ts'].includes(file.split('.').pop() as string)) {
         continue;
       }
       const filepath = path.resolve(directory, file);

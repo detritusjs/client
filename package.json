@@ -10,8 +10,8 @@
   },
   "description": "A Typescript NodeJS library to interact with Discord's API, both Rest and Gateway.",
   "devDependencies": {
-    "@types/node": "^14.6.0",
-    "@types/node-fetch": "^2.5.7",
+    "@types/node": "^14.14.22",
+    "@types/node-fetch": "^2.5.8",
     "typedoc": "^0.19.2"
   },
   "files": [
@@ -25,7 +25,7 @@
     "nodejs",
     "typescript"
   ],
-  "license": "MIT",
+  "license": "BSD-2-Clause",
   "main": "lib/index.js",
   "name": "detritus-client",
   "peerDependencies": {

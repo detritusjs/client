@@ -227,7 +227,7 @@ export class ClusterProcess extends EventSpewer {
   async send(message: any): Promise<void> {
     if (this.process != null) {
       const child = this.process;
-      await new Promise((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
         child.send(message, (error: any) => {
           if (error) {
             reject(error);
