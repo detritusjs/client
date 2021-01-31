@@ -115,11 +115,25 @@ export class Webhook extends BaseStructure {
     return this.client.rest.deleteWebhook(this.id, options);
   }
 
+  async deleteMessage(messageId: string) {
+    if (!this.token) {
+      throw new Error('Webhook is missing it\'s token');
+    }
+    return this.client.rest.deleteWebhookTokenMessage(this.id, this.token, messageId);
+  }
+
   async edit(options: RequestTypes.EditWebhook = {}) {
     if (this.token) {
       return this.client.rest.editWebhookToken(this.id, this.token, options);
     }
     return this.client.rest.editWebhook(this.id, options);
+  }
+
+  async editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
+    if (!this.token) {
+      throw new Error('Webhook is missing it\'s token');
+    }
+    return this.client.rest.editWebhookTokenMessage(this.id, this.token, messageId, options);
   }
 
   async execute(

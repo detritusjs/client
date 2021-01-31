@@ -406,6 +406,10 @@ export class Message extends BaseStructure {
     return this.client.rest.ackChannelMessage(this.channelId, this.id, token);
   }
 
+  async crosspost() {
+    return this.client.rest.crosspostMessage(this.channelId, this.id);
+  }
+
   async delete(options: RequestTypes.DeleteMessage = {}) {
     return this.client.rest.deleteMessage(this.channelId, this.id, options);
   }

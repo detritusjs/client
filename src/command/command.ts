@@ -8,7 +8,7 @@ import { Context } from './context';
 import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from './ratelimit';
 
 
-export type FailedPermissions = Array<Permissions | number>;
+export type FailedPermissions = Array<bigint>;
 
 /**
  * @category Command
@@ -80,8 +80,8 @@ export interface CommandOptions extends ArgumentOptions {
   disableDmReply?: boolean,
   metadata?: {[key: string]: any},
   name: string,
-  permissions?: Array<Permissions>,
-  permissionsClient?: Array<Permissions>,
+  permissions?: Array<bigint | number>,
+  permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
   priority?: number,
   ratelimit?: boolean | CommandRatelimitOptions | null,
@@ -118,8 +118,8 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   disableDm: boolean = false;
   disableDmReply: boolean = false;
   metadata: {[key: string]: any} = {};
-  permissions?: Array<Permissions>;
-  permissionsClient?: Array<Permissions>;
+  permissions?: Array<bigint>;
+  permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean = false;
   priority: number = 0;
   ratelimits: Array<CommandRatelimit> = [];
@@ -150,8 +150,8 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.disableDm = !!options.disableDm;
     this.disableDmReply = !!options.disableDmReply;
     this.metadata = Object.assign(this.metadata, options.metadata);
-    this.permissions = options.permissions;
-    this.permissionsClient = options.permissionsClient;
+    this.permissions = (options.permissions) ? options.permissions.map((x) => BigInt(x)) : undefined;
+    this.permissionsClient = (options.permissionsClient) ? options.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = !!options.permissionsIgnoreClientOwner;
     this.priority = options.priority || this.priority;
     this.responseOptional = !!options.responseOptional;

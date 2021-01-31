@@ -1,7 +1,7 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, OverwriteTypes } from '../constants';
+import { DiscordKeys, OverwriteTypes, Permissions } from '../constants';
 import { PermissionTools } from '../utils';
 
 import {
@@ -29,10 +29,8 @@ export class Overwrite extends BaseStructure {
   readonly _keys = keysOverwrite;
   readonly channel: Channel;
 
-  allow: number = 0;
-  allowNew: bigint = 0n;
-  deny: number = 0;
-  denyNew: bigint = 0n;
+  allow: bigint = Permissions.NONE;
+  deny: bigint = Permissions.NONE;
   id: string = '';
   type!: OverwriteTypes;
 
@@ -103,8 +101,8 @@ export class Overwrite extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case DiscordKeys.ALLOW_NEW:
-        case DiscordKeys.DENY_NEW: {
+        case DiscordKeys.ALLOW:
+        case DiscordKeys.DENY: {
           value = BigInt(value);
         }; break;
       }

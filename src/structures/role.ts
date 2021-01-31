@@ -25,7 +25,6 @@ const keysRole = new BaseSet<string>([
   DiscordKeys.MENTIONABLE,
   DiscordKeys.NAME,
   DiscordKeys.PERMISSIONS,
-  DiscordKeys.PERMISSIONS_NEW,
   DiscordKeys.POSITION,
   DiscordKeys.TAGS,
 ]);
@@ -50,8 +49,7 @@ export class Role extends BaseStructure {
   managed: boolean = false;
   mentionable: boolean = false;
   name: string = '';
-  permissions: number = 0;
-  permissionsNew: bigint = 0n;
+  permissions: bigint = Permissions.NONE;
   position: number = 0;
   tags: {
     bot_id: string,
@@ -133,7 +131,7 @@ export class Role extends BaseStructure {
     return PermissionTools.checkPermissions(this.permissions, permissions);
   }
 
-  permissionsIn(channelId: ChannelGuildBase | string): number {
+  permissionsIn(channelId: ChannelGuildBase | string): bigint {
     let channel: ChannelGuildBase;
     if (channelId instanceof ChannelGuildBase) {
       channel = channelId;
@@ -145,7 +143,7 @@ export class Role extends BaseStructure {
       }
     }
 
-    let allow = 0, deny = 0;
+    let allow = Permissions.NONE, deny = Permissions.NONE;
     if (channel.permissionOverwrites.has(this.id)) {
       const overwrite = channel.permissionOverwrites.get(this.id) as Overwrite;
       allow |= overwrite.allow;
@@ -164,7 +162,7 @@ export class Role extends BaseStructure {
 
   mergeValue(key: string, value: any): void {
     switch (key) {
-      case DiscordKeys.PERMISSIONS_NEW: {
+      case DiscordKeys.PERMISSIONS: {
         value = BigInt(value);
       }; break;
       case DiscordKeys.TAGS: {

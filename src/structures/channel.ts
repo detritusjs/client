@@ -411,6 +411,10 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  async crosspostMessage(messageId: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async delete(options: RequestTypes.DeleteChannel = {}) {
     return this.client.rest.deleteChannel(this.id, options);
   }
@@ -476,6 +480,10 @@ export class ChannelBase extends BaseStructure {
   }
 
   async fetchWebhooks(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async follow(options: RequestTypes.FollowChannel): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -1241,6 +1249,10 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.createWebhook(this.id, options);
   }
 
+  async crosspostMessage(messageId: string) {
+    return this.client.rest.crosspostMessage(this.id, messageId);
+  }
+
   async deleteMessage(messageId: string, options: RequestTypes.DeleteMessage = {}) {
     return this.client.rest.deleteMessage(this.id, messageId, options);
   }
@@ -1279,6 +1291,10 @@ export class ChannelGuildText extends ChannelGuildBase {
 
   async fetchWebhooks() {
     return this.client.rest.fetchChannelWebhooks(this.id);
+  }
+
+  async follow(options: RequestTypes.FollowChannel): Promise<any> {
+    return this.client.rest.followChannel(this.id, options);
   }
 
   async publish(options: RequestTypes.CreateApplicationNews) {

@@ -475,6 +475,22 @@ export class RestClient {
     return new Webhook(this.client, data);
   }
 
+  async crosspostMessage(
+    channelId: string,
+    messageId: string,
+  ): Promise<Message> {
+    const data = await this.raw.crosspostMessage(channelId, messageId);
+    if (this.client.channels.has(data.channel_id)) {
+      const channel = this.client.channels.get(data.channel_id) as Channel;
+      if (channel.guildId) {
+        data.guild_id = channel.guildId;
+      }
+    }
+    const message = new Message(this.client, data);
+    this.client.messages.insert(message);
+    return message;
+  }
+
   deleteAccount(
     options: RequestTypes.DeleteAccount,
   ) {
@@ -583,12 +599,17 @@ export class RestClient {
     return this.raw.deleteMeBillingSubscription(subscriptionId);
   }
 
-  deleteMessage(
+  async deleteMessage(
     channelId: string,
     messageId: string,
     options: RequestTypes.DeleteMessage = {},
   ) {
-    return this.raw.deleteMessage(channelId, messageId, options);
+    const data = await this.raw.deleteMessage(channelId, messageId, options);
+    if (this.client.messages.has(messageId)) {
+      const message = this.client.messages.get(messageId) as Message;
+      message.deleted = true;
+    }
+    return data;
   }
 
   deleteOauth2Application(
@@ -669,6 +690,19 @@ export class RestClient {
     options: RequestTypes.DeleteWebhook = {},
   ) {
     return this.raw.deleteWebhookToken(webhookId, token, options);
+  }
+
+  async deleteWebhookTokenMessage(
+    webhookId: string,
+    token: string,
+    messageId: string,
+  ) {
+    const data = await this.raw.deleteWebhookTokenMessage(webhookId, token, messageId);
+    if (this.client.messages.has(messageId)) {
+      const message = this.client.messages.get(messageId) as Message;
+      message.deleted = true;
+    }
+    return data;
   }
 
   disableAccount(
@@ -782,6 +816,13 @@ export class RestClient {
     options: RequestTypes.EditGuildMember = {},
   ) {
     return this.raw.editGuildMember(guildId, userId, options);
+  }
+
+  editGuildMemberVerification(
+    guildId: string,
+    options: RequestTypes.EditGuildMemberVerification = {},
+  ) {
+    return this.raw.editGuildMemberVerification(guildId, options);
   }
 
   editGuildMfaLevel(
@@ -976,6 +1017,25 @@ export class RestClient {
   ): Promise<Webhook> {
     const data = await this.raw.editWebhookToken(webhookId, token, options);
     return new Webhook(this.client, data);
+  }
+
+  async editWebhookTokenMessage(
+    webhookId: string,
+    token: string,
+    messageId: string,
+    options: RequestTypes.EditWebhookTokenMessage = {},
+    updateCache: boolean = true,
+  ): Promise<Message> {
+    const data = await this.raw.editWebhookTokenMessage(webhookId, token, messageId, options);
+    let message: Message;
+    if (updateCache && this.client.messages.has(data.id)) {
+      message = this.client.messages.get(data.id) as Message;
+      message.merge(data);
+    } else {
+      message = new Message(this.client, data);
+      this.client.messages.insert(message);
+    }
+    return message;
   }
 
   enableOauth2ApplicationAssets(
@@ -1350,6 +1410,23 @@ export class RestClient {
     return collection;
   }
 
+  async fetchGuildMember(
+    guildId: string,
+    userId: string,
+  ): Promise<Member> {
+    const data = await this.raw.fetchGuildMember(guildId, userId);
+    let member: Member;
+    if (this.client.members.has(guildId, userId)) {
+      member = this.client.members.get(guildId, userId) as Member;
+      member.merge(data);
+    } else {
+      data.guild_id = guildId;
+      member = new Member(this.client, data);
+      this.client.members.insert(member);
+    }
+    return member;
+  }
+
   async fetchGuildMembers(
     guildId: string,
     options: RequestTypes.FetchGuildMembers = {},
@@ -1394,21 +1471,10 @@ export class RestClient {
     return collection;
   }
 
-  async fetchGuildMember(
+  fetchGuildMemberVerification(
     guildId: string,
-    userId: string,
-  ): Promise<Member> {
-    const data = await this.raw.fetchGuildMember(guildId, userId);
-    let member: Member;
-    if (this.client.members.has(guildId, userId)) {
-      member = this.client.members.get(guildId, userId) as Member;
-      member.merge(data);
-    } else {
-      data.guild_id = guildId;
-      member = new Member(this.client, data);
-      this.client.members.insert(member);
-    }
-    return member;
+  ) {
+    return this.raw.fetchGuildMemberVerification(guildId);
   }
 
   async fetchGuildPremiumSubscriptions(
@@ -1976,6 +2042,14 @@ export class RestClient {
   ): Promise<Webhook> {
     const data = await this.raw.fetchWebhookToken(webhookId, token);
     return new Webhook(this.client, data);
+  }
+
+  async followChannel(
+    channelId: string,
+    options: RequestTypes.FollowChannel,
+  ): Promise<{channelId: string, webhookId: string}> {
+    const data = await this.raw.followChannel(channelId, options);
+    return {channelId: data['channel_id'], webhookId: data['webhook_id']};
   }
 
   forgotPassword(

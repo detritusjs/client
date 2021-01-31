@@ -1016,8 +1016,7 @@ export class GuildMe extends BaseGuild {
   readonly _keys = keysGuildMe;
 
   owner: boolean = false;
-  permissions: number = 0;
-  permissionsNew: bigint = 0n;
+  permissions: bigint = Permissions.NONE;
 
   constructor(client: ShardClient, data: BaseStructureData) {
     super(client, data, false);
@@ -1049,7 +1048,7 @@ export class GuildMe extends BaseGuild {
 
   mergeValue(key: string, value: any): void {
     switch (key) {
-      case DiscordKeys.PERMISSIONS_NEW: {
+      case DiscordKeys.PERMISSIONS: {
         value = BigInt(value);
       }; break;
     }

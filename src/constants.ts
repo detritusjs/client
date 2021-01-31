@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.12.2',
+  VERSION: '0.13.0',
 });
 
 export type Snowflake = number | string;
@@ -187,7 +187,6 @@ export enum AuditLogChangeKeys {
   OWNER_ID = 'owner_id',
   PERMISSION_OVERWRITES = 'permission_overwrites',
   PERMISSIONS = 'permissions',
-  PERMISSIONS_NEW = 'permissions_new',
 
   PERMISSIONS_DENIED = 'deny',
   PERMISSIONS_GRANTED = 'allow',
@@ -712,48 +711,48 @@ export enum Oauth2Scopes {
 }
 
 export enum OverwriteTypes {
-  MEMBER = 'member',
-  ROLE = 'role',
+  ROLE = 0,
+  MEMBER = 1,
 };
 
 
-export enum Permissions {
-  NONE = 0,
-  CREATE_INSTANT_INVITE = 1 << 0,
-  KICK_MEMBERS = 1 << 1,
-  BAN_MEMBERS = 1 << 2,
-  ADMINISTRATOR = 1 << 3,
-  MANAGE_CHANNELS = 1 << 4,
-  MANAGE_GUILD = 1 << 5,
-  ADD_REACTIONS = 1 << 6,
-  VIEW_AUDIT_LOG = 1 << 7,
-  PRIORITY_SPEAKER = 1 << 8,
-  STREAM = 1 << 9,
-  VIEW_CHANNEL = 1 << 10,
-  SEND_MESSAGES = 1 << 11,
-  SEND_TTS_MESSAGES = 1 << 12,
-  MANAGE_MESSAGES = 1 << 13,
-  EMBED_LINKS = 1 << 14,
-  ATTACH_FILES = 1 << 15,
-  READ_MESSAGE_HISTORY = 1 << 16,
-  MENTION_EVERYONE = 1 << 17,
-  USE_EXTERNAL_EMOJIS = 1 << 18,
-  VIEW_GUILD_ANALYTICS = 1 << 19,
-  CONNECT = 1 << 20,
-  SPEAK = 1 << 21,
-  MUTE_MEMBERS = 1 << 22,
-  DEAFEN_MEMBERS = 1 << 23,
-  MOVE_MEMBERS = 1 << 24,
-  USE_VAD = 1 << 25,
-  CHANGE_NICKNAME = 1 << 26,
-  CHANGE_NICKNAMES = 1 << 27,
-  MANAGE_ROLES = 1 << 28,
-  MANAGE_WEBHOOKS = 1 << 29,
-  MANAGE_EMOJIS = 1 << 30,
-};
+export const Permissions = Object.freeze({
+  NONE: 0n,
+  CREATE_INSTANT_INVITE: 1n << 0n,
+  KICK_MEMBERS: 1n << 1n,
+  BAN_MEMBERS: 1n << 2n,
+  ADMINISTRATOR: 1n << 3n,
+  MANAGE_CHANNELS: 1n << 4n,
+  MANAGE_GUILD: 1n << 5n,
+  ADD_REACTIONS: 1n << 6n,
+  VIEW_AUDIT_LOG: 1n << 7n,
+  PRIORITY_SPEAKER: 1n << 8n,
+  STREAM: 1n << 9n,
+  VIEW_CHANNEL: 1n << 10n,
+  SEND_MESSAGES: 1n << 11n,
+  SEND_TTS_MESSAGES: 1n << 12n,
+  MANAGE_MESSAGES: 1n << 13n,
+  EMBED_LINKS: 1n << 14n,
+  ATTACH_FILES: 1n << 15n,
+  READ_MESSAGE_HISTORY: 1n << 16n,
+  MENTION_EVERYONE: 1n << 17n,
+  USE_EXTERNAL_EMOJIS: 1n << 18n,
+  VIEW_GUILD_ANALYTICS: 1n << 19n,
+  CONNECT: 1n << 20n,
+  SPEAK: 1n << 21n,
+  MUTE_MEMBERS: 1n << 22n,
+  DEAFEN_MEMBERS: 1n << 23n,
+  MOVE_MEMBERS: 1n << 24n,
+  USE_VAD: 1n << 25n,
+  CHANGE_NICKNAME: 1n << 26n,
+  CHANGE_NICKNAMES: 1n << 27n,
+  MANAGE_ROLES: 1n << 28n,
+  MANAGE_WEBHOOKS: 1n << 29n,
+  MANAGE_EMOJIS: 1n << 30n,
+});
 
-export const PERMISSIONS_ALL = (Object.values(Permissions) as Array<Permissions>).reduce(
-  (permissions: number, permission: number) => permissions | permission,
+export const PERMISSIONS_ALL = Object.values(Permissions).reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
   Permissions.NONE,
 );
 
@@ -768,7 +767,7 @@ export const PERMISSIONS_ALL_TEXT = [
   Permissions.MENTION_EVERYONE,
   Permissions.USE_EXTERNAL_EMOJIS,
 ].reduce(
-  (permissions: number, permission: number) => permissions | permission,
+  (permissions: bigint, permission: bigint) => permissions | permission,
   Permissions.NONE,
 );
 
@@ -782,7 +781,7 @@ export const PERMISSIONS_ALL_VOICE = [
   Permissions.MOVE_MEMBERS,
   Permissions.USE_VAD,
 ].reduce(
-  (permissions: number, permission: number) => permissions | permission,
+  (permissions: bigint, permission: bigint) => permissions | permission,
   Permissions.NONE,
 );
 
@@ -805,7 +804,7 @@ export const PERMISSIONS_DEFAULT = [
   Permissions.SPEAK,
   Permissions.USE_VAD,
 ].reduce(
-  (permissions: number, permission: number) => permissions | permission,
+  (permissions: bigint, permission: bigint) => permissions | permission,
   Permissions.NONE,
 );
 
@@ -813,7 +812,7 @@ export const PERMISSIONS_LURKER = [
   Permissions.VIEW_CHANNEL,
   Permissions.READ_MESSAGE_HISTORY,
 ].reduce(
-  (permissions: number, permission: number) => permissions | permission,
+  (permissions: bigint, permission: bigint) => permissions | permission,
   Permissions.NONE,
 );
 
@@ -828,9 +827,9 @@ export enum PlatformTypes {
   REDDIT = 'reddit',
   SAMSUNG = 'samsung',
   SKYPE = 'skype',
+  SOUNDCLOUD = 'soundcloud',
   SPOTIFY = 'spotify',
   STEAM = 'steam',
-  SOUNDCLOUD = 'soundcloud',
   TWITCH = 'twitch',
   TWITTER = 'twitter',
   YOUTUBE = 'youtube',

@@ -4,7 +4,7 @@
     "url": "https://github.com/detritusjs/client/issues"
   },
   "dependencies": {
-    "detritus-client-rest": "^0.9.1",
+    "detritus-client-rest": "^0.9.3",
     "detritus-client-socket": "^0.7.2",
     "detritus-utils": "^0.4.0"
   },
@@ -29,10 +29,14 @@
   "main": "lib/index.js",
   "name": "detritus-client",
   "peerDependencies": {
+    "@discordjs/opus": "^0.4.0",
     "node-opus": "^0.3.3",
     "opusscript": "^0.0.7"
   },
   "peerDependenciesMeta": {
+    "@discordjs/opus": {
+      "optional": true
+    },
     "node-opus": {
       "optional": true
     },
@@ -51,5 +55,5 @@
     "typedoc": "typedoc ./src"
   },
   "types": "lib/index.d.ts",
-  "version": "0.12.2"
+  "version": "0.13.0"
 }

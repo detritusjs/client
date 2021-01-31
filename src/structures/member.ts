@@ -208,11 +208,11 @@ export class Member extends UserMixin {
     return [this.username];
   }
 
-  get permissions(): number {
+  get permissions(): bigint {
     if (this.isOwner) {
       return PERMISSIONS_ALL;
     }
-    return this.roles.reduce((total: number, role: null | Role) => {
+    return this.roles.reduce((total: bigint, role: null | Role) => {
       if (role) {
         return total | role.permissions;
       }
@@ -287,7 +287,7 @@ export class Member extends UserMixin {
     return false;
   }
 
-  permissionsIn(channelId: ChannelGuildBase | string): number {
+  permissionsIn(channelId: ChannelGuildBase | string): bigint {
     let channel: ChannelGuildBase;
     if (channelId instanceof ChannelGuildBase) {
       channel = channelId;
@@ -305,7 +305,7 @@ export class Member extends UserMixin {
       total = (total & ~overwrite.deny) | overwrite.allow;
     }
 
-    let allow = 0, deny = 0;
+    let allow = Permissions.NONE, deny = Permissions.NONE;
     for (let [roleId, role] of this.roles) {
       if (roleId === this.guildId) {continue;}
       if (channel.permissionOverwrites.has(roleId)) {
