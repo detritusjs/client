@@ -278,6 +278,14 @@ export class CommandClient extends EventSpewer {
 
     const files: Array<string> = await getFiles(directory, options.subdirectories);
     const errors: {[key: string]: Error} = {};
+    let isTS;
+
+    try {
+      // @ts-ignore
+      if (process[Symbol.for("ts-node.register.instance")]) isTS = true
+    } catch {
+      isTS = false
+    }
 
     const addCommand = (imported: any, filepath: string): void => {
       if (!imported) {
@@ -301,7 +309,7 @@ export class CommandClient extends EventSpewer {
       }
     };
     for (let file of files) {
-      if (!file.endsWith('.js')) {
+      if (!file.endsWith(isTS ? 'ts' : 'js')) {
         continue;
       }
       const filepath = path.resolve(directory, file);
