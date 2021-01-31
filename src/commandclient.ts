@@ -8,7 +8,7 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
-import { ClientEvents, Permissions } from './constants';
+import { ClientEvents, Permissions, IS_TS_NODE } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { PermissionTools, getExceededRatelimits, getFiles } from './utils';
@@ -234,10 +234,20 @@ export class CommandClient extends EventSpewer {
           options.run = run;
         }
       }
+      // create a normal command class with the options given
       if (options._class === undefined) {
         command = new Command(this, options);
       } else {
-        command = new options._class(this, options);
+        // check for `.constructor` to make sure it's a class
+        if (options._class.constructor) {
+          command = new options._class(this, options);
+        } else {
+          // else it's just a function, `ts-node` outputs these
+          command = options._class(this, options);
+        }
+        if (!command._file) {
+          Object.defineProperty(command, '_file', {value: options._file});
+        }
       }
     }
 
@@ -278,14 +288,6 @@ export class CommandClient extends EventSpewer {
 
     const files: Array<string> = await getFiles(directory, options.subdirectories);
     const errors: {[key: string]: Error} = {};
-    let isTS;
-
-    try {
-      // @ts-ignore
-      if (process[Symbol.for("ts-node.register.instance")]) isTS = true
-    } catch {
-      isTS = false
-    }
 
     const addCommand = (imported: any, filepath: string): void => {
       if (!imported) {
@@ -309,7 +311,7 @@ export class CommandClient extends EventSpewer {
       }
     };
     for (let file of files) {
-      if (!file.endsWith(isTS ? 'ts' : 'js')) {
+      if (!file.endsWith((IS_TS_NODE) ? '.ts' : '.js')) {
         continue;
       }
       const filepath = path.resolve(directory, file);

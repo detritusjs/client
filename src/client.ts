@@ -636,6 +636,8 @@ export class ShardClient extends EventSpewer {
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
   on(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
   on(event: 'guildUpdate', listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
+  on(event: ClientEvents.INTERACTION_CREATE, listener: (payload: GatewayClientEvents.InteractionCreate) => any): this;
+  on(event: 'interactionCreate', listener: (payload: GatewayClientEvents.InteractionCreate) => any): this;
   on(event: ClientEvents.INVITE_CREATE, listener: (payload: GatewayClientEvents.InviteCreate) => any): this;
   on(event: 'inviteCreate', listener: (payload: GatewayClientEvents.InviteCreate) => any): this;
   on(event: ClientEvents.INVITE_DELETE, listener: (payload: GatewayClientEvents.InviteDelete) => any): this;

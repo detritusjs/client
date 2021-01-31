@@ -1,4 +1,5 @@
 export const DependencyTypes = Object.freeze({
+  DISCORDJS_OPUS: '@discordjs/opus',
   NODE_OPUS: 'node-opus',
   OPUSSCRIPT: 'opusscript',
 });
@@ -8,7 +9,7 @@ const DEPENDENCY_TYPES: Array<string> = Object.values(DependencyTypes);
 
 const Opus: {[key: string]: any} = {};
 
-for (let dependency in DEPENDENCY_TYPES) {
+for (let dependency of DEPENDENCY_TYPES) {
   try {
     Opus[dependency] = require(dependency);
   } catch(e) {}
@@ -76,7 +77,7 @@ export class AudioOpus {
     if (!this.use) {
       throw new Error('Module missing, cannot opus encode/decode.');
     }
-    return (<any> Opus)[this.use];
+    return (Opus as any)[this.use];
   }
 
   get enabled(): boolean {
@@ -114,6 +115,7 @@ export class AudioOpus {
 
     let opus: any;
     switch (this.use) {
+      case DependencyTypes.DISCORDJS_OPUS:
       case DependencyTypes.NODE_OPUS: {
         opus = new this.module.OpusEncoder(this.sampleRate, this.channels, this.application);
       }; break;
@@ -184,6 +186,7 @@ export class AudioOpus {
       throw new Error('Object was deleted, reinitialize with recreate()');
     }
     switch (this.use) {
+      case DependencyTypes.DISCORDJS_OPUS:
       case DependencyTypes.NODE_OPUS: {
         this.opus.applyEncoderCTL([flag, value]);
       }; break;
@@ -205,6 +208,9 @@ export class AudioOpus {
 
     let packet: Buffer;
     switch (this.use) {
+      case DependencyTypes.DISCORDJS_OPUS: {
+        packet = this.opus.decode(buf);
+      }; break;
       case DependencyTypes.NODE_OPUS: {
         packet = this.opus.decode(buf, frameSize);
       }; break;
@@ -229,6 +235,9 @@ export class AudioOpus {
 
     let packet: Buffer;
     switch (this.use) {
+      case DependencyTypes.DISCORDJS_OPUS: {
+        packet = this.opus.encode(buf);
+      }; break;
       case DependencyTypes.NODE_OPUS: {
         packet = this.opus.encode(buf, frameSize);
       }; break;

@@ -1,4 +1,4 @@
-import { Snowflake } from '../constants';
+import { InteractionTypes, Snowflake } from '../constants';
 
 
 export namespace GatewayRawEvents {
@@ -204,6 +204,17 @@ export namespace GatewayRawEvents {
 
   export interface GuildUpdate extends RawGuild {
 
+  }
+
+  export interface InteractionCreate {
+    channel_id: string,
+    data: RawApplicationCommandInteractionData,
+    guild_id: string,
+    id: string,
+    member: RawMember,
+    token: string,
+    type: InteractionTypes,
+    version: number,
   }
 
   export interface InviteCreate {
@@ -615,6 +626,18 @@ export namespace GatewayRawEvents {
     slug: string,
     summary: string,
     verify_key: string,
+  }
+
+  export interface RawApplicationCommandInteractionData {
+    id: string,
+    name: string,
+    options?: Array<RawApplicationCommandInteractionDataOption>,
+  }
+
+  export interface RawApplicationCommandInteractionDataOption {
+    name: string,
+    options?: Array<RawApplicationCommandInteractionDataOption>,
+    value?: any,
   }
 
   export interface RawChannel {

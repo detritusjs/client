@@ -4,7 +4,7 @@ import {
   RequestTypes,
   RestClientEvents,
 } from 'detritus-client-rest';
-import { RestEvents } from 'detritus-client-rest/lib/constants';
+import { AuthTypes, RestEvents } from 'detritus-client-rest/lib/constants';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
@@ -71,7 +71,7 @@ export class RestClient {
     return this.raw.isUser;
   }
 
-  setAuthType(type: string | number) {
+  setAuthType(type: AuthTypes | string) {
     return this.raw.setAuthType(type);
   }
 

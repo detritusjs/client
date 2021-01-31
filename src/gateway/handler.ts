@@ -1048,6 +1048,34 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_UPDATE, payload);
   }
 
+  [GatewayDispatchEvents.INTERACTION_CREATE](data: GatewayRawEvents.InteractionCreate) {
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
+    const userId = data['member']['user']['id'];
+
+    let member: Member;
+    if (this.client.members.has(guildId, userId)) {
+      member = this.client.members.get(guildId, userId) as Member;
+      member.merge(data['member'])
+    } else {
+      member = new Member(this.client, data['member']);
+      this.client.members.insert(member);
+    }
+
+    const payload: GatewayClientEvents.InteractionCreate = {
+      data: data['data'],
+      channelId,
+      guildId,
+      id: data['id'],
+      member,
+      token: data['token'],
+      type: data['type'],
+      userId,
+      version: data['version'],
+    };
+    this.client.emit(ClientEvents.INTERACTION_CREATE, payload);
+  }
+
   [GatewayDispatchEvents.INVITE_CREATE](data: GatewayRawEvents.InviteCreate) {
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];

@@ -35,10 +35,13 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.12.1',
+  VERSION: '0.12.2',
 });
 
 export type Snowflake = number | string;
+
+
+export const IS_TS_NODE = Symbol.for('ts-node.register.instance') in process;
 
 
 export const DEFAULT_MAX_MEMBERS = 250000;
@@ -263,6 +266,7 @@ export enum ClientEvents {
   GUILD_ROLE_DELETE = 'guildRoleDelete',
   GUILD_ROLE_UPDATE = 'guildRoleUpdate',
   GUILD_UPDATE = 'guildUpdate',
+  INTERACTION_CREATE = 'interactionCreate',
   INVITE_CREATE = 'inviteCreate',
   INVITE_DELETE = 'inviteDelete',
   LIBRARY_APPLICATION_UPDATE = 'libraryApplicationUpdate',
@@ -507,6 +511,11 @@ export enum ImageFormats {
   JPG = 'jpg',
   PNG = 'png',
   WEBP = 'webp',
+};
+
+export enum InteractionTypes {
+  PING = 1,
+  APPLICATION_COMMAND = 2,
 };
 
 export enum InviteTargetUserTypes {

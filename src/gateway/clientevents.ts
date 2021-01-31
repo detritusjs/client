@@ -4,7 +4,7 @@ import { GatewayRawEvents } from './rawevents';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ClientEvents } from '../constants';
+import { ClientEvents, InteractionTypes } from '../constants';
 import {
   Channel,
   Emoji,
@@ -260,6 +260,18 @@ export namespace GatewayClientEvents {
   export interface GuildUpdate {
     differences: Differences,
     guild: Guild,
+  }
+
+  export interface InteractionCreate {
+    data: GatewayRawEvents.RawApplicationCommandInteractionData,
+    channelId: string,
+    guildId: string,
+    id: string,
+    member: Member,
+    token: string,
+    type: InteractionTypes,
+    userId: string,
+    version: number,
   }
 
   export interface InviteCreate {
