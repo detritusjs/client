@@ -669,6 +669,8 @@ export class Guild extends GuildPartial {
   vanityUrlCode: null | string = null;
   verificationLevel: number = 0;
   welcomeScreen: GuildWelcomeScreen | null = null;
+  widgetChannelId: null | string = null;
+  widgetEnabled: boolean = false;
 
   constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
