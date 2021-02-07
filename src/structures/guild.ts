@@ -6,9 +6,6 @@ import {
 import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { EmojisOptions } from '../collections/emojis';
-import { MembersOptions } from '../collections/members';
-import { RolesOptions } from '../collections/roles';
 import {
   DiscordKeys,
   GuildExplicitContentFilterTypes,
@@ -59,14 +56,6 @@ import { VoiceRegion } from './voiceregion';
 import { VoiceState } from './voicestate';
 
 
-export interface GuildCacheOptions {
-  emojis?: EmojisOptions,
-  fromRest?: boolean,
-  members?: MembersOptions,
-  roles?: RolesOptions,
-}
-
-
 const keysBaseGuild = new BaseSet<string>([
   DiscordKeys.FEATURES,
   DiscordKeys.ICON,
@@ -88,13 +77,11 @@ export class BaseGuild extends BaseStructure {
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData,
-    merge: boolean = true,
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client);
-    if (merge) {
-      this.merge(data);
-    }
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 
   get acronym(): string {
@@ -473,6 +460,100 @@ export class BaseGuild extends BaseStructure {
 }
 
 
+const keysGuildPartial = new BaseSet<string>([
+  DiscordKeys.BANNER,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.FEATURES,
+  DiscordKeys.ICON,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.SPLASH,
+  DiscordKeys.VANITY_URL_CODE,
+  DiscordKeys.VERIFICATION_LEVEL,
+  DiscordKeys.WELCOME_SCREEN,
+]);
+
+/**
+ * Partial Guild Structure
+ * @category Structure
+ */
+export class GuildPartial extends BaseGuild {
+  readonly _keys = keysGuildPartial;
+
+  banner: null | string = null;
+  description: null | string = null;
+  splash: null | string = null;
+  vanityUrlCode: null | string = null;
+  verificationLevel: number = 0;
+  welcomeScreen: GuildWelcomeScreen | null = null;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  get bannerUrl(): null | string {
+    return this.bannerUrlFormat();
+  }
+
+  get splashUrl(): null | string {
+    return this.splashUrlFormat();
+  }
+
+  bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.banner) {
+      return null;
+    }
+    const hash = this.banner;
+    format = getFormatFromHash(
+      hash,
+      format,
+      this.client.imageFormat,
+    );
+    return addQuery(
+      Endpoints.CDN.URL + Endpoints.CDN.GUILD_BANNER(this.id, hash, format),
+      query,
+    );
+  }
+
+  splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.splash) {
+      return null;
+    }
+    const hash = this.splash;
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
+  }
+
+  mergeValue(key: string, value: any): void {
+    switch (key) {
+      case DiscordKeys.WELCOME_SCREEN: {
+        if (value) {
+          let welcomeScreen: GuildWelcomeScreen;
+          if (this.isClone) {
+            welcomeScreen = new GuildWelcomeScreen(this.client, value, this.isClone);
+          } else {
+            if (this.welcomeScreen) {
+              welcomeScreen = this.welcomeScreen;
+              welcomeScreen.merge(value);
+            } else {
+              welcomeScreen = new GuildWelcomeScreen(this.client, value, this.isClone);
+            }
+          }
+          value = welcomeScreen;
+        }
+      }; break;
+    }
+    return super.mergeValue(key, value);
+  }
+}
+
+
+
 const keysGuild = new BaseSet<string>([
   DiscordKeys.AFK_CHANNEL_ID,
   DiscordKeys.AFK_TIMEOUT,
@@ -516,6 +597,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.VANITY_URL_CODE,
   DiscordKeys.VERIFICATION_LEVEL,
   DiscordKeys.VOICE_STATES,
+  DiscordKeys.WELCOME_SCREEN,
   DiscordKeys.WIDGET_CHANNEL_ID,
   DiscordKeys.WIDGET_ENABLED,
 ]);
@@ -539,11 +621,10 @@ const keysSkipDifferenceGuild = new BaseSet<string>([
  * Guild Structure
  * @category Structure
  */
-export class Guild extends BaseGuild {
+export class Guild extends GuildPartial {
   readonly _keys = keysGuild;
   readonly _keysMerge = keysMergeGuild;
   readonly _keysSkipDifference = keysSkipDifferenceGuild;
-  readonly _fromRest: boolean = false;
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
@@ -587,15 +668,19 @@ export class Guild extends BaseGuild {
   unavailable: boolean = false;
   vanityUrlCode: null | string = null;
   verificationLevel: number = 0;
-  widgetChannelId: null | string = null;
-  widgetEnabled: boolean = false;
+  welcomeScreen: GuildWelcomeScreen | null = null;
 
-  constructor(client: ShardClient, data: BaseStructureData, cache: GuildCacheOptions = {}) {
-    super(client, data, false);
-    this.emojis = new BaseCollection<string, Emoji>(cache.emojis || this.client.emojis.options);
-    this.members = new BaseCollection<string, Member>(cache.members || this.client.members.options);
-    this.roles = new BaseCollection<string, Role>(cache.roles || this.client.roles.options);
-    this._fromRest = !!cache.fromRest;
+  constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
+    if (this.isClone) {
+      this.emojis = new BaseCollection<string, Emoji>();
+      this.members = new BaseCollection<string, Member>();
+      this.roles = new BaseCollection<string, Role>();
+    } else {
+      this.emojis = new BaseCollection<string, Emoji>(this.client.emojis.options);
+      this.members = new BaseCollection<string, Member>(this.client.members.options);
+      this.roles = new BaseCollection<string, Role>(this.client.roles.options);
+    }
     this.merge(data);
   }
 
@@ -604,10 +689,6 @@ export class Guild extends BaseGuild {
       return this.client.channels.get(this.afkChannelId) || null;
     }
     return null;
-  }
-
-  get bannerUrl(): null | string {
-    return this.bannerUrlFormat();
   }
 
   get categoryChannels(): BaseCollection<string, ChannelGuildCategory> {
@@ -723,10 +804,6 @@ export class Guild extends BaseGuild {
     return null;
   }
 
-  get splashUrl(): null | string {
-    return this.splashUrlFormat();
-  }
-
   get storeChannels(): BaseCollection<string, ChannelGuildStore> {
     const collection = new BaseCollection<string, ChannelGuildStore>();
     for (const [channelId, channel] of this.client.channels) {
@@ -769,23 +846,6 @@ export class Guild extends BaseGuild {
       return this.client.voiceStates.get(this.id) as BaseCollection<string, VoiceState>;
     }
     return emptyBaseCollection;
-  }
-
-
-  bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (!this.banner) {
-      return null;
-    }
-    const hash = this.banner;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
-    return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.GUILD_BANNER(this.id, hash, format),
-      query,
-    );
   }
 
   can(
@@ -844,15 +904,6 @@ export class Guild extends BaseGuild {
     return this.ownerId === userId;
   }
 
-  splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (!this.splash) {
-      return null;
-    }
-    const hash = this.splash;
-    format = getFormatFromHash(hash, format, this.client.imageFormat);
-    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
-  }
-
   async fetchVoiceRegion(): Promise<VoiceRegion> {
     const regions = await this.fetchVoiceRegions();
     const region = regions.find((reg: VoiceRegion) => reg.id === this.region);
@@ -866,16 +917,21 @@ export class Guild extends BaseGuild {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.CHANNELS: {
-          if (this.client.channels.enabled && !this._fromRest) {
+          if (this.client.channels.enabled) {
             for (let raw of value) {
+              raw.guild_id = this.id;
+
               let channel: Channel;
-              if (this.client.channels.has(raw.id)) {
-                channel = this.client.channels.get(raw.id) as Channel;
-                channel.merge(raw);
+              if (this.isClone) {
+                channel = createChannelFromData(this.client, raw, this.isClone);
               } else {
-                raw.guild_id = this.id;
-                channel = createChannelFromData(this.client, raw);
-                this.client.channels.insert(channel);
+                if (this.client.channels.has(raw.id)) {
+                  channel = this.client.channels.get(raw.id) as Channel;
+                  channel.merge(raw);
+                } else {
+                  channel = createChannelFromData(this.client, raw);
+                  this.client.channels.insert(channel);
+                }
               }
             }
           }
@@ -884,13 +940,18 @@ export class Guild extends BaseGuild {
           if (this.client.emojis.enabled) {
             const emojis: Array<Emoji> = [];
             for (let raw of value) {
+              raw.guild_id = this.id;
+
               let emoji: Emoji;
-              if (this.emojis.has(raw.id)) {
-                emoji = this.emojis.get(raw.id) as Emoji;
-                emoji.merge(raw);
+              if (this.isClone) {
+                emoji = new Emoji(this.client, raw, this.isClone);
               } else {
-                raw.guild_id = this.id;
-                emoji = new Emoji(this.client, raw);
+                if (this.emojis.has(raw.id)) {
+                  emoji = this.emojis.get(raw.id) as Emoji;
+                  emoji.merge(raw);
+                } else {
+                  emoji = new Emoji(this.client, raw);
+                }
               }
               emojis.push(emoji);
             }
@@ -911,11 +972,14 @@ export class Guild extends BaseGuild {
         case DiscordKeys.MEMBERS: {
           this.members.clear();
           for (let raw of value) {
+            raw.guild_id = this.id;
             if (this.client.user && this.client.user.id === raw.user.id) {
-              raw.guild_id = this.id;
-              const member = new Member(this.client, raw);
+              const member = new Member(this.client, raw, this.isClone);
               this.members.set(member.id, member);
-              continue;
+              if (this.client.members.enabled || this.client.presences.enabled || this.client.users.enabled) {
+                continue;
+              }
+              break;
             }
 
             if (this.client.members.enabled) {
@@ -924,18 +988,20 @@ export class Guild extends BaseGuild {
                 member = this.members.get(raw.user.id) as Member;
                 member.merge(raw);
               } else {
-                raw.guild_id = this.id;
-                member = new Member(this.client, raw);
+                member = new Member(this.client, raw, this.isClone);
                 this.members.set(member.id, member);
               }
             } else if (this.client.presences.enabled || this.client.users.enabled) {
-              let user: User;
-              if (this.client.users.has(raw.user.id)) {
-                user = this.client.users.get(raw.user.id) as User;
-                user.merge(raw.user);
-              } else {
-                user = new User(this.client, raw.user);
-                this.client.users.insert(user);
+              // if this isn't a clone, merge user into our cache then
+              if (!this.isClone) {
+                let user: User;
+                if (this.client.users.has(raw.user.id)) {
+                  user = this.client.users.get(raw.user.id) as User;
+                  user.merge(raw.user);
+                } else {
+                  user = new User(this.client, raw.user);
+                  this.client.users.insert(user);
+                }
               }
             }
           }
@@ -950,7 +1016,7 @@ export class Guild extends BaseGuild {
                 role.merge(raw);
               } else {
                 raw.guild_id = this.id;
-                role = new Role(this.client, raw);
+                role = new Role(this.client, raw, this.isClone);
               }
               roles.push(role);
             }
@@ -964,16 +1030,22 @@ export class Guild extends BaseGuild {
           value = value || 0;
         }; break;
         case DiscordKeys.PRESENCES: {
-          this.client.presences.clearGuildId(this.id);
-          if (this.client.presences.enabled) {
-            for (let raw of value) {
-              raw.guild_id = this.id;
-              this.client.presences.insert(raw);
+          if (!this.isClone) {
+            // drop the presences when cloning the guild..
+
+            this.client.presences.clearGuildId(this.id);
+            if (this.client.presences.enabled) {
+              for (let raw of value) {
+                raw.guild_id = this.id;
+                this.client.presences.insert(raw);
+              }
             }
           }
         }; return;
         case DiscordKeys.VOICE_STATES: {
-          if (this.client.voiceStates.enabled) {
+          // drop the voice states when cloning the guild.. (unexpected behavior, maybe stop guilds from being cloned?)
+
+          if (this.client.voiceStates.enabled && !this.isClone) {
             const cache = this.client.voiceStates.insertCache(this.id);
             cache.clear();
             for (let raw of value) {
@@ -1018,8 +1090,12 @@ export class GuildMe extends BaseGuild {
   owner: boolean = false;
   permissions: bigint = Permissions.NONE;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client, data, false);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -1053,5 +1129,80 @@ export class GuildMe extends BaseGuild {
       }; break;
     }
     return super.mergeValue(key, value);
+  }
+}
+
+
+
+const keysGuildWelcomeScreen = new BaseSet<string>([
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.WELCOME_CHANNELS,
+]);
+
+/**
+ * Guild Welcome Screen, used in [[Guild]]
+ * @category Structure
+ */
+export class GuildWelcomeScreen extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysGuildWelcomeScreen;
+
+  description: string = '';
+  welcomeChannels = new BaseCollection<string, GuildWelcomeScreenChannel>();
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.WELCOME_CHANNELS: {
+          this.welcomeChannels.clear();
+          for (let raw of value) {
+            const welcomeChannel = new GuildWelcomeScreenChannel(this, raw);
+            this.welcomeChannels.set(welcomeChannel.channelId, welcomeChannel);
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
+
+const keysGuildWelcomeScreenChannel = new BaseSet<string>([
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.EMOJI_ID,
+  DiscordKeys.EMOJI_NAME,
+]);
+
+/**
+ * Guild Welcome Screen Channel, used in [[GuildWelcomeScreen]]
+ * @category Structure
+ */
+export class GuildWelcomeScreenChannel extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysGuildWelcomeScreenChannel;
+
+  readonly guildWelcomeScreen: GuildWelcomeScreen;
+
+  channelId: string = '';
+  description: string = '';
+  emojiId?: string;
+  emojiName: string | null = null;
+
+  constructor(guildWelcomeScreen: GuildWelcomeScreen, data: BaseStructureData) {
+    super(guildWelcomeScreen.client, undefined, guildWelcomeScreen._clone);
+    this.guildWelcomeScreen = guildWelcomeScreen;
+    this.merge(data);
+    Object.defineProperty(this, 'guildWelcomeScreen', {enumerable: false, writable: false});
   }
 }

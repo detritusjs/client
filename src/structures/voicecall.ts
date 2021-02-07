@@ -46,8 +46,12 @@ export class VoiceCall extends BaseStructure {
   region: string = '';
   unavailable: boolean = false;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -107,20 +111,21 @@ export class VoiceCall extends BaseStructure {
           this.ringing.clear();
           for (let userId of value) {
             if (this.client.users.has(userId)) {
-              this.ringing.set(userId, <User> this.client.users.get(userId));
+              this.ringing.set(userId, this.client.users.get(userId) as User);
             } else {
               this.ringing.set(userId, null);
             }
           }
         }; return;
         case DiscordKeys.VOICE_STATES: {
-          if (this.client.voiceStates.enabled) {
+          // cannot clone the voice states since it's not stored on the object
+          if (this.client.voiceStates.enabled && !this.isClone) {
             const cache = this.client.voiceStates.insertCache(this.channelId);
             cache.clear();
 
             for (let raw of value) {
               if (this.client.voiceStates.has(this.channelId, raw.user_id)) {
-                (<VoiceState> this.client.voiceStates.get(this.channelId, raw.user_id)).merge(raw);
+                (this.client.voiceStates.get(this.channelId, raw.user_id) as VoiceState).merge(raw);
               } else {
                 this.client.voiceStates.insert(new VoiceState(this.client, raw));
               }

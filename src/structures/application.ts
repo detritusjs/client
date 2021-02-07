@@ -110,8 +110,8 @@ export class Application extends BaseStructure {
   verifyKey: string = '';
   youtubeTrailerVideoId?: string;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -285,7 +285,9 @@ const keysApplicationThirdPartySku = new BaseSet<string>([
 ]);
 
 export class ApplicationThirdPartySku extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysApplicationThirdPartySku;
+
   readonly application: Application;
 
   distributor!: Distributors;
@@ -293,7 +295,7 @@ export class ApplicationThirdPartySku extends BaseStructure {
   sku: null | string = null; // deprecated
 
   constructor(application: Application, data: BaseStructureData) {
-    super(application.client);
+    super(application.client, undefined, application._clone);
     this.application = application;
     this.merge(data);
     Object.defineProperty(this, 'application', {enumerable: false, writable: false});
@@ -325,11 +327,11 @@ export class ApplicationThirdPartySku extends BaseStructure {
           return url(skuId);
         };
         case Distributors.DISCORD: {
-          const skuId = <string> this.id;
+          const skuId = this.id as string;
           return url(skuId, this.application.slug);
         };
         case Distributors.EPIC: {
-          const skuId = (<string> this.id).toLowerCase();
+          const skuId = (this.id as string).toLowerCase();
           return url(skuId);
         };
         case Distributors.GOG: {
@@ -339,14 +341,14 @@ export class ApplicationThirdPartySku extends BaseStructure {
         case Distributors.ORIGIN: {
           let skuId: string;
           if (this.application.aliases && this.application.aliases.length) {
-            skuId = <string> this.application.aliases.first();
+            skuId = this.application.aliases.first() as string;
           } else {
             skuId = this.application.name;
           }
           return url(skuId);
         };
         case Distributors.STEAM: {
-          const skuId = <string> this.id;
+          const skuId = this.id as string;
           return url(skuId);
         };
         case Distributors.TWITCH: {

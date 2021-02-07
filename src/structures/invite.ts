@@ -15,7 +15,7 @@ import {
   Channel,
   createChannelFromData,
 } from './channel';
-import { Guild } from './guild';
+import { GuildPartial } from './guild';
 import { User } from './user';
 
 
@@ -53,7 +53,7 @@ export class Invite extends BaseStructure {
   channel?: Channel;
   code: string = '';
   createdAt?: Date;
-  guild?: Guild;
+  guild?: GuildPartial;
   inviter?: User;
   maxAge?: number;
   maxUses?: number;
@@ -63,8 +63,12 @@ export class Invite extends BaseStructure {
   temporary?: boolean;
   uses?: number;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -118,18 +122,7 @@ export class Invite extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.CHANNEL: {
-          let channel: Channel;
-          if (this.client.channels.has(value.id)) {
-            channel = <Channel> this.client.channels.get(value.id);
-            channel.merge(value);
-          } else {
-            if (this.guild) {
-              value.guild_id = this.guild.id;
-            }
-            value.is_partial = true;
-            channel = createChannelFromData(this.client, value);
-          }
-          value = channel;
+          value = createChannelFromData(this.client, value, true);
         }; break;
         case DiscordKeys.CREATED_AT: {
           if (value) {
@@ -137,33 +130,33 @@ export class Invite extends BaseStructure {
           }
         }; break;
         case DiscordKeys.GUILD: {
-          let guild: Guild;
-          if (this.client.guilds.has(value.id)) {
-            guild = <Guild> this.client.guilds.get(value.id);
-            guild.merge(value);
-          } else {
-            value.is_partial = true;
-            guild = new Guild(this.client, value);
-          }
-          value = guild;
+          value = new GuildPartial(this.client, value);
         }; break;
         case DiscordKeys.INVITER: {
           let inviter: User;
-          if (this.client.users.has(value.id)) {
-            inviter = <User> this.client.users.get(value.id);
-            inviter.merge(value);
+          if (this.isClone) {
+            inviter = new User(this.client, value, this.isClone);
           } else {
-            inviter = new User(this.client, value);
+            if (this.client.users.has(value.id)) {
+              inviter = this.client.users.get(value.id) as User;
+              inviter.merge(value);
+            } else {
+              inviter = new User(this.client, value);
+            }
           }
           value = inviter;
         }; break;
         case DiscordKeys.TARGET_USER: {
           let user: User;
-          if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
-            user.merge(value);
+          if (this.isClone) {
+            user = new User(this.client, value, this.isClone);
           } else {
-            user = new User(this.client, value);
+            if (this.client.users.has(value.id)) {
+              user = this.client.users.get(value.id) as User;
+              user.merge(value);
+            } else {
+              user = new User(this.client, value);
+            }
           }
           value = user;
         }; break;

@@ -41,8 +41,12 @@ export class Team extends BaseStructure {
   ownerUserId: string = '';
   payoutAccountStatus?: TeamPayoutAccountStatuses;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -112,7 +116,7 @@ export class Team extends BaseStructure {
         case DiscordKeys.MEMBERS: {
           this.members.clear();
           for (let raw of value) {
-            this.members.set(raw.user.id, new TeamMember(this.client, raw));
+            this.members.set(raw.user.id, new TeamMember(this.client, raw, this._clone));
           }
         }; return;
       }
@@ -142,8 +146,12 @@ export class TeamMember extends UserMixin {
   teamId: string = '';
   user!: User;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

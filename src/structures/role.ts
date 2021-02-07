@@ -57,8 +57,12 @@ export class Role extends BaseStructure {
     premium_subscriber?: null,
   } | null = null;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -158,6 +162,10 @@ export class Role extends BaseStructure {
 
   edit(options: RequestTypes.EditGuildRole) {
     return this.client.rest.editGuildRole(this.guildId, this.id, options);
+  }
+
+  editPosition(position: number, options?: RequestTypes.EditGuildRolePositionsExtra) {
+    return this.client.rest.editGuildRolePositions(this.guildId, [{id: this.id, position}], options);
   }
 
   mergeValue(key: string, value: any): void {

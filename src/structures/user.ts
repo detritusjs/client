@@ -51,13 +51,11 @@ export class User extends BaseStructure {
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData,
-    merge: boolean = true,
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client);
-    if (merge) {
-      this.merge(data);
-    }
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 
   get avatarUrl(): string {
@@ -288,9 +286,10 @@ export class UserWithToken extends User {
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client, data, false);
+    super(client, undefined, isClone);
     this.merge(data);
   }
 }
@@ -313,13 +312,11 @@ export class UserWithFlags extends User {
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData,
-    merge: boolean = true,
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client, data, false);
-    if (merge) {
-      this.merge(data);
-    }
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 
   hasFlag(flag: number): boolean {
@@ -354,13 +351,11 @@ export class UserExtended extends UserWithFlags {
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData,
-    merge: boolean = true,
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client, data, false);
-    if (merge) {
-      this.merge(data);
-    }
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 
   get isClaimed(): boolean {
@@ -401,9 +396,10 @@ export class UserMe extends UserExtended {
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData,
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client, data, false);
+    super(client, undefined, isClone);
     this.merge(data);
   }
 }

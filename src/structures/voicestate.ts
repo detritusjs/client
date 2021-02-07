@@ -51,7 +51,7 @@ export class VoiceState extends BaseStructure {
   channelId?: null | string;
   deaf: boolean = false;
   guildId?: null | string;
-  member!: Member;
+  member: Member | null = null;
   mute: boolean = false;
   selfDeaf: boolean = false;
   selfMute: boolean = false;
@@ -61,8 +61,12 @@ export class VoiceState extends BaseStructure {
   suppress: boolean = false;
   userId: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -128,15 +132,20 @@ export class VoiceState extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.MEMBER: {
-          const guildId = <string> this.guildId;
+          const guildId = this.guildId as string;
+          value.guild_id = guildId;
+
           let member: Member;
-          if (this.client.members.has(guildId, value.user.id)) {
-            member = <Member> this.client.members.get(guildId, value.user.id);
-            member.merge(value);
+          if (this.isClone) {
+            member = new Member(this.client, value, this.isClone);
           } else {
-            value.guild_id = guildId;
-            member = new Member(this.client, value);
-            this.client.members.insert(member);
+            if (this.client.members.has(guildId, value.user.id)) {
+              member = this.client.members.get(guildId, value.user.id) as Member;
+              member.merge(value);
+            } else {
+              member = new Member(this.client, value);
+              this.client.members.insert(member);
+            }
           }
           value = member;
         }; break;

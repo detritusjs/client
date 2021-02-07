@@ -108,6 +108,7 @@ export namespace GatewayClientEvents {
   export interface ChannelUpdate {
     channel: Channel,
     differences: Differences,
+    old: Channel | null,
   }
 
   export interface ChannelRecipientAdd {
@@ -186,8 +187,12 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildEmojisUpdate {
+    differences: {
+      created: BaseCollection<string, Emoji>,
+      deleted: BaseCollection<string, Emoji>,
+      updated: BaseCollection<string, {emoji: Emoji, old: Emoji}>,
+    } | null,
     emojis: BaseCollection<string, Emoji>,
-    emojisOld: BaseCollection<string, Emoji> | null,
     guild: Guild | null,
     guildId: string,
   }
@@ -219,6 +224,7 @@ export namespace GatewayClientEvents {
     differences: Differences,
     guildId: string,
     member: Member,
+    old: Member | null,
     userId: string,
   }
 
@@ -254,12 +260,14 @@ export namespace GatewayClientEvents {
     differences: Differences,
     guild: Guild | null,
     guildId: string,
+    old: Role | null,
     role: Role,
   }
 
   export interface GuildUpdate {
     differences: Differences,
     guild: Guild,
+    old: Guild | null,
   }
 
   export interface InteractionCreate {
@@ -397,6 +405,7 @@ export namespace GatewayClientEvents {
     isEmbedUpdate: boolean,
     message: Message | null,
     messageId: string,
+    old: Message | null,
     raw: GatewayRawEvents.MessageUpdate,
   }
 
@@ -424,6 +433,7 @@ export namespace GatewayClientEvents {
 
   export interface RelationshipAdd {
     differences: Differences,
+    old: Relationship | null,
     relationship: Relationship,
     userId: string,
   }
@@ -513,12 +523,14 @@ export namespace GatewayClientEvents {
 
   export interface UserUpdate {
     differences: Differences,
+    old: UserMe | null,
     user: UserMe,
   }
 
   export interface UsersUpdate {
     differences: Differences,
     from: ClientEvents,
+    old: User | null,
     user: User,
   }
 
@@ -532,6 +544,7 @@ export namespace GatewayClientEvents {
   export interface VoiceStateUpdate {
     differences: Differences,
     leftChannel: boolean,
+    old: VoiceState | null,
     voiceState: VoiceState,
   }
 

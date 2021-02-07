@@ -60,8 +60,12 @@ export class StoreListing extends BaseStructure {
   tagline?: string;
   thumbnail!: StoreListingAsset;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -111,6 +115,7 @@ const keysStoreListingAsset = new BaseSet<string>([
  * @category Structure
  */
 export class StoreListingAsset extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysStoreListingAsset;
   readonly storeListing: StoreListing;
 
@@ -121,7 +126,7 @@ export class StoreListingAsset extends BaseStructure {
   width: number = 0;
 
   constructor(storeListing: StoreListing, data: BaseStructureData) {
-    super(storeListing.client);
+    super(storeListing.client, undefined, storeListing._clone);
     this.storeListing = storeListing;
     this.merge(data);
     Object.defineProperty(this, 'storeListing', {enumerable: false, writable: false});
@@ -182,8 +187,12 @@ export class Sku extends BaseStructure {
   slug: string = '';
   type: SkuTypes = SkuTypes.BASE;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -197,17 +206,24 @@ export class Sku extends BaseStructure {
         case DiscordKeys.APPLICATION_ID: {
           if (!this.application) {
             if (this.client.applications.has(value)) {
-              this.application = <Application> this.client.applications.get(value);
+              this.application = this.client.applications.get(value) as Application;
+              if (this.isClone) {
+                this.application = this.application.clone();
+              }
             }
           }
         }; break;
         case DiscordKeys.APPLICATION: {
           let application: Application;
-          if (this.client.applications.has(value.id)) {
-            application = <Application> this.client.applications.get(value.id);
-            application.merge(value);
+          if (this.isClone) {
+            application = new Application(this.client, value, this.isClone);
           } else {
-            application = new Application(this.client, value);
+            if (this.client.applications.has(value.id)) {
+              application = this.client.applications.get(value.id) as Application;
+              application.merge(value);
+            } else {
+              application = new Application(this.client, value);
+            }
           }
           value = application;
         }; break;
@@ -239,8 +255,12 @@ export class StoreApplicationAsset extends BaseStructure {
   size: number = 0;
   width: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

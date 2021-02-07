@@ -43,7 +43,7 @@ const keysMergeEmoji = new BaseSet<string>([
 export class Emoji extends BaseStructure {
   readonly _keys = keysEmoji;
   readonly _keysMerge = keysMergeEmoji;
-  _roles?: BaseCollection<string, null | Role>;
+  _roles?: Array<string>;
 
   animated: boolean = false;
   available?: boolean;
@@ -54,8 +54,8 @@ export class Emoji extends BaseStructure {
   requireColons?: boolean;
   user?: User;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
     this.merge(data);
     Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
   }
@@ -98,7 +98,20 @@ export class Emoji extends BaseStructure {
 
   get roles(): BaseCollection<string, null | Role> {
     if (this._roles) {
-      return this._roles;
+      const collection = new BaseCollection<string, null | Role>();
+
+      const guild = this.guild;
+      if (this._roles) {
+        for (let roleId of this._roles) {
+          if (guild) {
+            collection.set(roleId, guild.roles.get(roleId) || null);
+          } else {
+            collection.set(roleId, null);
+          }
+        }
+      }
+
+      return collection;
     }
     return emptyBaseCollection;
   }
@@ -154,6 +167,38 @@ export class Emoji extends BaseStructure {
     });
   }
 
+  difference(key: string, value: any): [boolean, any] {
+    let differences: any;
+    switch (key) {
+      case DiscordKeys.ROLES: {
+        if (this.hasDifference(key, value)) {
+          differences = this._roles || [];
+        }
+      }; break;
+      default: {
+        return super.difference(key, value);
+      };
+    }
+    if (differences !== undefined) {
+      return [true, differences];
+    }
+    return [false, null];
+  }
+
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.ROLES: {
+        const old = this._roles;
+        if (old) {
+          return (old.length !== value.length) || !value.every((roleId: string) => old.includes(roleId));
+        } else {
+          return value.length !== 0;
+        }
+      };
+    }
+    return super.hasDifference(key, value);
+  }
+
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.ANIMATED: {
@@ -170,30 +215,23 @@ export class Emoji extends BaseStructure {
       switch (key) {
         case DiscordKeys.ROLES: {
           if (value.length) {
-            if (!this._roles) {
-              this._roles = new BaseCollection<string, null | Role>();
-            }
-            this._roles.clear();
-
-            const guild = this.guild;
-            for (let roleId of value) {
-              this._roles.set(roleId, (guild) ? guild.roles.get(roleId) || null : null);
-            }
+            this._roles = value;
           } else {
-            if (this._roles) {
-              this._roles.clear();
-              this._roles = undefined;
-            }
+            this._roles = undefined;
           }
         }; return;
         case DiscordKeys.USER: {
           let user: User;
-          if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
-            user.merge(value);
-          } else {
+          if (this.isClone) {
             user = new User(this.client, value);
-            this.client.users.insert(user);
+          } else {
+            if (this.client.users.has(value.id)) {
+              user = <User> this.client.users.get(value.id);
+              user.merge(value);
+            } else {
+              user = new User(this.client, value);
+              this.client.users.insert(user);
+            }
           }
           value = user;
         }; break;

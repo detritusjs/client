@@ -124,8 +124,12 @@ export class Message extends BaseStructure {
   type: MessageTypes = MessageTypes.BASE;
   webhookId?: string;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
     Object.defineProperties(this, {
       _content: {configurable: true, enumerable: false, writable: false},
@@ -138,6 +142,9 @@ export class Message extends BaseStructure {
 
     if (this.guildId && !this.member) {
       this.member = this.client.members.get(this.guildId, this.author.id);
+      if (this.member && this.isClone) {
+        this.member = this.member.clone();
+      }
     }
   }
 
@@ -519,11 +526,16 @@ export class Message extends BaseStructure {
         }; break;
         case DiscordKeys.APPLICATION: {
           let application: Application;
-          if (this.client.applications.has(value.id)) {
-            application = this.client.applications.get(value.id) as Application;
-            application.merge(value);
+          if (this.isClone) {
+            application = new Application(this.client, value, this.isClone);
           } else {
-            application = new Application(this.client, value);
+            // highly unlikely we have this in cache, but might as well check
+            if (this.client.applications.has(value.id)) {
+              application = this.client.applications.get(value.id) as Application;
+              application.merge(value);
+            } else {
+              application = new Application(this.client, value);
+            }
           }
           value = application;
         }; break;
@@ -545,8 +557,8 @@ export class Message extends BaseStructure {
         }; return;
         case DiscordKeys.AUTHOR: {
           let user: User;
-          if (this.fromWebhook) {
-            user = new User(this.client, value);
+          if (this.fromWebhook || this.isClone) {
+            user = new User(this.client, value, this.isClone);
           } else {
             if (this.client.users.has(value.id)) {
               user = this.client.users.get(value.id) as User;
@@ -578,7 +590,7 @@ export class Message extends BaseStructure {
             }
             this._embeds.clear();
             for (let i = 0; i < value.length; i++) {
-              this._embeds.set(i, new MessageEmbed(this.client, value[i]));
+              this._embeds.set(i, new MessageEmbed(this.client, value[i], this.isClone));
             }
           } else {
             if (this._embeds) {
@@ -589,14 +601,21 @@ export class Message extends BaseStructure {
         }; return;
         case DiscordKeys.MEMBER: {
           const guildId = this.guildId as string;
+          value.guild_id = guildId;
+
           let member: Member;
-          if (this.client.members.has(guildId, this.author.id)) {
-            member = this.client.members.get(guildId, this.author.id) as Member;
-            // should we merge? this event is so common
+          if (this.isClone) {
+            member = new Member(this.client, value, this.isClone);
+            member.user = this.author.clone();
           } else {
-            value.guild_id = guildId;
-            value.user = this.author;
-            member = new Member(this.client, value);
+            if (this.client.members.has(guildId, this.author.id)) {
+              member = this.client.members.get(guildId, this.author.id) as Member;
+              // should we merge? this event is so common so we'll be wasting resources..
+            } else {
+              member = new Member(this.client, value);
+              member.user = this.author.clone();
+              this.client.members.insert(member);
+            }
           }
           value = member;
         }; break;
@@ -609,33 +628,60 @@ export class Message extends BaseStructure {
 
             const guildId = this.guildId as string;
             for (let raw of value) {
-              if (raw.member) {
+              if (raw.user) {
+                // we just cloned the message object so we got the full member object
+                // {...memberWithUser}
+                const member = new Member(this.client, raw);
+                this._mentions.set(member.id, member);
+              } else if (raw.member) {
+                // member object exists in the mention (is from a guild message create)
+                // {member: {memberWithoutUser}, ...user}
+                raw.member.guild_id = guildId;
+
                 let member: Member;
-                if (this.client.members.has(guildId, raw.id)) {
-                  member = this.client.members.get(guildId, raw.id) as Member;
-                  // should we merge?
-                } else {
-                  raw.member.guild_id = guildId;
-                  member = new Member(this.client, raw.member);
+                if (this.isClone) {
+                  member = new Member(this.client, raw.member, this.isClone);
                   member.merge({user: raw});
-                  this.client.members.insert(member);
+                } else {
+                  if (this.client.members.has(guildId, raw.id)) {
+                    member = this.client.members.get(guildId, raw.id) as Member;
+                    // should we merge?
+                  } else {
+                    member = new Member(this.client, raw.member);
+                    member.merge({user: raw});
+                    this.client.members.insert(member);
+                  }
                 }
                 this._mentions.set(member.id, member);
               } else {
-                if (guildId && this.client.members.has(guildId, raw.id)) {
-                  const member = this.client.members.get(guildId, raw.id) as Member;
-                  member.merge({user: raw});
-                  this._mentions.set(member.id, member);
-                } else {
-                  let user: User;
-                  if (this.client.users.has(raw.id)) {
-                    user = this.client.users.get(raw.id) as User;
-                    user.merge(raw);
+                // {...user}
+                // check our member cache and try to fill the member object (could've gotten the message object from rest)
+                if (this.isClone) {
+                  if (guildId && this.client.members.has(guildId, raw.id)) {
+                    const member = (this.client.members.get(guildId, raw.id) as Member).clone();
+                    member.merge({user: raw});
+                    this._mentions.set(member.id, member);
                   } else {
-                    user = new User(this.client, raw);
-                    this.client.users.insert(user);
+                    const user = new User(this.client, raw, this.isClone);
+                    this._mentions.set(user.id, user);
                   }
-                  this._mentions.set(user.id, user);
+                } else {
+                  // try and get object from cache and update it
+                  if (guildId && this.client.members.has(guildId, raw.id)) {
+                    const member = this.client.members.get(guildId, raw.id) as Member;
+                    member.merge({user: raw});
+                    this._mentions.set(member.id, member);
+                  } else {
+                    let user: User;
+                    if (this.client.users.has(raw.id)) {
+                      user = this.client.users.get(raw.id) as User;
+                      user.merge(raw);
+                    } else {
+                      user = new User(this.client, raw);
+                      this.client.users.insert(user);
+                    }
+                    this._mentions.set(user.id, user);
+                  }
                 }
               }
             }
@@ -654,12 +700,16 @@ export class Message extends BaseStructure {
             this._mentionChannels.clear();
             for (let raw of value) {
               let channel: Channel;
-              if (this.client.channels.has(raw.id)) {
-                channel = this.client.channels.get(raw.id) as Channel;
-                channel.merge(raw);
+              if (this.isClone) {
+                channel = createChannelFromData(this.client, raw, this.isClone);
               } else {
-                raw.is_partial = true;
-                channel = createChannelFromData(this.client, raw);
+                if (this.client.channels.has(raw.id)) {
+                  channel = this.client.channels.get(raw.id) as Channel;
+                  channel.merge(raw);
+                } else {
+                  raw.is_partial = true;
+                  channel = createChannelFromData(this.client, raw);
+                }
               }
               this._mentionChannels.set(channel.id, channel);
             }
@@ -715,11 +765,15 @@ export class Message extends BaseStructure {
         case DiscordKeys.REFERENCED_MESSAGE: {
           if (value) {
             let message: Message;
-            if (this.client.messages.has(value.id)) {
-              message = this.client.messages.get(value.id) as Message;
-              message.merge(value);
+            if (this.isClone) {
+              message = new Message(this.client, value, this.isClone);
             } else {
-              message = new Message(this.client, value);
+              if (this.client.messages.has(value.id)) {
+                message = this.client.messages.get(value.id) as Message;
+                message.merge(value);
+              } else {
+                message = new Message(this.client, value);
+              }
             }
             value = message;
           }
@@ -767,6 +821,7 @@ const keysMessageActivity = new BaseSet<string>([
  * @category Structure
  */
 export class MessageActivity extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysMessageActivity;
   readonly message: Message;
 
@@ -776,7 +831,7 @@ export class MessageActivity extends BaseStructure {
   type: number = 0;
 
   constructor(message: Message, data: BaseStructureData) {
-    super(message.client);
+    super(message.client, undefined, message._clone);
     this.message = message;
     this.merge(data);
     Object.defineProperty(this, 'message', {enumerable: false});
@@ -822,6 +877,7 @@ const keysMessageCall = new BaseSet<string>([
  * @category Structure
  */
 export class MessageCall extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysMessageCall;
   readonly message: Message;
 
@@ -829,7 +885,7 @@ export class MessageCall extends BaseStructure {
   participants: Array<string> = [];
 
   constructor(message: Message, data: BaseStructureData) {
-    super(message.client);
+    super(message.client, undefined, message._clone);
     this.message = message;
     this.merge(data);
     Object.defineProperty(this, 'message', {enumerable: false});
@@ -873,6 +929,7 @@ const keysMessageReference = new BaseSet<string>([
  * @category Structure
  */
 export class MessageReference extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysMessageReference;
   readonly parent: Message;
 
@@ -881,7 +938,7 @@ export class MessageReference extends BaseStructure {
   messageId?: string = '';
 
   constructor(message: Message, data: BaseStructureData) {
-    super(message.client);
+    super(message.client, undefined, message._clone);
     this.parent = message;
     this.merge(data);
     Object.defineProperty(this, 'message', {enumerable: false});

@@ -56,8 +56,12 @@ export class Member extends UserMixin {
   premiumSinceUnix: number = 0;
   user!: User;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
     Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
   }
@@ -370,20 +374,13 @@ export class Member extends UserMixin {
     let differences: any;
     switch (key) {
       case DiscordKeys.HOISTED_ROLE: {
-        if (this.hoistedRoleId !== value) {
+        if (this.hasDifference(key, value)) {
           differences = this.hoistedRoleId;
         }
       }; break;
       case DiscordKeys.ROLES: {
-        if (this._roles) {
-          const hasDifferences = (this._roles.length !== value.length) || this._roles.some((roleId) => {
-            return !value.includes(roleId);
-          });
-          if (hasDifferences) {
-            differences = this._roles;
-          }
-        } else {
-          differences = this._roles;
+        if (this.hasDifference(key, value)) {
+          differences = this._roles || [];
         }
       }; break;
       default: {
@@ -394,6 +391,23 @@ export class Member extends UserMixin {
       return [true, differences];
     }
     return [false, null];
+  }
+
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.HOISTED_ROLE: {
+        return (this.hoistedRoleId !== value);
+      };
+      case DiscordKeys.ROLES: {
+        const old = this._roles;
+        if (old) {
+          return (old.length !== value.length) || !value.every((roleId: string) => old.includes(roleId));
+        } else {
+          return value.length !== 0;
+        }
+      };
+    }
+    return super.hasDifference(key, value);
   }
 
   mergeValue(key: string, value: any): void {
@@ -417,12 +431,16 @@ export class Member extends UserMixin {
         }; return;
         case DiscordKeys.USER: {
           let user: User;
-          if (this.client.users.has(value.id)) {
-            user = this.client.users.get(value.id) as User;
-            user.merge(value);
+          if (this.isClone) {
+            user = new User(this.client, value, this.isClone);
           } else {
-            user = new User(this.client, value);
-            this.client.users.insert(user);
+            if (this.client.users.has(value.id)) {
+              user = this.client.users.get(value.id) as User;
+              user.merge(value);
+            } else {
+              user = new User(this.client, value);
+              this.client.users.insert(user);
+            }
           }
           value = user;
         }; break;

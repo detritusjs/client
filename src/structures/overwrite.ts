@@ -35,7 +35,7 @@ export class Overwrite extends BaseStructure {
   type!: OverwriteTypes;
 
   constructor(channel: Channel, data: BaseStructureData) {
-    super(channel.client);
+    super(channel.client, undefined, channel._clone);
     this.channel = channel;
     this.merge(data);
     Object.defineProperty(this, 'channel', {enumerable: false});

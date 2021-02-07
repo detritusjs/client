@@ -45,8 +45,12 @@ export class Webhook extends BaseStructure {
   type: WebhookTypes = WebhookTypes.INCOMING;
   user?: null | User;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -152,12 +156,16 @@ export class Webhook extends BaseStructure {
       switch (key) {
         case DiscordKeys.USER: {
           let user: User;
-          if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
-            user.merge(value);
+          if (this.isClone) {
+            user = new User(this.client, value, this.isClone);
           } else {
-            user = new User(this.client, value);
-            this.client.users.insert(user);
+            if (this.client.users.has(value.id)) {
+              user = this.client.users.get(value.id) as User;
+              user.merge(value);
+            } else {
+              user = new User(this.client, value);
+              this.client.users.insert(user);
+            }
           }
           value = user;
         }; break;

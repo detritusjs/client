@@ -116,7 +116,106 @@ export class Structure {
     return null;
   }
 
-  merge(data: BaseStructureData): void {
+  differencesBetween(structure: Structure): null | object {
+    let hasDifferences = false;
+    const obj: BaseStructureData = {};
+    if (this._keys) {
+      for (let key of this._keys) {
+        if (this._keysSkipDifference && this._keysSkipDifference.has(key)) {
+          continue;
+        }
+        const [ hasDifference, difference ] = this.difference(key, structure._getFromSnake(key));
+        if (hasDifference) {
+          obj[convertKey(key)] = difference;
+          hasDifferences = true;
+        }
+      }
+    }
+    if (hasDifferences) {
+      return obj;
+    }
+    return null;
+  }
+
+  hasDifference(key: string, value: any): boolean {
+    if (value !== undefined) {
+      const camelKey = convertKey(key);
+      const old = (this as any)[camelKey];
+      if (old !== undefined && old !== value) {
+        if (!!old !== !!value) {
+          return true;
+        } else if (old instanceof BaseStructure) {
+          return old.hasDifferences(value);
+        } else if (old instanceof BaseCollection) {
+          if (old.size !== value.length) {
+            return true;
+          } else if (old.size) {
+            return true;
+          }
+        } else if (old instanceof BaseSet) {
+          if (old.size !== value.length) {
+            return true;
+          } else {
+            return !value.every((item: any) => old.has(item));
+          }
+        } else if (old instanceof Date) {
+          if (value) {
+            return old.getTime() !== (new Date(value)).getTime();
+          } else {
+            return true;
+          }
+        } else if (Array.isArray(old)) {
+
+        } else if (typeof(old) === 'object') {
+          if (typeof(value) === 'object') {
+            const keys = Object.keys(value);
+            if (Object.keys(old).length !== keys.length) {
+              return true;
+            }
+            return !keys.every((key: string) => old[key] === value[key])
+          } else {
+            return true;
+          }
+        } else {
+          return old !== value;
+        }
+      }
+    }
+    return false;
+  }
+
+  hasDifferences(data?: BaseStructureData): boolean {
+    for (let key in data) {
+      if (this._keysSkipDifference && this._keysSkipDifference.has(key)) {
+        continue;
+      }
+      const hasDifference = this.hasDifference(key, data[key]);
+      if (hasDifference) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  hasDifferencesBetween(structure: Structure): boolean {
+    if (this._keys) {
+      for (let key of this._keys) {
+        if (this._keysSkipDifference && this._keysSkipDifference.has(key)) {
+          continue;
+        }
+        const hasDifference = this.hasDifference(key, structure._getFromSnake(key));
+        if (hasDifference) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
     if (this._keys) {
       if (this._keysMerge) {
         for (let key of this._keysMerge) {
@@ -180,14 +279,35 @@ export class Structure {
  * @category Structure
  */
 export class BaseStructure extends Structure {
+  /** @ignore */
+  readonly _clone?: boolean;
+  /** @ignore */
+  readonly _uncloneable?: boolean;
+
   readonly client: ShardClient;
 
-  constructor(client: ShardClient) {
+  constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
     super();
     this.client = client;
+    this._clone = isClone;
+    if (data) {
+      this.merge(data);
+    }
+  }
+
+  get isClone(): boolean {
+    return !!this._clone;
   }
 
   get shardId(): number {
     return this.client.shardId;
+  }
+
+  clone(): this {
+    if (this._uncloneable) {
+      throw new Error('Cannot clone this object');
+    }
+    const ClonedStructure = this.constructor as { new(...args: ConstructorParameters<typeof BaseStructure>): any };
+    return new ClonedStructure(this.client, JSON.parse(JSON.stringify(this)), true);
   }
 }
