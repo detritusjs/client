@@ -50,20 +50,26 @@ export class ArgumentParser {
         for (const arg of this.args) {
           try {
             let value: string;
+            let content: string;
             if (arg.consume) {
               value = attributes.content;
-              attributes.content = '';
+              content = '';
             } else {
               if (attributes.content) {
                 // get first value from attributes.content;
-                let [ x, content ] = getFirstArgument(attributes.content);
-                value = x;
-                attributes.content = content;
+                [ value, content ] = getFirstArgument(attributes.content);
               } else {
                 continue;
               }
             }
-            parsed[arg.label] = await arg.parse(value.trim(), context);
+            const parsedValue = await arg.parse(value.trim(), context);
+            if (Array.isArray(parsedValue) && parsedValue.length === 2 && parsedValue[0] === true) {
+              // check if it's [boolean, any] (specifically [true, any]) for skipping the value
+              parsed[arg.label] = parsedValue[1];
+            } else {
+              parsed[arg.label] = parsedValue;
+              attributes.content = content;
+            }
           } catch(error) {
             errors[arg.label] = error;
           }

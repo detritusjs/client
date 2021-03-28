@@ -46,49 +46,16 @@ export class Structure {
         if (!!old !== !!value) {
           return [true, old];
         } else if (old instanceof BaseStructure) {
-          let differences = old.differences(value);
+          const differences = old.differences(value);
           if (differences) {
             return [true, differences];
           }
-        } else if (old instanceof BaseCollection) {
-          if (old.size !== value.length) {
+        } else if (this.hasDifference(key, value)) {
+          if (old instanceof BaseCollection) {
             return [true, old.clone()];
-          } else if (old.size) {
-            return [true, old.clone()];
-          }
-        } else if (old instanceof BaseSet) {
-          if (old.size !== value.length) {
+          } else if (old instanceof BaseSet) {
             return [true, old.clone()];
           } else {
-            if (!value.every((item: any) => old.has(item))) {
-              return [true, old.clone()];
-            }
-          }
-        } else if (old instanceof Date) {
-          if (value) {
-            if (old.getTime() !== (new Date(value)).getTime()) {
-              return [true, old];
-            }
-          } else {
-            return [true, old];
-          }
-        } else if (Array.isArray(old)) {
-
-        } else if (typeof(old) === 'object') {
-          if (typeof(value) === 'object') {
-            const keys = Object.keys(value);
-            if (Object.keys(old).length !== keys.length) {
-              return [true, old];
-            }
-            const matches = keys.every((key: string) => old[key] === value[key]);
-            if (!matches) {
-              return [true, old];
-            }
-          } else {
-            return [true, old];
-          }
-        } else {
-          if (old !== value) {
             return [true, old];
           }
         }
@@ -116,7 +83,149 @@ export class Structure {
     return null;
   }
 
-  merge(data: BaseStructureData): void {
+  differencesBetween(structure: Structure): null | object {
+    let hasDifferences = false;
+    const obj: BaseStructureData = {};
+    if (this._keys) {
+      for (let key of this._keys) {
+        if (this._keysSkipDifference && this._keysSkipDifference.has(key)) {
+          continue;
+        }
+        const [ hasDifference, difference ] = this.difference(key, structure._getFromSnake(key));
+        if (hasDifference) {
+          obj[convertKey(key)] = difference;
+          hasDifferences = true;
+        }
+      }
+    }
+    if (hasDifferences) {
+      return obj;
+    }
+    return null;
+  }
+
+  hasDifference(key: string, value: any): boolean {
+    if (value !== undefined) {
+      const camelKey = convertKey(key);
+      const old = (this as any)[camelKey];
+
+      // BigInts
+      // -> Discord sends us a string version of this (like permissions)
+      // -> Parse it as BigInt before comparing
+      // Arrays
+      // -> We either receive [string|int] or [{id: string}] or other arrays from discord
+      // -> We either parse them as BaseSet or BaseCollection with the ID as the key (sometimes the key is the array number like embeds)
+      if (old !== undefined && old !== value) {
+        if (!!old !== !!value) {
+          // this makes sure we dont compare null to BaseStructure, null to Date, etc..
+          return true;
+        } else if (old instanceof BaseStructure) {
+          // assume it's either an object or a BaseStructure
+          if (value instanceof BaseStructure) {
+            return old.hasDifferencesBetween(value);
+          } else {
+            return old.hasDifferences(value);
+          }
+        } else if (old instanceof BaseCollection) {
+          // assume we got an array, maybe try looking to see if each object has {id}?
+          if (old.size !== value.length) {
+            // compare sizes first
+            return true;
+          } else if (old.size) {
+            // unknown of how to compare, so just see if the BaseCollection has a size
+            return true;
+          }
+        } else if (old instanceof BaseSet) {
+          // assume we got an array of [string] or [int]
+          if (old.size !== value.length) {
+            return true;
+          } else {
+            return !value.every((item: any) => old.has(item));
+          }
+        } else if (old instanceof Date) {
+          // assume we either got a Date, Int, or Date String
+          if (value instanceof Date) {
+            // we got a Date object, usually from Structure.differencesBetween(Structure)
+            return old.getTime() === value.getTime();
+          } else if (typeof(value) === 'number') {
+            // we got a number, unsure of from where but might as well check
+            return old.getTime() !== value;
+          }
+          return old.getTime() !== (new Date(value)).getTime();
+        } else if (Array.isArray(old)) {
+          // assume we got an array of something
+          if (old.length !== value.length) {
+            // compare sizes first
+            return true;
+          } else if (old.length) {
+            // unknown of how to compare, so just see if the Array has a size
+            return true;
+          }
+        } else if (typeof(old) === 'object') {
+          // assume we got an object too
+          // this would be a rare compare, like role.tags
+          if (typeof(value) === 'object') {
+            // compare keys length to each other
+            const oldKeys = Object.keys(old);
+            const newKeys = Object.keys(value);
+            if (newKeys.length !== oldKeys.length) {
+              return true;
+            }
+            // see if both objects have the same keys
+            if (!newKeys.every((key: string) => oldKeys.includes(key))) {
+              return true;
+            }
+            // compare each value inside of the object
+            return newKeys.every((key: string) => old[key] === value[key]);
+          } else {
+            return true;
+          }
+        } else if (typeof(old) === 'bigint') {
+          // assume we got a BigInt in a string
+          return old !== BigInt(value);
+        } else {
+          // good old compare
+          return old !== value;
+        }
+      }
+    }
+    return false;
+  }
+
+  hasDifferences(data?: BaseStructureData): boolean {
+    if (data) {
+      for (let key in data) {
+        if (this._keysSkipDifference && this._keysSkipDifference.has(key)) {
+          continue;
+        }
+        const hasDifference = this.hasDifference(key, data[key]);
+        if (hasDifference) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  hasDifferencesBetween(structure: Structure): boolean {
+    if (this._keys) {
+      for (let key of this._keys) {
+        if (this._keysSkipDifference && this._keysSkipDifference.has(key)) {
+          continue;
+        }
+        const hasDifference = this.hasDifference(key, structure._getFromSnake(key));
+        if (hasDifference) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
     if (this._keys) {
       if (this._keysMerge) {
         for (let key of this._keysMerge) {
@@ -180,14 +289,35 @@ export class Structure {
  * @category Structure
  */
 export class BaseStructure extends Structure {
+  /** @ignore */
+  readonly _clone?: boolean;
+  /** @ignore */
+  readonly _uncloneable?: boolean;
+
   readonly client: ShardClient;
 
-  constructor(client: ShardClient) {
+  constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
     super();
     this.client = client;
+    this._clone = isClone;
+    if (data) {
+      this.merge(data);
+    }
+  }
+
+  get isClone(): boolean {
+    return !!this._clone;
   }
 
   get shardId(): number {
     return this.client.shardId;
+  }
+
+  clone(): this {
+    if (this._uncloneable) {
+      throw new Error('Cannot clone this object');
+    }
+    const ClonedStructure = this.constructor as { new(...args: ConstructorParameters<typeof BaseStructure>): any };
+    return new ClonedStructure(this.client, JSON.parse(JSON.stringify(this)), true);
   }
 }

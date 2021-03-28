@@ -41,6 +41,7 @@ const keysAuditLog = new BaseSet<string>([
  * @category Structure
  */
 export class AuditLog extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysAuditLog;
 
   actionType!: AuditLogActions;
@@ -54,8 +55,8 @@ export class AuditLog extends BaseStructure {
   user?: User;
   userId?: string;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -102,7 +103,9 @@ const keysAuditLogChange = new BaseSet<string>([
  * @category Structure
  */
 export class AuditLogChange extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysAuditLogChange;
+
   readonly log: AuditLog;
 
   key!: AuditLogChangeKeys;
@@ -110,7 +113,7 @@ export class AuditLogChange extends BaseStructure {
   oldValue: any;
 
   constructor(log: AuditLog, data: BaseStructureData) {
-    super(log.client);
+    super(log.client, undefined, log._clone);
     this.log = log;
     this.merge(data);
     Object.defineProperty(this, 'log', {enumerable: false, writable: false});
@@ -134,7 +137,9 @@ const keysAuditLogOptions = new BaseSet<string>([
  * @category Structure
  */
 export class AuditLogOptions extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysAuditLogOptions;
+
   readonly log: AuditLog;
 
   channel?: ChannelGuildBase;
@@ -147,7 +152,7 @@ export class AuditLogOptions extends BaseStructure {
   type?: number;
 
   constructor(log: AuditLog, data: BaseStructureData) {
-    super(log.client);
+    super(log.client, undefined, log._clone);
     this.log = log;
     this.merge(data);
     Object.defineProperty(this, 'log', {enumerable: false, writable: false});

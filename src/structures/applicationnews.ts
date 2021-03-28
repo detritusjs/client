@@ -49,8 +49,8 @@ export class ApplicationNews extends BaseStructure {
   title: string = '';
   type: string = MessageEmbedTypes.APPLICATION_NEWS;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

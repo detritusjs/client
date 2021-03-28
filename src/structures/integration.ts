@@ -45,8 +45,12 @@ export class Integration extends BaseStructure {
   type: string = '';
   user!: User;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -69,11 +73,15 @@ export class Integration extends BaseStructure {
         }; break;
         case DiscordKeys.USER: {
           let user: User;
-          if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
-            user.merge(value);
+          if (this.isClone) {
+            user = new User(this.client, value, this.isClone);
           } else {
-            user = new User(this.client, value);
+            if (this.client.users.has(value.id)) {
+              user = this.client.users.get(value.id) as User;
+              user.merge(value);
+            } else {
+              user = new User(this.client, value);
+            }
           }
           value = user;
         }; break;
@@ -94,6 +102,7 @@ const keysIntegrationAccount = new BaseSet<string>([
  * @category Structure
  */
 export class IntegrationAccount extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysIntegrationAccount;
   readonly integration: Integration;
 
@@ -101,7 +110,7 @@ export class IntegrationAccount extends BaseStructure {
   name: string = '';
 
   constructor(integration: Integration, data: BaseStructureData) {
-    super(integration.client);
+    super(integration.client, undefined, integration._clone);
     this.integration = integration;
     this.merge(data);
     Object.defineProperty(this, 'integration', {enumerable: false, writable: false});

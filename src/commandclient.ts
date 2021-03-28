@@ -334,22 +334,23 @@ export class CommandClient extends EventSpewer {
   }
 
   addMentionPrefixes(): void {
-    let user: null | User = null;
+    let userId: string | null = null;
     if (this.client instanceof ClusterClient) {
       for (let [shardId, shard] of this.client.shards) {
-        if (shard.user != null) {
-          user = shard.user as User;
+        if (shard.user) {
+          userId = shard.user.id;
           break;
         }
       }
     } else if (this.client instanceof ShardClient) {
-      if (this.client.user != null) {
-        user = this.client.user as User;
+      if (this.client.user) {
+        userId = this.client.user.id;
       }
     }
-    if (user !== null) {
-      this.prefixes.mention.add(user.mention);
-      this.prefixes.mention.add(`<@!${user.id}>`);
+    if (userId) {
+      this.prefixes.mention.clear();
+      this.prefixes.mention.add(`<@${userId}>`);
+      this.prefixes.mention.add(`<@!${userId}>`);
     }
   }
 
@@ -375,6 +376,9 @@ export class CommandClient extends EventSpewer {
 
     let prefix: string = '';
     if (this.mentionsEnabled) {
+      if (!this.prefixes.mention.length) {
+        this.addMentionPrefixes();
+      }
       for (let mention of this.prefixes.mention) {
         if (contentLower.startsWith(mention)) {
           prefix = mention;

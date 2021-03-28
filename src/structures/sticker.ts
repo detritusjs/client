@@ -38,8 +38,12 @@ export class Sticker extends BaseStructure {
   previewAsset: null | string = null;
   tags: null | string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

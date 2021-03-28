@@ -45,8 +45,12 @@ export class Reaction extends BaseStructure {
   messageId: string = '';
   me: boolean = false;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -98,7 +102,7 @@ export class Reaction extends BaseStructure {
 
           let emoji: Emoji;
           if (this.client.emojis.has(this.guildId || null, emojiId)) {
-            emoji = <Emoji> this.client.emojis.get(this.guildId || null, emojiId);
+            emoji = this.client.emojis.get(this.guildId || null, emojiId) as Emoji;
           } else {
             emoji = new Emoji(this.client, value);
           }

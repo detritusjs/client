@@ -44,32 +44,38 @@ export type Channel = (
   ChannelGuildStore
 );
 
-export function createChannelFromData(client: ShardClient, data: any): Channel {
+export function createChannelFromData(
+  client: ShardClient,
+  data?: BaseStructureData,
+  isClone?: boolean,
+): Channel {
   let Class = ChannelBase;
-  switch (data.type) {
-    case ChannelTypes.GUILD_TEXT: {
-      Class = ChannelGuildText;
-    }; break;
-    case ChannelTypes.DM: {
-      Class = ChannelDM;
-    }; break;
-    case ChannelTypes.GUILD_VOICE: {
-      Class = ChannelGuildVoice;
-    }; break;
-    case ChannelTypes.GROUP_DM: {
-      Class = ChannelDMGroup;
-    }; break;
-    case ChannelTypes.GUILD_CATEGORY: {
-      Class = ChannelGuildCategory;
-    }; break;
-    case ChannelTypes.GUILD_NEWS: {
-      Class = ChannelGuildText;
-    }; break;
-    case ChannelTypes.GUILD_STORE: {
-      Class = ChannelGuildStore;
-    }; break;
+  if (data) {
+    switch (data.type) {
+      case ChannelTypes.GUILD_TEXT: {
+        Class = ChannelGuildText;
+      }; break;
+      case ChannelTypes.DM: {
+        Class = ChannelDM;
+      }; break;
+      case ChannelTypes.GUILD_VOICE: {
+        Class = ChannelGuildVoice;
+      }; break;
+      case ChannelTypes.GROUP_DM: {
+        Class = ChannelDMGroup;
+      }; break;
+      case ChannelTypes.GUILD_CATEGORY: {
+        Class = ChannelGuildCategory;
+      }; break;
+      case ChannelTypes.GUILD_NEWS: {
+        Class = ChannelGuildText;
+      }; break;
+      case ChannelTypes.GUILD_STORE: {
+        Class = ChannelGuildStore;
+      }; break;
+    }
   }
-  return new Class(client, data);
+  return new Class(client, data, isClone);
 }
 
 
@@ -106,19 +112,18 @@ export class ChannelBase extends BaseStructure {
   parentId?: null | string;
   position: number = -1;
   rateLimitPerUser: number = 0;
+  rtcRegion?: null | string;
   topic?: string;
   type: ChannelTypes = ChannelTypes.BASE;
   userLimit: number = 0;
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData,
-    merge: boolean = true,
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client);
-    if (merge) {
-      this.merge(data);
-    }
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 
   get canAddReactions(): boolean {
@@ -575,13 +580,11 @@ export class ChannelDM extends ChannelBase {
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData,
-    merge: boolean = true,
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client, data, false);
-    if (merge) {
-      this.merge(data);
-    }
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 
   get iconUrl(): null | string {
@@ -748,12 +751,16 @@ export class ChannelDM extends ChannelBase {
 
             for (let raw of value) {
               let user: User;
-              if (this.client.users.has(raw.id)) {
-                user = <User> this.client.users.get(raw.id);
-                user.merge(raw);
+              if (this.isClone) {
+                user = new User(this.client, raw, true);
               } else {
-                user = new User(this.client, raw);
-                this.client.users.insert(user);
+                if (this.client.users.has(raw.id)) {
+                  user = this.client.users.get(raw.id) as User;
+                  user.merge(raw);
+                } else {
+                  user = new User(this.client, raw);
+                  this.client.users.insert(user);
+                }
               }
               this._recipients.set(user.id, user);
 
@@ -799,8 +806,8 @@ export class ChannelDMGroup extends ChannelDM {
   icon: null | string = null;
   ownerId: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client, data, false);
+  constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -881,13 +888,11 @@ export class ChannelGuildBase extends ChannelBase {
 
   constructor(
     client: ShardClient,
-    data: BaseStructureData,
-    merge: boolean = true,
+    data?: BaseStructureData,
+    isClone?: boolean,
   ) {
-    super(client, data, false);
-    if (merge) {
-      this.merge(data);
-    }
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 
   get canAddReactions(): boolean {
@@ -1035,7 +1040,7 @@ export class ChannelGuildBase extends ChannelBase {
 
   get parent(): ChannelGuildCategory | null {
     if (this.parentId && this.client.channels.has(this.parentId)) {
-      return <ChannelGuildCategory> this.client.channels.get(this.parentId);
+      return this.client.channels.get(this.parentId) as ChannelGuildCategory;
     }
     return null;
   }
@@ -1061,7 +1066,7 @@ export class ChannelGuildBase extends ChannelBase {
         if (!this.client.members.has(this.guildId, this.client.user.id)) {
           return false;
         }
-        memberOrRole = <Member> this.client.members.get(this.guildId, this.client.user.id);
+        memberOrRole = this.client.members.get(this.guildId, this.client.user.id) as Member;
       }
   
       if (!ignoreOwner) {
@@ -1091,7 +1096,7 @@ export class ChannelGuildBase extends ChannelBase {
       }
       return overwrites.every((overwrite) => {
         if (parentOverwrites.has(overwrite.id)) {
-          const parentOverwrite = <Overwrite> parentOverwrites.get(overwrite.id);
+          const parentOverwrite = parentOverwrites.get(overwrite.id) as Overwrite;
           return overwrite.allow === parentOverwrite.allow && overwrite.deny === parentOverwrite.deny;
         }
         return false;
@@ -1121,7 +1126,7 @@ export class ChannelGuildBase extends ChannelBase {
             for (let raw of value) {
               let overwrite: Overwrite;
               if (this._permissionOverwrites.has(raw.id)) {
-                overwrite = <Overwrite> this._permissionOverwrites.get(raw.id);
+                overwrite = this._permissionOverwrites.get(raw.id) as Overwrite;
                 overwrite.merge(raw);
               } else {
                 overwrite = new Overwrite(this, raw);
@@ -1164,8 +1169,12 @@ export class ChannelGuildCategory extends ChannelGuildBase {
   bitrate: number = 0;
   userLimit: number = 0;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client, data, false);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -1199,8 +1208,12 @@ export class ChannelGuildText extends ChannelGuildBase {
   lastMessageId?: null | string;
   topic?: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client, data, false);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -1342,6 +1355,7 @@ export class ChannelGuildText extends ChannelGuildBase {
 const keysChannelGuildVoice = new BaseSet<string>([
   ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
+  DiscordKeys.RTC_REGION,
   DiscordKeys.USER_LIMIT,
 ]);
 
@@ -1354,16 +1368,21 @@ export class ChannelGuildVoice extends ChannelGuildBase {
   type = ChannelTypes.GUILD_VOICE;
 
   bitrate: number = 64000;
+  rtcRegion?: string | null = null;
   userLimit: number = 0;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client, data, false);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
   get joined(): boolean {
     if (this.client.voiceConnections.has(this.guildId)) {
-      const voiceConnection = <VoiceConnection> this.client.voiceConnections.get(this.guildId);
+      const voiceConnection = this.client.voiceConnections.get(this.guildId) as VoiceConnection;
       return voiceConnection.guildId === this.id;
     }
     return false;
@@ -1374,7 +1393,9 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     const voiceStates = this.voiceStates;
     if (voiceStates) {
       for (let [cacheId, voiceState] of voiceStates) {
-        collection.set(voiceState.userId, voiceState.member);
+        if (voiceState.member) {
+          collection.set(voiceState.userId, voiceState.member);
+        }
       }
     }
     return collection;
@@ -1418,8 +1439,12 @@ export class ChannelGuildStore extends ChannelGuildBase {
   bitrate: number = 0;
   userLimit: number = 0;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client, data, false);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

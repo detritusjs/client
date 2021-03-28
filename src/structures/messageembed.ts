@@ -48,8 +48,12 @@ export class MessageEmbed extends BaseStructure {
   url?: string;
   video?: MessageEmbedVideo;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -130,7 +134,7 @@ export class MessageEmbed extends BaseStructure {
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.AUTHOR: {
-        value = new MessageEmbedAuthor(this.client, value);
+        value = new MessageEmbedAuthor(this.client, value, this._clone);
       }; break;
       case DiscordKeys.FIELDS: {
         if (!this.fields) {
@@ -138,26 +142,26 @@ export class MessageEmbed extends BaseStructure {
         }
         this.fields.clear();
         for (let i = 0; i < value.length; i++) {
-          this.fields.set(i, value[i]);
+          this.fields.set(i, new MessageEmbedField(this.client, value[i], this._clone));
         }
       }; return;
       case DiscordKeys.FOOTER: {
-        value = new MessageEmbedFooter(this.client, value);
+        value = new MessageEmbedFooter(this.client, value, this._clone);
       }; break;
       case DiscordKeys.PROVIDER: {
-        value = new MessageEmbedProvider(this.client, value);
+        value = new MessageEmbedProvider(this.client, value, this._clone);
       }; break;
       case DiscordKeys.IMAGE: {
-        value = new MessageEmbedImage(this.client, value);
+        value = new MessageEmbedImage(this.client, value, this._clone);
       }; break;
       case DiscordKeys.TIMESTAMP: {
         value = new Date(value);
       }; break;
       case DiscordKeys.THUMBNAIL: {
-        value = new MessageEmbedThumbnail(this.client, value);
+        value = new MessageEmbedThumbnail(this.client, value, this._clone);
       }; break;
       case DiscordKeys.VIDEO: {
-        value = new MessageEmbedVideo(this.client, value);
+        value = new MessageEmbedVideo(this.client, value, this._clone);
       }; break;
     }
     return super.mergeValue(key, value);
@@ -184,8 +188,12 @@ export class MessageEmbedAuthor extends BaseStructure {
   proxyIconUrl?: string;
   url?: string;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 }
@@ -208,8 +216,12 @@ export class MessageEmbedField extends BaseStructure {
   name: string = '';
   value: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 }
@@ -232,8 +244,12 @@ export class MessageEmbedFooter extends BaseStructure {
   proxyIconUrl?: string;
   text: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 }
@@ -258,8 +274,12 @@ export class MessageEmbedImage extends BaseStructure {
   url: string = '';
   width: number = 0;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -284,8 +304,12 @@ export class MessageEmbedProvider extends BaseStructure {
   name?: string;
   url?: string;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 }

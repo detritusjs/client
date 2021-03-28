@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.13.0',
+  VERSION: '0.14.1',
 });
 
 export type Snowflake = number | string;
@@ -1150,6 +1150,8 @@ export const DiscordKeys = Object.freeze({
   EMBED_ENABLED: 'embed_enabled',
   EMOJI: 'emoji',
   EMOJIS: 'emojis',
+  EMOJI_ID: 'emoji_id',
+  EMOJI_NAME: 'emoji_name',
   ENABLED: 'enabled',
   END: 'end',
   ENDED: 'ended',
@@ -1301,6 +1303,7 @@ export const DiscordKeys = Object.freeze({
   ROLE_ID: 'role_id',
   RPC_APPLICATION_STATE: 'rpc_application_state',
   RPC_ORIGINS: 'rpc_origins',
+  RTC_REGION: 'rtc_region',
   RULES_CHANNEL_ID: 'rules_channel_id',
   SECRET: 'secret',
   SECRETS: 'secrets',
@@ -1382,6 +1385,8 @@ export const DiscordKeys = Object.freeze({
   VOICE_STATES: 'voice_states',
   WEB: 'web',
   WEBHOOK_ID: 'webhook_id',
+  WELCOME_CHANNELS: 'welcome_channels',
+  WELCOME_SCREEN: 'welcome_screen',
   WIDGET_CHANNEL_ID: 'widget_channel_id',
   WIDGET_ENABLED: 'widget_enabled',
   WIDTH: 'width',
@@ -1463,6 +1468,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.EMBED_ENABLED]: 'embedEnabled',
   [DiscordKeys.EMOJI]: 'emoji',
   [DiscordKeys.EMOJIS]: 'emojis',
+  [DiscordKeys.EMOJI_ID]: 'emojiId',
+  [DiscordKeys.EMOJI_NAME]: 'emojiName',
   [DiscordKeys.ENABLED]: 'enabled',
   [DiscordKeys.END]: 'end',
   [DiscordKeys.ENDED]: 'ended',
@@ -1614,6 +1621,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ROLE_ID]: 'roleId',
   [DiscordKeys.RPC_APPLICATION_STATE]: 'rpcApplicationState',
   [DiscordKeys.RPC_ORIGINS]: 'rpcOrigins',
+  [DiscordKeys.RTC_REGION]: 'rtcRegion',
   [DiscordKeys.RULES_CHANNEL_ID]: 'rulesChannelId',
   [DiscordKeys.SECRET]: 'secret',
   [DiscordKeys.SECRETS]: 'secrets',
@@ -1695,6 +1703,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.VOICE_STATES]: 'voiceStates',
   [DiscordKeys.WEB]: 'web',
   [DiscordKeys.WEBHOOK_ID]: 'webhookId',
+  [DiscordKeys.WELCOME_CHANNELS]: 'welcomeChannels',
+  [DiscordKeys.WELCOME_SCREEN]: 'welcomeScreen',
   [DiscordKeys.WIDGET_CHANNEL_ID]: 'widgetChannelId',
   [DiscordKeys.WIDGET_ENABLED]: 'widgetEnabled',
   [DiscordKeys.WIDTH]: 'width',

@@ -1234,12 +1234,7 @@ export class RestClient {
       guild = this.client.guilds.get(data.id) as Guild;
       guild.merge(data);
     } else {
-      guild = new Guild(this.client, data, {
-        emojis: {},
-        fromRest: true,
-        members: {},
-        roles: {},
-      });
+      guild = new Guild(this.client, data, true);
     }
     guild.hasMetadata = true;
     return guild;

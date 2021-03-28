@@ -31,8 +31,12 @@ export class VoiceRegion extends BaseStructure {
   optimal: boolean = false;
   vip: boolean = false;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

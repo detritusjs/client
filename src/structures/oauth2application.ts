@@ -72,8 +72,12 @@ export class Oauth2Application extends BaseStructure {
   team?: Team;
   verifyKey: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -190,12 +194,12 @@ export class Oauth2Application extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.BOT: {
-          value = new UserWithToken(this.client, value);
+          value = new UserWithToken(this.client, value, this._clone);
         }; break;
         case DiscordKeys.OWNER: {
-          if (this.client.users.has(value.id)) {
+          if (!this.isClone && this.client.users.has(value.id)) {
             // dont use the cache since this object has flags key, just update the cache
-            (<User> this.client.users.get(value.id)).merge(value);
+            (this.client.users.get(value.id) as User).merge(value);
           }
           value = new UserWithFlags(this.client, value);
         }; break;
@@ -205,7 +209,7 @@ export class Oauth2Application extends BaseStructure {
             team = this.team;
             team.merge(value);
           } else {
-            team = new Team(this.client, value);
+            team = new Team(this.client, value, this._clone);
           }
           value = team;
         }; break;
@@ -231,8 +235,12 @@ export class Oauth2ApplicationAsset extends BaseStructure {
   name: string = '';
   type!: Oauth2AssetTypes;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

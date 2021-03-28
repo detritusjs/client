@@ -31,8 +31,12 @@ export class PremiumSubscription extends BaseStructure {
   id: string = '';
   userId: string = '';
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

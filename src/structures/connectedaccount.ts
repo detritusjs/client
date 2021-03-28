@@ -39,8 +39,8 @@ export class ConnectedAccount extends BaseStructure {
   verified: boolean = false;
   visibility?: number;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

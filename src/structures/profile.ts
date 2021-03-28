@@ -35,8 +35,12 @@ export class Profile extends BaseStructure {
   premiumSinceUnix: number = 0;
   user!: UserWithFlags;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 

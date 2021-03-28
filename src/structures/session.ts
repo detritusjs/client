@@ -43,8 +43,12 @@ export class Session extends BaseStructure {
   sessionId: string = 'all';
   status: string = PresenceStatuses.OFFLINE;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -101,12 +105,17 @@ export class Session extends BaseStructure {
               const raw = value[position];
               raw.position = position;
 
-              if (this._activities.has(raw.id)) {
-                const activity = <PresenceActivity> this._activities.get(raw.id);
-                activity.merge(raw);
-              } else {
-                const activity = new PresenceActivity(<User> this.client.user, raw);
+              if (this.isClone) {
+                const activity = new PresenceActivity((this.client.user as User).clone(), raw);
                 this._activities.set(activity.id, activity);
+              } else {
+                if (this._activities.has(raw.id)) {
+                  const activity = this._activities.get(raw.id) as PresenceActivity;
+                  activity.merge(raw);
+                } else {
+                  const activity = new PresenceActivity(this.client.user as User, raw);
+                  this._activities.set(activity.id, activity);
+                }
               }
             }
           } else {
@@ -149,6 +158,7 @@ const keysMergeSessionClientInfo = keysSessionClientInfo;
  * @category Structure
  */
 export class SessionClientInfo extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysSessionClientInfo;
   readonly _keysMerge = keysMergeSessionClientInfo;
   readonly session: Session;
@@ -158,7 +168,7 @@ export class SessionClientInfo extends BaseStructure {
   version: number = 0;
 
   constructor(session: Session, data: BaseStructureData) {
-    super(session.client);
+    super(session.client, undefined, session._clone);
     this.session = session;
     this.merge(data);
   }
@@ -173,7 +183,7 @@ export class SessionClientInfo extends BaseStructure {
   }
 
   toJSON() {
-    const data = <any> super.toJSON();
+    const data = super.toJSON() as any;
     data[DiscordKeys.CLIENT] = this.clientString;
     return data;
   }

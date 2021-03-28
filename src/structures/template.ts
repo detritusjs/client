@@ -53,8 +53,12 @@ export class Template extends BaseStructure {
   updatedAt!: Date;
   usageCount: number = 0;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -94,11 +98,15 @@ export class Template extends BaseStructure {
         }; break;
         case DiscordKeys.CREATOR: {
           let creator: User;
-          if (this.client.users.has(value.id)) {
-            creator = <User> this.client.users.get(value.id);
-            creator.merge(value);
+          if (this.isClone) {
+            creator = new User(this.client, value, this.isClone);
           } else {
-            creator = new User(this.client, value);
+            if (this.client.users.has(value.id)) {
+              creator = this.client.users.get(value.id) as User;
+              creator.merge(value);
+            } else {
+              creator = new User(this.client, value);
+            }
           }
           value = creator;
         }; break;

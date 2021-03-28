@@ -53,8 +53,8 @@ export class Gift extends BaseStructure {
   uses: number = 0;
   user!: User;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -84,16 +84,20 @@ export class Gift extends BaseStructure {
           value = new StoreListing(this.client, value);
         }; break;
         case DiscordKeys.SUBSCRIPTION_PLAN: {
-          value = new SubscriptionPlan(this.client, value);
+          value = new SubscriptionPlan(this.client, value, this.isClone);
           this.subscriptionPlanId = value.id;
         }; break;
         case DiscordKeys.USER: {
           let user: User;
-          if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
-            user.merge(value);
-          } else {
+          if (this.isClone) {
             user = new User(this.client, value);
+          } else {
+            if (this.client.users.has(value.id)) {
+              user = this.client.users.get(value.id) as User
+              user.merge(value);
+            } else {
+              user = new User(this.client, value);
+            }
           }
           value = user;
         }; break;
@@ -131,8 +135,8 @@ export class SubscriptionPlan extends BaseStructure {
   skuId: string = '';
   taxInclusive: boolean = false;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 }

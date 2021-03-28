@@ -257,7 +257,7 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
   get size(): number {
     let size = 0;
     for (let [guildId, guild] of this.guilds) {
-      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
       size += cache.size;
     }
     return size;
@@ -269,7 +269,7 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
 
   clear(): void {
     for (let [guildId, guild] of this.guilds) {
-      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
       cache.clear();
     }
   }
@@ -279,13 +279,13 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
     if (guildId && key) {
       const guild = this.guilds.get(<string> <unknown> guildId);
       if (guild) {
-        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        const cache = (guild as any)[this.key] as BaseCollection<K, V>;
         return cache.delete(key);
       }
     } else if (key) {
       let deleted = false;
       for (let [guildId, guild] of this.guilds) {
-        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        const cache = (guild as any)[this.key] as BaseCollection<K, V>;
         if (cache.delete(key)) {
           deleted = true;
         }
@@ -297,7 +297,7 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
 
   forEach(func: (v: V, k: K, map: Map<K, V>) => void, thisArg?: any): void {
     for (let [guildId, guild] of this.guilds) {
-      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
       for (let [k, v] of cache) {
         func.call(thisArg, v, k, cache);
       }
@@ -309,12 +309,12 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
     if (guildId && key) {
       const guild = this.guilds.get(<string> <unknown> guildId);
       if (guild) {
-        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        const cache = (guild as any)[this.key] as BaseCollection<K, V>;
         return cache.get(key);
       }
     } else if (key) {
       for (let [guildId, guild] of this.guilds) {
-        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        const cache = (guild as any)[this.key] as BaseCollection<K, V>;
         if (cache.has(key)) {
           return cache.get(key);
         }
@@ -328,12 +328,12 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
     if (guildId && key) {
       const guild = this.guilds.get(<string> <unknown> guildId);
       if (guild) {
-        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        const cache = (guild as any)[this.key] as BaseCollection<K, V>;
         return cache.has(key);
       }
     } else if (key) {
       for (let [guildId, guild] of this.guilds) {
-        const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+        const cache = (guild as any)[this.key] as BaseCollection<K, V>;
         if (cache.has(key)) {
           return true;
         }
@@ -345,7 +345,7 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
   set(guildId: K, key: K, value: V): this {
     const guild = this.guilds.get(<string> <unknown> guildId);
     if (guild) {
-      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
       cache.set(key, value);
     }
     return this;
@@ -353,7 +353,7 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
 
   *keys(): IterableIterator<K> {
     for (let guild of this.guilds.values()) {
-      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
       for (let key of cache.keys()) {
         yield key;
       }
@@ -362,7 +362,7 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
 
   *values(): IterableIterator<V> {
     for (let guild of this.guilds.values()) {
-      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
       for (let value of cache.values()) {
         yield value;
       }
@@ -371,7 +371,7 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
 
   *[Symbol.iterator](): IterableIterator<[K, V]> {
     for (let [guildId, guild] of this.guilds) {
-      const cache = <BaseCollection<K, V>> (<any> guild)[this.key];
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
       for (let [key, value] of cache) {
         yield [key, value];
       }

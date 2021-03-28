@@ -78,8 +78,12 @@ export class Presence extends BaseStructure {
   status: string = PresenceStatuses.OFFLINE;
   user!: User;
 
-  constructor(client: ShardClient, data: BaseStructureData) {
-    super(client);
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
   }
 
@@ -233,12 +237,17 @@ export class Presence extends BaseStructure {
               const raw = value[position];
               raw.position = position;
 
-              if (this._activities.has(raw.id)) {
-                const activity = this._activities.get(raw.id) as PresenceActivity;
-                activity.merge(raw);
-              } else {
+              if (this.isClone) {
                 const activity = new PresenceActivity(this.user, raw);
                 this._activities.set(activity.id, activity);
+              } else {
+                if (this._activities.has(raw.id)) {
+                  const activity = this._activities.get(raw.id) as PresenceActivity;
+                  activity.merge(raw);
+                } else {
+                  const activity = new PresenceActivity(this.user, raw);
+                  this._activities.set(activity.id, activity);
+                }
               }
             }
           }
@@ -272,6 +281,14 @@ export class Presence extends BaseStructure {
             this._guildIds.add(value);
           }
         }; return;
+        case DiscordKeys.GUILD_IDS: {
+          // we just cloned
+          if (value.length) {
+            this._guildIds = new BaseSet<string>(value);
+          } else {
+            this._guildIds = '';
+          }
+        }; return;
         case DiscordKeys.LAST_MODIFIED: {
           if (value) {
             value = parseInt(value);
@@ -279,16 +296,25 @@ export class Presence extends BaseStructure {
         }; break;
         case DiscordKeys.USER: {
           let user: User;
-          if (this.client.users.has(value.id)) {
-            user = this.client.users.get(value.id) as User;
-            user.merge(value);
-          } else {
+          if (this.isClone) {
             if (this.user) {
-              user = this.user;
+              user = this.user.clone();
               user.merge(value);
             } else {
-              user = new User(this.client, value);
-              this.client.users.insert(user);
+              user = new User(this.client, value, this.isClone);
+            }
+          } else {
+            if (this.client.users.has(value.id)) {
+              user = this.client.users.get(value.id) as User;
+              user.merge(value);
+            } else {
+              if (this.user) {
+                user = this.user;
+                user.merge(value);
+              } else {
+                user = new User(this.client, value);
+                this.client.users.insert(user);
+              }
             }
           }
           value = user;
@@ -344,6 +370,7 @@ const keysSkipDifferencePresenceActivity = new BaseSet<string>([
  * @category Structure
  */
 export class PresenceActivity extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysPresenceActivity;
   readonly _keysMerge = keysMergePresenceActivity;
   readonly _keysSkipDifference = keysSkipDifferencePresenceActivity;
@@ -373,7 +400,7 @@ export class PresenceActivity extends BaseStructure {
   url?: string;
 
   constructor(user: User, data: BaseStructureData) {
-    super(user.client);
+    super(user.client, undefined, user._clone);
     this.user = user;
     this.merge(data);
   }
@@ -665,6 +692,13 @@ export class PresenceActivity extends BaseStructure {
           this._guildIds.add(value);
         }
       }; return;
+      case DiscordKeys.GUILD_IDS: {
+        if (value.length) {
+          this._guildIds = new BaseSet<string>(value);
+        } else {
+          this._guildIds = '';
+        }
+      }; return;
     }
     if (value !== undefined && value !== null) {
       // just replace our objects since they're of new values
@@ -723,6 +757,7 @@ const keysMergePresenceActivityAssets = keysPresenceActivityAssets;
  * @category Structure
  */
 export class PresenceActivityAssets extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysPresenceActivityAssets;
   readonly _keysMerge = keysMergePresenceActivityAssets;
   readonly activity: PresenceActivity;
@@ -733,7 +768,7 @@ export class PresenceActivityAssets extends BaseStructure {
   smallText?: string;
 
   constructor(activity: PresenceActivity, data: BaseStructureData) {
-    super(activity.client);
+    super(activity.client, undefined, activity._clone);
     this.activity = activity;
     this.merge(data);
   }
@@ -829,6 +864,7 @@ const keysMergePresenceActivityTimestamps = keysPresenceActivityTimestamps;
  * @category Structure
  */
 export class PresenceActivityTimestamps extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysPresenceActivityTimestamps;
   readonly _keysMerge = keysMergePresenceActivityTimestamps;
   readonly activity: PresenceActivity;
@@ -837,7 +873,7 @@ export class PresenceActivityTimestamps extends BaseStructure {
   start?: number = 0;
 
   constructor(activity: PresenceActivity, data: BaseStructureData) {
-    super(activity.client);
+    super(activity.client, undefined, activity._clone);
     this.activity = activity;
     this.merge(data);
   }

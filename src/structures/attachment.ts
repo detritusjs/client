@@ -103,7 +103,9 @@ const keysAttachment = new BaseSet<string>([
  * @category Structure
  */
 export class Attachment extends BaseStructure {
+  readonly _uncloneable = true;
   readonly _keys = keysAttachment;
+
   readonly message: Message;
 
   filename: string = '';
@@ -115,7 +117,7 @@ export class Attachment extends BaseStructure {
   width: number = 0;
 
   constructor(message: Message, data: BaseStructureData) {
-    super(message.client);
+    super(message.client, undefined, message._clone);
     this.message = message;
     this.merge(data);
     Object.defineProperty(this, 'message', {enumerable: false, writable: false});
