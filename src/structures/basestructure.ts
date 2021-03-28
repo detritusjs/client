@@ -50,7 +50,7 @@ export class Structure {
           if (differences) {
             return [true, differences];
           }
-        } else if (old.hasDifference(key, value)) {
+        } else if (this.hasDifference(key, value)) {
           if (old instanceof BaseCollection) {
             return [true, old.clone()];
           } else if (old instanceof BaseSet) {
