@@ -138,6 +138,8 @@ export class Message extends BaseStructure {
       _mentions: {enumerable: false, writable: true},
       _mentionChannels: {enumerable: false, writable: true},
       _mentionRoles: {enumerable: false, writable: true},
+      _reactions: {enumerable: false, writable: true},
+      _stickers: {enumerable: false, writable: true},
     });
 
     if (this.guildId && !this.member) {

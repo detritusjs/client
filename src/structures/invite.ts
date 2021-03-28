@@ -50,7 +50,7 @@ export class Invite extends BaseStructure {
 
   approximateMemberCount?: number;
   approximatePresenceCount?: number;
-  channel?: Channel;
+  channel!: Channel;
   code: string = '';
   createdAt?: Date;
   guild?: GuildPartial;

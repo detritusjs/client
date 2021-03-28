@@ -112,6 +112,7 @@ export class ChannelBase extends BaseStructure {
   parentId?: null | string;
   position: number = -1;
   rateLimitPerUser: number = 0;
+  rtcRegion?: null | string;
   topic?: string;
   type: ChannelTypes = ChannelTypes.BASE;
   userLimit: number = 0;
@@ -1354,6 +1355,7 @@ export class ChannelGuildText extends ChannelGuildBase {
 const keysChannelGuildVoice = new BaseSet<string>([
   ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
+  DiscordKeys.RTC_REGION,
   DiscordKeys.USER_LIMIT,
 ]);
 
@@ -1366,6 +1368,7 @@ export class ChannelGuildVoice extends ChannelGuildBase {
   type = ChannelTypes.GUILD_VOICE;
 
   bitrate: number = 64000;
+  rtcRegion?: string | null = null;
   userLimit: number = 0;
 
   constructor(

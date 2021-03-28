@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.14.0-beta.1',
+  VERSION: '0.14.0-beta.2',
 });
 
 export type Snowflake = number | string;
@@ -1303,6 +1303,7 @@ export const DiscordKeys = Object.freeze({
   ROLE_ID: 'role_id',
   RPC_APPLICATION_STATE: 'rpc_application_state',
   RPC_ORIGINS: 'rpc_origins',
+  RTC_REGION: 'rtc_region',
   RULES_CHANNEL_ID: 'rules_channel_id',
   SECRET: 'secret',
   SECRETS: 'secrets',
@@ -1620,6 +1621,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ROLE_ID]: 'roleId',
   [DiscordKeys.RPC_APPLICATION_STATE]: 'rpcApplicationState',
   [DiscordKeys.RPC_ORIGINS]: 'rpcOrigins',
+  [DiscordKeys.RTC_REGION]: 'rtcRegion',
   [DiscordKeys.RULES_CHANNEL_ID]: 'rulesChannelId',
   [DiscordKeys.SECRET]: 'secret',
   [DiscordKeys.SECRETS]: 'secrets',
