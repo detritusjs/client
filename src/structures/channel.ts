@@ -140,7 +140,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get canDeafenMembers(): boolean {
-    return this.isGuildVoice;
+    return this.isGuildStageVoice || this.isGuildVoice;
   }
 
   get canEdit(): boolean {
@@ -158,7 +158,7 @@ export class ChannelBase extends BaseStructure {
       }
       return true;
     }
-    return this.isGuildVoice;
+    return this.isGuildStageVoice || this.isGuildVoice;
   }
 
   get canManageMessages(): boolean {
@@ -178,11 +178,11 @@ export class ChannelBase extends BaseStructure {
   }
 
   get canMoveMembers(): boolean {
-    return this.isGuildVoice;
+    return this.isGuildStageVoice || this.isGuildVoice;
   }
 
   get canMuteMembers(): boolean {
-    return this.isGuildVoice;
+    return this.isGuildStageVoice || this.isGuildVoice;
   }
 
   get canPrioritySpeaker(): boolean {
@@ -200,11 +200,11 @@ export class ChannelBase extends BaseStructure {
       }
       return true;
     }
-    return this.isGuildVoice;
+    return this.isGuildStageVoice || this.isGuildVoice;
   }
 
   get canStream(): boolean {
-    return this.isGuildVoice;
+    return this.isGuildStageVoice || this.isGuildVoice;
   }
 
   get canReadHistory(): boolean {
@@ -268,7 +268,8 @@ export class ChannelBase extends BaseStructure {
       (this.isGuildText) ||
       (this.isGuildVoice) ||
       (this.isGuildNews) ||
-      (this.isGuildStore);
+      (this.isGuildStore) ||
+      (this.isGuildStageVoice);
   }
 
   get isGuildNews(): boolean {
