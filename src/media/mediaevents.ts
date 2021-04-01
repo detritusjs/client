@@ -1,4 +1,4 @@
-import { User } from '../structures';
+import { User, VoiceState } from '../structures';
 
 
 export namespace MediaEvents {
@@ -22,5 +22,6 @@ export namespace MediaEvents {
     user: null | User,
     userId: string,
     voice: boolean,
+    voiceState: null | VoiceState,
   }
 }

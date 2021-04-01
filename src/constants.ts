@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.14.3',
+  VERSION: '0.14.4-beta.0',
 });
 
 export type Snowflake = number | string;
@@ -1305,6 +1305,7 @@ export const DiscordKeys = Object.freeze({
   REFERENCED_MESSAGE: 'referenced_message',
   REGION: 'region',
   RELEASE_DATE: 'release_date',
+  REQUEST_TO_SPEAK_TIMESTAMP: 'request_to_speak_timestamp',
   REQUIRE_COLONS: 'require_colons',
   REVOKED: 'revoked',
   RINGING: 'ringing',
@@ -1624,6 +1625,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.REFERENCED_MESSAGE]: 'referencedMessage',
   [DiscordKeys.REGION]: 'region',
   [DiscordKeys.RELEASE_DATE]: 'releaseDate',
+  [DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP]: 'requestToSpeakTimestamp',
   [DiscordKeys.REQUIRE_COLONS]: 'requireColons',
   [DiscordKeys.REVOKED]: 'revoked',
   [DiscordKeys.RINGING]: 'ringing',

@@ -42,6 +42,7 @@ import {
   createChannelFromData,
   Channel,
   ChannelGuildCategory,
+  ChannelGuildStageVoice,
   ChannelGuildStore,
   ChannelGuildText,
   ChannelGuildVoice,
@@ -804,6 +805,16 @@ export class Guild extends GuildPartial {
       return this.client.channels.get(this.rulesChannelId) || null;
     }
     return null;
+  }
+
+  get stageVoiceChannels(): BaseCollection<string, ChannelGuildStageVoice> {
+    const collection = new BaseCollection<string, ChannelGuildStageVoice>();
+    for (const [channelId, channel] of this.client.channels) {
+      if (channel.isGuildStageVoice && channel.guildId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
   }
 
   get storeChannels(): BaseCollection<string, ChannelGuildStore> {

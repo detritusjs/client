@@ -22,6 +22,7 @@ const keysVoiceState = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
   DiscordKeys.MEMBER,
   DiscordKeys.MUTE,
+  DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP,
   DiscordKeys.SELF_DEAF,
   DiscordKeys.SELF_MUTE,
   DiscordKeys.SELF_STREAM,
@@ -47,12 +48,14 @@ export class VoiceState extends BaseStructure {
   readonly _keys = keysVoiceState;
   readonly _keysMerge = keysMergeVoiceState;
   readonly _keysSkipDifference = keysSkipDifferenceVoiceState;
+  _isSpeaking: boolean = false;
 
   channelId?: null | string;
   deaf: boolean = false;
   guildId?: null | string;
   member: Member | null = null;
   mute: boolean = false;
+  requestToSpeakTimestampUnix: number = 0;
   selfDeaf: boolean = false;
   selfMute: boolean = false;
   selfStream: boolean = false;
@@ -67,6 +70,9 @@ export class VoiceState extends BaseStructure {
     isClone?: boolean,
   ) {
     super(client, undefined, isClone);
+    Object.defineProperties(this, {
+      _isSpeaking: {enumerable: false, writable: true},
+    });
     this.merge(data);
   }
 
@@ -80,6 +86,25 @@ export class VoiceState extends BaseStructure {
   get guild(): Guild | null {
     if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
+    }
+    return null;
+  }
+
+  get isAudience(): boolean {
+    return this.suppress || !!this.requestToSpeakTimestampUnix;
+  }
+
+  get isSpeaker(): boolean {
+    return !this.suppress && !this.requestToSpeakTimestampUnix;
+  }
+
+  get isSpeaking(): boolean {
+    return this._isSpeaking;
+  }
+
+  get requestToSpeakTimestamp(): Date | null {
+    if (this.requestToSpeakTimestampUnix) {
+      return new Date(this.requestToSpeakTimestampUnix);
     }
     return null;
   }
@@ -149,8 +174,11 @@ export class VoiceState extends BaseStructure {
           }
           value = member;
         }; break;
+        case DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP: {
+          this.requestToSpeakTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
+        }; return;
       }
-      super.mergeValue(key, value);
+      return super.mergeValue(key, value);
     }
   }
 }
