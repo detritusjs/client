@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.14.1',
+  VERSION: '0.14.2',
 });
 
 export type Snowflake = number | string;
@@ -226,6 +226,15 @@ export enum ChannelTypes {
   GUILD_CATEGORY = 4,
   GUILD_NEWS = 5,
   GUILD_STORE = 6,
+
+  PUBLIC_THREAD = 11,
+  PRIVATE_THREAD = 12,
+  GUILD_STAGE_VOICE = 13,
+};
+
+export enum ChannelVideoQualityModes {
+  AUTO = 1,
+  FULL = 2,
 };
 
 export enum ClientEvents {
@@ -1380,6 +1389,7 @@ export const DiscordKeys = Object.freeze({
   VERIFY_KEY: 'verify_key',
   VERSION: 'version',
   VIDEO: 'video',
+  VIDEO_QUALITY_MODE: 'video_quality_mode',
   VIP: 'vip',
   VISIBILITY: 'visibility',
   VOICE_STATES: 'voice_states',
@@ -1698,6 +1708,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.VERIFY_KEY]: 'verifyKey',
   [DiscordKeys.VERSION]: 'version',
   [DiscordKeys.VIDEO]: 'video',
+  [DiscordKeys.VIDEO_QUALITY_MODE]: 'videoQualityMode',
   [DiscordKeys.VIP]: 'vip',
   [DiscordKeys.VISIBILITY]: 'visibility',
   [DiscordKeys.VOICE_STATES]: 'voiceStates',

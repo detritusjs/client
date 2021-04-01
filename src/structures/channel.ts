@@ -9,7 +9,7 @@ import {
 } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, ChannelTypes, Permissions, DEFAULT_GROUP_DM_AVATARS } from '../constants';
+import { DiscordKeys, ChannelTypes, ChannelVideoQualityModes, Permissions, DEFAULT_GROUP_DM_AVATARS } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 import {
   addQuery,
@@ -41,7 +41,8 @@ export type Channel = (
   ChannelGuildBase |
   ChannelGuildCategory |
   ChannelGuildText |
-  ChannelGuildStore
+  ChannelGuildStore |
+  ChannelGuildStageVoice
 );
 
 export function createChannelFromData(
@@ -72,6 +73,9 @@ export function createChannelFromData(
       }; break;
       case ChannelTypes.GUILD_STORE: {
         Class = ChannelGuildStore;
+      }; break;
+      case ChannelTypes.GUILD_STAGE_VOICE: {
+        Class = ChannelGuildStageVoice;
       }; break;
     }
   }
@@ -113,9 +117,10 @@ export class ChannelBase extends BaseStructure {
   position: number = -1;
   rateLimitPerUser: number = 0;
   rtcRegion?: null | string;
-  topic?: string;
+  topic: null | string = null;
   type: ChannelTypes = ChannelTypes.BASE;
   userLimit: number = 0;
+  videoQualityMode: ChannelVideoQualityModes = ChannelVideoQualityModes.AUTO;
 
   constructor(
     client: ShardClient,
@@ -270,6 +275,10 @@ export class ChannelBase extends BaseStructure {
     return this.type === ChannelTypes.GUILD_NEWS;
   }
 
+  get isGuildStageVoice(): boolean {
+    return this.type === ChannelTypes.GUILD_STAGE_VOICE;
+  }
+
   get isGuildStore(): boolean {
     return this.type === ChannelTypes.GUILD_STORE;
   }
@@ -295,7 +304,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get isVoice(): boolean {
-    return this.isDm || this.isGuildVoice;
+    return this.isDm || this.isGuildVoice || this.isGuildStageVoice;
   }
 
   get joined(): boolean {
@@ -1152,22 +1161,13 @@ export class ChannelGuildBase extends ChannelBase {
 }
 
 
-const keysChannelGuildCategory = new BaseSet<string>([
-  ...keysChannelGuildBase,
-  DiscordKeys.BITRATE,
-  DiscordKeys.USER_LIMIT,
-]);
-
 /**
  * Guild Category Channel
  * @category Structure
  */
 export class ChannelGuildCategory extends ChannelGuildBase {
-  readonly _keys = keysChannelGuildCategory;
+  readonly _keys = keysChannelGuildBase;
   type = ChannelTypes.GUILD_CATEGORY;
-
-  bitrate: number = 0;
-  userLimit: number = 0;
 
   constructor(
     client: ShardClient,
@@ -1206,7 +1206,7 @@ export class ChannelGuildText extends ChannelGuildBase {
   type = ChannelTypes.GUILD_TEXT;
 
   lastMessageId?: null | string;
-  topic?: string = '';
+  topic: null | string = null;
 
   constructor(
     client: ShardClient,
@@ -1356,7 +1356,9 @@ const keysChannelGuildVoice = new BaseSet<string>([
   ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
   DiscordKeys.RTC_REGION,
+  DiscordKeys.TOPIC,
   DiscordKeys.USER_LIMIT,
+  DiscordKeys.VIDEO_QUALITY_MODE,
 ]);
 
 /**
@@ -1370,6 +1372,7 @@ export class ChannelGuildVoice extends ChannelGuildBase {
   bitrate: number = 64000;
   rtcRegion?: string | null = null;
   userLimit: number = 0;
+  videoQualityMode: ChannelVideoQualityModes = ChannelVideoQualityModes.AUTO;
 
   constructor(
     client: ShardClient,
@@ -1454,5 +1457,31 @@ export class ChannelGuildStore extends ChannelGuildBase {
 
   async grantEntitlement() {
     return this.client.rest.createChannelStoreListingGrantEntitlement(this.id);
+  }
+}
+
+
+const keysChannelGuildStageVoice = new BaseSet<string>([
+  ...keysChannelGuildVoice,
+  DiscordKeys.TOPIC,
+]);
+
+/**
+ * Guild Stage Voice Channel
+ * @category Structure
+ */
+export class ChannelGuildStageVoice extends ChannelGuildVoice {
+  readonly _keys = keysChannelGuildStageVoice;
+  type = ChannelTypes.GUILD_STAGE_VOICE;
+
+  topic: null | string = null;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 }
