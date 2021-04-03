@@ -694,6 +694,26 @@ export class Guild extends GuildPartial {
     return null;
   }
 
+  get allTextChannels(): BaseCollection<string, ChannelGuildText> {
+    const collection = new BaseCollection<string, ChannelGuildText>();
+    for (const [channelId, channel] of this.client.channels) {
+      if (channel.isGuildChannel && channel.isText && channel.guildId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
+  }
+
+  get allVoiceChannels(): BaseCollection<string, ChannelGuildStageVoice | ChannelGuildVoice> {
+    const collection = new BaseCollection<string, ChannelGuildStageVoice | ChannelGuildVoice>();
+    for (const [channelId, channel] of this.client.channels) {
+      if (channel.isGuildChannel && channel.isVoice && channel.guildId === this.id) {
+        collection.set(channelId, channel);
+      }
+    }
+    return collection;
+  }
+
   get categoryChannels(): BaseCollection<string, ChannelGuildCategory> {
     const collection = new BaseCollection<string, ChannelGuildCategory>();
     for (const [channelId, channel] of this.client.channels) {

@@ -601,6 +601,10 @@ export class GatewayDispatchHandler {
 
     if (!isUnavailable) {
       guild.left = true;
+      const me = guild.me;
+      if (me) {
+        me.left = true;
+      }
     }
 
     if (!isNew || !this.client.guilds.enabled) {

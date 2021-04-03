@@ -1,22 +1,15 @@
 import * as fs from 'fs';
 import { URLSearchParams } from 'url';
 
-import { Snowflake, Tools } from 'detritus-utils';
-
-const { guildIdToShardId } = Tools;
+import { Snowflake } from 'detritus-utils';
+import { guildIdToShardId } from 'detritus-utils/lib/tools';
 
 import {
-  CommandRatelimit,
-  CommandRatelimitItem,
-} from '../command/ratelimit';
-import {
-  CommandRatelimitTypes,
   DiscordRegex,
   DiscordRegexNames,
   ImageFormats,
   IMAGE_FORMATS,
 } from '../constants';
-import { Message } from '../structures/message';
 
 
 import * as Markup from './markup';
@@ -53,6 +46,7 @@ export function addQuery(url: string, query?: UrlQuery): string {
   return url;
 }
 
+
 export function anyToCamelCase(object: any, skip?: Array<string>): any {
   if (object === null) {
     return object;
@@ -79,6 +73,7 @@ export function anyToCamelCase(object: any, skip?: Array<string>): any {
   return object;
 }
 
+
 export function getAcronym(name?: string): string {
   if (name != null) {
     return name.replace(/\w+/g, match => match[0]).replace(/\s/g, '');
@@ -86,38 +81,6 @@ export function getAcronym(name?: string): string {
   return '';
 }
 
-export function getExceededRatelimits(
-  ratelimits: Array<CommandRatelimit>,
-  message: Message,
-  now: number = Date.now(),
-): Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}> {
-  const exceeded: Array<{
-    item: CommandRatelimitItem,
-    ratelimit: CommandRatelimit,
-    remaining: number,
-  }> = [];
-  for (const ratelimit of ratelimits) {
-    let cacheId: string;
-    switch (ratelimit.type) {
-      case CommandRatelimitTypes.CHANNEL: {
-        cacheId = message.channelId;
-      }; break;
-      case CommandRatelimitTypes.GUILD: {
-        cacheId = message.guildId || message.channelId;
-      }; break;
-      default: {
-        cacheId = message.author.id;
-      };
-    }
-
-    const item = ratelimit.get(cacheId) as CommandRatelimitItem;
-    if (ratelimit.limit <= item.usages++) {
-      const remaining = (item.start + ratelimit.duration) - now;
-      exceeded.push({item, ratelimit, remaining});
-    }
-  }
-  return exceeded;
-}
 
 export async function getFiles(directory: string, subdirectories?: boolean): Promise<Array<string>> {
   if (subdirectories) {
@@ -155,6 +118,7 @@ export async function getFiles(directory: string, subdirectories?: boolean): Pro
     return names;
   }
 }
+
 
 export function getFormatFromHash(
   hash: string,
