@@ -10,6 +10,8 @@ import {
 
 
 
+export const KEY_SPLITTER = ':';
+
 export type CommandRatelimitCustomType = (context: Context) => string;
 
 /**
@@ -40,10 +42,9 @@ export interface CommandRatelimitItem {
  * @category Command
  */
 export class CommandRatelimit {
-  _uniqueKey?: string;
-
   command?: Command;
   duration: number = 5000;
+  key?: string;
   limit: number = 5;
   type: CommandRatelimitTypes | CommandRatelimitCustomType = CommandRatelimitTypes.USER;
 
@@ -67,21 +68,17 @@ export class CommandRatelimit {
       this.type = CommandRatelimitTypes.USER;
     }
 
-    this._uniqueKey = options.key || this._uniqueKey;
+    this.key = options.key || this.key;
   }
 
-  get key(): string {
-    if (this._uniqueKey) {
-      return this._uniqueKey;
+  get uniqueKey(): string {
+    if (this.key) {
+      return 'KEY' + KEY_SPLITTER + this.key;
     }
     if (this.command) {
-      return this.command.names[0];
+      return 'COMMAND' + KEY_SPLITTER + this.command.names[0];
     }
     return '';
-  }
-
-  get keyPrefix(): string {
-    return (this._uniqueKey) ? '.' : ':';
   }
 
   createKey(context: Context): string {
@@ -98,12 +95,15 @@ export class CommandRatelimit {
         }; break;
         default: {
           key = context.userId;
+          this.type = CommandRatelimitTypes.USER;
         };
       }
 
-      const uniqueKey = this.key;
+      const uniqueKey = this.uniqueKey;
       if (uniqueKey) {
-        key += this.keyPrefix + uniqueKey;
+        key += KEY_SPLITTER + this.type + KEY_SPLITTER + uniqueKey;
+      } else {
+        key += KEY_SPLITTER + this.type;
       }
     }
     return key;
