@@ -19,6 +19,10 @@ import { User, UserMixin } from './user';
 import { VoiceState } from './voicestate';
 
 
+
+export type MemberOrUser = Member | User;
+
+
 const keysMember = new BaseSet<string>([
   DiscordKeys.DEAF,
   DiscordKeys.GUILD_ID,
