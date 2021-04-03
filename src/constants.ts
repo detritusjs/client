@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.14.4-beta.1',
+  VERSION: '0.14.4-beta.2',
 });
 
 export type Snowflake = number | string;
@@ -63,6 +63,21 @@ export const MEDIA_SIZES = Object.freeze([16, 20, 32, 40, 64, 80, 128, 160, 256,
 export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
 
 
+
+export enum ApplicationFlags {
+  MANAGED_EMOJI = 1 << 2,
+
+  GROUP_DM_CREATE = 1 << 4,
+
+  RPC_HAS_CONNECTED = 1 << 11,
+  GATEWAY_PRESENCE = 1 << 12,
+  GATEWAY_PRESENCE_LIMITED = 1 << 13,
+  GATEWAY_GUILD_MEMBERS = 1 << 14,
+  GATEWAY_GUILD_MEMBERS_LIMITED = 1 << 15,
+  VERIFICATION_PENDING_GUILD_LIMIT = 1 << 16,
+  EMBEDDED = 1 << 17,
+};
+
 export enum ApplicationNewsFlags {
   PATCH_NOTES = 1 << 1,
   PROMOTION = 1 << 2,
@@ -71,12 +86,12 @@ export enum ApplicationNewsFlags {
 export enum ApplicationTypes {
   GAME = 1,
   MUSIC = 2,
-}
+};
 
 export enum ActivityPartyPrivacy {
   PRIVATE = 0,
   PUBLIC = 1,
-}
+};
 
 export enum ActivityPlatformTypes {
   ANDROID = 'android',
@@ -190,6 +205,7 @@ export enum AuditLogChangeKeys {
 
   PERMISSIONS_DENIED = 'deny',
   PERMISSIONS_GRANTED = 'allow',
+  PERMISSIONS_RESET = 'reset',
 
   POSITION = 'position',
   PREFERRED_LOCALE = 'preferred_locale',
@@ -204,6 +220,7 @@ export enum AuditLogChangeKeys {
   WIDGET_CHANNEL_ID = 'widget_channel_id',
   WIDGET_ENABLED = 'widget_enabled',
   VANITY_URL_CODE = 'vanity_url_code',
+  VIDEO_QUALITY_MODE = 'video_quality_mode',
   VERIFICATION_LEVEL = 'verification_level',
   TEMPORARY = 'temporary',
   TOPIC = 'topic',
@@ -488,10 +505,12 @@ export const GuildFeatures = Tools.normalize({
   FEATURABLE: null,
   INVITE_SPLASH: null,
   LURKABLE: null,
+  MEMBER_VERIFICATION_GATE_ENABLED: null,
   MEMBER_LIST_DISABLED: null,
   MORE_EMOJI: null,
   NEWS: null,
   PARTNERED: null,
+  PREVIEW_ENABLED: null,
   PUBLIC: null,
   PUBLIC_DISABLED: null,
   VANITY_URL: null,
@@ -635,8 +654,9 @@ export enum MessageFlags {
   SUPPRESS_EMBEDS = 1 << 2,
   SOURCE_MESSAGE_DELETED = 1 << 3,
   URGENT = 1 << 4,
-
+  HAS_THREAD = 1 << 5,
   EPHEMERAL = 1 << 6,
+  LOADING = 1 << 7,
 };
 
 export enum MessageTypes {
@@ -657,10 +677,13 @@ export enum MessageTypes {
   GUILD_STREAM = 13,
   GUILD_DISCOVERY_DISQUALIFIED = 14,
   GUILD_DISCOVERY_REQUALIFIED = 15,
-  GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 17,
-  GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 18,
+  GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 16,
+  GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17,
+  THREAD_CREATED = 18,
   REPLY = 19,
   APPLICATION_COMMAND = 20,
+  THREAD_STARTER_MESSAGE = 21,
+  GUILD_INVITE_REMINDER = 22,
 };
 
 export const MessageTypesDeletable = Object.freeze({
@@ -683,8 +706,11 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_DISCOVERY_REQUALIFIED]: false,
   [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING]: false,
   [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING]: false,
+  [MessageTypes.THREAD_CREATED]: false,
   [MessageTypes.REPLY]: true,
   [MessageTypes.APPLICATION_COMMAND]: true,
+  [MessageTypes.THREAD_STARTER_MESSAGE]: false,
+  [MessageTypes.GUILD_INVITE_REMINDER]: true,
 });
 
 export enum MfaLevels {
@@ -758,6 +784,8 @@ export const Permissions = Object.freeze({
   MANAGE_ROLES: 1n << 28n,
   MANAGE_WEBHOOKS: 1n << 29n,
   MANAGE_EMOJIS: 1n << 30n,
+  USE_APPLICATION_COMMANDS: 1n << 31n,
+  REQUEST_TO_SPEAK: 1n << 32n,
 });
 
 export const PERMISSIONS_ALL = Object.values(Permissions).reduce(
@@ -789,6 +817,7 @@ export const PERMISSIONS_ALL_VOICE = [
   Permissions.DEAFEN_MEMBERS,
   Permissions.MOVE_MEMBERS,
   Permissions.USE_VAD,
+  Permissions.REQUEST_TO_SPEAK,
 ].reduce(
   (permissions: bigint, permission: bigint) => permissions | permission,
   Permissions.NONE,

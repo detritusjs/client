@@ -18,6 +18,7 @@ export type CommandRatelimitCustomType = (context: Context) => string;
  */
 export interface CommandRatelimitOptions {
   duration?: number,
+  key?: string,
   limit?: number,
   type?: CommandRatelimitTypes | string | CommandRatelimitCustomType,
 }
@@ -39,6 +40,8 @@ export interface CommandRatelimitItem {
  * @category Command
  */
 export class CommandRatelimit {
+  _uniqueKey?: string;
+
   command?: Command;
   duration: number = 5000;
   limit: number = 5;
@@ -63,6 +66,22 @@ export class CommandRatelimit {
       // maybe error instead?
       this.type = CommandRatelimitTypes.USER;
     }
+
+    this._uniqueKey = options.key || this._uniqueKey;
+  }
+
+  get key(): string {
+    if (this._uniqueKey) {
+      return this._uniqueKey;
+    }
+    if (this.command) {
+      return this.command.names[0];
+    }
+    return '';
+  }
+
+  get keyPrefix(): string {
+    return (this._uniqueKey) ? '.' : ':';
   }
 
   createKey(context: Context): string {
@@ -81,8 +100,10 @@ export class CommandRatelimit {
           key = context.userId;
         };
       }
-      if (this.command) {
-        key = `${key}:${this.command.names[0]}`;
+
+      const uniqueKey = this.key;
+      if (uniqueKey) {
+        key += this.keyPrefix + uniqueKey;
       }
     }
     return key;

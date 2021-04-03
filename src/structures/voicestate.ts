@@ -137,6 +137,14 @@ export class VoiceState extends BaseStructure {
     return this.client.rest.editGuildMember(this.guildId, this.userId, options);
   }
 
+  async editState(options: RequestTypes.EditGuildVoiceState) {
+    if (!this.guildId) {
+      throw new Error('Cannot edit a voice state in a DM call.');
+    }
+    const userId = (this.userId === this.client.userId) ? '@me' : this.userId;
+    return this.client.rest.editGuildVoiceState(this.guildId, userId, options);
+  }
+
   joinVoice(options?: VoiceConnectOptions) {
     return this.client.voiceConnect(this.guildId, this.channelId, options);
   }

@@ -901,6 +901,14 @@ export class RestClient {
     return this.raw.editGuildVanity(guildId, code, options);
   }
 
+  editGuildVoiceState(
+    guildId: string,
+    userId: string,
+    options: RequestTypes.EditGuildVoiceState,
+  ) {
+    return this.raw.editGuildVoiceState(guildId, userId, options);
+  }
+
   editLobby(
     lobbyId: string,
     options: RequestTypes.EditLobby = {},

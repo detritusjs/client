@@ -88,18 +88,6 @@ export class User extends BaseStructure {
     return collection;
   }
 
-  get hasStaff(): boolean {
-    return this.hasFlag(UserFlags.STAFF);
-  }
-
-  get hasPartner(): boolean {
-    return this.hasFlag(UserFlags.PARTNER);
-  }
-
-  get hasHypesquad(): boolean {
-    return this.hasFlag(UserFlags.HYPESQUAD);
-  }
-
   get hasBugHunterLevel1(): boolean {
     return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_1);
   }
@@ -108,12 +96,16 @@ export class User extends BaseStructure {
     return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_2);
   }
 
-  get hasMfaSms(): boolean {
-    return this.hasFlag(UserFlags.MFA_SMS);
+  get hasFreePremium(): boolean {
+    return this.hasStaff || this.hasPartner;
   }
 
-  get hasPremiumPromoDismissed(): boolean {
-    return this.hasFlag(UserFlags.PREMIUM_PROMO_DISMISSED);
+  get hasEarlySupporter(): boolean {
+    return this.hasFlag(UserFlags.PREMIUM_EARLY_SUPPORTER);
+  }
+
+  get hasHypesquad(): boolean {
+    return this.hasFlag(UserFlags.HYPESQUAD);
   }
 
   get hasHypesquadHouseBravery(): boolean {
@@ -128,8 +120,20 @@ export class User extends BaseStructure {
     return this.hasFlag(UserFlags.HYPESQUAD_ONLINE_HOUSE_3);
   }
 
-  get hasEarlySupporter(): boolean {
-    return this.hasFlag(UserFlags.PREMIUM_EARLY_SUPPORTER);
+  get hasMfaSms(): boolean {
+    return this.hasFlag(UserFlags.MFA_SMS);
+  }
+
+  get hasPartner(): boolean {
+    return this.hasFlag(UserFlags.PARTNER);
+  }
+
+  get hasPremiumPromoDismissed(): boolean {
+    return this.hasFlag(UserFlags.PREMIUM_PROMO_DISMISSED);
+  }
+
+  get hasStaff(): boolean {
+    return this.hasFlag(UserFlags.STAFF);
   }
 
   get hasTeamUser(): boolean {

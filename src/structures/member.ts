@@ -114,6 +114,14 @@ export class Member extends UserMixin {
     return this.can([Permissions.MANAGE_WEBHOOKS]);
   }
 
+  get canRequestToSpeak(): boolean {
+    return this.can([Permissions.REQUEST_TO_SPEAK]);
+  }
+
+  get canUseApplicationCommands(): boolean {
+    return this.can([Permissions.USE_APPLICATION_COMMANDS]);
+  }
+
   get canViewAuditLogs(): boolean {
     return this.can([Permissions.VIEW_AUDIT_LOG]);
   }
@@ -344,6 +352,11 @@ export class Member extends UserMixin {
       return this.client.rest.editGuildNick(this.guildId, nick, options);
     }
     return this.edit({...options, nick});
+  }
+
+  editVoiceState(options: RequestTypes.EditGuildVoiceState) {
+    const userId = (this.isMe) ? '@me' : this.id;
+    return this.client.rest.editGuildVoiceState(this.guildId, userId, options);
   }
 
   move(channelId: null | string, options: RequestTypes.EditGuildMember = {}) {
