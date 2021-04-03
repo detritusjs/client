@@ -304,7 +304,7 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.editGuildVanity(this.id, code, options);
   }
 
-  async editVoiceState(userId: string, options: RequestTypes.EditVoiceState) {
+  async editVoiceState(userId: string, options: RequestTypes.EditGuildVoiceState) {
     return this.client.rest.editGuildVoiceState(this.id, userId, options);
   }
 
