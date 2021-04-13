@@ -117,6 +117,13 @@ export class RestClient {
     return this.raw.patch(info, init);
   }
 
+  async post(
+    info: RequestTypes.Options | string | URL,
+    init?: RequestTypes.Options,
+  ) {
+    return this.raw.post(info, init);
+  }
+
   async put(
     info: RequestTypes.Options | string | URL,
     init?: RequestTypes.Options,
