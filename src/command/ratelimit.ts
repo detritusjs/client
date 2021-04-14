@@ -93,6 +93,9 @@ export class CommandRatelimit {
         case CommandRatelimitTypes.GUILD: {
           key = context.guildId || context.channelId;
         }; break;
+        case CommandRatelimitTypes.USER: {
+          key = context.userId;
+        }; break;
         default: {
           key = context.userId;
           this.type = CommandRatelimitTypes.USER;

@@ -260,16 +260,17 @@ export class ClusterClient extends EventSpewer {
         shard.gateway.onIdentifyCheck = () => {
           const bucket = this.buckets.get(ratelimitKey);
           if (bucket) {
-            bucket.add(() => {
+            const waiting = this._shardsWaiting.get(shardId);
+            if (waiting) {
               shard.gateway.identify();
-              return new Promise((resolve, reject) => {
-                const waiting = this._shardsWaiting.get(shardId);
-                if (waiting) {
-                  waiting.reject(new Error('Received new Identify Request with same shard id, unknown why'));
-                }
-                this._shardsWaiting.set(shardId, {resolve, reject});
+            } else {
+              bucket.add(() => {
+                shard.gateway.identify();
+                return new Promise((resolve, reject) => {
+                  this._shardsWaiting.set(shardId, {resolve, reject});
+                });
               });
-            });
+            }
           }
           return false;
         };
