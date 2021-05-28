@@ -458,6 +458,14 @@ export class RestClient {
     return new Template(this.client, data);
   }
 
+  createInteractionResponse(
+    interactionId: string,
+    token: string,
+    options: RequestTypes.CreateInteractionResponse,
+  ) {
+    return this.raw.createInteractionResponse(interactionId, token, options);
+  }
+
   createLobby(
     applicationId: string,
     options: RequestTypes.CreateLobby = {},

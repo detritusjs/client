@@ -101,6 +101,10 @@ export class Interaction extends BaseStructure {
     return this.client.rest.executeWebhook(this.applicationId, this.token, options);
   }
 
+  respond(options: RequestTypes.CreateInteractionResponse) {
+    return this.client.rest.createInteractionResponse(this.id, this.token, options);
+  }
+
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {

@@ -595,6 +595,22 @@ export class Message extends BaseStructure {
         case DiscordKeys.CALL: {
           value = new MessageCall(this, value);
         }; break;
+        case DiscordKeys.COMPONENTS: {
+          if (value.length) {
+            if (!this._components) {
+              this._components = new BaseCollection<number, MessageComponentActionRow>();
+            }
+            this._components.clear();
+            for (let i = 0; i < value.length; i++) {
+              this._components.set(i, new MessageComponentActionRow(this, value[i]));
+            }
+          } else {
+            if (this._components) {
+              this._components.clear();
+              this._components = undefined;
+            }
+          }
+        }; return;
         case DiscordKeys.CONTENT: {
           if (this._content) {
             Object.defineProperty(this, '_content', {

@@ -568,6 +568,15 @@ export enum ImageFormats {
   WEBP = 'webp',
 }
 
+export enum InteractionCallbackTypes {
+  PONG = 1,
+
+  CHANNEL_MESSAGE_WITH_SOURCE = 4,
+  DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5,
+  DEFERRED_UPDATE_MESSAGE = 6,
+  UPDATE_MESSAGE = 7,
+}
+
 export enum InteractionTypes {
   PING = 1,
   APPLICATION_COMMAND = 2,
