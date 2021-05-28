@@ -4,11 +4,12 @@ import { GatewayRawEvents } from './rawevents';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ClientEvents, InteractionTypes } from '../constants';
+import { ClientEvents } from '../constants';
 import {
   Channel,
   Emoji,
   Guild,
+  Interaction,
   Invite,
   Member,
   Message,
@@ -17,6 +18,7 @@ import {
   Relationship,
   Role,
   Session,
+  StageInstance,
   Typing,
   User,
   UserMe,
@@ -271,15 +273,8 @@ export namespace GatewayClientEvents {
   }
 
   export interface InteractionCreate {
-    data: GatewayRawEvents.RawApplicationCommandInteractionData,
-    channelId: string,
-    guildId: string,
-    id: string,
-    member: Member,
-    token: string,
-    type: InteractionTypes,
-    userId: string,
-    version: number,
+    _raw: Record<string, any>,
+    interaction: Interaction,
   }
 
   export interface InviteCreate {
@@ -446,6 +441,20 @@ export namespace GatewayClientEvents {
   export interface SessionsReplace {
     old: BaseCollection<string, Session>,
     raw: GatewayRawEvents.SessionsReplace,
+  }
+
+  export interface StageInstanceCreate {
+    stageInstance: StageInstance,
+  }
+
+  export interface StageInstanceDelete {
+    stageInstance: StageInstance,
+  }
+
+  export interface StageInstanceUpdate {
+    differences: Differences,
+    old: StageInstance | null,
+    stageInstance: StageInstance,
   }
 
   export interface StreamCreate {

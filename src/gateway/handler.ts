@@ -8,7 +8,7 @@ import {
   GatewayOpCodes,
   PresenceStatuses,
 } from '../constants';
-import { GatewayHTTPError } from '../errors';
+import { GatewayError, GatewayHTTPError } from '../errors';
 
 import {
   createChannelFromData,
@@ -17,6 +17,7 @@ import {
   ConnectedAccount,
   Emoji,
   Guild,
+  Interaction,
   Invite,
   Member,
   Message,
@@ -25,6 +26,7 @@ import {
   Relationship,
   Role,
   Session,
+  StageInstance,
   Typing,
   User,
   UserMe,
@@ -104,14 +106,19 @@ export class GatewayHandler {
     if (packet.op !== GatewayOpCodes.DISPATCH) {
       return;
     }
-    const { d: data, t: name} = packet;
 
+    const { d: data, t: name} = packet;
     if (this.client.hasEventListener(ClientEvents.RAW)) {
       this.client.emit(ClientEvents.RAW, packet);
     }
+
     if (!this.disabledEvents.has(name)) {
       if (name in this.dispatchHandler) {
-        (this.dispatchHandler as any)[name](data);
+        try {
+          (this.dispatchHandler as any)[name](data);
+        } catch(error) {
+          this.client.emit(ClientEvents.WARN, {error: new GatewayError(error, packet)});
+        }
       } else {
         this.client.emit(ClientEvents.UNKNOWN, packet);
       }
@@ -348,6 +355,11 @@ export class GatewayDispatchHandler {
       this.client.channels.insert(channel);
     }
 
+    const guild = channel.guild;
+    if (guild) {
+      guild._channelIds.add(channel.id);
+    }
+
     const payload: GatewayClientEvents.ChannelCreate = {channel};
     this.client.emit(ClientEvents.CHANNEL_CREATE, payload);
   }
@@ -368,6 +380,11 @@ export class GatewayDispatchHandler {
           this.client.messages.delete(messageId);
         }
       }
+    }
+
+    const guild = channel.guild;
+    if (guild) {
+      guild.channels.delete(channel.id);
     }
 
     const payload: GatewayClientEvents.ChannelDelete = {channel};
@@ -1106,30 +1123,9 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.INTERACTION_CREATE](data: GatewayRawEvents.InteractionCreate) {
-    const channelId = data['channel_id'];
-    const guildId = data['guild_id'];
-    const userId = data['member']['user']['id'];
+    const interaction = new Interaction(this.client, data);
 
-    let member: Member;
-    if (this.client.members.has(guildId, userId)) {
-      member = this.client.members.get(guildId, userId) as Member;
-      member.merge(data['member'])
-    } else {
-      member = new Member(this.client, data['member']);
-      this.client.members.insert(member);
-    }
-
-    const payload: GatewayClientEvents.InteractionCreate = {
-      data: data['data'],
-      channelId,
-      guildId,
-      id: data['id'],
-      member,
-      token: data['token'],
-      type: data['type'],
-      userId,
-      version: data['version'],
-    };
+    const payload: GatewayClientEvents.InteractionCreate = {_raw: data, interaction};
     this.client.emit(ClientEvents.INTERACTION_CREATE, payload);
   }
 
@@ -1610,6 +1606,47 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.SESSIONS_REPLACE, payload);
   }
 
+  [GatewayDispatchEvents.STAGE_INSTANCE_CREATE](data: GatewayRawEvents.StageInstanceCreate) {
+    const stageInstance = new StageInstance(this.client, data);
+
+    const payload: GatewayClientEvents.StageInstanceCreate = {stageInstance};
+    this.client.emit(ClientEvents.STAGE_INSTANCE_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.STAGE_INSTANCE_DELETE](data: GatewayRawEvents.StageInstanceDelete) {
+    let stageInstance: StageInstance;
+    if (this.client.stageInstances.has(data['guild_id'], data['id'])) {
+      stageInstance = this.client.stageInstances.get(data['guild_id'], data['id'])!;
+      this.client.stageInstances.delete(data['guild_id'], data['id']);
+    } else {
+      stageInstance = new StageInstance(this.client, data);
+    }
+
+    const payload: GatewayClientEvents.StageInstanceDelete = {stageInstance};
+    this.client.emit(ClientEvents.STAGE_INSTANCE_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.STAGE_INSTANCE_UPDATE](data: GatewayRawEvents.StageInstanceUpdate) {
+    let differences: GatewayClientEvents.Differences = null;
+    let old: StageInstance | null = null;
+    let stageInstance: StageInstance;
+
+    if (this.client.stageInstances.has(data['guild_id'], data['id'])) {
+      stageInstance = this.client.stageInstances.get(data['guild_id'], data['id'])!;
+      if (this.client.hasEventListener(ClientEvents.STAGE_INSTANCE_UPDATE)) {
+        differences = stageInstance.differences(data);
+        old = stageInstance.clone();
+      }
+      stageInstance.merge(data);
+    } else {
+      stageInstance = new StageInstance(this.client, data);
+      this.client.stageInstances.insert(stageInstance);
+    }
+
+    const payload: GatewayClientEvents.StageInstanceUpdate = {differences, old, stageInstance};
+    this.client.emit(ClientEvents.STAGE_INSTANCE_UPDATE, payload);
+  }
+
   [GatewayDispatchEvents.STREAM_CREATE](data: GatewayRawEvents.StreamCreate) {
     this.client.emit(ClientEvents.STREAM_CREATE, {
       paused: data['paused'],
@@ -1643,6 +1680,30 @@ export class GatewayDispatchHandler {
       streamKey: data['stream_key'],
       viewerIds: data['viewer_ids'],
     });
+  }
+
+  [GatewayDispatchEvents.THREAD_CREATE](data: GatewayRawEvents.ThreadCreate) {
+
+  }
+
+  [GatewayDispatchEvents.THREAD_DELETE](data: GatewayRawEvents.ThreadDelete) {
+    
+  }
+
+  [GatewayDispatchEvents.THREAD_LIST_SYNC](data: GatewayRawEvents.ThreadListSync) {
+
+  }
+
+  [GatewayDispatchEvents.THREAD_MEMBER_UPDATE](data: GatewayRawEvents.ThreadMemberUpdate) {
+
+  }
+
+  [GatewayDispatchEvents.THREAD_MEMBERS_UPDATE](data: GatewayRawEvents.ThreadMembersUpdate) {
+    
+  }
+
+  [GatewayDispatchEvents.THREAD_UPDATE](data: GatewayRawEvents.ThreadUpdate) {
+    
   }
 
   [GatewayDispatchEvents.TYPING_START](data: GatewayRawEvents.TypingStart) {

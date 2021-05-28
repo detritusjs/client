@@ -207,13 +207,16 @@ export namespace GatewayRawEvents {
   }
 
   export interface InteractionCreate {
-    channel_id: string,
+    application_id: string,
+    channel_id?: string,
     data: RawApplicationCommandInteractionData,
-    guild_id: string,
+    guild_id?: string,
     id: string,
-    member: RawMember,
+    member?: RawMember,
+    message?: MessageCreate,
     token: string,
     type: InteractionTypes,
+    user?: RawUser,
     version: number,
   }
 
@@ -504,6 +507,18 @@ export namespace GatewayRawEvents {
 
   }
 
+  export interface StageInstanceCreate extends RawStageInstance {
+    
+  }
+
+  export interface StageInstanceDelete extends RawStageInstance {
+    
+  }
+
+  export interface StageInstanceUpdate extends RawStageInstance {
+    
+  }
+
   export interface StreamCreate {
     paused: boolean,
     region: string,
@@ -529,6 +544,36 @@ export namespace GatewayRawEvents {
     region: string,
     stream_key: string,
     viewer_ids: Array<string>,
+  }
+
+  export interface ThreadCreate extends RawChannel {
+
+  }
+
+  export interface ThreadDelete {
+    guild_id: string,
+    id: string,
+    parent_id: string,
+    type: number,
+  }
+
+  export interface ThreadListSync {
+    channel_ids?: Array<string>,
+    guild_id: string,
+    members: Array<RawThreadMember>,
+    threads: Array<RawChannel>,
+  }
+
+  export interface ThreadMemberUpdate {
+
+  }
+
+  export interface ThreadMembersUpdate {
+    
+  }
+
+  export interface ThreadUpdate extends RawChannel {
+
   }
 
   export interface TypingStart {
@@ -629,9 +674,17 @@ export namespace GatewayRawEvents {
   }
 
   export interface RawApplicationCommandInteractionData {
+    component_type?: number,
+    custom_id?: string,
     id: string,
     name: string,
     options?: Array<RawApplicationCommandInteractionDataOption>,
+    resolved?: {
+      channels?: Record<string, RawChannel>,
+      members?: Record<string, RawMember>,
+      roles?: Record<string, RawRole>,
+      users?: Record<string, RawUser>,
+    },
   }
 
   export interface RawApplicationCommandInteractionDataOption {
@@ -640,13 +693,19 @@ export namespace GatewayRawEvents {
     value?: any,
   }
 
-  export interface RawChannel {
+  export interface RawChannelPartial {
+    id: string,
+    name: string,
+    type: number,
+  }
+
+  export interface RawChannel extends RawChannelPartial {
     bitrate?: number,
     guild_id?: string,
-    id: string,
-    last_message_id: null | string,
-    last_pin_timestamp?: string,
-    name: string,
+    last_message_id?: null | string,
+    last_pin_timestamp?: null | string,
+    member_count?: number,
+    message_count?: number,
     nicks?: {[id: string]: string};
     nsfw?: boolean,
     owner_id?: string,
@@ -655,9 +714,18 @@ export namespace GatewayRawEvents {
     position?: number,
     rate_limit_per_user?: number,
     recipients?: Array<RawUser>,
+    rtc_region?: null | string,
+    thread_member?: RawThreadMember,
+    thread_metadata?: {
+      archive_timestamp: string,
+      archived: boolean,
+      archiver_id?: string,
+      auto_archive_duration: number,
+      locked?: boolean,
+    },
     topic?: string,
-    type: number,
     user_limit?: number,
+    video_quality_mode?: number,
   }
 
   export interface RawChannelOverwrite {
@@ -913,6 +981,15 @@ export namespace GatewayRawEvents {
     status: string,
   }
 
+  export interface RawStageInstance {
+    channel_id: string,
+    discoverable_disabled: boolean,
+    guild_id: string,
+    id: string,
+    privacy_level: number,
+    topic: string,
+  }
+
   export interface RawSticker {
     asset: string,
     description: string,
@@ -921,6 +998,13 @@ export namespace GatewayRawEvents {
     pack_id: string,
     preview_asset: null | string,
     tags: string,
+  }
+
+  export interface RawThreadMember {
+    flags: number,
+    id: string,
+    join_timestamp: string,
+    user_id: string,
   }
 
   export interface RawUserPartial {

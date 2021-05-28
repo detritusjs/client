@@ -5,25 +5,28 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, WebhookTypes } from '../constants';
+import { ChannelTypes, DiscordKeys, WebhookTypes } from '../constants';
 import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
 
 import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { Channel } from './channel';
-import { Guild } from './guild';
+import { createChannelFromData, Channel } from './channel';
+import { BaseGuild, Guild } from './guild';
 import { User } from './user';
 
 
 const keysWebhook = new BaseSet<string>([
+  DiscordKeys.APPLICATION_ID,
   DiscordKeys.AVATAR,
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.DISCRIMINATOR,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.NAME,
+  DiscordKeys.SOURCE_CHANNEL,
+  DiscordKeys.SOURCE_GUILD,
   DiscordKeys.TOKEN,
   DiscordKeys.USER,
 ]);
@@ -35,12 +38,15 @@ const keysWebhook = new BaseSet<string>([
 export class Webhook extends BaseStructure {
   readonly _keys = keysWebhook;
 
+  applicationId: null | string = null;
   avatar: null | string = null;
   channelId: string = '';
   discriminator: string = '0000';
   guildId: string = '';
   id: string = '';
   name: string = '';
+  sourceChannel?: Channel;
+  sourceGuild?: BaseGuild;
   token?: null | string;
   type: WebhookTypes = WebhookTypes.INCOMING;
   user?: null | User;
@@ -121,7 +127,7 @@ export class Webhook extends BaseStructure {
 
   async deleteMessage(messageId: string) {
     if (!this.token) {
-      throw new Error('Webhook is missing it\'s token');
+      throw new Error('Webhook is missing its token');
     }
     return this.client.rest.deleteWebhookTokenMessage(this.id, this.token, messageId);
   }
@@ -135,7 +141,7 @@ export class Webhook extends BaseStructure {
 
   async editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
     if (!this.token) {
-      throw new Error('Webhook is missing it\'s token');
+      throw new Error('Webhook is missing its token');
     }
     return this.client.rest.editWebhookTokenMessage(this.id, this.token, messageId, options);
   }
@@ -145,15 +151,29 @@ export class Webhook extends BaseStructure {
     compatibleType?: string,
   ) {
     if (!this.token) {
-      throw new Error('Webhook is missing it\'s token');
+      throw new Error('Webhook is missing its token');
     }
     return this.client.rest.executeWebhook(this.id, this.token, options, compatibleType);
+  }
+
+  async fetchMessage(messageId: string) {
+    if (!this.token) {
+      throw new Error('Webhook is missing its token');
+    }
+    return this.client.rest.fetchWebhookTokenMessage(this.id, this.token, messageId);
   }
 
 
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case DiscordKeys.SOURCE_CHANNEL: {
+          value.type = ChannelTypes.GUILD_NEWS;
+          value = createChannelFromData(this.client, value);
+        }; break;
+        case DiscordKeys.SOURCE_GUILD: {
+          value = new BaseGuild(this.client, value);
+        }; break;
         case DiscordKeys.USER: {
           let user: User;
           if (this.isClone) {

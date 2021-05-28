@@ -11,7 +11,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { Channel } from './channel';
+import { ChannelGuildStageVoice, ChannelGuildVoice } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
 
@@ -76,9 +76,9 @@ export class VoiceState extends BaseStructure {
     this.merge(data);
   }
 
-  get channel(): Channel | null {
-    if (this.channelId) {
-      return this.client.channels.get(this.channelId) || null;
+  get channel(): ChannelGuildStageVoice | ChannelGuildVoice | null {
+    if (this.channelId && this.client.channels.has(this.channelId)) {
+      return this.client.channels.get(this.channelId) as ChannelGuildStageVoice | ChannelGuildVoice;
     }
     return null;
   }
@@ -165,22 +165,24 @@ export class VoiceState extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.MEMBER: {
-          const guildId = this.guildId as string;
-          value.guild_id = guildId;
+          if (value) {
+            const guildId = this.guildId as string;
+            value.guild_id = guildId;
 
-          let member: Member;
-          if (this.isClone) {
-            member = new Member(this.client, value, this.isClone);
-          } else {
-            if (this.client.members.has(guildId, value.user.id)) {
-              member = this.client.members.get(guildId, value.user.id) as Member;
-              member.merge(value);
+            let member: Member;
+            if (this.isClone) {
+              member = new Member(this.client, value, this.isClone);
             } else {
-              member = new Member(this.client, value);
-              this.client.members.insert(member);
+              if (this.client.members.has(guildId, value.user.id)) {
+                member = this.client.members.get(guildId, value.user.id) as Member;
+                member.merge(value);
+              } else {
+                member = new Member(this.client, value);
+                this.client.members.insert(member);
+              }
             }
+            value = member;
           }
-          value = member;
         }; break;
         case DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP: {
           this.requestToSpeakTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
