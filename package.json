@@ -12,8 +12,8 @@
   "devDependencies": {
     "@types/node": "^14.14.22",
     "@types/node-fetch": "^2.5.8",
-    "typedoc": "^0.19.2",
-    "typescript": "4.0.x"
+    "typedoc": "^0.20.36",
+    "typescript": "4.2.x"
   },
   "files": [
     "lib/**/*"
@@ -53,7 +53,7 @@
     "build": "tsc",
     "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "typedoc": "typedoc ./src"
+    "typedoc": "typedoc"
   },
   "types": "lib/index.d.ts",
   "version": "0.14.3"
