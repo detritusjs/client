@@ -1,9 +1,5 @@
-const {
-  CommandClient,
-  Constants,
-  Utils,
-} = require('../lib');
-
+const { CommandClient, Constants, Utils } = require('../../../../lib');
+  
 // we dont have to pass in a token anymore since it'll get it from the env variables from the fork
 const client = new CommandClient('', {
   prefix: '!!',

@@ -1,7 +1,8 @@
-const { ClusterManager } = require('../lib');
+const { ClusterManager } = require('../../../../lib');
+
 
 const token = '';
-const manager = new ClusterManager('./clustermanager-child.js', token, {
+const manager = new ClusterManager('./child.js', token, {
   shardCount: 6,
   shardsPerCluster: 2,
 });

@@ -1,11 +1,11 @@
-const { CommandClient, Constants, Utils } = require('../lib');
+const { CommandClient, Constants, Utils } = require('../../../../lib');
 const { Permissions } = Constants;
+
 
 const prefix = '!!';
 const token = '';
 
 const commandClient = new CommandClient(token, {
-  gateway: {loadAllMembers: true},
   prefix,
   useClusterClient: false,
 });

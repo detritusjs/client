@@ -1,4 +1,5 @@
-const { ShardClient } = require('../lib');
+const { ShardClient } = require('../../../lib');
+
 
 const guildId = '';
 const channelId = '';

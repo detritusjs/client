@@ -1,4 +1,4 @@
-const { Command } = require('../../lib');
+const { Command } = require('../../../../../lib');
 
 
 // Use this to have just one class handle all the type errors
