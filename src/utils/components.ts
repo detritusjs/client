@@ -14,6 +14,17 @@ import { Emoji } from '../structures/emoji';
 import { regex as discordRegex } from '../utils';
 
 
+export interface ComponentData extends Omit<Partial<GatewayRawEvents.RawMessageComponent>, 'emoji'> {
+  customId?: string,
+  emoji?: GatewayRawEvents.RawEmojiPartial | string | Emoji,
+  maxValues?: number,
+  minValues?: number,
+}
+
+export interface ComponentSelectMenuOptionData extends Omit<Partial<GatewayRawEvents.RawMessageComponentSelectMenuOption>, 'emoji'> {
+  emoji?: GatewayRawEvents.RawEmojiPartial | string | Emoji,
+}
+
 
 const keysComponentActionRow = new BaseSet<string>([
   DiscordKeys.COMPONENTS,
@@ -30,7 +41,7 @@ const keysComponentActionRow = new BaseSet<string>([
   components: Array<ComponentButton | ComponentSelectMenu> = [];
   type = MessageComponentTypes.ACTION_ROW;
 
-  constructor(data: Partial<GatewayRawEvents.RawMessageComponent> = {}) {
+  constructor(data: ComponentData = {}) {
     super();
     this.merge(data);
     this.type = MessageComponentTypes.ACTION_ROW;
@@ -41,13 +52,13 @@ const keysComponentActionRow = new BaseSet<string>([
     return this;
   }
 
-  createButton(data: Partial<GatewayRawEvents.RawMessageComponent> = {}): ComponentButton {
+  createButton(data: ComponentData = {}): ComponentButton {
     const component = new ComponentButton(data);
     this.addComponent(component);
     return component;
   }
 
-  createSelectMenu(data: Partial<GatewayRawEvents.RawMessageComponent> = {}): ComponentSelectMenu {
+  createSelectMenu(data: ComponentData = {}): ComponentSelectMenu {
     const component = new ComponentSelectMenu(data);
     this.addComponent(component);
     return component;
@@ -108,7 +119,7 @@ const keysComponentButton = new BaseSet<string>([
   type = MessageComponentTypes.BUTTON;
   url?: null | string;
 
-  constructor(data: Partial<GatewayRawEvents.RawMessageComponent> = {}) {
+  constructor(data: ComponentData = {}) {
     super();
     Object.assign(data, {
       [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
@@ -197,7 +208,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
   placeholder?: null | string;
   type = MessageComponentTypes.SELECT_MENU;
 
-  constructor(data: Partial<GatewayRawEvents.RawMessageComponent> = {}) {
+  constructor(data: ComponentData = {}) {
     super();
     Object.assign(data, {
       [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
@@ -213,7 +224,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
     return this;
   }
 
-  createOption(data: Partial<GatewayRawEvents.RawMessageComponentSelectMenuOption> = {}): ComponentSelectMenuOption {
+  createOption(data: ComponentSelectMenuOptionData = {}): ComponentSelectMenuOption {
     const option = new ComponentSelectMenuOption(data);
     this.addOption(option);
     return option;
@@ -279,7 +290,7 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
   label: string = '';
   value: string = '';
 
-  constructor(data: Partial<GatewayRawEvents.RawMessageComponentSelectMenuOption> = {}) {
+  constructor(data: ComponentSelectMenuOptionData = {}) {
     super();
     this.merge(data);
   }
