@@ -339,6 +339,7 @@ export namespace GatewayRawEvents {
       participiants: Array<string>,
     },
     channel_id: string,
+    components?: Array<RawMessageComponent>,
     content: string,
     edited_timestamp?: string,
     embeds?: Array<RawMessageEmbed>,
@@ -411,8 +412,9 @@ export namespace GatewayRawEvents {
     emoji: RawEmojiPartial,
   }
 
-  export interface MessageUpdate extends MessageCreate {
-    
+  export interface MessageUpdate extends Partial<MessageCreate> {
+    channel_id: string,
+    id: string,
   }
 
   export interface Oauth2TokenRemove {
@@ -850,6 +852,32 @@ export namespace GatewayRawEvents {
     size: number,
     url: string,
     width: number,
+  }
+
+  export interface RawMessageComponent {
+    components?: Array<RawMessageComponent>,
+    custom_id?: string,
+    customId?: string,
+    disabled?: boolean,
+    emoji?: RawEmojiPartial,
+    label?: string,
+    max_values?: number,
+    min_values?: number,
+    maxValues?: number,
+    minValues?: number,
+    options?: Array<RawMessageComponentSelectMenuOption>,
+    placeholder?: string,
+    style?: number,
+    type: number,
+    url?: string,
+  }
+
+  export interface RawMessageComponentSelectMenuOption {
+    default?: boolean,
+    description?: string,
+    emoji?: RawEmojiPartial,
+    label: string,
+    value: string,
   }
 
   export interface RawMessageEmbed {

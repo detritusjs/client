@@ -21,6 +21,7 @@ export {
   PermissionTools,
   Snowflake,
 };
+export * from './components';
 export * from './embed';
 
 
