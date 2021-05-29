@@ -137,6 +137,10 @@ export class Context {
     return this.client.sessions;
   }
 
+  get stageInstances() {
+    return this.client.stageInstances;
+  }
+
   get typings() {
     return this.client.typings;
   }
