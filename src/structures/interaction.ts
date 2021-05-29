@@ -51,6 +51,7 @@ export class Interaction extends BaseStructure {
   guildId?: string;
   id: string = '';
   member?: Member;
+  message?: Message;
   token: string = '';
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
