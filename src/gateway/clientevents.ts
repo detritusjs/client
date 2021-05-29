@@ -4,7 +4,7 @@ import { GatewayRawEvents } from './rawevents';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ClientEvents } from '../constants';
+import { ChannelTypes, ClientEvents } from '../constants';
 import {
   Channel,
   Emoji,
@@ -19,6 +19,7 @@ import {
   Role,
   Session,
   StageInstance,
+  ThreadMember,
   Typing,
   User,
   UserMe,
@@ -482,6 +483,38 @@ export namespace GatewayClientEvents {
     region: string,
     streamKey: string,
     viewerIds: Array<string>,
+  }
+
+  export interface ThreadCreate {
+    thread: Channel,
+  }
+
+  export interface ThreadDelete {
+    guildId: string,
+    id: string,
+    parentId: string,
+    type: ChannelTypes,
+    thread: Channel | null,
+  }
+
+  export interface ThreadListSync {
+    
+  }
+
+  export interface ThreadMemberUpdate {
+    differences: Differences,
+    old: ThreadMember | null,
+    threadMember: ThreadMember,
+  }
+
+  export interface ThreadMembersUpdate {
+
+  }
+
+  export interface ThreadUpdate {
+    differences: Differences,
+    old: Channel | null,
+    thread: Channel,
   }
 
   export interface TypingStart {

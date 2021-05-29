@@ -564,12 +564,16 @@ export namespace GatewayRawEvents {
     threads: Array<RawChannel>,
   }
 
-  export interface ThreadMemberUpdate {
+  export interface ThreadMemberUpdate extends RawThreadMember{
 
   }
 
   export interface ThreadMembersUpdate {
-    
+    added_members?: Array<RawThreadMember>,
+    guild_id: string,
+    id: string,
+    member_count: number,
+    removed_member_ids?: Array<string>,
   }
 
   export interface ThreadUpdate extends RawChannel {

@@ -1733,9 +1733,6 @@ const keysChannelGuildThread = new BaseSet<string>([
 ]);
 
 
-// NEEDS MORE WORK, GRR
-// DO I EXTEND GUILD BASE, GUILD TEXT, OR JUST CHANNEL BASE
-
 /**
  * Guild Thread Channel
  * @category Structure

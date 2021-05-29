@@ -6,7 +6,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { Channel } from './channel';
+import { ChannelGuildThread } from './channel';
 import { User } from './user';
 
 
@@ -41,6 +41,17 @@ export class ThreadMember extends BaseStructure {
 
   get joinTimestamp(): Date {
     return new Date(this.joinTimestampUnix);
+  }
+
+  get thread(): ChannelGuildThread | null {
+    if (this.client.channels.has(this.id)) {
+      return this.client.channels.get(this.id) as ChannelGuildThread;
+    }
+    return null;
+  }
+
+  get user(): User | null {
+    return this.client.users.get(this.userId) || null;
   }
 
   add() {
@@ -78,7 +89,7 @@ const keysThreadMetadata = new BaseSet<string>([
  */
  export class ThreadMetadata extends BaseStructure {
   readonly _keys = keysThreadMetadata;
-  readonly channel: Channel;
+  readonly channel: ChannelGuildThread;
 
   archiveTimestampUnix: number = 0;
   archived: boolean = false;
@@ -87,7 +98,7 @@ const keysThreadMetadata = new BaseSet<string>([
   locked?: boolean;
 
   constructor(
-    channel: Channel,
+    channel: ChannelGuildThread,
     data?: BaseStructureData,
     isClone?: boolean,
   ) {

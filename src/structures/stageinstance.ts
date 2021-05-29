@@ -34,6 +34,7 @@ export class StageInstance extends BaseStructure {
   readonly _keys = keysStageInstance;
 
   channelId: string = '';
+  deleted: boolean = false;
   discoverableDisabled: boolean = false;
   guildId: string = '';
   guildScheduledEventId: null | string = null;

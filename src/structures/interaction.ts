@@ -1,8 +1,9 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
+import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, InteractionTypes, MessageComponentTypes } from '../constants';
+import { ChannelTypes, DiscordKeys, InteractionTypes, MessageComponentTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -12,6 +13,7 @@ import { Channel } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
 import { Message } from './message';
+import { Role } from './role';
 import { User } from './user';
 
 
@@ -156,7 +158,7 @@ export class InteractionDataApplicationCommand extends BaseStructure {
   id: string = '';
   name: string = '';
   options: any;
-  resolved: any;
+  resolved!: InteractionDataApplicationCommandResolved;
 
   constructor(
     client: ShardClient,
@@ -165,6 +167,100 @@ export class InteractionDataApplicationCommand extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.RESOLVED: {
+          value = new InteractionDataApplicationCommandResolved(this.client, value);
+        }; break;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
+const keysInteractionDataApplicationCommandResolved = new BaseSet<string>([
+  DiscordKeys.CHANNELS,
+  DiscordKeys.MEMBERS,
+  DiscordKeys.ROLES,
+  DiscordKeys.USERS,
+]);
+
+const keysMergeInteractionDataApplicationCommandResolved = new BaseSet<string>([
+  DiscordKeys.USERS,
+]);
+
+/**
+ * Interaction Data Application Command Resolved Structure
+ * @category Structure
+ */
+export class InteractionDataApplicationCommandResolved extends BaseStructure {
+  readonly _keys = keysInteractionDataApplicationCommandResolved;
+  readonly _keysMerge = keysMergeInteractionDataApplicationCommandResolved;
+
+  channels?: BaseCollection<string, {id: string, name: string, permissions: bigint, type: ChannelTypes}>;
+  members?: BaseCollection<string, Member>;
+  roles?: BaseCollection<string, Role>;
+  users?: BaseCollection<string, User>;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.CHANNELS: {
+          if (!this.channels) {
+            this.channels = new BaseCollection();
+          }
+          this.channels.clear();
+          for (let channelId in value) {
+            this.channels.set(channelId, value[channelId]);
+          }
+        }; return;
+        case DiscordKeys.MEMBERS: {
+          if (!this.members) {
+            this.members = new BaseCollection();
+          }
+          this.members.clear();
+          for (let userId in value) {
+            value[userId].user = (this.users) ? this.users.get(userId) : this.client.users.get(userId);
+            const member = new Member(this.client, value[userId], true);
+            this.members.set(userId, member);
+          }
+        }; return;
+        case DiscordKeys.ROLES: {
+          if (!this.roles) {
+            this.roles = new BaseCollection();
+          }
+          this.roles.clear();
+          for (let roleId in value) {
+            const role = new Role(this.client, value[roleId]);
+            this.roles.set(roleId, role);
+          }
+        }; return;
+        case DiscordKeys.USERS: {
+          if (!this.users) {
+            this.users = new BaseCollection();
+          }
+          this.users.clear();
+          for (let userId in value) {
+            const user = new User(this.client, value[userId]);
+            this.users.set(userId, user);
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
   }
 }
 
