@@ -43,6 +43,11 @@ const keysMergeMember = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
 ]);
 
+const keysSkipDifferenceMember = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.PERMISSIONS,
+]);
+
 /**
  * Guild Member Structure
  * @category Structure
@@ -50,6 +55,7 @@ const keysMergeMember = new BaseSet<string>([
 export class Member extends UserMixin {
   readonly _keys = keysMember;
   readonly _keysMerge = keysMergeMember;
+  readonly _keysSkipDifference = keysSkipDifferenceMember;
   _roles?: Array<string>;
   _permissions?: bigint = 0n;
 

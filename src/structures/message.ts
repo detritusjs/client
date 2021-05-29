@@ -979,7 +979,7 @@ export class MessageComponentActionRow extends BaseStructure {
   readonly _keys = keysMessageComponentActionRow;
   readonly message: Message;
 
-  components = new BaseCollection<string, MessageComponent>();
+  components = new BaseCollection<string, MessageComponent | MessageComponentSelectMenu>();
   type: MessageComponentTypes = MessageComponentTypes.ACTION_ROW;
 
   constructor(message: Message, data: BaseStructureData) {
@@ -995,7 +995,15 @@ export class MessageComponentActionRow extends BaseStructure {
         case DiscordKeys.COMPONENTS: {
           this.components.clear();
           for (let raw of value) {
-            const component = new MessageComponent(this.message, raw);
+            let component: MessageComponent | MessageComponentSelectMenu;
+            switch (raw.type) {
+              case MessageComponentTypes.SELECT_MENU: {
+                component = new MessageComponentSelectMenu(this.message, raw);
+              }; break;
+              default: {
+                component = new MessageComponent(this.message, raw);
+              };
+            }
             this.components.set(component.id, component);
           }
         }; return;
@@ -1042,6 +1050,106 @@ export class MessageComponent extends BaseStructure {
 
   get id(): string {
     return this.url || this.customId || '';
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.EMOJI: {
+          if (this.emoji) {
+            this.emoji.merge(value);
+          } else {
+            this.emoji = new Emoji(this.client, value);
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
+const keysMessageComponentSelectMenu = new BaseSet<string>([
+  DiscordKeys.CUSTOM_ID,
+  DiscordKeys.MAX_VALUES,
+  DiscordKeys.MIN_VALUES,
+  DiscordKeys.OPTIONS,
+  DiscordKeys.PLACEHOLDER,
+  DiscordKeys.TYPE,
+]);
+
+/**
+ * Channel Message Component Select Menu Structure
+ * @category Structure
+ */
+export class MessageComponentSelectMenu extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentSelectMenu;
+  readonly message: Message;
+
+  customId: string = '';
+  maxValues: number = 1;
+  minValues: number = 1;
+  options = new BaseCollection<string, MessageComponentSelectMenuOption>();
+  placeholder: string = '';
+  type: MessageComponentTypes.SELECT_MENU = MessageComponentTypes.SELECT_MENU;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get id(): string {
+    return this.customId;
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.OPTIONS: {
+          this.options.clear();
+          for (let raw of value) {
+            const option = new MessageComponentSelectMenuOption(this.message, raw);
+            this.options.set(option.value, option);
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
+const keysMessageComponentSelectMenuOption = new BaseSet<string>([
+  DiscordKeys.DEFAULT,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.EMOJI,
+  DiscordKeys.LABEL,
+  DiscordKeys.VALUE,
+]);
+
+/**
+ * Channel Message Component Select Menu Structure
+ * @category Structure
+ */
+export class MessageComponentSelectMenuOption extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentSelectMenuOption;
+  readonly message: Message;
+
+  default: boolean = false;
+  description?: string;
+  emoji?: Emoji;
+  label: string = '';
+  value: string = '';
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
   }
 
   mergeValue(key: string, value: any): void {

@@ -172,6 +172,7 @@ export class InteractionDataApplicationCommand extends BaseStructure {
 const keysInteractionDataComponent = new BaseSet<string>([
   DiscordKeys.COMPONENT_TYPE,
   DiscordKeys.CUSTOM_ID,
+  DiscordKeys.VALUES,
 ]);
 
 /**
@@ -183,6 +184,7 @@ export class InteractionDataComponent extends BaseStructure {
 
   componentType: MessageComponentTypes = MessageComponentTypes.BUTTON;
   customId: string = '';
+  values?: Array<string>;
 
   constructor(
     client: ShardClient,
