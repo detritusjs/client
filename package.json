@@ -4,8 +4,8 @@
     "url": "https://github.com/detritusjs/client/issues"
   },
   "dependencies": {
-    "detritus-client-rest": "^0.9.3",
-    "detritus-client-socket": "^0.7.2",
+    "detritus-client-rest": "^0.10.0",
+    "detritus-client-socket": "^0.8.0",
     "detritus-utils": "^0.4.0"
   },
   "description": "A Typescript NodeJS library to interact with Discord's API, both Rest and Gateway.",
@@ -56,5 +56,5 @@
     "typedoc": "typedoc"
   },
   "types": "lib/index.d.ts",
-  "version": "0.14.3"
+  "version": "0.15.0"
 }

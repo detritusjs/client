@@ -88,18 +88,6 @@ export class User extends BaseStructure {
     return collection;
   }
 
-  get hasStaff(): boolean {
-    return this.hasFlag(UserFlags.STAFF);
-  }
-
-  get hasPartner(): boolean {
-    return this.hasFlag(UserFlags.PARTNER);
-  }
-
-  get hasHypesquad(): boolean {
-    return this.hasFlag(UserFlags.HYPESQUAD);
-  }
-
   get hasBugHunterLevel1(): boolean {
     return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_1);
   }
@@ -108,12 +96,16 @@ export class User extends BaseStructure {
     return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_2);
   }
 
-  get hasMfaSms(): boolean {
-    return this.hasFlag(UserFlags.MFA_SMS);
+  get hasFreePremium(): boolean {
+    return this.hasStaff || this.hasPartner;
   }
 
-  get hasPremiumPromoDismissed(): boolean {
-    return this.hasFlag(UserFlags.PREMIUM_PROMO_DISMISSED);
+  get hasEarlySupporter(): boolean {
+    return this.hasFlag(UserFlags.PREMIUM_EARLY_SUPPORTER);
+  }
+
+  get hasHypesquad(): boolean {
+    return this.hasFlag(UserFlags.HYPESQUAD);
   }
 
   get hasHypesquadHouseBravery(): boolean {
@@ -128,8 +120,20 @@ export class User extends BaseStructure {
     return this.hasFlag(UserFlags.HYPESQUAD_ONLINE_HOUSE_3);
   }
 
-  get hasEarlySupporter(): boolean {
-    return this.hasFlag(UserFlags.PREMIUM_EARLY_SUPPORTER);
+  get hasMfaSms(): boolean {
+    return this.hasFlag(UserFlags.MFA_SMS);
+  }
+
+  get hasPartner(): boolean {
+    return this.hasFlag(UserFlags.PARTNER);
+  }
+
+  get hasPremiumPromoDismissed(): boolean {
+    return this.hasFlag(UserFlags.PREMIUM_PROMO_DISMISSED);
+  }
+
+  get hasStaff(): boolean {
+    return this.hasFlag(UserFlags.STAFF);
   }
 
   get hasTeamUser(): boolean {
@@ -449,18 +453,6 @@ export class UserMixin extends BaseStructure {
     return this.user.guilds;
   }
 
-  get hasStaff(): boolean {
-    return this.user.hasStaff;
-  }
-
-  get hasPartner(): boolean {
-    return this.user.hasPartner;
-  }
-
-  get hasHypesquad(): boolean {
-    return this.user.hasHypesquad;
-  }
-
   get hasBugHunterLevel1(): boolean {
     return this.user.hasBugHunterLevel1;
   }
@@ -469,12 +461,16 @@ export class UserMixin extends BaseStructure {
     return this.user.hasBugHunterLevel2;
   }
 
-  get hasMfaSms(): boolean {
-    return this.user.hasMfaSms;
+  get hasEarlySupporter(): boolean {
+    return this.user.hasEarlySupporter;
   }
 
-  get hasPremiumPromoDismissed(): boolean {
-    return this.user.hasPremiumPromoDismissed;
+  get hasFreePremium(): boolean {
+    return this.user.hasFreePremium;
+  }
+
+  get hasHypesquad(): boolean {
+    return this.user.hasHypesquad;
   }
 
   get hasHypesquadHouseBravery(): boolean {
@@ -489,8 +485,20 @@ export class UserMixin extends BaseStructure {
     return this.user.hasHypesquadHouseBalance;
   }
 
-  get hasEarlySupporter(): boolean {
-    return this.user.hasEarlySupporter;
+  get hasMfaSms(): boolean {
+    return this.user.hasMfaSms;
+  }
+
+  get hasPartner(): boolean {
+    return this.user.hasPartner;
+  }
+
+  get hasPremiumPromoDismissed(): boolean {
+    return this.user.hasPremiumPromoDismissed;
+  }
+
+  get hasStaff(): boolean {
+    return this.user.hasStaff;
   }
 
   get hasTeamUser(): boolean {

@@ -208,8 +208,11 @@ export class BaseClientCollectionCache<K, V> extends BaseCollectionCache<K, V> {
 
   constructor(
     client: ShardClient,
-    options: BaseClientCollectionOptions = {},
+    options: BaseClientCollectionOptions | boolean = {},
   ) {
+    if (typeof(options) === 'boolean') {
+      options = {enabled: options};
+    }
     super(options);
 
     this.client = client;
@@ -235,9 +238,12 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
 
   constructor(
     client: ShardClient,
-    options: BaseClientCollectionOptions = {},
+    options: BaseClientCollectionOptions | boolean = {},
   ) {
     super();
+    if (typeof(options) === 'boolean') {
+      options = {enabled: options};
+    }
     Object.assign(this.options, options);
 
     this.client = client;

@@ -260,16 +260,17 @@ export class ClusterClient extends EventSpewer {
         shard.gateway.onIdentifyCheck = () => {
           const bucket = this.buckets.get(ratelimitKey);
           if (bucket) {
-            bucket.add(() => {
+            const waiting = this._shardsWaiting.get(shardId);
+            if (waiting) {
               shard.gateway.identify();
-              return new Promise((resolve, reject) => {
-                const waiting = this._shardsWaiting.get(shardId);
-                if (waiting) {
-                  waiting.reject(new Error('Received new Identify Request with same shard id, unknown why'));
-                }
-                this._shardsWaiting.set(shardId, {resolve, reject});
+            } else {
+              bucket.add(() => {
+                shard.gateway.identify();
+                return new Promise((resolve, reject) => {
+                  this._shardsWaiting.set(shardId, {resolve, reject});
+                });
               });
-            });
+            }
           }
           return false;
         };
@@ -423,6 +424,12 @@ export class ClusterClient extends EventSpewer {
   on(event: 'relationshipRemove', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RelationshipRemove) => any): this;
   on(event: ClientEvents.SESSIONS_REPLACE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.SessionsReplace) => any): this;
   on(event: 'sessionsReplace', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.SessionsReplace) => any): this;
+  on(event: ClientEvents.STAGE_INSTANCE_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceCreate) => any): this;
+  on(event: 'stageInstanceCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceCreate) => any): this;
+  on(event: ClientEvents.STAGE_INSTANCE_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceDelete) => any): this;
+  on(event: 'stageInstanceDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceDelete) => any): this;
+  on(event: ClientEvents.STAGE_INSTANCE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceUpdate) => any): this;
+  on(event: 'stageInstanceUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceUpdate) => any): this;
   on(event: ClientEvents.STREAM_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamCreate) => any): this;
   on(event: 'streamCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamCreate) => any): this;
   on(event: ClientEvents.STREAM_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamDelete) => any): this;
@@ -431,6 +438,18 @@ export class ClusterClient extends EventSpewer {
   on(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamServerUpdate) => any): this;
   on(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamUpdate) => any): this;
   on(event: 'streamUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamUpdate) => any): this;
+  on(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadCreate) => any): this;
+  on(event: 'threadCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadCreate) => any): this;
+  on(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadDelete) => any): this;
+  on(event: 'threadDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadDelete) => any): this;
+  on(event: ClientEvents.THREAD_LIST_SYNC, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadListSync) => any): this;
+  on(event: 'threadListSync', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadListSync) => any): this;
+  on(event: ClientEvents.THREAD_MEMBER_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMemberUpdate) => any): this;
+  on(event: 'threadMemberUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMemberUpdate) => any): this;
+  on(event: ClientEvents.THREAD_MEMBERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMembersUpdate) => any): this;
+  on(event: 'threadMembersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMembersUpdate) => any): this;
+  on(event: ClientEvents.THREAD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadUpdate) => any): this;
+  on(event: 'threadUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadUpdate) => any): this;
   on(event: ClientEvents.TYPING_START, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStart) => any): this;
   on(event: 'typingStart', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStart) => any): this;
   on(event: ClientEvents.TYPING_STOP, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStop) => any): this;
@@ -613,6 +632,12 @@ export class ClusterClient extends EventSpewer {
   once(event: 'relationshipRemove', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RelationshipRemove) => any): this;
   once(event: ClientEvents.SESSIONS_REPLACE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.SessionsReplace) => any): this;
   once(event: 'sessionsReplace', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.SessionsReplace) => any): this;
+  once(event: ClientEvents.STAGE_INSTANCE_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceCreate) => any): this;
+  once(event: 'stageInstanceCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceCreate) => any): this;
+  once(event: ClientEvents.STAGE_INSTANCE_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceDelete) => any): this;
+  once(event: 'stageInstanceDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceDelete) => any): this;
+  once(event: ClientEvents.STAGE_INSTANCE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceUpdate) => any): this;
+  once(event: 'stageInstanceUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceUpdate) => any): this;
   once(event: ClientEvents.STREAM_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamCreate) => any): this;
   once(event: 'streamCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamCreate) => any): this;
   once(event: ClientEvents.STREAM_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamDelete) => any): this;
@@ -621,6 +646,18 @@ export class ClusterClient extends EventSpewer {
   once(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamServerUpdate) => any): this;
   once(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamUpdate) => any): this;
   once(event: 'streamUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamUpdate) => any): this;
+  once(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadCreate) => any): this;
+  once(event: 'threadCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadCreate) => any): this;
+  once(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadDelete) => any): this;
+  once(event: 'threadDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadDelete) => any): this;
+  once(event: ClientEvents.THREAD_LIST_SYNC, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadListSync) => any): this;
+  once(event: 'threadListSync', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadListSync) => any): this;
+  once(event: ClientEvents.THREAD_MEMBER_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMemberUpdate) => any): this;
+  once(event: 'threadMemberUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMemberUpdate) => any): this;
+  once(event: ClientEvents.THREAD_MEMBERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMembersUpdate) => any): this;
+  once(event: 'threadMembersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMembersUpdate) => any): this;
+  once(event: ClientEvents.THREAD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadUpdate) => any): this;
+  once(event: 'threadUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadUpdate) => any): this;
   once(event: ClientEvents.TYPING_START, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStart) => any): this;
   once(event: 'typingStart', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStart) => any): this;
   once(event: ClientEvents.TYPING_STOP, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStop) => any): this;
@@ -803,6 +840,12 @@ export class ClusterClient extends EventSpewer {
   subscribe(event: 'relationshipRemove', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RelationshipRemove) => any): EventSubscription;
   subscribe(event: ClientEvents.SESSIONS_REPLACE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.SessionsReplace) => any): EventSubscription;
   subscribe(event: 'sessionsReplace', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.SessionsReplace) => any): EventSubscription;
+  subscribe(event: ClientEvents.STAGE_INSTANCE_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceCreate) => any): EventSubscription;
+  subscribe(event: 'stageInstanceCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.STAGE_INSTANCE_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceDelete) => any): EventSubscription;
+  subscribe(event: 'stageInstanceDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.STAGE_INSTANCE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceUpdate) => any): EventSubscription;
+  subscribe(event: 'stageInstanceUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StageInstanceUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.STREAM_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamCreate) => any): EventSubscription;
   subscribe(event: 'streamCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamCreate) => any): EventSubscription;
   subscribe(event: ClientEvents.STREAM_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamDelete) => any): EventSubscription;
@@ -811,6 +854,18 @@ export class ClusterClient extends EventSpewer {
   subscribe(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamServerUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamUpdate) => any): EventSubscription;
   subscribe(event: 'streamUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.StreamUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadCreate) => any): EventSubscription;
+  subscribe(event: 'threadCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadDelete) => any): EventSubscription;
+  subscribe(event: 'threadDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_LIST_SYNC, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadListSync) => any): EventSubscription;
+  subscribe(event: 'threadListSync', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadListSync) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_MEMBER_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMemberUpdate) => any): EventSubscription;
+  subscribe(event: 'threadMemberUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMemberUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_MEMBERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMembersUpdate) => any): EventSubscription;
+  subscribe(event: 'threadMembersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadMembersUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadUpdate) => any): EventSubscription;
+  subscribe(event: 'threadUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ThreadUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.TYPING_START, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStart) => any): EventSubscription;
   subscribe(event: 'typingStart', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStart) => any): EventSubscription;
   subscribe(event: ClientEvents.TYPING_STOP, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.TypingStop) => any): EventSubscription;

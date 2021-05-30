@@ -10,6 +10,7 @@ import {
   DiscordKeys,
   GuildExplicitContentFilterTypes,
   GuildFeatures,
+  GuildNSFWLevels,
   Locales,
   LocalesText,
   MfaLevels,
@@ -42,8 +43,10 @@ import {
   createChannelFromData,
   Channel,
   ChannelGuildCategory,
+  ChannelGuildStageVoice,
   ChannelGuildStore,
   ChannelGuildText,
+  ChannelGuildThread,
   ChannelGuildVoice,
 } from './channel';
 import { Emoji } from './emoji';
@@ -51,6 +54,7 @@ import { Member } from './member';
 import { Message } from './message';
 import { Presence } from './presence';
 import { Role } from './role';
+import { StageInstance } from './stageinstance';
 import { User } from './user';
 import { VoiceRegion } from './voiceregion';
 import { VoiceState } from './voicestate';
@@ -303,6 +307,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.editGuildVanity(this.id, code, options);
   }
 
+  async editVoiceState(userId: string, options: RequestTypes.EditGuildVoiceState) {
+    return this.client.rest.editGuildVoiceState(this.id, userId, options);
+  }
+
 
   async fetchApplications(channelId?: string) {
     return this.client.rest.fetchGuildApplications(this.id, channelId);
@@ -467,6 +475,8 @@ const keysGuildPartial = new BaseSet<string>([
   DiscordKeys.ICON,
   DiscordKeys.ID,
   DiscordKeys.NAME,
+  DiscordKeys.NSFW,
+  DiscordKeys.NSFW_LEVEL,
   DiscordKeys.SPLASH,
   DiscordKeys.VANITY_URL_CODE,
   DiscordKeys.VERIFICATION_LEVEL,
@@ -482,6 +492,8 @@ export class GuildPartial extends BaseGuild {
 
   banner: null | string = null;
   description: null | string = null;
+  nsfw: boolean = false;
+  nsfwLevel: GuildNSFWLevels = GuildNSFWLevels.DEFAULT;
   splash: null | string = null;
   vanityUrlCode: null | string = null;
   verificationLevel: number = 0;
@@ -557,6 +569,7 @@ export class GuildPartial extends BaseGuild {
 const keysGuild = new BaseSet<string>([
   DiscordKeys.AFK_CHANNEL_ID,
   DiscordKeys.AFK_TIMEOUT,
+  DiscordKeys.APPLICATION_COMMAND_COUNT,
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.BANNER,
   DiscordKeys.CHANNELS,
@@ -581,6 +594,8 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.MEMBERS,
   DiscordKeys.MFA_LEVEL,
   DiscordKeys.NAME,
+  DiscordKeys.NSFW,
+  DiscordKeys.NSFW_LEVEL,
   DiscordKeys.OWNER_ID,
   DiscordKeys.PREFERRED_LOCALE,
   DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT,
@@ -591,8 +606,10 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.ROLES,
   DiscordKeys.RULES_CHANNEL_ID,
   DiscordKeys.SPLASH,
+  DiscordKeys.STAGE_INSTANCES,
   DiscordKeys.SYSTEM_CHANNEL_FLAGS,
   DiscordKeys.SYSTEM_CHANNEL_ID,
+  DiscordKeys.THREADS,
   DiscordKeys.UNAVAILABLE,
   DiscordKeys.VANITY_URL_CODE,
   DiscordKeys.VERIFICATION_LEVEL,
@@ -625,9 +642,12 @@ export class Guild extends GuildPartial {
   readonly _keys = keysGuild;
   readonly _keysMerge = keysMergeGuild;
   readonly _keysSkipDifference = keysSkipDifferenceGuild;
+  readonly _channelIds = new BaseSet<string>();
+  readonly _threadIds = new BaseSet<string>();
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
+  applicationCommandCount: number = 0;
   applicationId?: null | string;
   banner: null | string = null;
   defaultMessageNotifications: number = 0;
@@ -654,6 +674,8 @@ export class Guild extends GuildPartial {
   members: BaseCollection<string, Member>;
   mfaLevel: MfaLevels = MfaLevels.NONE;
   name: string = '';
+  nsfw: boolean = false;
+  nsfwLevel: GuildNSFWLevels = GuildNSFWLevels.DEFAULT;
   ownerId: string = '';
   preferredLocale: Locales = Locales.ENGLISH_US;
   premiumSubscriptionCount: number = 0;
@@ -663,6 +685,7 @@ export class Guild extends GuildPartial {
   roles: BaseCollection<string, Role>;
   rulesChannelId: null | string = null;
   splash: null | string = null;
+  stageInstances: BaseCollection<string, StageInstance>;
   systemChannelFlags: number = 0;
   systemChannelId: null | string = null;
   unavailable: boolean = false;
@@ -678,10 +701,12 @@ export class Guild extends GuildPartial {
       this.emojis = new BaseCollection<string, Emoji>();
       this.members = new BaseCollection<string, Member>();
       this.roles = new BaseCollection<string, Role>();
+      this.stageInstances = new BaseCollection<string, StageInstance>();
     } else {
       this.emojis = new BaseCollection<string, Emoji>(this.client.emojis.options);
       this.members = new BaseCollection<string, Member>(this.client.members.options);
       this.roles = new BaseCollection<string, Role>(this.client.roles.options);
+      this.stageInstances = new BaseCollection<string, StageInstance>(this.client.stageInstances.options);
     }
     this.merge(data);
   }
@@ -693,11 +718,40 @@ export class Guild extends GuildPartial {
     return null;
   }
 
+  get allTextChannels(): BaseCollection<string, ChannelGuildText> {
+    const collection = new BaseCollection<string, ChannelGuildText>();
+    for (let channelId of this._channelIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
+        if (channel.isText && !channel.isGuildThread) {
+          collection.set(channelId, channel as ChannelGuildText);
+        }
+      }
+    }
+    return collection;
+  }
+
+  get allVoiceChannels(): BaseCollection<string, ChannelGuildStageVoice | ChannelGuildVoice> {
+    const collection = new BaseCollection<string, ChannelGuildStageVoice | ChannelGuildVoice>();
+    for (let channelId of this._channelIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
+        if (channel.isVoice) {
+          collection.set(channelId, channel as ChannelGuildStageVoice | ChannelGuildVoice);
+        }
+      }
+    }
+    return collection;
+  }
+
   get categoryChannels(): BaseCollection<string, ChannelGuildCategory> {
     const collection = new BaseCollection<string, ChannelGuildCategory>();
-    for (const [channelId, channel] of this.client.channels) {
-      if (channel.isGuildCategory && channel.guildId === this.id) {
-        collection.set(channelId, channel);
+    for (let channelId of this._channelIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
+        if (channel.isGuildCategory) {
+          collection.set(channelId, channel as ChannelGuildCategory);
+        }
       }
     }
     return collection;
@@ -705,8 +759,9 @@ export class Guild extends GuildPartial {
 
   get channels(): BaseCollection<string, Channel> {
     const collection = new BaseCollection<string, Channel>();
-    for (const [channelId, channel] of this.client.channels) {
-      if (channel.guildId === this.id) {
+    for (let channelId of this._channelIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
         collection.set(channelId, channel);
       }
     }
@@ -806,11 +861,27 @@ export class Guild extends GuildPartial {
     return null;
   }
 
+  get stageVoiceChannels(): BaseCollection<string, ChannelGuildStageVoice> {
+    const collection = new BaseCollection<string, ChannelGuildStageVoice>();
+    for (let channelId of this._channelIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
+        if (channel.isGuildStageVoice) {
+          collection.set(channelId, channel as ChannelGuildStageVoice);
+        }
+      }
+    }
+    return collection;
+  }
+
   get storeChannels(): BaseCollection<string, ChannelGuildStore> {
     const collection = new BaseCollection<string, ChannelGuildStore>();
-    for (const [channelId, channel] of this.client.channels) {
-      if (channel.isGuildStore && channel.guildId === this.id) {
-        collection.set(channelId, channel);
+    for (let channelId of this._channelIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
+        if (channel.isGuildStore) {
+          collection.set(channelId, channel as ChannelGuildStore);
+        }
       }
     }
     return collection;
@@ -825,9 +896,25 @@ export class Guild extends GuildPartial {
 
   get textChannels(): BaseCollection<string, ChannelGuildText> {
     const collection = new BaseCollection<string, ChannelGuildText>();
-    for (const [channelId, channel] of this.client.channels) {
-      if (channel.isGuildText && channel.guildId === this.id) {
-        collection.set(channelId, channel);
+    for (let channelId of this._channelIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
+        if (channel.isGuildText) {
+          collection.set(channelId, channel as ChannelGuildText);
+        }
+      }
+    }
+    return collection;
+  }
+
+  get threads(): BaseCollection<string, ChannelGuildThread> {
+    const collection = new BaseCollection<string, ChannelGuildThread>();
+    for (let channelId of this._threadIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
+        if (channel.isGuildThread) {
+          collection.set(channelId, channel as ChannelGuildThread);
+        }
       }
     }
     return collection;
@@ -835,9 +922,12 @@ export class Guild extends GuildPartial {
 
   get voiceChannels(): BaseCollection<string, ChannelGuildVoice> {
     const collection = new BaseCollection<string, ChannelGuildVoice>();
-    for (const [channelId, channel] of this.client.channels) {
-      if (channel.isGuildVoice && channel.guildId === this.id) {
-        collection.set(channelId, channel);
+    for (let channelId of this._channelIds) {
+      if (this.client.channels.has(channelId)) {
+        const channel = this.client.channels.get(channelId)!;
+        if (channel.isGuildVoice) {
+          collection.set(channelId, channel as ChannelGuildVoice);
+        }
       }
     }
     return collection;
@@ -845,7 +935,7 @@ export class Guild extends GuildPartial {
 
   get voiceStates(): BaseCollection<string, VoiceState> {
     if (this.client.voiceStates.has(this.id)) {
-      return this.client.voiceStates.get(this.id) as BaseCollection<string, VoiceState>;
+      return this.client.voiceStates.get(this.id)!;
     }
     return emptyBaseCollection;
   }
@@ -919,6 +1009,7 @@ export class Guild extends GuildPartial {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.CHANNELS: {
+          this._channelIds.clear();
           if (this.client.channels.enabled) {
             for (let raw of value) {
               raw.guild_id = this.id;
@@ -928,13 +1019,14 @@ export class Guild extends GuildPartial {
                 channel = createChannelFromData(this.client, raw, this.isClone);
               } else {
                 if (this.client.channels.has(raw.id)) {
-                  channel = this.client.channels.get(raw.id) as Channel;
+                  channel = this.client.channels.get(raw.id)!;
                   channel.merge(raw);
                 } else {
                   channel = createChannelFromData(this.client, raw);
                   this.client.channels.insert(channel);
                 }
               }
+              this._channelIds.add(channel.id);
             }
           }
         }; return;
@@ -949,7 +1041,7 @@ export class Guild extends GuildPartial {
                 emoji = new Emoji(this.client, raw, this.isClone);
               } else {
                 if (this.emojis.has(raw.id)) {
-                  emoji = this.emojis.get(raw.id) as Emoji;
+                  emoji = this.emojis.get(raw.id)!;
                   emoji.merge(raw);
                 } else {
                   emoji = new Emoji(this.client, raw);
@@ -987,7 +1079,7 @@ export class Guild extends GuildPartial {
             if (this.client.members.enabled) {
               let member: Member;
               if (this.members.has(raw.user.id)) {
-                member = this.members.get(raw.user.id) as Member;
+                member = this.members.get(raw.user.id)!;
                 member.merge(raw);
               } else {
                 member = new Member(this.client, raw, this.isClone);
@@ -998,7 +1090,7 @@ export class Guild extends GuildPartial {
               if (!this.isClone) {
                 let user: User;
                 if (this.client.users.has(raw.user.id)) {
-                  user = this.client.users.get(raw.user.id) as User;
+                  user = this.client.users.get(raw.user.id)!;
                   user.merge(raw.user);
                 } else {
                   user = new User(this.client, raw.user);
@@ -1014,7 +1106,7 @@ export class Guild extends GuildPartial {
             for (let raw of value) {
               let role: Role;
               if (this.roles.has(raw.id)) {
-                role = this.roles.get(raw.id) as Role;
+                role = this.roles.get(raw.id)!;
                 role.merge(raw);
               } else {
                 raw.guild_id = this.id;
@@ -1044,6 +1136,48 @@ export class Guild extends GuildPartial {
             }
           }
         }; return;
+        case DiscordKeys.STAGE_INSTANCES: {
+          if (this.client.stageInstances.enabled) {
+            const stageInstances: Array<StageInstance> = [];
+            for (let raw of value) {
+              let stage: StageInstance;
+              if (this.stageInstances.has(raw.id)) {
+                stage = this.stageInstances.get(raw.id)!;
+                stage.merge(raw);
+              } else {
+                raw.guild_id = this.id;
+                stage = new StageInstance(this.client, raw, this.isClone);
+              }
+              stageInstances.push(stage);
+            }
+            this.stageInstances.clear();
+            for (let stage of stageInstances) {
+              this.stageInstances.set(stage.id, stage);
+            }
+          }
+        }; return;
+        case DiscordKeys.THREADS: {
+          this._threadIds.clear();
+          if (this.client.channels.enabled) {
+            for (let raw of value) {
+              raw.guild_id = this.id;
+
+              let channel: Channel;
+              if (this.isClone) {
+                channel = createChannelFromData(this.client, raw, this.isClone);
+              } else {
+                if (this.client.channels.has(raw.id)) {
+                  channel = this.client.channels.get(raw.id)!;
+                  channel.merge(raw);
+                } else {
+                  channel = createChannelFromData(this.client, raw);
+                  this.client.channels.insert(channel);
+                }
+              }
+              this._threadIds.add(channel.id);
+            }
+          }
+        }; return;
         case DiscordKeys.VOICE_STATES: {
           // drop the voice states when cloning the guild.. (unexpected behavior, maybe stop guilds from being cloned?)
 
@@ -1052,13 +1186,13 @@ export class Guild extends GuildPartial {
             cache.clear();
             for (let raw of value) {
               if (cache.has(raw.user_id)) {
-                const voiceState = cache.get(raw.user_id) as VoiceState;
+                const voiceState = cache.get(raw.user_id)!;
                 voiceState.merge(raw);
               } else {
                 raw.guild_id = this.id;
                 const voiceState = new VoiceState(this.client, raw);
                 if (!voiceState.member && this.members.has(voiceState.userId)) {
-                  voiceState.member = this.members.get(voiceState.userId) as Member;
+                  voiceState.member = this.members.get(voiceState.userId)!;
                 }
                 cache.set(voiceState.userId, voiceState);
               }

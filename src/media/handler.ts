@@ -116,7 +116,7 @@ export class MediaGatewayOpHandler {
   [MediaOpCodes.CLIENT_DISCONNECT](data: MediaRawEvents.ClientDisconnect) {
     const userId = data['user_id'];
     if (this.connection.opusDecoders.has(userId)) {
-      const opusDecoder = <Opus.AudioOpus> this.connection.opusDecoders.get(userId);
+      const opusDecoder = this.connection.opusDecoders.get(userId) as Opus.AudioOpus;
       opusDecoder.delete();
       this.connection.opusDecoders.delete(userId);
     }
@@ -127,19 +127,26 @@ export class MediaGatewayOpHandler {
   }
 
   [MediaOpCodes.SPEAKING](data: MediaRawEvents.Speaking) {
+    const isSpeaking = !!data['speaking'];
     const priority = (data['speaking'] & SpeakingFlags.PRIORITY) === SpeakingFlags.PRIORITY;
     const soundshare = (data['speaking'] & SpeakingFlags.SOUNDSHARE) === SpeakingFlags.SOUNDSHARE;
     const voice = (data['speaking'] & SpeakingFlags.VOICE) === SpeakingFlags.VOICE;
     const userId = data['user_id'];
 
+    const voiceState = this.client.voiceStates.get(this.connection.serverId, userId) || null;
+    if (voiceState) {
+      voiceState._isSpeaking = isSpeaking;
+    }
+
     const payload: MediaEvents.Speaking = {
-      isSpeaking: !!data['speaking'],
+      isSpeaking,
       priority,
       soundshare,
       ssrc: data['ssrc'],
       user: this.client.users.get(userId) || null,
       userId,
       voice,
+      voiceState,
     };
     this.connection.emit('speaking', payload);
   }

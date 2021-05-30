@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, InviteTargetUserTypes } from '../constants';
+import { DiscordKeys, InviteTargetTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -25,13 +25,15 @@ const keysInvite = new BaseSet<string>([
   DiscordKeys.CHANNEL,
   DiscordKeys.CODE,
   DiscordKeys.CREATED_AT,
+  DiscordKeys.EXPIRES_AT,
   DiscordKeys.GUILD,
   DiscordKeys.INVITER,
   DiscordKeys.MAX_AGE,
   DiscordKeys.MAX_USES,
   DiscordKeys.REVOKED,
+  DiscordKeys.TARGET_APPLICATION,
+  DiscordKeys.TARGET_TYPE,
   DiscordKeys.TARGET_USER,
-  DiscordKeys.TARGET_USER_TYPE,
   DiscordKeys.TEMPORARY,
   DiscordKeys.USES,
 ]);
@@ -53,13 +55,15 @@ export class Invite extends BaseStructure {
   channel!: Channel;
   code: string = '';
   createdAt?: Date;
+  expiresAt?: Date;
   guild?: GuildPartial;
   inviter?: User;
   maxAge?: number;
   maxUses?: number;
   revoked?: boolean;
+  targetApplication?: any;
+  targetType?: InviteTargetTypes;
   targetUser?: User;
-  targetUserType?: InviteTargetUserTypes;
   temporary?: boolean;
   uses?: number;
 
@@ -76,15 +80,25 @@ export class Invite extends BaseStructure {
     return (this.createdAt) ? this.createdAt.getTime() : 0;
   }
 
-  get expiresAt(): Date | null {
-    const expiresAt = this.expiresAtUnix;
-    if (expiresAt !== Infinity) {
-      return new Date(expiresAt);
+  get expired(): boolean {
+    if (this.expiresAt) {
+      return Date.now() <= this.expiresAtUnix;
     }
-    return null;
+    return !!this.expiresIn;
   }
 
   get expiresAtUnix(): number {
+    return (this.expiresAt) ? this.expiresAt.getTime() : 0;
+  }
+
+  get expiresIn(): number {
+    if (this.createdAt && this.maxAge) {
+      return Math.max((this.createdAtUnix + this.maxAge) - Date.now(), 0);
+    }
+    return Infinity;
+  }
+
+  get expiresInUnix(): number {
     if (this.createdAt && this.maxAge) {
       return this.createdAtUnix + this.maxAge;
     }
@@ -122,9 +136,17 @@ export class Invite extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.CHANNEL: {
+          if (this.guild) {
+            value.guild_id = this.guild.id;
+          }
           value = createChannelFromData(this.client, value, true);
         }; break;
         case DiscordKeys.CREATED_AT: {
+          if (value) {
+            value = new Date(value);
+          }
+        }; break;
+        case DiscordKeys.EXPIRES_AT: {
           if (value) {
             value = new Date(value);
           }

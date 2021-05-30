@@ -9,7 +9,9 @@ import { PermissionTools } from '../utils';
 import { BaseStructureData } from './basestructure';
 
 import {
-  ChannelGuildBase,
+  Channel,
+  ChannelBase,
+  ChannelGuildStageVoice,
   ChannelGuildVoice,
 } from './channel';
 import { Guild } from './guild';
@@ -17,6 +19,10 @@ import { Overwrite } from './overwrite';
 import { Role } from './role';
 import { User, UserMixin } from './user';
 import { VoiceState } from './voicestate';
+
+
+
+export type MemberOrUser = Member | User;
 
 
 const keysMember = new BaseSet<string>([
@@ -27,6 +33,7 @@ const keysMember = new BaseSet<string>([
   DiscordKeys.MUTE,
   DiscordKeys.NICK,
   DiscordKeys.PENDING,
+  DiscordKeys.PERMISSIONS,
   DiscordKeys.PREMIUM_SINCE,
   DiscordKeys.ROLES,
   DiscordKeys.USER,
@@ -36,6 +43,11 @@ const keysMergeMember = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
 ]);
 
+const keysSkipDifferenceMember = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.PERMISSIONS,
+]);
+
 /**
  * Guild Member Structure
  * @category Structure
@@ -43,7 +55,9 @@ const keysMergeMember = new BaseSet<string>([
 export class Member extends UserMixin {
   readonly _keys = keysMember;
   readonly _keysMerge = keysMergeMember;
+  readonly _keysSkipDifference = keysSkipDifferenceMember;
   _roles?: Array<string>;
+  _permissions?: bigint = 0n;
 
   deaf: boolean = false;
   guildId: string = '';
@@ -110,8 +124,28 @@ export class Member extends UserMixin {
     return this.can([Permissions.MANAGE_ROLES]);
   }
 
+  get canManageThreads(): boolean {
+    return this.can([Permissions.MANAGE_THREADS]);
+  }
+
   get canManageWebhooks(): boolean {
     return this.can([Permissions.MANAGE_WEBHOOKS]);
+  }
+
+  get canRequestToSpeak(): boolean {
+    return this.can([Permissions.REQUEST_TO_SPEAK]);
+  }
+
+  get canUseApplicationCommands(): boolean {
+    return this.can([Permissions.USE_APPLICATION_COMMANDS]);
+  }
+
+  get canUsePrivateThreads(): boolean {
+    return this.can([Permissions.USE_PRIVATE_THREADS]);
+  }
+
+  get canUsePublicThreads(): boolean {
+    return this.can([Permissions.USE_PUBLIC_THREADS]);
   }
 
   get canViewAuditLogs(): boolean {
@@ -213,6 +247,9 @@ export class Member extends UserMixin {
   }
 
   get permissions(): bigint {
+    if (this._permissions) {
+      return this._permissions;
+    }
     if (this.isOwner) {
       return PERMISSIONS_ALL;
     }
@@ -249,7 +286,7 @@ export class Member extends UserMixin {
     return collection;
   }
 
-  get voiceChannel(): ChannelGuildVoice | null {
+  get voiceChannel(): ChannelGuildStageVoice | ChannelGuildVoice | null {
     const voiceState = this.voiceState;
     if (voiceState) {
       return voiceState.channel;
@@ -291,21 +328,22 @@ export class Member extends UserMixin {
     return false;
   }
 
-  permissionsIn(channelId: ChannelGuildBase | string): bigint {
-    let channel: ChannelGuildBase;
-    if (channelId instanceof ChannelGuildBase) {
+  permissionsIn(channelId: Channel | string): bigint {
+    let channel: Channel;
+    if (channelId instanceof ChannelBase) {
       channel = channelId;
     } else {
       if (this.client.channels.has(channelId)) {
-        channel = this.client.channels.get(channelId) as ChannelGuildBase;
+        channel = this.client.channels.get(channelId) as Channel;
       } else {
         return Permissions.NONE;
       }
     }
+    const guildId = channel.guildId || '';
 
     let total = this.permissions;
-    if (channel.permissionOverwrites.has(channel.guildId)) {
-      const overwrite = channel.permissionOverwrites.get(channel.guildId) as Overwrite;
+    if (channel.permissionOverwrites.has(guildId)) {
+      const overwrite = channel.permissionOverwrites.get(guildId)!;
       total = (total & ~overwrite.deny) | overwrite.allow;
     }
 
@@ -313,7 +351,7 @@ export class Member extends UserMixin {
     for (let [roleId, role] of this.roles) {
       if (roleId === this.guildId) {continue;}
       if (channel.permissionOverwrites.has(roleId)) {
-        const overwrite = channel.permissionOverwrites.get(roleId) as Overwrite;
+        const overwrite = channel.permissionOverwrites.get(roleId)!;
         allow |= overwrite.allow;
         deny |= overwrite.deny;
       }
@@ -321,7 +359,7 @@ export class Member extends UserMixin {
     total = (total & ~deny) | allow;
 
     if (channel.permissionOverwrites.has(this.id)) {
-      const overwrite = channel.permissionOverwrites.get(this.id) as Overwrite;
+      const overwrite = channel.permissionOverwrites.get(this.id)!;
       total = (total & ~overwrite.deny) | overwrite.allow;
     }
     return total;
@@ -344,6 +382,11 @@ export class Member extends UserMixin {
       return this.client.rest.editGuildNick(this.guildId, nick, options);
     }
     return this.edit({...options, nick});
+  }
+
+  editVoiceState(options: RequestTypes.EditGuildVoiceState) {
+    const userId = (this.isMe) ? '@me' : this.id;
+    return this.client.rest.editGuildVoiceState(this.guildId, userId, options);
   }
 
   move(channelId: null | string, options: RequestTypes.EditGuildMember = {}) {
@@ -419,6 +462,9 @@ export class Member extends UserMixin {
         case DiscordKeys.JOINED_AT: {
           this.joinedAtUnix = (value) ? (new Date(value).getTime()) : 0;
         }; return;
+        case DiscordKeys.PERMISSIONS: {
+          this._permissions = BigInt(value);
+        }; return;
         case DiscordKeys.PREMIUM_SINCE: {
           this.premiumSinceUnix = (value) ? (new Date(value).getTime()) : 0;
         }; return;
@@ -435,7 +481,7 @@ export class Member extends UserMixin {
             user = new User(this.client, value, this.isClone);
           } else {
             if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id) as User;
+              user = this.client.users.get(value.id)!;
               user.merge(value);
             } else {
               user = new User(this.client, value);

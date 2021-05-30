@@ -1,3 +1,6 @@
+import { GatewayRawEvents } from './gateway/rawevents';
+
+
 class BaseError extends Error {
   toJSON() {
     return {
@@ -7,6 +10,7 @@ class BaseError extends Error {
     };
   }
 }
+
 
 export class ClusterIPCError extends BaseError {
   name: string;
@@ -25,6 +29,19 @@ export class ClusterIPCError extends BaseError {
   }
 }
 
+
+export class GatewayError extends BaseError {
+  originalError: Error;
+  packet: GatewayRawEvents.GatewayPacket;
+
+  constructor(error: Error, packet: GatewayRawEvents.GatewayPacket) {
+    super(error.message);
+    this.originalError = error;
+    this.packet = packet;
+  }
+}
+
+
 export class GatewayHTTPError extends BaseError {
   httpError: any;
 
@@ -33,6 +50,7 @@ export class GatewayHTTPError extends BaseError {
     this.httpError = httpError;
   }
 }
+
 
 export class ImportedCommandsError extends BaseError {
   errors: {[key: string]: Error};

@@ -11,7 +11,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { Channel } from './channel';
+import { ChannelGuildStageVoice, ChannelGuildVoice } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
 
@@ -22,6 +22,7 @@ const keysVoiceState = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
   DiscordKeys.MEMBER,
   DiscordKeys.MUTE,
+  DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP,
   DiscordKeys.SELF_DEAF,
   DiscordKeys.SELF_MUTE,
   DiscordKeys.SELF_STREAM,
@@ -47,12 +48,14 @@ export class VoiceState extends BaseStructure {
   readonly _keys = keysVoiceState;
   readonly _keysMerge = keysMergeVoiceState;
   readonly _keysSkipDifference = keysSkipDifferenceVoiceState;
+  _isSpeaking: boolean = false;
 
   channelId?: null | string;
   deaf: boolean = false;
   guildId?: null | string;
   member: Member | null = null;
   mute: boolean = false;
+  requestToSpeakTimestampUnix: number = 0;
   selfDeaf: boolean = false;
   selfMute: boolean = false;
   selfStream: boolean = false;
@@ -67,12 +70,15 @@ export class VoiceState extends BaseStructure {
     isClone?: boolean,
   ) {
     super(client, undefined, isClone);
+    Object.defineProperties(this, {
+      _isSpeaking: {enumerable: false, writable: true},
+    });
     this.merge(data);
   }
 
-  get channel(): Channel | null {
-    if (this.channelId) {
-      return this.client.channels.get(this.channelId) || null;
+  get channel(): ChannelGuildStageVoice | ChannelGuildVoice | null {
+    if (this.channelId && this.client.channels.has(this.channelId)) {
+      return this.client.channels.get(this.channelId) as ChannelGuildStageVoice | ChannelGuildVoice;
     }
     return null;
   }
@@ -80,6 +86,25 @@ export class VoiceState extends BaseStructure {
   get guild(): Guild | null {
     if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
+    }
+    return null;
+  }
+
+  get isAudience(): boolean {
+    return this.suppress || !!this.requestToSpeakTimestampUnix;
+  }
+
+  get isSpeaker(): boolean {
+    return !this.suppress && !this.requestToSpeakTimestampUnix;
+  }
+
+  get isSpeaking(): boolean {
+    return this._isSpeaking;
+  }
+
+  get requestToSpeakTimestamp(): Date | null {
+    if (this.requestToSpeakTimestampUnix) {
+      return new Date(this.requestToSpeakTimestampUnix);
     }
     return null;
   }
@@ -112,6 +137,14 @@ export class VoiceState extends BaseStructure {
     return this.client.rest.editGuildMember(this.guildId, this.userId, options);
   }
 
+  async editState(options: RequestTypes.EditGuildVoiceState) {
+    if (!this.guildId) {
+      throw new Error('Cannot edit a voice state in a DM call.');
+    }
+    const userId = (this.userId === this.client.userId) ? '@me' : this.userId;
+    return this.client.rest.editGuildVoiceState(this.guildId, userId, options);
+  }
+
   joinVoice(options?: VoiceConnectOptions) {
     return this.client.voiceConnect(this.guildId, this.channelId, options);
   }
@@ -132,25 +165,30 @@ export class VoiceState extends BaseStructure {
     if (value !== undefined) {
       switch (key) {
         case DiscordKeys.MEMBER: {
-          const guildId = this.guildId as string;
-          value.guild_id = guildId;
+          if (value) {
+            const guildId = this.guildId as string;
+            value.guild_id = guildId;
 
-          let member: Member;
-          if (this.isClone) {
-            member = new Member(this.client, value, this.isClone);
-          } else {
-            if (this.client.members.has(guildId, value.user.id)) {
-              member = this.client.members.get(guildId, value.user.id) as Member;
-              member.merge(value);
+            let member: Member;
+            if (this.isClone) {
+              member = new Member(this.client, value, this.isClone);
             } else {
-              member = new Member(this.client, value);
-              this.client.members.insert(member);
+              if (this.client.members.has(guildId, value.user.id)) {
+                member = this.client.members.get(guildId, value.user.id) as Member;
+                member.merge(value);
+              } else {
+                member = new Member(this.client, value);
+                this.client.members.insert(member);
+              }
             }
+            value = member;
           }
-          value = member;
         }; break;
+        case DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP: {
+          this.requestToSpeakTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
+        }; return;
       }
-      super.mergeValue(key, value);
+      return super.mergeValue(key, value);
     }
   }
 }

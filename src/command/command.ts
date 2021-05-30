@@ -169,15 +169,17 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     }
 
     if (options.ratelimit) {
-      this.ratelimits.push(new CommandRatelimit(options.ratelimit));
+      this.ratelimits.push(new CommandRatelimit(options.ratelimit, this));
     }
     if (options.ratelimits) {
       for (let rOptions of options.ratelimits) {
-        const rType = (rOptions.type || '').toLowerCase();
-        if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
-          throw new Error(`Ratelimit with type ${rType} already exists`);
+        if (typeof(rOptions.type) === 'string') {
+          const rType = (rOptions.type || '').toLowerCase();
+          if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
+            throw new Error(`Ratelimit with type ${rType} already exists`);
+          }
         }
-        this.ratelimits.push(new CommandRatelimit(rOptions));
+        this.ratelimits.push(new CommandRatelimit(rOptions, this));
       }
     }
 

@@ -24,7 +24,10 @@ const defaultsMessagesCache: MessagesOptions = Object.freeze({
  * @category Collections
  */
 export class Messages extends BaseClientCollection<string, Message> {
-  constructor(client: ShardClient, options: MessagesOptions = {}) {
+  constructor(client: ShardClient, options: MessagesOptions | boolean = {}) {
+    if (typeof(options) === 'boolean') {
+      options = {enabled: options};
+    }
     super(client, Object.assign({}, defaultsMessagesCache, options));
   }
 

@@ -173,8 +173,11 @@ export function underline(text: string, options: MarkupFilterOptions = {}): stri
 }
 
 
-export function url(text: string, url: string): string {
+export function url(text: string, url: string, comment?: string): string {
   url = escape.url(url);
+  if (comment) {
+    return `[${text}](${url} '${comment}')`;
+  }
   return `[${text}](${url})`;
 }
 

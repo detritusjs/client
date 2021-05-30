@@ -11,7 +11,7 @@ import {
 import { ClientEvents, Permissions, IS_TS_NODE } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
-import { PermissionTools, getExceededRatelimits, getFiles } from './utils';
+import { PermissionTools, getFiles } from './utils';
 
 import {
   Command,
@@ -23,6 +23,7 @@ import { CommandEvents } from './command/events';
 import {
   CommandRatelimit,
   CommandRatelimitOptions,
+  CommandRatelimiter,
 } from './command/ratelimit';
 
 import { BaseCollection, BaseSet } from './collections';
@@ -91,6 +92,7 @@ export class CommandClient extends EventSpewer {
   };
   ran: boolean;
   ratelimits: Array<CommandRatelimit> = [];
+  ratelimiter = new CommandRatelimiter();
   replies: BaseCollection<string, CommandReply>;
 
   onCommandCheck?(context: Context, command: Command): boolean | Promise<boolean>;
@@ -169,9 +171,11 @@ export class CommandClient extends EventSpewer {
     }
     if (options.ratelimits) {
       for (let rOptions of options.ratelimits) {
-        const rType = (rOptions.type || '').toLowerCase();
-        if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
-          throw new Error(`Ratelimit with type ${rType} already exists`);
+        if (typeof(rOptions.type) === 'string') {
+          const rType = (rOptions.type || '').toLowerCase();
+          if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
+            throw new Error(`Ratelimit with type ${rType} already exists`);
+          }
         }
         this.ratelimits.push(new CommandRatelimit(rOptions));
       }
@@ -596,7 +600,7 @@ export class CommandClient extends EventSpewer {
     if (this.ratelimits.length || command.ratelimits.length) {
       const now = Date.now();
       {
-        const ratelimits = getExceededRatelimits(this.ratelimits, message, now);
+        const ratelimits = this.ratelimiter.getExceeded(context, this.ratelimits, now);
         if (ratelimits.length) {
           const global = true;
 
@@ -615,7 +619,7 @@ export class CommandClient extends EventSpewer {
       }
 
       {
-        const ratelimits = getExceededRatelimits(command.ratelimits, message, now);
+        const ratelimits = this.ratelimiter.getExceeded(context, command.ratelimits, now);
         if (ratelimits.length) {
           const global = false;
 

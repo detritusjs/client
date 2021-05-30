@@ -16,8 +16,8 @@ import {
   AuditLog,
   Channel,
   ChannelDM,
+  ChannelDMGroup,
   ConnectedAccount,
-  createChannelFromData,
   Emoji,
   Gift,
   Guild,
@@ -31,15 +31,18 @@ import {
   PremiumSubscription,
   Profile,
   Role,
+  StageInstance,
   StoreApplicationAsset,
   StoreListing,
   Team,
   TeamMember,
   Template,
+  ThreadMember,
   User,
   UserMe,
   VoiceRegion,
   Webhook,
+  createChannelFromData,
 } from '../structures';
 
 import { RestResponses } from './types';
@@ -171,7 +174,7 @@ export class RestClient {
     const data = await this.raw.acceptTemplate(templateId, options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
-      guild = this.client.guilds.get(data.id) as Guild;
+      guild = this.client.guilds.get(data.id)!;
       guild.merge(data);
     } else {
       guild = new Guild(this.client, data);
@@ -240,6 +243,13 @@ export class RestClient {
     return this.raw.addTeamMember(teamId, options);
   }
 
+  addThreadMember(
+    channelId: string,
+    userId: string,
+  ) {
+    return this.raw.addThreadMember(channelId, userId);
+  }
+
   authorizeIpAddress(
     options: RequestTypes.AuthorizeIpAddress,
   ) {
@@ -260,11 +270,49 @@ export class RestClient {
     return this.raw.bulkDeleteMessages(channelId, messageIds);
   }
 
+  bulkOverwriteApplicationCommands(
+    applicationId: string,
+    commands: Array<RequestTypes.CreateApplicationCommand>,
+  ) {
+    return this.raw.bulkOverwriteApplicationCommands(applicationId, commands);
+  }
+
+  bulkOverwriteApplicationGuildCommands(
+    applicationId: string,
+    guildId: string,
+    commands: Array<RequestTypes.CreateApplicationGuildCommand>,
+  ) {
+    return this.raw.bulkOverwriteApplicationGuildCommands(applicationId, guildId, commands);
+  }
+
+  bulkOverwriteApplicationGuildCommandsPermissions(
+    applicationId: string,
+    guildId: string,
+    permissions: Array<RequestTypes.EditApplicationGuildCommandPermission>,
+  ) {
+    return this.raw.bulkOverwriteApplicationGuildCommandsPermissions(applicationId, guildId, permissions);
+  }
+
   connectionCallback(
     platform: string,
     options: RequestTypes.ConnectionCallback,
   ) {
     return this.raw.connectionCallback(platform, options);
+  }
+
+  createApplicationCommand(
+    applicationId: string,
+    options: RequestTypes.CreateApplicationCommand,
+  ) {
+    return this.raw.createApplicationCommand(applicationId, options);
+  }
+
+  createApplicationGuildCommand(
+    applicationId: string,
+    guildId: string,
+    options: RequestTypes.CreateApplicationCommand,
+  ) {
+    return this.raw.createApplicationGuildCommand(applicationId, guildId, options);
   }
 
   async createApplicationNews(
@@ -282,23 +330,38 @@ export class RestClient {
     return new Invite(this.client, data);
   }
 
+  createChannelMessageThread(
+    channelId: string,
+    messageId: string,
+    options: RequestTypes.CreateChannelMessageThread,
+  ) {
+    return this.raw.createChannelMessageThread(channelId, messageId, options);
+  }
+
   createChannelStoreListingGrantEntitlement(
     channelId: string,
   ) {
     return this.raw.createChannelStoreListingGrantEntitlement(channelId);
   }
 
+  createChannelThread(
+    channelId: string,
+    options: RequestTypes.CreateChannelThread,
+  ) {
+    return this.raw.createChannelThread(channelId, options);
+  }
+
   async createDm(
     options: RequestTypes.CreateDm = {},
-  ): Promise<ChannelDM> {
+  ): Promise<ChannelDM | ChannelDMGroup> {
     const data = await this.raw.createDm(options);
-    let channel: ChannelDM;
+    let channel: ChannelDM | ChannelDMGroup;
     if (this.client.channels.has(data.id)) {
-      channel = this.client.channels.get(data.id) as ChannelDM;
+      channel = this.client.channels.get(data.id) as ChannelDM | ChannelDMGroup;
       channel.merge(data);
       // this should never happen lmao
     } else {
-      channel = createChannelFromData(this.client, data) as ChannelDM;
+      channel = createChannelFromData(this.client, data) as ChannelDM | ChannelDMGroup;
       this.client.channels.insert(channel);
     }
     return channel;
@@ -310,7 +373,7 @@ export class RestClient {
     const data = await this.raw.createGuild(options);
     let guild: Guild;
     if (this.client.guilds.has(data.id)) {
-      guild = this.client.guilds.get(data.id) as Guild;
+      guild = this.client.guilds.get(data.id)!;
       guild.merge(data);
     } else {
       guild = new Guild(this.client, data);
@@ -336,7 +399,7 @@ export class RestClient {
     const data = await this.raw.createGuildChannel(guildId, options);
     let channel: Channel;
     if (updateCache && this.client.channels.has(data.id)) {
-      channel = this.client.channels.get(data.id) as Channel;
+      channel = this.client.channels.get(data.id)!;
       channel.merge(data);
       // this should never happen lmao
     } else {
@@ -355,7 +418,7 @@ export class RestClient {
 
     let emoji: Emoji;
     if (updateCache && this.client.emojis.has(guildId, data.id)) {
-      emoji = this.client.emojis.get(guildId, data.id) as Emoji;
+      emoji = this.client.emojis.get(guildId, data.id)!;
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -381,7 +444,8 @@ export class RestClient {
     data.guild_id = guildId;
     const role = new Role(this.client, data);
     if (this.client.guilds.has(guildId)) {
-      (this.client.guilds.get(guildId) as Guild).roles.set(role.id, role);
+      const guild = this.client.guilds.get(guildId)!;
+      guild.roles.set(role.id, role);
     }
     return role;
   }
@@ -392,6 +456,14 @@ export class RestClient {
   ): Promise<Template> {
     const data = await this.raw.createGuildTemplate(guildId, options);
     return new Template(this.client, data);
+  }
+
+  createInteractionResponse(
+    interactionId: string,
+    token: string,
+    options: RequestTypes.CreateInteractionResponse,
+  ) {
+    return this.raw.createInteractionResponse(interactionId, token, options);
   }
 
   createLobby(
@@ -419,7 +491,7 @@ export class RestClient {
   ): Promise<Message> {
     const data = await this.raw.createMessage(channelId, options);
     if (this.client.channels.has(data.channel_id)) {
-      const channel = this.client.channels.get(data.channel_id) as Channel;
+      const channel = this.client.channels.get(data.channel_id)!;
       if (channel.guildId) {
         data.guild_id = channel.guildId;
       }
@@ -458,6 +530,13 @@ export class RestClient {
     return this.raw.createReaction(channelId, messageId, emoji);
   }
 
+  async createStageInstance(
+    options: RequestTypes.CreateStageInstance,
+  ): Promise<StageInstance> {
+    const data = await this.raw.createStageInstance(options);
+    return new StageInstance(this.client, data);
+  }
+
   async createStoreApplicationAsset(
     applicationId: string,
     options: RequestTypes.CreateStoreApplicationAsset,
@@ -488,7 +567,7 @@ export class RestClient {
   ): Promise<Message> {
     const data = await this.raw.crosspostMessage(channelId, messageId);
     if (this.client.channels.has(data.channel_id)) {
-      const channel = this.client.channels.get(data.channel_id) as Channel;
+      const channel = this.client.channels.get(data.channel_id)!;
       if (channel.guildId) {
         data.guild_id = channel.guildId;
       }
@@ -504,6 +583,21 @@ export class RestClient {
     return this.raw.deleteAccount(options);
   }
 
+  deleteApplicationCommand(
+    applicationId: string,
+    commandId: string,
+  ) {
+    return this.raw.deleteApplicationCommand(applicationId, commandId);
+  }
+
+  deleteApplicationGuildCommand(
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+  ) {
+    return this.raw.deleteApplicationGuildCommand(applicationId, guildId, commandId);
+  }
+
   async deleteChannel(
     channelId: string,
     options: RequestTypes.DeleteChannel = {},
@@ -511,7 +605,7 @@ export class RestClient {
     const data = await this.raw.deleteChannel(channelId, options);
     let channel: Channel;
     if (this.client.channels.has(data.id)) {
-      channel = this.client.channels.get(data.id) as Channel;
+      channel = this.client.channels.get(data.id)!;
       this.client.channels.delete(data.id);
       channel.merge(data);
     } else {
@@ -613,7 +707,7 @@ export class RestClient {
   ) {
     const data = await this.raw.deleteMessage(channelId, messageId, options);
     if (this.client.messages.has(messageId)) {
-      const message = this.client.messages.get(messageId) as Message;
+      const message = this.client.messages.get(messageId)!;
       message.deleted = true;
     }
     return data;
@@ -670,6 +764,12 @@ export class RestClient {
     return this.raw.deleteRelationship(userId);
   }
 
+  deleteStageInstance(
+    channelId: string,
+  ) {
+    return this.raw.deleteStageInstance(channelId);
+  }
+
   deleteStoreApplicationAsset(
     applicationId: string,
     assetId: string,
@@ -693,20 +793,20 @@ export class RestClient {
 
   deleteWebhookToken(
     webhookId: string,
-    token: string,
+    webhookToken: string,
     options: RequestTypes.DeleteWebhook = {},
   ) {
-    return this.raw.deleteWebhookToken(webhookId, token, options);
+    return this.raw.deleteWebhookToken(webhookId, webhookToken, options);
   }
 
   async deleteWebhookTokenMessage(
     webhookId: string,
-    token: string,
+    webhookToken: string,
     messageId: string,
   ) {
-    const data = await this.raw.deleteWebhookTokenMessage(webhookId, token, messageId);
+    const data = await this.raw.deleteWebhookTokenMessage(webhookId, webhookToken, messageId);
     if (this.client.messages.has(messageId)) {
-      const message = this.client.messages.get(messageId) as Message;
+      const message = this.client.messages.get(messageId)!;
       message.deleted = true;
     }
     return data;
@@ -716,6 +816,32 @@ export class RestClient {
     options: RequestTypes.DisableAccount,
   ) {
     return this.raw.disableAccount(options);
+  }
+
+  editApplicationCommand(
+    applicationId: string,
+    commandId: string,
+    options: RequestTypes.EditApplicationCommand = {},
+  ) {
+    return this.raw.editApplicationCommand(applicationId, commandId, options);
+  }
+
+  editApplicationGuildCommand(
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+    options: RequestTypes.EditApplicationGuildCommand = {},
+  ) {
+    return this.raw.editApplicationGuildCommand(applicationId, guildId, commandId, options);
+  }
+
+  editApplicationGuildCommandPermissions(
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+    options: RequestTypes.EditApplicationGuildCommandPermissions,
+  ) {
+    return this.raw.editApplicationGuildCommandPermissions(applicationId, guildId, commandId, options);
   }
 
   editApplicationNews(
@@ -734,7 +860,7 @@ export class RestClient {
     const data = await this.raw.editChannel(channelId, options);
     let channel: Channel;
     if (updateCache && this.client.channels.has(data.id)) {
-      channel = this.client.channels.get(data.id) as Channel;
+      channel = this.client.channels.get(data.id)!;
       channel.merge(data);
     } else {
       channel = createChannelFromData(this.client, data);
@@ -767,7 +893,7 @@ export class RestClient {
     const data = await this.raw.editGuild(guildId, options);
     let guild: Guild;
     if (updateCache && this.client.guilds.has(data.id)) {
-      guild = this.client.guilds.get(data.id) as Guild;
+      guild = this.client.guilds.get(data.id)!;
       guild.merge(data);
     } else {
       guild = new Guild(this.client, data);
@@ -800,7 +926,7 @@ export class RestClient {
 
     let emoji: Emoji;
     if (updateCache && this.client.emojis.has(guildId, data.id)) {
-      emoji = this.client.emojis.get(guildId, data.id) as Emoji;
+      emoji = this.client.emojis.get(guildId, data.id)!;
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -856,9 +982,9 @@ export class RestClient {
     const data = await this.raw.editGuildRole(guildId, roleId, options);
     let role: Role;
     if (updateCache && this.client.guilds.has(guildId)) {
-      const guild = this.client.guilds.get(guildId) as Guild;
+      const guild = this.client.guilds.get(guildId)!;
       if (guild.roles.has(data.id)) {
-        role = guild.roles.get(data.id) as Role;
+        role = guild.roles.get(data.id)!;
         role.merge(data);
       } else {
         data.guild_id = guildId;
@@ -882,7 +1008,7 @@ export class RestClient {
 
     const collection = new BaseCollection<string, Role>();
     if (updateCache && this.client.guilds.has(guildId)) {
-      const guild = this.client.guilds.get(guildId) as Guild;
+      const guild = this.client.guilds.get(guildId)!;
       guild.roles.clear();
       for (let raw of data) {
         raw.guild_id = guildId;
@@ -908,6 +1034,14 @@ export class RestClient {
     return this.raw.editGuildVanity(guildId, code, options);
   }
 
+  editGuildVoiceState(
+    guildId: string,
+    userId: string,
+    options: RequestTypes.EditGuildVoiceState,
+  ) {
+    return this.raw.editGuildVoiceState(guildId, userId, options);
+  }
+
   editLobby(
     lobbyId: string,
     options: RequestTypes.EditLobby = {},
@@ -930,7 +1064,7 @@ export class RestClient {
     const data = await this.raw.editMe(options);
     let user: UserMe;
     if (updateCache && this.client.user !== null) {
-      user = this.client.user as UserMe;
+      user = this.client.user!;
       user.merge(data);
     } else {
       user = new UserMe(this.client, data);
@@ -961,7 +1095,7 @@ export class RestClient {
     const data = await this.raw.editMessage(channelId, messageId, options);
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
-      message = this.client.messages.get(data.id) as Message;
+      message = this.client.messages.get(data.id)!;
       message.merge(data);
       // should we really merge? the message_update event wont have differences then
     } else {
@@ -992,6 +1126,13 @@ export class RestClient {
     return this.raw.editRelationship(userId, type);
   }
 
+  editStageInstance(
+    channelId: string,
+    options: RequestTypes.EditStageInstance = {},
+  ) {
+    return this.raw.editStageInstance(channelId, options);
+  }
+
   editSettings(
     options: RequestTypes.EditSettings = {},
   ) {
@@ -1019,24 +1160,24 @@ export class RestClient {
 
   async editWebhookToken(
     webhookId: string,
-    token: string,
+    webhookToken: string,
     options: RequestTypes.EditWebhook = {},
   ): Promise<Webhook> {
-    const data = await this.raw.editWebhookToken(webhookId, token, options);
+    const data = await this.raw.editWebhookToken(webhookId, webhookToken, options);
     return new Webhook(this.client, data);
   }
 
   async editWebhookTokenMessage(
     webhookId: string,
-    token: string,
+    webhookToken: string,
     messageId: string,
     options: RequestTypes.EditWebhookTokenMessage = {},
     updateCache: boolean = true,
   ): Promise<Message> {
-    const data = await this.raw.editWebhookTokenMessage(webhookId, token, messageId, options);
+    const data = await this.raw.editWebhookTokenMessage(webhookId, webhookToken, messageId, options);
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
-      message = this.client.messages.get(data.id) as Message;
+      message = this.client.messages.get(data.id)!;
       message.merge(data);
     } else {
       message = new Message(this.client, data);
@@ -1059,11 +1200,11 @@ export class RestClient {
 
   async executeWebhook(
     webhookId: string,
-    token: string,
+    webhookToken: string,
     options: RequestTypes.ExecuteWebhook | string = {},
     compatibleType?: string,
   ): Promise<Message | null> {
-    const data = await this.raw.executeWebhook(webhookId, token, options, compatibleType);
+    const data = await this.raw.executeWebhook(webhookId, webhookToken, options, compatibleType);
     if (typeof(options) !== 'string' && options.wait) {
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
@@ -1074,6 +1215,49 @@ export class RestClient {
 
   fetchActivities() {
     return this.raw.fetchActivities();
+  }
+
+  fetchApplicationCommands(
+    applicationId: string,
+  ) {
+    return this.raw.fetchApplicationCommands(applicationId);
+  }
+
+  fetchApplicationCommand(
+    applicationId: string,
+    commandId: string,
+  ) {
+    return this.raw.fetchApplicationCommand(applicationId, commandId);
+  }
+
+  fetchApplicationGuildCommands(
+    applicationId: string,
+    guildId: string,
+  ) {
+    return this.raw.fetchApplicationGuildCommands(applicationId, guildId);
+  }
+
+  fetchApplicationGuildCommandsPermissions(
+    applicationId: string,
+    guildId: string,
+  ) {
+    return this.raw.fetchApplicationGuildCommandsPermissions(applicationId, guildId);
+  }
+
+  fetchApplicationGuildCommand(
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+  ) {
+    return this.raw.fetchApplicationGuildCommand(applicationId, guildId, commandId);
+  }
+
+  fetchApplicationGuildCommandPermissions(
+    applicationId: string,
+    guildId: string,
+    commandId: string,
+  ) {
+    return this.raw.fetchApplicationGuildCommandPermissions(applicationId, guildId, commandId);
   }
 
   async fetchApplicationNews(
@@ -1132,7 +1316,7 @@ export class RestClient {
     const data = await this.raw.fetchChannel(channelId);
     let channel: Channel;
     if (updateCache && this.client.channels.has(data.id)) {
-      channel = this.client.channels.get(data.id) as Channel;
+      channel = this.client.channels.get(data.id)!;
       channel.merge(data);
     } else {
       channel = createChannelFromData(this.client, data);
@@ -1161,6 +1345,121 @@ export class RestClient {
   async fetchChannelStoreListing(channelId: string): Promise<StoreListing> {
     const data = await this.raw.fetchChannelStoreListing(channelId);
     return new StoreListing(this.client, data);
+  }
+
+  async fetchChannelThreadsActive(
+    channelId: string,
+  ): Promise<RestResponses.FetchChannelThreadsActive> {
+    const data = await this.raw.fetchChannelThreadsActive(channelId);
+    const hasMore = data['has_more'];
+    const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
+    const threads = new BaseCollection<string, Channel>();
+
+    for (let raw of data.members) {
+      const threadMember = new ThreadMember(this.client, raw);
+
+      let collection: BaseCollection<string, ThreadMember>;
+      if (members.has(threadMember.id)) {
+        collection = members.get(threadMember.id)!;
+      } else {
+        collection = new BaseCollection();
+      }
+      collection.set(threadMember.userId, threadMember);
+    }
+
+    for (let raw of data.threads) {
+      const thread = createChannelFromData(this.client, raw);
+      threads.set(thread.id, thread);
+    }
+
+    return {hasMore, members, threads};
+  }
+
+  async fetchChannelThreadsArchivedPrivate(
+    channelId: string,
+    options: RequestTypes.FetchChannelThreadsArchivedPrivate = {},
+  ): Promise<RestResponses.FetchChannelThreadsArchivedPrivate> {
+    const data = await this.raw.fetchChannelThreadsArchivedPrivate(channelId, options);
+    const hasMore = data['has_more'];
+    const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
+    const threads = new BaseCollection<string, Channel>();
+
+    for (let raw of data.members) {
+      const threadMember = new ThreadMember(this.client, raw);
+
+      let collection: BaseCollection<string, ThreadMember>;
+      if (members.has(threadMember.id)) {
+        collection = members.get(threadMember.id)!;
+      } else {
+        collection = new BaseCollection();
+      }
+      collection.set(threadMember.userId, threadMember);
+    }
+
+    for (let raw of data.threads) {
+      const thread = createChannelFromData(this.client, raw);
+      threads.set(thread.id, thread);
+    }
+
+    return {hasMore, members, threads};
+  }
+
+  async fetchChannelThreadsArchivedPrivateJoined(
+    channelId: string,
+    options: RequestTypes.FetchChannelThreadsArchivedPrivateJoined = {},
+  ): Promise<RestResponses.FetchChannelThreadsArchivedPrivateJoined> {
+    const data = await this.raw.fetchChannelThreadsArchivedPrivateJoined(channelId, options);
+    const hasMore = data['has_more'];
+    const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
+    const threads = new BaseCollection<string, Channel>();
+
+    for (let raw of data.members) {
+      const threadMember = new ThreadMember(this.client, raw);
+
+      let collection: BaseCollection<string, ThreadMember>;
+      if (members.has(threadMember.id)) {
+        collection = members.get(threadMember.id)!;
+      } else {
+        collection = new BaseCollection();
+      }
+      collection.set(threadMember.userId, threadMember);
+    }
+
+    for (let raw of data.threads) {
+      const thread = createChannelFromData(this.client, raw);
+      threads.set(thread.id, thread);
+    }
+
+    return {hasMore, members, threads};
+  }
+
+  async fetchChannelThreadsArchivedPublic(
+    channelId: string,
+    options: RequestTypes.FetchChannelThreadsArchivedPublic = {},
+  ): Promise<RestResponses.FetchChannelThreadsArchivedPublic> {
+    const data = await this.raw.fetchChannelThreadsArchivedPublic(channelId, options);
+    const hasMore = data['has_more'];
+    const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
+    const threads = new BaseCollection<string, Channel>();
+
+    for (let raw of data.members) {
+      const threadMember = new ThreadMember(this.client, raw);
+
+      let collection: BaseCollection<string, ThreadMember>;
+      if (members.has(threadMember.id)) {
+        collection = members.get(threadMember.id)!;
+      } else {
+        collection = new BaseCollection();
+      }
+      collection.set(threadMember.userId, threadMember);
+    }
+
+    for (let raw of data.threads) {
+      const thread = createChannelFromData(this.client, raw);
+      threads.set(thread.id, thread);
+    }
+
+    return {hasMore, members, threads};
   }
 
   async fetchChannelWebhooks(
@@ -1198,7 +1497,7 @@ export class RestClient {
     for (let raw of data) {
       let channel: Channel;
       if (updateCache && this.client.channels.has(raw.id)) {
-        channel = this.client.channels.get(raw.id) as Channel;
+        channel = this.client.channels.get(raw.id)!;
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
@@ -1232,13 +1531,14 @@ export class RestClient {
 
   async fetchGuild(
     guildId: string,
+    options: RequestTypes.FetchGuild = {},
     updateCache: boolean = true,
   ): Promise<Guild> {
-    const data = await this.raw.fetchGuild(guildId);
+    const data = await this.raw.fetchGuild(guildId, options);
 
     let guild: Guild;
     if (updateCache && this.client.guilds.has(data.id)) {
-      guild = this.client.guilds.get(data.id) as Guild;
+      guild = this.client.guilds.get(data.id)!;
       guild.merge(data);
     } else {
       guild = new Guild(this.client, data, true);
@@ -1263,7 +1563,7 @@ export class RestClient {
     for (let raw of data.audit_log_entries) {
       let target: null | User | Webhook = null;
       if (this.client.users.has(raw.target_id)) {
-        target = this.client.users.get(raw.target_id) as User;
+        target = this.client.users.get(raw.target_id)!;
         // target.merge(data.users.find((user) => user.id === raw.target_id));
       } else {
         let rawTarget = data.users.find((user: any) => user.id === raw.target_id);
@@ -1279,7 +1579,7 @@ export class RestClient {
 
       let user: null | User = null;
       if (this.client.users.has(raw.user_id)) {
-        user = this.client.users.get(raw.user_id) as User;
+        user = this.client.users.get(raw.user_id)!;
       } else {
         const rawUser = data.users.find((u: any) => u.id === raw.user_id);
         if (rawUser !== undefined) {
@@ -1304,7 +1604,7 @@ export class RestClient {
     for (let raw of data) {
       let user: User;
       if (this.client.users.has(raw.user.id)) {
-        user = this.client.users.get(raw.user.id) as User;
+        user = this.client.users.get(raw.user.id)!;
         user.merge(raw.user);
       } else {
         user = new User(this.client, raw.user);
@@ -1326,7 +1626,7 @@ export class RestClient {
     for (let raw of data) {
       let channel: Channel;
       if (this.client.channels.has(raw.id)) {
-        channel = this.client.channels.get(raw.id) as Channel;
+        channel = this.client.channels.get(raw.id)!;
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
@@ -1348,7 +1648,7 @@ export class RestClient {
     const data = await this.raw.fetchGuildEmojis(guildId);
 
     if (this.client.guilds.has(guildId)) {
-      const guild = this.client.guilds.get(guildId) as Guild;
+      const guild = this.client.guilds.get(guildId)!;
       guild.merge({emojis: data});
       return guild.emojis;
     } else {
@@ -1356,7 +1656,7 @@ export class RestClient {
       for (let raw of data) {
         let emoji: Emoji;
         if (this.client.emojis.has(guildId, raw.id)) {
-          emoji = this.client.emojis.get(guildId, raw.id) as Emoji;
+          emoji = this.client.emojis.get(guildId, raw.id)!;
           emoji.merge(raw);
         } else {
           raw.guild_id = guildId;
@@ -1376,7 +1676,7 @@ export class RestClient {
 
     let emoji: Emoji;
     if (this.client.emojis.has(guildId, data.id)) {
-      emoji = this.client.emojis.get(guildId, data.id) as Emoji;
+      emoji = this.client.emojis.get(guildId, data.id)!;
       emoji.merge(data);
     } else {
       data.guild_id = guildId;
@@ -1419,7 +1719,7 @@ export class RestClient {
     const data = await this.raw.fetchGuildMember(guildId, userId);
     let member: Member;
     if (this.client.members.has(guildId, userId)) {
-      member = this.client.members.get(guildId, userId) as Member;
+      member = this.client.members.get(guildId, userId)!;
       member.merge(data);
     } else {
       data.guild_id = guildId;
@@ -1439,7 +1739,7 @@ export class RestClient {
     for (let raw of data) {
       let member: Member;
       if (this.client.members.has(guildId, raw.user.id)) {
-        member = this.client.members.get(guildId, raw.user.id) as Member;
+        member = this.client.members.get(guildId, raw.user.id)!;
         member.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1461,7 +1761,7 @@ export class RestClient {
     for (let raw of data) {
       let member: Member;
       if (this.client.members.has(guildId, raw.user.id)) {
-        member = this.client.members.get(guildId, raw.user.id) as Member;
+        member = this.client.members.get(guildId, raw.user.id)!;
         member.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1511,7 +1811,7 @@ export class RestClient {
     const collection = new BaseCollection<string, Role>();
 
     if (this.client.guilds.has(guildId)) {
-      const guild = this.client.guilds.get(guildId) as Guild;
+      const guild = this.client.guilds.get(guildId)!;
       for (let [roleId, role] of guild.roles) {
         if (!data.some((r: Role) => r.id === roleId)) {
           guild.roles.delete(roleId);
@@ -1521,7 +1821,7 @@ export class RestClient {
       for (let raw of data) {
         let role: Role;
         if (guild.roles.has(raw.id)) {
-          role = guild.roles.get(raw.id) as Role;
+          role = guild.roles.get(raw.id)!;
           role.merge(raw);
         } else {
           raw.guild_id = guildId;
@@ -1625,7 +1925,7 @@ export class RestClient {
     for (let raw of data) {
       let channel: Channel;
       if (this.client.channels.has(raw.id)) {
-        channel = this.client.channels.get(raw.id) as Channel;
+        channel = this.client.channels.get(raw.id)!;
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
@@ -1686,7 +1986,7 @@ export class RestClient {
     if (data.length) {
       const raw = data[0];
       if (this.client.channels.has(raw.channel_id)) {
-        const channel = this.client.channels.get(raw.channel_id) as Channel;
+        const channel = this.client.channels.get(raw.channel_id)!;
         if (channel.guildId) {
           guildId = channel.guildId;
         }
@@ -1697,7 +1997,7 @@ export class RestClient {
     for (let raw of data) {
       let message: Message;
       if (this.client.messages.has(raw.id)) {
-        message = this.client.messages.get(raw.id) as Message;
+        message = this.client.messages.get(raw.id)!;
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1716,7 +2016,7 @@ export class RestClient {
 
     let guildId: string | undefined;
     if (this.client.channels.has(data.channel_id)) {
-      const channel = this.client.channels.get(data.channel_id) as Channel;
+      const channel = this.client.channels.get(data.channel_id)!;
       if (channel.guildId) {
         guildId = channel.guildId;
       }
@@ -1724,7 +2024,7 @@ export class RestClient {
 
     let message: Message;
     if (this.client.messages.has(data.id)) {
-      message = this.client.messages.get(data.id) as Message;
+      message = this.client.messages.get(data.id)!;
       message.merge(data);
     } else {
       data.guild_id = guildId;
@@ -1743,7 +2043,7 @@ export class RestClient {
     if (data.length) {
       const raw = data[0];
       if (this.client.channels.has(raw.channel_id)) {
-        const channel = this.client.channels.get(raw.channel_id) as Channel;
+        const channel = this.client.channels.get(raw.channel_id)!;
         if (channel.guildId) {
           guildId = channel.guildId;
         }
@@ -1754,7 +2054,7 @@ export class RestClient {
     for (let raw of data) {
       let message: Message;
       if (this.client.messages.has(raw.id)) {
-        message = this.client.messages.get(raw.id) as Message;
+        message = this.client.messages.get(raw.id)!;
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1840,9 +2140,9 @@ export class RestClient {
     let guildId: null | string = null;
     if (data.length) {
       const raw = data[0];
-      if (this.client.channels.has(raw.channel_id)) {
-        const channel = this.client.channels.get(raw.channel_id) as Channel;
-        guildId = channel.guildId;
+      if (this.client.channels.has(raw['channel_id'])) {
+        const channel = this.client.channels.get(raw['channel_id'])!;
+        guildId = channel.guildId || null;
       }
     }
 
@@ -1850,7 +2150,7 @@ export class RestClient {
     for (let raw of data) {
       let message: Message;
       if (this.client.messages.has(raw.id)) {
-        message = this.client.messages.get(raw.id) as Message;
+        message = this.client.messages.get(raw.id)!;
         message.merge(raw);
       } else {
         raw.guild_id = guildId;
@@ -1872,7 +2172,7 @@ export class RestClient {
     for (let raw of data) {
       let user: User;
       if (this.client.users.has(raw.id)) {
-        user = this.client.users.get(raw.id) as User;
+        user = this.client.users.get(raw.id)!;
         user.merge(raw);
       } else {
         user = new User(this.client, raw);
@@ -1880,6 +2180,13 @@ export class RestClient {
       collection.set(user.id, user);
     }
     return collection;
+  }
+
+  async fetchStageInstance(
+    channelId: string,
+  ): Promise<StageInstance> {
+    const data = await this.raw.fetchStageInstance(channelId);
+    return new StageInstance(this.client, data);
   }
 
   async fetchStoreApplicationAssets(
@@ -1969,13 +2276,26 @@ export class RestClient {
     return new Template(this.client, data);
   }
 
+  async fetchThreadMembers(
+    channelId: string,
+  ): Promise<BaseCollection<string, ThreadMember>> {
+    const data = await this.raw.fetchThreadMembers(channelId);
+    const collection = new BaseCollection<string, ThreadMember>();
+
+    for (let raw of data) {
+      const threadMember = new ThreadMember(this.client, data);
+      collection.set(threadMember.userId, threadMember);
+    }
+    return collection;
+  }
+
   async fetchUser(
     userId: string,
   ): Promise<User> {
     const data = await this.raw.fetchUser(userId);
     let user: User;
     if (this.client.users.has(data.id)) {
-      user = this.client.users.get(data.id) as User;
+      user = this.client.users.get(data.id)!;
       user.merge(data);
     } else {
       user = new User(this.client, data);
@@ -2000,7 +2320,7 @@ export class RestClient {
     for (let raw of data) {
       let channel: Channel;
       if (this.client.channels.has(raw.id)) {
-        channel = this.client.channels.get(raw.id) as Channel;
+        channel = this.client.channels.get(raw.id)!;
         channel.merge(raw);
       } else {
         channel = createChannelFromData(this.client, raw);
@@ -2040,10 +2360,36 @@ export class RestClient {
 
   async fetchWebhookToken(
     webhookId: string,
-    token: string,
+    webhookToken: string,
   ): Promise<Webhook> {
-    const data = await this.raw.fetchWebhookToken(webhookId, token);
+    const data = await this.raw.fetchWebhookToken(webhookId, webhookToken);
     return new Webhook(this.client, data);
+  }
+
+  async fetchWebhookTokenMessage(
+    webhookId: string,
+    webhookToken: string,
+    messageId: string,
+  ): Promise<Message> {
+    const data = await this.raw.fetchWebhookTokenMessage(webhookId, webhookToken, messageId);
+
+    let guildId: string | undefined;
+    if (this.client.channels.has(data.channel_id)) {
+      const channel = this.client.channels.get(data.channel_id)!;
+      if (channel.guildId) {
+        guildId = channel.guildId;
+      }
+    }
+
+    let message: Message;
+    if (this.client.messages.has(data.id)) {
+      message = this.client.messages.get(data.id)!;
+      message.merge(data);
+    } else {
+      data.guild_id = guildId;
+      message = new Message(this.client, data);
+    }
+    return message;
   }
 
   async followChannel(
@@ -2073,10 +2419,22 @@ export class RestClient {
     return this.raw.joinGuild(guildId, options);
   }
 
+  joinThread(
+    channelId: string,
+  ) {
+    return this.raw.joinThread(channelId);
+  }
+
   leaveGuild(
     guildId: string,
   ) {
     return this.raw.leaveGuild(guildId);
+  }
+
+  leaveThread(
+    channelId: string,
+  ) {
+    return this.raw.leaveThread(channelId);
   }
 
   login(
@@ -2107,14 +2465,6 @@ export class RestClient {
     options: RequestTypes.Logout = {},
   ) {
     return this.raw.logout(options);
-  }
-
-  messageSuppressEmbeds(
-    channelId: string,
-    messageId: string,
-    options: RequestTypes.MessageSuppressEmbeds = {},
-  ) {
-    return this.raw.messageSuppressEmbeds(channelId, messageId, options);
   }
 
   oauth2Authorize(
@@ -2186,6 +2536,13 @@ export class RestClient {
     userId: string,
   ) {
     return this.raw.removeTeamMember(teamId, userId);
+  }
+
+  removeThreadMember(
+    channelId: string,
+    userId: string,
+  ) {
+    return this.raw.removeThreadMember(channelId, userId);
   }
 
   resetOauth2Application(

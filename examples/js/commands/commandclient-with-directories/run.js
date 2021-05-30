@@ -2,18 +2,18 @@ const {
   CommandClient,
   Constants,
   Utils,
-} = require('../lib');
+} = require('../../../../lib');
+
 
 const prefix = '!!';
 const token = '';
 
-const client = new CommandClient(token, {
-  gateway: {loadAllMembers: true},
-  prefix,
-});
+const client = new CommandClient(token, {prefix});
+
 
 client.addMultipleIn('/command-classes');
 client.addMultipleIn('/some-directory');
+
 
 client.add({
   name: 'ping',

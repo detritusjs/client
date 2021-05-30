@@ -10,10 +10,10 @@ import {
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, ChannelTypes, ChannelVideoQualityModes, Permissions, DEFAULT_GROUP_DM_AVATARS } from '../constants';
-import { VoiceConnection } from '../media/voiceconnection';
 import {
   addQuery,
   getFormatFromHash,
+  PartialBy,
   PermissionTools,
   Snowflake,
   UrlQuery,
@@ -28,6 +28,8 @@ import { Member } from './member';
 import { Message } from './message';
 import { Overwrite } from './overwrite';
 import { Role } from './role';
+import { StageInstance } from './stageinstance';
+import { ThreadMember, ThreadMetadata } from './thread';
 import { Typing } from './typing';
 import { User } from './user';
 import { VoiceState } from './voicestate';
@@ -38,11 +40,23 @@ export type Channel = (
   ChannelDM |
   ChannelGuildVoice |
   ChannelDMGroup |
+  ChannelGuildType
+);
+
+export type ChannelGuildType = (
   ChannelGuildBase |
   ChannelGuildCategory |
   ChannelGuildText |
   ChannelGuildStore |
+  ChannelGuildThread |
   ChannelGuildStageVoice
+);
+
+export type ChannelTextType = (
+  ChannelDM |
+  ChannelDMGroup |
+  ChannelGuildText |
+  ChannelGuildThread
 );
 
 export function createChannelFromData(
@@ -74,6 +88,11 @@ export function createChannelFromData(
       case ChannelTypes.GUILD_STORE: {
         Class = ChannelGuildStore;
       }; break;
+      case ChannelTypes.GUILD_NEWS_THREAD:
+      case ChannelTypes.GUILD_PUBLIC_THREAD:
+      case ChannelTypes.GUILD_PRIVATE_THREAD: {
+        Class = ChannelGuildThread;
+      }; break;
       case ChannelTypes.GUILD_STAGE_VOICE: {
         Class = ChannelGuildStageVoice;
       }; break;
@@ -86,6 +105,7 @@ export function createChannelFromData(
 const keysChannelBase = new BaseSet<string>([
   DiscordKeys.ID,
   DiscordKeys.IS_PARTIAL,
+  DiscordKeys.NAME,
   DiscordKeys.TYPE,
 ]);
 
@@ -100,27 +120,32 @@ export class ChannelBase extends BaseStructure {
   readonly _keysMerge = keysMergeChannelBase;
   _name: string = '';
   _nicks?: BaseCollection<string, string>;
+  _nsfw?: boolean;
   _permissionOverwrites?: BaseCollection<string, Overwrite>;
   _recipients?: BaseCollection<string, User>;
 
   applicationId?: string;
-  bitrate: number = 0;
+  bitrate?: number;
   deleted: boolean = false;
-  guildId: string = '';
+  guildId?: string;
   id: string = '';
   icon?: null | string;
   isPartial: boolean = false;
   lastMessageId?: null | string;
-  lastPinTimestampUnix: number = 0;
-  nsfw: boolean = false;
+  lastPinTimestampUnix?: number;
+  member?: ThreadMember;
+  memberCount?: number;
+  messageCount?: number;
+  ownerId?: string;
   parentId?: null | string;
-  position: number = -1;
-  rateLimitPerUser: number = 0;
+  position?: number;
+  rateLimitPerUser?: number;
   rtcRegion?: null | string;
+  threadMetadata?: ThreadMetadata;
   topic: null | string = null;
   type: ChannelTypes = ChannelTypes.BASE;
-  userLimit: number = 0;
-  videoQualityMode: ChannelVideoQualityModes = ChannelVideoQualityModes.AUTO;
+  userLimit?: number;
+  videoQualityMode?: ChannelVideoQualityModes;
 
   constructor(
     client: ShardClient,
@@ -177,6 +202,10 @@ export class ChannelBase extends BaseStructure {
     return this.isText;
   }
 
+  get canManageThreads(): boolean {
+    return false;
+  }
+
   get canMoveMembers(): boolean {
     return this.isGuildStageVoice || this.isGuildVoice;
   }
@@ -215,6 +244,14 @@ export class ChannelBase extends BaseStructure {
     return this.isDm;
   }
 
+  get canUsePrivateThreads(): boolean {
+    return false;
+  }
+
+  get canUsePublicThreads(): boolean {
+    return false;
+  }
+
   get canUseVAD(): boolean {
     return this.isVoice;
   }
@@ -223,7 +260,7 @@ export class ChannelBase extends BaseStructure {
     return this.isText;
   }
 
-  get children(): BaseCollection<string, ChannelGuildBase> {
+  get children(): BaseCollection<string, ChannelGuildType> {
     return emptyBaseCollection;
   }
 
@@ -269,6 +306,9 @@ export class ChannelBase extends BaseStructure {
       (this.isGuildVoice) ||
       (this.isGuildNews) ||
       (this.isGuildStore) ||
+      (this.isGuildThreadNews) ||
+      (this.isGuildThreadPrivate) ||
+      (this.isGuildThreadPublic) ||
       (this.isGuildStageVoice);
   }
 
@@ -288,8 +328,28 @@ export class ChannelBase extends BaseStructure {
     return this.type === ChannelTypes.GUILD_TEXT;
   }
 
+  get isGuildThread(): boolean {
+    return this.isGuildThreadNews || this.isGuildThreadPrivate || this.isGuildThreadPublic;
+  }
+
+  get isGuildThreadNews(): boolean {
+    return this.type === ChannelTypes.GUILD_NEWS_THREAD;
+  }
+
+  get isGuildThreadPrivate(): boolean {
+    return this.type === ChannelTypes.GUILD_PRIVATE_THREAD;
+  }
+
+  get isGuildThreadPublic(): boolean {
+    return this.type === ChannelTypes.GUILD_PUBLIC_THREAD;
+  }
+
   get isGuildVoice(): boolean {
     return this.type === ChannelTypes.GUILD_VOICE;
+  }
+
+  get isLive(): boolean {
+    return !!this.stageInstance;
   }
 
   get isManaged(): boolean {
@@ -301,7 +361,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get isText(): boolean {
-    return this.isDm || this.isGuildText || this.isGuildNews;
+    return this.isDm || this.isGuildText || this.isGuildNews || this.isGuildThread;
   }
 
   get isVoice(): boolean {
@@ -314,6 +374,13 @@ export class ChannelBase extends BaseStructure {
 
   get jumpLink(): string {
     return Endpoints.Routes.URL + Endpoints.Routes.CHANNEL(null, this.id);
+  }
+
+  get lastMessage(): Message | null {
+    if (this.lastMessageId) {
+      return this.client.messages.get(this.lastMessageId) || null;
+    }
+    return null;
   }
 
   get lastPinTimestamp(): Date | null {
@@ -346,11 +413,21 @@ export class ChannelBase extends BaseStructure {
     return emptyBaseCollection;
   }
 
+  get nsfw(): boolean {
+    return !!this._nsfw;
+  }
+
   get owner(): User | null {
+    if (this.ownerId) {
+      return this.client.users.get(this.ownerId) || null;
+    }
     return null;
   }
 
-  get parent(): ChannelGuildCategory | null {
+  get parent(): ChannelGuildCategory | ChannelGuildText | null {
+    if (this.parentId && this.client.channels.has(this.parentId)) {
+      return this.client.channels.get(this.parentId) as ChannelGuildCategory | ChannelGuildText;
+    }
     return null;
   }
 
@@ -359,6 +436,20 @@ export class ChannelBase extends BaseStructure {
       return this._permissionOverwrites;
     }
     return emptyBaseCollection;
+  }
+
+  get stageInstance(): StageInstance | null {
+    if (this.isGuildStageVoice) {
+      const guild = this.guild;
+      if (guild) {
+        for (let [stageId, stage] of guild.stageInstances) {
+          if (stage.channelId === this.id) {
+            return stage;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   get recipients(): BaseCollection<string, User> {
@@ -398,6 +489,10 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  async addMember(userId: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async addRecipient(userId: string): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
@@ -419,6 +514,14 @@ export class ChannelBase extends BaseStructure {
   }
 
   async createReaction(messageId: string, emoji: string): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async createStageInstance(options: PartialBy<RequestTypes.CreateStageInstance, 'channelId'>): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async createThread(options: RequestTypes.CreateChannelThread): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -454,7 +557,11 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
-  edit(options: RequestTypes.EditChannel = {}): Promise<any> {
+  async deleteStageInstance(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  edit(options: RequestTypes.EditChannel = {}) {
     return this.client.rest.editChannel(this.id, options);
   }
 
@@ -466,12 +573,20 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  async editStageInstance(options: RequestTypes.EditStageInstance = {}): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async fetchCallStatus(): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
   async fetchInvites() {
     return this.client.rest.fetchChannelInvites(this.id);
+  }
+
+  async fetchMembers(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
   }
 
   async fetchMessage(messageId: string): Promise<any> {
@@ -490,7 +605,27 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  async fetchStageInstance(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async fetchStoreListing(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async fetchThreadsActive(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async fetchThreadsArchivedPrivate(options: RequestTypes.FetchChannelThreadsArchivedPrivate = {}): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async fetchThreadsArchivedPrivateJoined(options: RequestTypes.FetchChannelThreadsArchivedPrivateJoined = {}): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async fetchThreadsArchivedPublic(options: RequestTypes.FetchChannelThreadsArchivedPublic = {}): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -510,7 +645,15 @@ export class ChannelBase extends BaseStructure {
     throw new Error('Channel type doesn\'t support this.');
   }
 
+  async leave(): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
   async publish(options: RequestTypes.CreateApplicationNews): Promise<any> {
+    throw new Error('Channel type doesn\'t support this.');
+  }
+
+  async removeMember(userId: string): Promise<any> {
     throw new Error('Channel type doesn\'t support this.');
   }
 
@@ -551,6 +694,9 @@ export class ChannelBase extends BaseStructure {
       switch (key) {
         case DiscordKeys.NAME: {
           this._name = value;
+        }; return;
+        case DiscordKeys.NSFW: {
+          this._nsfw = value;
         }; return;
       }
     }
@@ -624,14 +770,14 @@ export class ChannelDM extends ChannelBase {
 
   get voiceStates(): BaseCollection<string, VoiceState> {
     if (this.client.voiceStates.has(this.id)) {
-      return <BaseCollection<string, VoiceState>> this.client.voiceStates.get(this.id);
+      return this.client.voiceStates.get(this.id)!;
     }
     return emptyBaseCollection;
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.recipients.size) {
-      const user = <User> this.recipients.first();
+      const user = this.recipients.first()!;
       return user.avatarUrlFormat(format, query);
     }
     return null;
@@ -765,7 +911,7 @@ export class ChannelDM extends ChannelBase {
                 user = new User(this.client, raw, true);
               } else {
                 if (this.client.users.has(raw.id)) {
-                  user = this.client.users.get(raw.id) as User;
+                  user = this.client.users.get(raw.id)!;
                   user.merge(raw);
                 } else {
                   user = new User(this.client, raw);
@@ -830,7 +976,7 @@ export class ChannelDMGroup extends ChannelDM {
     if (this._recipients && this._recipients.has(this.ownerId)) {
       return this._recipients.get(this.ownerId) || null;
     }
-    return this.client.users.get(this.ownerId) || null;
+    return super.owner;
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): string {
@@ -891,8 +1037,7 @@ export class ChannelGuildBase extends ChannelBase {
   type = ChannelTypes.BASE;
 
   guildId: string = '';
-  nsfw: boolean = false;
-  parentId?: null | string;
+  parentId: null | string = null;
   position: number = -1;
   rateLimitPerUser: number = 0;
 
@@ -957,6 +1102,12 @@ export class ChannelGuildBase extends ChannelBase {
   get canManageWebhooks(): boolean {
     return this.isText && this.can([
       Permissions.MANAGE_WEBHOOKS,
+    ]);
+  }
+
+  get canManageThreads(): boolean {
+    return this.isText && this.can([
+      Permissions.MANAGE_THREADS,
     ]);
   }
 
@@ -1028,6 +1179,20 @@ export class ChannelGuildBase extends ChannelBase {
     ]);
   }
 
+  get canUsePrivateThreads(): boolean {
+    return this.isText && this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.USE_PRIVATE_THREADS,
+    ]);
+  }
+
+  get canUsePublicThreads(): boolean {
+    return this.isText && this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.USE_PUBLIC_THREADS,
+    ]);
+  }
+
   get canUseVAD(): boolean {
     return this.isVoice && this.can([
       Permissions.USE_VAD,
@@ -1046,13 +1211,6 @@ export class ChannelGuildBase extends ChannelBase {
 
   get jumpLink(): string {
     return Endpoints.Routes.URL + Endpoints.Routes.CHANNEL(this.guildId, this.id);
-  }
-
-  get parent(): ChannelGuildCategory | null {
-    if (this.parentId && this.client.channels.has(this.parentId)) {
-      return this.client.channels.get(this.parentId) as ChannelGuildCategory;
-    }
-    return null;
   }
 
   can(
@@ -1076,7 +1234,7 @@ export class ChannelGuildBase extends ChannelBase {
         if (!this.client.members.has(this.guildId, this.client.user.id)) {
           return false;
         }
-        memberOrRole = this.client.members.get(this.guildId, this.client.user.id) as Member;
+        memberOrRole = this.client.members.get(this.guildId, this.client.user.id)!;
       }
   
       if (!ignoreOwner) {
@@ -1106,7 +1264,7 @@ export class ChannelGuildBase extends ChannelBase {
       }
       return overwrites.every((overwrite) => {
         if (parentOverwrites.has(overwrite.id)) {
-          const parentOverwrite = parentOverwrites.get(overwrite.id) as Overwrite;
+          const parentOverwrite = parentOverwrites.get(overwrite.id)!;
           return overwrite.allow === parentOverwrite.allow && overwrite.deny === parentOverwrite.deny;
         }
         return false;
@@ -1136,7 +1294,7 @@ export class ChannelGuildBase extends ChannelBase {
             for (let raw of value) {
               let overwrite: Overwrite;
               if (this._permissionOverwrites.has(raw.id)) {
-                overwrite = this._permissionOverwrites.get(raw.id) as Overwrite;
+                overwrite = this._permissionOverwrites.get(raw.id)!;
                 overwrite.merge(raw);
               } else {
                 overwrite = new Overwrite(this, raw);
@@ -1179,11 +1337,11 @@ export class ChannelGuildCategory extends ChannelGuildBase {
     this.merge(data);
   }
 
-  get children(): BaseCollection<string, Channel> {
-    const collection = new BaseCollection<string, Channel>();
+  get children(): BaseCollection<string, ChannelGuildType> {
+    const collection = new BaseCollection<string, ChannelGuildType>();
     for (let [channelId, channel] of this.client.channels) {
       if (channel.isGuildChannel && channel.parentId === this.id) {
-        collection.set(channelId, channel);
+        collection.set(channelId, channel as ChannelGuildType);
       }
     }
     return collection;
@@ -1192,10 +1350,19 @@ export class ChannelGuildCategory extends ChannelGuildBase {
 
 
 const keysChannelGuildText = new BaseSet<string>([
-  ...keysChannelGuildBase,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.LAST_PIN_TIMESTAMP,
+  DiscordKeys.NAME,
+  DiscordKeys.NSFW,
+  DiscordKeys.PARENT_ID,
+  DiscordKeys.PERMISSION_OVERWRITES,
+  DiscordKeys.POSITION,
+  DiscordKeys.RATE_LIMIT_PER_USER,
   DiscordKeys.TOPIC,
+  DiscordKeys.TYPE,
 ]);
 
 /**
@@ -1206,7 +1373,7 @@ export class ChannelGuildText extends ChannelGuildBase {
   readonly _keys = keysChannelGuildText;
   type = ChannelTypes.GUILD_TEXT;
 
-  lastMessageId?: null | string;
+  lastMessageId: null | string = null;
   topic: null | string = null;
 
   constructor(
@@ -1259,6 +1426,10 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.createReaction(this.id, messageId, emoji);
   }
 
+  async createThread(options: RequestTypes.CreateChannelThread) {
+    return this.client.rest.createChannelThread(this.id, options);
+  }
+
   async createWebhook(options: RequestTypes.CreateWebhook) {
     return this.client.rest.createWebhook(this.id, options);
   }
@@ -1303,6 +1474,22 @@ export class ChannelGuildText extends ChannelGuildBase {
     return this.client.rest.fetchReactions(this.id, messageId, emoji, options);
   }
 
+  async fetchThreadsActive() {
+    return this.client.rest.fetchChannelThreadsActive(this.id);
+  }
+
+  async fetchThreadsArchivedPrivate(options: RequestTypes.FetchChannelThreadsArchivedPrivate = {}) {
+    return this.client.rest.fetchChannelThreadsArchivedPrivate(this.id, options);
+  }
+
+  async fetchThreadsArchivedPrivateJoined(options: RequestTypes.FetchChannelThreadsArchivedPrivateJoined = {}) {
+    return this.client.rest.fetchChannelThreadsArchivedPrivateJoined(this.id, options);
+  }
+
+  async fetchThreadsArchivedPublic(options: RequestTypes.FetchChannelThreadsArchivedPublic = {}) {
+    return this.client.rest.fetchChannelThreadsArchivedPublic(this.id, options);
+  }
+  
   async fetchWebhooks() {
     return this.client.rest.fetchChannelWebhooks(this.id);
   }
@@ -1354,10 +1541,19 @@ export class ChannelGuildText extends ChannelGuildBase {
 
 
 const keysChannelGuildVoice = new BaseSet<string>([
-  ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
+  DiscordKeys.NAME,
+  DiscordKeys.NSFW,
+  DiscordKeys.PARENT_ID,
+  DiscordKeys.PERMISSION_OVERWRITES,
+  DiscordKeys.POSITION,
+  DiscordKeys.RATE_LIMIT_PER_USER,
   DiscordKeys.RTC_REGION,
   DiscordKeys.TOPIC,
+  DiscordKeys.TYPE,
   DiscordKeys.USER_LIMIT,
   DiscordKeys.VIDEO_QUALITY_MODE,
 ]);
@@ -1371,7 +1567,7 @@ export class ChannelGuildVoice extends ChannelGuildBase {
   type = ChannelTypes.GUILD_VOICE;
 
   bitrate: number = 64000;
-  rtcRegion?: string | null = null;
+  rtcRegion: string | null = null;
   userLimit: number = 0;
   videoQualityMode: ChannelVideoQualityModes = ChannelVideoQualityModes.AUTO;
 
@@ -1386,7 +1582,7 @@ export class ChannelGuildVoice extends ChannelGuildBase {
 
   get joined(): boolean {
     if (this.client.voiceConnections.has(this.guildId)) {
-      const voiceConnection = this.client.voiceConnections.get(this.guildId) as VoiceConnection;
+      const voiceConnection = this.client.voiceConnections.get(this.guildId)!;
       return voiceConnection.guildId === this.id;
     }
     return false;
@@ -1427,8 +1623,17 @@ export class ChannelGuildVoice extends ChannelGuildBase {
 
 
 const keysChannelGuildStore = new BaseSet<string>([
-  ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
+  DiscordKeys.NAME,
+  DiscordKeys.NSFW,
+  DiscordKeys.PARENT_ID,
+  DiscordKeys.PERMISSION_OVERWRITES,
+  DiscordKeys.POSITION,
+  DiscordKeys.RATE_LIMIT_PER_USER,
+  DiscordKeys.TYPE,
   DiscordKeys.USER_LIMIT,
 ]);
 
@@ -1484,5 +1689,114 @@ export class ChannelGuildStageVoice extends ChannelGuildVoice {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  createStageInstance(options: PartialBy<RequestTypes.CreateStageInstance, 'channelId'>) {
+    return this.client.rest.createStageInstance({
+      ...options,
+      channelId: this.id,
+    });
+  }
+
+  deleteStageInstance() {
+    return this.client.rest.deleteStageInstance(this.id);
+  }
+
+  editStageInstance(options: RequestTypes.EditStageInstance = {}) {
+    return this.client.rest.editStageInstance(this.id, options);
+  }
+
+  fetchStageInstance() {
+    return this.client.rest.fetchStageInstance(this.id);
+  }
+}
+
+
+const keysChannelGuildThread = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
+  DiscordKeys.LAST_MESSAGE_ID,
+  DiscordKeys.LAST_PIN_TIMESTAMP,
+  DiscordKeys.MEMBER,
+  DiscordKeys.MEMBER_COUNT,
+  DiscordKeys.MESSAGE_COUNT,
+  DiscordKeys.NAME,
+  DiscordKeys.NSFW,
+  DiscordKeys.OWNER_ID,
+  DiscordKeys.PARENT_ID,
+  DiscordKeys.PERMISSION_OVERWRITES,
+  DiscordKeys.POSITION,
+  DiscordKeys.RATE_LIMIT_PER_USER,
+  DiscordKeys.THREAD_METADATA,
+  DiscordKeys.TYPE,
+]);
+
+
+/**
+ * Guild Thread Channel
+ * @category Structure
+ */
+export class ChannelGuildThread extends ChannelGuildBase {
+  readonly _keys = keysChannelGuildThread;
+  type = ChannelTypes.GUILD_PUBLIC_THREAD;
+
+  member?: ThreadMember;
+  memberCount: number = 0;
+  messageCount: number = 0;
+  ownerId: string = '';
+  threadMetadata!: ThreadMetadata;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  get nsfw(): boolean {
+    if (this.parent) {
+      return this.parent.nsfw;
+    }
+    return false;
+  }
+
+  addMember(userId: string) {
+    return this.client.rest.addThreadMember(this.id, userId);
+  }
+
+  fetchMembers() {
+    return this.client.rest.fetchThreadMembers(this.id);
+  }
+
+  join() {
+    return this.client.rest.joinThread(this.id);
+  }
+
+  leave() {
+    return this.client.rest.leaveThread(this.id);
+  }
+
+  removeMember(userId: string) {
+    return this.client.rest.removeThreadMember(this.id, userId);
+  }
+
+  mergeValue(key: string, value: any) {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.LAST_PIN_TIMESTAMP: {
+          this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
+        }; return;
+        case DiscordKeys.MEMBER: {
+          value = new ThreadMember(this.client, value);
+        }; break;
+        case DiscordKeys.THREAD_METADATA: {
+          value = new ThreadMetadata(this, value);
+        }; break;
+      }
+      return super.mergeValue(key, value);
+    }
   }
 }

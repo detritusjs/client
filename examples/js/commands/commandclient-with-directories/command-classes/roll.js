@@ -1,5 +1,6 @@
 const { BaseCommand } = require('./basecommand');
 
+
 class RollCommand extends BaseCommand {
   constructor(client) {
     super(client);

@@ -44,6 +44,8 @@ import {
   RolesOptions,
   Sessions,
   SessionsOptions,
+  StageInstances,
+  StageInstancesOptions,
   TypingCollection,
   TypingOptions,
   Users,
@@ -75,23 +77,24 @@ interface GatewayOptions extends Gateway.SocketOptions, GatewayHandlerOptions {
 }
 
 export interface ShardClientCacheOptions {
-  applications?: ApplicationsOptions,
-  channels?: ChannelsOptions,
-  connectedAccounts?: ConnectedAccountsOptions,
-  emojis?: EmojisOptions,
-  guilds?: GuildsOptions,
-  members?: MembersOptions,
-  messages?: MessagesOptions,
-  notes?: NotesOptions,
-  presences?: PresencesOptions,
-  relationships?: RelationshipsOptions,
-  roles?: RolesOptions,
-  sessions?: SessionsOptions,
-  typings?: TypingOptions,
-  users?: UsersOptions,
-  voiceCalls?: VoiceCallsOptions,
-  voiceConnections?: VoiceConnectionsOptions,
-  voiceStates?: VoiceStatesOptions,
+  applications?: ApplicationsOptions | boolean,
+  channels?: ChannelsOptions | boolean,
+  connectedAccounts?: ConnectedAccountsOptions | boolean,
+  emojis?: EmojisOptions | boolean,
+  guilds?: GuildsOptions | boolean,
+  members?: MembersOptions | boolean,
+  messages?: MessagesOptions | boolean,
+  notes?: NotesOptions | boolean,
+  presences?: PresencesOptions | boolean,
+  relationships?: RelationshipsOptions | boolean,
+  roles?: RolesOptions | boolean,
+  sessions?: SessionsOptions | boolean,
+  stageInstances?: StageInstancesOptions | boolean,
+  typings?: TypingOptions | boolean,
+  users?: UsersOptions | boolean,
+  voiceCalls?: VoiceCallsOptions | boolean,
+  voiceConnections?: VoiceConnectionsOptions | boolean,
+  voiceStates?: VoiceStatesOptions | boolean,
 }
 
 export interface ShardClientPassOptions {
@@ -109,6 +112,7 @@ export interface ShardClientPassOptions {
   relationships?: Relationships,
   roles?: Roles,
   sessions?: Sessions,
+  stageInstances?: StageInstances,
   typings?: TypingCollection,
   users?: Users,
   voiceCalls?: VoiceCalls,
@@ -201,6 +205,7 @@ export class ShardClient extends EventSpewer {
   readonly relationships: Relationships;
   readonly roles: Roles;
   readonly sessions: Sessions;
+  readonly stageInstances: StageInstances;
   readonly typings: TypingCollection;
   readonly users: Users;
   readonly voiceCalls: VoiceCalls;
@@ -269,6 +274,7 @@ export class ShardClient extends EventSpewer {
         relationships: {enabled},
         roles: {enabled},
         sessions: {enabled},
+        stageInstances: {enabled},
         typings: {enabled},
         users: {enabled},
         voiceCalls: {enabled},
@@ -289,6 +295,7 @@ export class ShardClient extends EventSpewer {
     this.relationships = options.pass.relationships || new Relationships(this, options.cache.relationships);
     this.roles = options.pass.roles || new Roles(this, options.cache.roles);
     this.sessions = options.pass.sessions || new Sessions(this, options.cache.sessions);
+    this.stageInstances = options.pass.stageInstances || new StageInstances(this, options.cache.stageInstances);
     this.typings = options.pass.typings || new TypingCollection(this, options.cache.typings);
     this.users = options.pass.users || new Users(this, options.cache.users);
     this.voiceCalls = options.pass.voiceCalls || new VoiceCalls(this, options.cache.voiceCalls);
@@ -692,6 +699,12 @@ export class ShardClient extends EventSpewer {
   on(event: 'relationshipRemove', listener: (payload: GatewayClientEvents.RelationshipRemove) => any): this;
   on(event: ClientEvents.SESSIONS_REPLACE, listener: (payload: GatewayClientEvents.SessionsReplace) => any): this;
   on(event: 'sessionsReplace', listener: (payload: GatewayClientEvents.SessionsReplace) => any): this;
+  on(event: ClientEvents.STAGE_INSTANCE_CREATE, listener: (payload: GatewayClientEvents.StageInstanceCreate) => any): this;
+  on(event: 'stageInstanceCreate', listener: (payload: GatewayClientEvents.StageInstanceCreate) => any): this;
+  on(event: ClientEvents.STAGE_INSTANCE_DELETE, listener: (payload: GatewayClientEvents.StageInstanceDelete) => any): this;
+  on(event: 'stageInstanceDelete', listener: (payload: GatewayClientEvents.StageInstanceDelete) => any): this;
+  on(event: ClientEvents.STAGE_INSTANCE_UPDATE, listener: (payload: GatewayClientEvents.StageInstanceUpdate) => any): this;
+  on(event: 'stageInstanceUpdate', listener: (payload: GatewayClientEvents.StageInstanceUpdate) => any): this;
   on(event: ClientEvents.STREAM_CREATE, listener: (payload: GatewayClientEvents.StreamCreate) => any): this;
   on(event: 'streamCreate', listener: (payload: GatewayClientEvents.StreamCreate) => any): this;
   on(event: ClientEvents.STREAM_DELETE, listener: (payload: GatewayClientEvents.StreamDelete) => any): this;
@@ -700,6 +713,18 @@ export class ShardClient extends EventSpewer {
   on(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.StreamServerUpdate) => any): this;
   on(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
   on(event: 'streamUpdate', listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
+  on(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ThreadCreate) => any): this;
+  on(event: 'threadCreate', listener: (payload: GatewayClientEvents.ThreadCreate) => any): this;
+  on(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ThreadDelete) => any): this;
+  on(event: 'threadDelete', listener: (payload: GatewayClientEvents.ThreadDelete) => any): this;
+  on(event: ClientEvents.THREAD_LIST_SYNC, listener: (payload: GatewayClientEvents.ThreadListSync) => any): this;
+  on(event: 'threadListSync', listener: (payload: GatewayClientEvents.ThreadListSync) => any): this;
+  on(event: ClientEvents.THREAD_MEMBER_UPDATE, listener: (payload: GatewayClientEvents.ThreadMemberUpdate) => any): this;
+  on(event: 'threadMemberUpdate', listener: (payload: GatewayClientEvents.ThreadMemberUpdate) => any): this;
+  on(event: ClientEvents.THREAD_MEMBERS_UPDATE, listener: (payload: GatewayClientEvents.ThreadMembersUpdate) => any): this;
+  on(event: 'threadMembersUpdate', listener: (payload: GatewayClientEvents.ThreadMembersUpdate) => any): this;
+  on(event: ClientEvents.THREAD_UPDATE, listener: (payload: GatewayClientEvents.ThreadUpdate) => any): this;
+  on(event: 'threadUpdate', listener: (payload: GatewayClientEvents.ThreadUpdate) => any): this;
   on(event: ClientEvents.TYPING_START, listener: (payload: GatewayClientEvents.TypingStart) => any): this;
   on(event: 'typingStart', listener: (payload: GatewayClientEvents.TypingStart) => any): this;
   on(event: ClientEvents.TYPING_STOP, listener: (payload: GatewayClientEvents.TypingStop) => any): this;
@@ -878,6 +903,12 @@ export class ShardClient extends EventSpewer {
   once(event: 'relationshipRemove', listener: (payload: GatewayClientEvents.RelationshipRemove) => any): this;
   once(event: ClientEvents.SESSIONS_REPLACE, listener: (payload: GatewayClientEvents.SessionsReplace) => any): this;
   once(event: 'sessionsReplace', listener: (payload: GatewayClientEvents.SessionsReplace) => any): this;
+  once(event: ClientEvents.STAGE_INSTANCE_CREATE, listener: (payload: GatewayClientEvents.StageInstanceCreate) => any): this;
+  once(event: 'stageInstanceCreate', listener: (payload: GatewayClientEvents.StageInstanceCreate) => any): this;
+  once(event: ClientEvents.STAGE_INSTANCE_DELETE, listener: (payload: GatewayClientEvents.StageInstanceDelete) => any): this;
+  once(event: 'stageInstanceDelete', listener: (payload: GatewayClientEvents.StageInstanceDelete) => any): this;
+  once(event: ClientEvents.STAGE_INSTANCE_UPDATE, listener: (payload: GatewayClientEvents.StageInstanceUpdate) => any): this;
+  once(event: 'stageInstanceUpdate', listener: (payload: GatewayClientEvents.StageInstanceUpdate) => any): this;
   once(event: ClientEvents.STREAM_CREATE, listener: (payload: GatewayClientEvents.StreamCreate) => any): this;
   once(event: 'streamCreate', listener: (payload: GatewayClientEvents.StreamCreate) => any): this;
   once(event: ClientEvents.STREAM_DELETE, listener: (payload: GatewayClientEvents.StreamDelete) => any): this;
@@ -886,6 +917,18 @@ export class ShardClient extends EventSpewer {
   once(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.StreamServerUpdate) => any): this;
   once(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
   once(event: 'streamUpdate', listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
+  once(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ThreadCreate) => any): this;
+  once(event: 'threadCreate', listener: (payload: GatewayClientEvents.ThreadCreate) => any): this;
+  once(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ThreadDelete) => any): this;
+  once(event: 'threadDelete', listener: (payload: GatewayClientEvents.ThreadDelete) => any): this;
+  once(event: ClientEvents.THREAD_LIST_SYNC, listener: (payload: GatewayClientEvents.ThreadListSync) => any): this;
+  once(event: 'threadListSync', listener: (payload: GatewayClientEvents.ThreadListSync) => any): this;
+  once(event: ClientEvents.THREAD_MEMBER_UPDATE, listener: (payload: GatewayClientEvents.ThreadMemberUpdate) => any): this;
+  once(event: 'threadMemberUpdate', listener: (payload: GatewayClientEvents.ThreadMemberUpdate) => any): this;
+  once(event: ClientEvents.THREAD_MEMBERS_UPDATE, listener: (payload: GatewayClientEvents.ThreadMembersUpdate) => any): this;
+  once(event: 'threadMembersUpdate', listener: (payload: GatewayClientEvents.ThreadMembersUpdate) => any): this;
+  once(event: ClientEvents.THREAD_UPDATE, listener: (payload: GatewayClientEvents.ThreadUpdate) => any): this;
+  once(event: 'threadUpdate', listener: (payload: GatewayClientEvents.ThreadUpdate) => any): this;
   once(event: ClientEvents.TYPING_START, listener: (payload: GatewayClientEvents.TypingStart) => any): this;
   once(event: 'typingStart', listener: (payload: GatewayClientEvents.TypingStart) => any): this;
   once(event: ClientEvents.TYPING_STOP, listener: (payload: GatewayClientEvents.TypingStop) => any): this;
@@ -1064,6 +1107,12 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'relationshipRemove', listener: (payload: GatewayClientEvents.RelationshipRemove) => any): EventSubscription;
   subscribe(event: ClientEvents.SESSIONS_REPLACE, listener: (payload: GatewayClientEvents.SessionsReplace) => any): EventSubscription;
   subscribe(event: 'sessionsReplace', listener: (payload: GatewayClientEvents.SessionsReplace) => any): EventSubscription;
+  subscribe(event: ClientEvents.STAGE_INSTANCE_CREATE, listener: (payload: GatewayClientEvents.StageInstanceCreate) => any): EventSubscription;
+  subscribe(event: 'stageInstanceCreate', listener: (payload: GatewayClientEvents.StageInstanceCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.STAGE_INSTANCE_DELETE, listener: (payload: GatewayClientEvents.StageInstanceDelete) => any): EventSubscription;
+  subscribe(event: 'stageInstanceDelete', listener: (payload: GatewayClientEvents.StageInstanceDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.STAGE_INSTANCE_UPDATE, listener: (payload: GatewayClientEvents.StageInstanceUpdate) => any): EventSubscription;
+  subscribe(event: 'stageInstanceUpdate', listener: (payload: GatewayClientEvents.StageInstanceUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.STREAM_CREATE, listener: (payload: GatewayClientEvents.StreamCreate) => any): EventSubscription;
   subscribe(event: 'streamCreate', listener: (payload: GatewayClientEvents.StreamCreate) => any): EventSubscription;
   subscribe(event: ClientEvents.STREAM_DELETE, listener: (payload: GatewayClientEvents.StreamDelete) => any): EventSubscription;
@@ -1072,6 +1121,18 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.StreamServerUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.StreamUpdate) => any): EventSubscription;
   subscribe(event: 'streamUpdate', listener: (payload: GatewayClientEvents.StreamUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ThreadCreate) => any): EventSubscription;
+  subscribe(event: 'threadCreate', listener: (payload: GatewayClientEvents.ThreadCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ThreadDelete) => any): EventSubscription;
+  subscribe(event: 'threadDelete', listener: (payload: GatewayClientEvents.ThreadDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_LIST_SYNC, listener: (payload: GatewayClientEvents.ThreadListSync) => any): EventSubscription;
+  subscribe(event: 'threadListSync', listener: (payload: GatewayClientEvents.ThreadListSync) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_MEMBER_UPDATE, listener: (payload: GatewayClientEvents.ThreadMemberUpdate) => any): EventSubscription;
+  subscribe(event: 'threadMemberUpdate', listener: (payload: GatewayClientEvents.ThreadMemberUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_MEMBERS_UPDATE, listener: (payload: GatewayClientEvents.ThreadMembersUpdate) => any): EventSubscription;
+  subscribe(event: 'threadMembersUpdate', listener: (payload: GatewayClientEvents.ThreadMembersUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.THREAD_UPDATE, listener: (payload: GatewayClientEvents.ThreadUpdate) => any): EventSubscription;
+  subscribe(event: 'threadUpdate', listener: (payload: GatewayClientEvents.ThreadUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.TYPING_START, listener: (payload: GatewayClientEvents.TypingStart) => any): EventSubscription;
   subscribe(event: 'typingStart', listener: (payload: GatewayClientEvents.TypingStart) => any): EventSubscription;
   subscribe(event: ClientEvents.TYPING_STOP, listener: (payload: GatewayClientEvents.TypingStop) => any): EventSubscription;

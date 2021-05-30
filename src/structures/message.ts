@@ -10,6 +10,9 @@ import {
   DiscordKeys,
   DiscordRegex,
   DiscordRegexNames,
+  InteractionTypes,
+  MessageComponentButtonStyles,
+  MessageComponentTypes,
   MessageFlags,
   MessageTypes,
   MessageTypesDeletable,
@@ -25,7 +28,8 @@ import {
 } from './basestructure';
 import { Application } from './application';
 import { Attachment } from './attachment';
-import { Channel, createChannelFromData } from './channel';
+import { Channel, ChannelGuildThread, ChannelTextType, createChannelFromData } from './channel';
+import { Emoji } from './emoji';
 import { Guild } from './guild';
 import { Member } from './member';
 import { MessageEmbed } from './messageembed';
@@ -43,12 +47,14 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.AUTHOR,
   DiscordKeys.CALL,
   DiscordKeys.CHANNEL_ID,
+  DiscordKeys.COMPONENTS,
   DiscordKeys.CONTENT,
   DiscordKeys.EDITED_TIMESTAMP,
   DiscordKeys.EMBEDS,
   DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
+  DiscordKeys.INTERACTION,
   DiscordKeys.MEMBER,
   DiscordKeys.MENTIONS,
   DiscordKeys.MENTION_CHANNELS,
@@ -60,6 +66,7 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.REACTIONS,
   DiscordKeys.REFERENCED_MESSAGE,
   DiscordKeys.STICKERS,
+  DiscordKeys.THREAD,
   DiscordKeys.TIMESTAMP,
   DiscordKeys.TTS,
   DiscordKeys.TYPE,
@@ -95,6 +102,7 @@ export class Message extends BaseStructure {
   readonly _keysSkipDifference = keysSkipDifferenceMessage;
   _content = '';
   _attachments?: BaseCollection<string, Attachment>;
+  _components?: BaseCollection<number, MessageComponentActionRow>;
   _embeds?: BaseCollection<number, MessageEmbed>;
   _mentions?: BaseCollection<string, Member | User>;
   _mentionChannels?: BaseCollection<string, Channel>;
@@ -113,12 +121,14 @@ export class Message extends BaseStructure {
   flags: number = 0;
   guildId?: string;
   id: string = '';
+  interaction?: MessageInteraction;
   member?: Member;
   mentionEveryone: boolean = false;
   messageReference?: MessageReference;
   nonce?: string;
   pinned: boolean = false;
   referencedMessage: Message | null = null;
+  thread?: ChannelGuildThread;
   timestampUnix: number = 0;
   tts: boolean = false;
   type: MessageTypes = MessageTypes.BASE;
@@ -181,8 +191,18 @@ export class Message extends BaseStructure {
     return (channel) ? channel.canMessage : this.inDm;
   }
 
-  get channel(): Channel | null {
-    return this.client.channels.get(this.channelId) || null;
+  get channel(): ChannelTextType | null {
+    if (this.client.channels.has(this.channelId)) {
+      return this.client.channels.get(this.channelId) as ChannelTextType;
+    }
+    return null;
+  }
+
+  get components(): BaseCollection<number, MessageComponentActionRow> {
+    if (this._components) {
+      return this._components;
+    }
+    return emptyBaseCollection;
   }
 
   get createdAt(): Date {
@@ -349,11 +369,11 @@ export class Message extends BaseStructure {
     let content = (options.text !== undefined) ? options.text : this.systemContent;
     content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_CHANNEL], (match, id) => {
       if (this.mentionChannels.has(id)) {
-        const channel = this.mentionChannels.get(id) as Channel;
+        const channel = this.mentionChannels.get(id)!;
         return channel.toString();
       } else {
         if (this.client.channels.has(id)) {
-          const channel = this.client.channels.get(id) as Channel;
+          const channel = this.client.channels.get(id)!;
           if (guildSpecific && this.guildId) {
             if (this.guildId === channel.guildId) {
               return channel.toString();
@@ -369,7 +389,7 @@ export class Message extends BaseStructure {
     const guild = this.guild;
     content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_ROLE], (match, id) => {
       if (guild && guild.roles.has(id)) {
-        const role = guild.roles.get(id) as Role;
+        const role = guild.roles.get(id)!;
         return `@${role}`;
       }
       return '@deleted-role';
@@ -377,7 +397,7 @@ export class Message extends BaseStructure {
 
     content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_USER], (match, mentionType, id) => {
       if (this.mentions.has(id)) {
-        const memberOrUser = this.mentions.get(id) as Member | User;
+        const memberOrUser = this.mentions.get(id)!;
         if (nick) {
           return `@${memberOrUser.name}`;
         }
@@ -385,7 +405,7 @@ export class Message extends BaseStructure {
       } else {
         if (guildSpecific && this.guildId) {
           if (this.client.members.has(this.guildId, id)) {
-            const member = this.client.members.get(this.guildId, id) as Member;
+            const member = this.client.members.get(this.guildId, id)!;
             if (nick) {
               return `@${member.name}`;
             }
@@ -393,7 +413,7 @@ export class Message extends BaseStructure {
           }
         } else {
           if (this.client.users.has(id)) {
-            const user = this.client.users.get(id) as User;
+            const user = this.client.users.get(id)!;
             return `@${user}`;
           }
         }
@@ -413,6 +433,10 @@ export class Message extends BaseStructure {
 
   async ack(token: string) {
     return this.client.rest.ackChannelMessage(this.channelId, this.id, token);
+  }
+
+  async createThread(options: RequestTypes.CreateChannelMessageThread) {
+    return this.client.rest.createChannelMessageThread(this.channelId, this.id, options);
   }
 
   async crosspost() {
@@ -462,10 +486,6 @@ export class Message extends BaseStructure {
 
   async reply(options: RequestTypes.CreateMessage | string = {}) {
     return this.client.rest.createMessage(this.channelId, options);
-  }
-
-  async suppressEmbeds(suppress: boolean = true) {
-    return this.client.rest.messageSuppressEmbeds(this.channelId, this.id, {suppress});
   }
 
   async triggerTyping() {
@@ -533,7 +553,7 @@ export class Message extends BaseStructure {
           } else {
             // highly unlikely we have this in cache, but might as well check
             if (this.client.applications.has(value.id)) {
-              application = this.client.applications.get(value.id) as Application;
+              application = this.client.applications.get(value.id)!;
               application.merge(value);
             } else {
               application = new Application(this.client, value);
@@ -563,7 +583,7 @@ export class Message extends BaseStructure {
             user = new User(this.client, value, this.isClone);
           } else {
             if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id) as User;
+              user = this.client.users.get(value.id)!;
               user.merge(value);
             } else {
               user = new User(this.client, value);
@@ -575,6 +595,22 @@ export class Message extends BaseStructure {
         case DiscordKeys.CALL: {
           value = new MessageCall(this, value);
         }; break;
+        case DiscordKeys.COMPONENTS: {
+          if (value.length) {
+            if (!this._components) {
+              this._components = new BaseCollection<number, MessageComponentActionRow>();
+            }
+            this._components.clear();
+            for (let i = 0; i < value.length; i++) {
+              this._components.set(i, new MessageComponentActionRow(this, value[i]));
+            }
+          } else {
+            if (this._components) {
+              this._components.clear();
+              this._components = undefined;
+            }
+          }
+        }; return;
         case DiscordKeys.CONTENT: {
           if (this._content) {
             Object.defineProperty(this, '_content', {
@@ -601,8 +637,15 @@ export class Message extends BaseStructure {
             }
           }
         }; return;
+        case DiscordKeys.INTERACTION: {
+          if (this.interaction) {
+            this.interaction.merge(value);
+          } else {
+            this.interaction = new MessageInteraction(this, value);
+          }
+        }; return;
         case DiscordKeys.MEMBER: {
-          const guildId = this.guildId as string;
+          const guildId = this.guildId!;
           value.guild_id = guildId;
 
           let member: Member;
@@ -611,7 +654,7 @@ export class Message extends BaseStructure {
             member.user = this.author.clone();
           } else {
             if (this.client.members.has(guildId, this.author.id)) {
-              member = this.client.members.get(guildId, this.author.id) as Member;
+              member = this.client.members.get(guildId, this.author.id)!;
               // should we merge? this event is so common so we'll be wasting resources..
             } else {
               member = new Member(this.client, value);
@@ -628,7 +671,7 @@ export class Message extends BaseStructure {
             }
             this._mentions.clear();
 
-            const guildId = this.guildId as string;
+            const guildId = this.guildId!;
             for (let raw of value) {
               if (raw.user) {
                 // we just cloned the message object so we got the full member object
@@ -646,7 +689,7 @@ export class Message extends BaseStructure {
                   member.merge({user: raw});
                 } else {
                   if (this.client.members.has(guildId, raw.id)) {
-                    member = this.client.members.get(guildId, raw.id) as Member;
+                    member = this.client.members.get(guildId, raw.id)!;
                     // should we merge?
                   } else {
                     member = new Member(this.client, raw.member);
@@ -660,7 +703,7 @@ export class Message extends BaseStructure {
                 // check our member cache and try to fill the member object (could've gotten the message object from rest)
                 if (this.isClone) {
                   if (guildId && this.client.members.has(guildId, raw.id)) {
-                    const member = (this.client.members.get(guildId, raw.id) as Member).clone();
+                    const member = this.client.members.get(guildId, raw.id)!.clone();
                     member.merge({user: raw});
                     this._mentions.set(member.id, member);
                   } else {
@@ -670,13 +713,13 @@ export class Message extends BaseStructure {
                 } else {
                   // try and get object from cache and update it
                   if (guildId && this.client.members.has(guildId, raw.id)) {
-                    const member = this.client.members.get(guildId, raw.id) as Member;
+                    const member = this.client.members.get(guildId, raw.id)!;
                     member.merge({user: raw});
                     this._mentions.set(member.id, member);
                   } else {
                     let user: User;
                     if (this.client.users.has(raw.id)) {
-                      user = this.client.users.get(raw.id) as User;
+                      user = this.client.users.get(raw.id)!;
                       user.merge(raw);
                     } else {
                       user = new User(this.client, raw);
@@ -706,7 +749,7 @@ export class Message extends BaseStructure {
                 channel = createChannelFromData(this.client, raw, this.isClone);
               } else {
                 if (this.client.channels.has(raw.id)) {
-                  channel = this.client.channels.get(raw.id) as Channel;
+                  channel = this.client.channels.get(raw.id)!;
                   channel.merge(raw);
                 } else {
                   raw.is_partial = true;
@@ -771,7 +814,7 @@ export class Message extends BaseStructure {
               message = new Message(this.client, value, this.isClone);
             } else {
               if (this.client.messages.has(value.id)) {
-                message = this.client.messages.get(value.id) as Message;
+                message = this.client.messages.get(value.id)!;
                 message.merge(value);
               } else {
                 message = new Message(this.client, value);
@@ -800,6 +843,9 @@ export class Message extends BaseStructure {
         case DiscordKeys.TIMESTAMP: {
           this.timestampUnix = (new Date(value)).getTime();
         }; return;
+        case DiscordKeys.THREAD: {
+          value = createChannelFromData(this.client, value);
+        }; break;
       }
       return super.mergeValue(key, value);
     }
@@ -919,6 +965,259 @@ export class MessageCall extends BaseStructure {
 }
 
 
+const keysMessageComponentActionRow = new BaseSet<string>([
+  DiscordKeys.COMPONENTS,
+  DiscordKeys.TYPE,
+]);
+
+/**
+ * Channel Message Component Action Row Structure
+ * @category Structure
+ */
+export class MessageComponentActionRow extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentActionRow;
+  readonly message: Message;
+
+  components = new BaseCollection<string, MessageComponent | MessageComponentSelectMenu>();
+  type: MessageComponentTypes = MessageComponentTypes.ACTION_ROW;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.COMPONENTS: {
+          this.components.clear();
+          for (let raw of value) {
+            let component: MessageComponent | MessageComponentSelectMenu;
+            switch (raw.type) {
+              case MessageComponentTypes.SELECT_MENU: {
+                component = new MessageComponentSelectMenu(this.message, raw);
+              }; break;
+              default: {
+                component = new MessageComponent(this.message, raw);
+              };
+            }
+            this.components.set(component.id, component);
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
+const keysMessageComponent = new BaseSet<string>([
+  DiscordKeys.CUSTOM_ID,
+  DiscordKeys.DISABLED,
+  DiscordKeys.EMOJI,
+  DiscordKeys.LABEL,
+  DiscordKeys.STYLE,
+  DiscordKeys.TYPE,
+  DiscordKeys.URL,
+]);
+
+/**
+ * Channel Message Component Structure
+ * @category Structure
+ */
+export class MessageComponent extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponent;
+  readonly message: Message;
+
+  customId?: string;
+  disabled?: boolean;
+  emoji?: Emoji;
+  label?: string;
+  style?: MessageComponentButtonStyles;
+  type: MessageComponentTypes = MessageComponentTypes.BUTTON;
+  url?: string;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get id(): string {
+    return this.url || this.customId || '';
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.EMOJI: {
+          if (this.emoji) {
+            this.emoji.merge(value);
+          } else {
+            this.emoji = new Emoji(this.client, value);
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
+const keysMessageComponentSelectMenu = new BaseSet<string>([
+  DiscordKeys.CUSTOM_ID,
+  DiscordKeys.MAX_VALUES,
+  DiscordKeys.MIN_VALUES,
+  DiscordKeys.OPTIONS,
+  DiscordKeys.PLACEHOLDER,
+  DiscordKeys.TYPE,
+]);
+
+/**
+ * Channel Message Component Select Menu Structure
+ * @category Structure
+ */
+export class MessageComponentSelectMenu extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentSelectMenu;
+  readonly message: Message;
+
+  customId: string = '';
+  maxValues: number = 1;
+  minValues: number = 1;
+  options = new BaseCollection<string, MessageComponentSelectMenuOption>();
+  placeholder: string = '';
+  type: MessageComponentTypes.SELECT_MENU = MessageComponentTypes.SELECT_MENU;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get id(): string {
+    return this.customId;
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.OPTIONS: {
+          this.options.clear();
+          for (let raw of value) {
+            const option = new MessageComponentSelectMenuOption(this.message, raw);
+            this.options.set(option.value, option);
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
+const keysMessageComponentSelectMenuOption = new BaseSet<string>([
+  DiscordKeys.DEFAULT,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.EMOJI,
+  DiscordKeys.LABEL,
+  DiscordKeys.VALUE,
+]);
+
+/**
+ * Channel Message Component Select Menu Structure
+ * @category Structure
+ */
+export class MessageComponentSelectMenuOption extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentSelectMenuOption;
+  readonly message: Message;
+
+  default: boolean = false;
+  description?: string;
+  emoji?: Emoji;
+  label: string = '';
+  value: string = '';
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.EMOJI: {
+          if (this.emoji) {
+            this.emoji.merge(value);
+          } else {
+            this.emoji = new Emoji(this.client, value);
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
+const keysMessageInteraction = new BaseSet<string>([
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+  DiscordKeys.TYPE,
+  DiscordKeys.USER,
+]);
+
+/**
+ * Channel Message Interaction Structure
+ * @category Structure
+ */
+export class MessageInteraction extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageInteraction;
+  readonly message: Message;
+
+  id: string = '';
+  name: string = '';
+  type: InteractionTypes = InteractionTypes.PING;
+  user!: User;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.USER: {
+          let user: User;
+          if (this.client.users.has(value.id)) {
+            user = this.client.users.get(value.id)!;
+            user.merge(value);
+          } else {
+            user = new User(this.client, value);
+            this.client.users.insert(user);
+          }
+          value = user;
+        }; break;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+}
+
+
 const keysMessageReference = new BaseSet<string>([
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.GUILD_ID,
@@ -943,11 +1242,14 @@ export class MessageReference extends BaseStructure {
     super(message.client, undefined, message._clone);
     this.parent = message;
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
+    Object.defineProperty(this, 'parent', {enumerable: false});
   }
 
-  get channel(): null | Channel {
-    return this.client.channels.get(this.channelId) || null;
+  get channel(): ChannelTextType | null {
+    if (this.client.channels.has(this.channelId)) {
+      return this.client.channels.get(this.channelId) as ChannelTextType;
+    }
+    return null;
   }
 
   get guild(): null | Guild {
