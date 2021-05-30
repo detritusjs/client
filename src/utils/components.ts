@@ -14,15 +14,18 @@ import { Emoji } from '../structures/emoji';
 import { regex as discordRegex } from '../utils';
 
 
+
+export type ComponentEmojiData = {animated?: boolean, id?: null | string, name: string} | string | Emoji;
+
 export interface ComponentData extends Omit<Partial<GatewayRawEvents.RawMessageComponent>, 'emoji'> {
   customId?: string,
-  emoji?: GatewayRawEvents.RawEmojiPartial | string | Emoji,
+  emoji?: ComponentEmojiData,
   maxValues?: number,
   minValues?: number,
 }
 
 export interface ComponentSelectMenuOptionData extends Omit<Partial<GatewayRawEvents.RawMessageComponentSelectMenuOption>, 'emoji'> {
-  emoji?: GatewayRawEvents.RawEmojiPartial | string | Emoji,
+  emoji?: ComponentEmojiData,
 }
 
 
@@ -113,7 +116,7 @@ const keysComponentButton = new BaseSet<string>([
 
   customId?: null | string;
   disabled?: boolean;
-  emoji?: null | RequestTypes.RawEmojiPartial;
+  emoji?: null | ComponentEmojiData;
   label?: null | string;
   style: MessageComponentButtonStyles = MessageComponentButtonStyles.PRIMARY;
   type = MessageComponentTypes.BUTTON;
@@ -138,7 +141,7 @@ const keysComponentButton = new BaseSet<string>([
     return this;
   }
 
-  setEmoji(emoji: null | string | RequestTypes.RawEmojiPartial | Emoji): this {
+  setEmoji(emoji: null | ComponentEmojiData): this {
     this.merge({emoji});
     return this;
   }
@@ -180,7 +183,11 @@ const keysComponentButton = new BaseSet<string>([
   }
 
   toJSON(): RequestTypes.CreateChannelMessageComponent {
-    return super.toJSON() as RequestTypes.CreateChannelMessageComponent;
+    const data = super.toJSON() as any;
+    if (data.emoji instanceof Emoji) {
+      data.emoji = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};
+    }
+    return data;
   }
 }
 
@@ -286,7 +293,7 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
 
   default?: boolean;
   description?: null | string;
-  emoji?: null | RequestTypes.RawEmojiPartial;
+  emoji?: null | ComponentEmojiData;
   label: string = '';
   value: string = '';
 
@@ -305,7 +312,7 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
     return this;
   }
 
-  setEmoji(emoji: null | string | RequestTypes.RawEmojiPartial | Emoji): this {
+  setEmoji(emoji: null | ComponentEmojiData): this {
     this.merge({emoji});
     return this;
   }
@@ -339,6 +346,10 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
   }
 
   toJSON(): RequestTypes.CreateChannelMessageComponent {
-    return super.toJSON() as RequestTypes.CreateChannelMessageComponent;
+    const data = super.toJSON() as any;
+    if (data.emoji instanceof Emoji) {
+      data.emoji = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};
+    }
+    return data;
   }
 }
