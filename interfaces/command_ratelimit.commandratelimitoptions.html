@@ -91,6 +91,7 @@
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="command_ratelimit.commandratelimitoptions.html#duration" class="tsd-kind-icon">duration</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="command_ratelimit.commandratelimitoptions.html#key" class="tsd-kind-icon">key</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="command_ratelimit.commandratelimitoptions.html#limit" class="tsd-kind-icon">limit</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="command_ratelimit.commandratelimitoptions.html#type" class="tsd-kind-icon">type</a></li>
 							</ul>
@@ -106,7 +107,17 @@
 					<div class="tsd-signature tsd-kind-icon">duration<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/4e100e9/src/command/ratelimit.ts#L15">src/command/ratelimit.ts:15</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/ratelimit.ts#L22">src/command/ratelimit.ts:22</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="key" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> key</h3>
+					<div class="tsd-signature tsd-kind-icon">key<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/ratelimit.ts#L23">src/command/ratelimit.ts:23</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -116,17 +127,17 @@
 					<div class="tsd-signature tsd-kind-icon">limit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/4e100e9/src/command/ratelimit.ts#L16">src/command/ratelimit.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/ratelimit.ts#L24">src/command/ratelimit.ts:24</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="type" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> type</h3>
-					<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="../modules/command_ratelimit.html#commandratelimitcustomtype" class="tsd-signature-type" data-tsd-kind="Type alias">CommandRatelimitCustomType</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/4e100e9/src/command/ratelimit.ts#L17">src/command/ratelimit.ts:17</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/ratelimit.ts#L25">src/command/ratelimit.ts:25</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -148,6 +159,9 @@
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="../classes/command_ratelimit.commandratelimit.html" class="tsd-kind-icon">Command<wbr>Ratelimit</a>
 					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="../classes/command_ratelimit.commandratelimiter.html" class="tsd-kind-icon">Command<wbr>Ratelimiter</a>
+					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="command_ratelimit.commandratelimititem.html" class="tsd-kind-icon">Command<wbr>Ratelimit<wbr>Item</a>
 					</li>
@@ -160,6 +174,9 @@
 								<a href="command_ratelimit.commandratelimitoptions.html#duration" class="tsd-kind-icon">duration</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="command_ratelimit.commandratelimitoptions.html#key" class="tsd-kind-icon">key</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
 								<a href="command_ratelimit.commandratelimitoptions.html#limit" class="tsd-kind-icon">limit</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
@@ -169,6 +186,12 @@
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_ratelimit.html#commandratelimitcustomtype" class="tsd-kind-icon">Command<wbr>Ratelimit<wbr>Custom<wbr>Type</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="../modules/command_ratelimit.html#key_splitter" class="tsd-kind-icon">KEY_<wbr>SPLITTER</a>
+					</li>
 				</ul>
 			</nav>
 		</div>
@@ -183,6 +206,7 @@
 				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
 				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
 				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+				<li class="tsd-kind-type-alias tsd-has-type-parameter"><span class="tsd-kind-icon">Type alias with type parameter</span></li>
 			</ul>
 			<ul class="tsd-legend">
 				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
