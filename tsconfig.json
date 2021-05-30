@@ -10,8 +10,10 @@
   "include": ["src"],
   "exclude": ["node_modules"],
   "typedocOptions": {
-    "mode": "file",
     "name": "Detritus Client",
-    "out": "./docs"
+    "out": "./docs",
+    "entryPoints": [
+      "./src"
+    ]
   }
 }
