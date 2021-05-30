@@ -1,0 +1,1492 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Command | Detritus Client</title>
+	<meta name="description" content="Documentation for Detritus Client">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">Detritus Client</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html">Detritus Client</a>
+				</li>
+				<li>
+					<a href="../modules/command_command.html">command/command</a>
+				</li>
+				<li>
+					<a href="command_command.command.html">Command</a>
+				</li>
+			</ul>
+			<h1>Class Command&lt;ParsedArgsFinished&gt;</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Command itself
+						Command flow is ratelimit check -&gt; permission check -&gt; <code>onBefore</code> -&gt; arg parse -&gt; <code>onBeforeRun</code> -&gt; <code>run</code> -&gt; <code>onSuccess | onRunError</code></p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-type-parameters">
+				<h3>Type parameters</h3>
+				<ul class="tsd-type-parameters">
+					<li>
+						<h4>ParsedArgsFinished = <a href="../modules/command_argumentparser.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">Command</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Constructors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-has-type-parameter"><a href="command_command.command.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#_file" class="tsd-kind-icon">_file</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#arg" class="tsd-kind-icon">arg</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#argparser" class="tsd-kind-icon">arg<wbr>Parser</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#commandclient" class="tsd-kind-icon">command<wbr>Client</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#disabledm" class="tsd-kind-icon">disable<wbr>Dm</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#disabledmreply" class="tsd-kind-icon">disable<wbr>DmReply</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#metadata" class="tsd-kind-icon">metadata</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#permissions" class="tsd-kind-icon">permissions</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#permissionsclient" class="tsd-kind-icon">permissions<wbr>Client</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#permissionsignoreclientowner" class="tsd-kind-icon">permissions<wbr>Ignore<wbr>Client<wbr>Owner</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#priority" class="tsd-kind-icon">priority</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#ratelimits" class="tsd-kind-icon">ratelimits</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#responseoptional" class="tsd-kind-icon">response<wbr>Optional</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="command_command.command.html#triggertypingafter" class="tsd-kind-icon">trigger<wbr>Typing<wbr>After</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Accessors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="command_command.command.html#aliases" class="tsd-kind-icon">aliases</a></li>
+								<li class="tsd-kind-set-signature tsd-parent-kind-class"><a href="command_command.command.html#args" class="tsd-kind-icon">args</a></li>
+								<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="command_command.command.html#choices" class="tsd-kind-icon">choices</a></li>
+								<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="command_command.command.html#default" class="tsd-kind-icon">default</a></li>
+								<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="command_command.command.html#help" class="tsd-kind-icon">help</a></li>
+								<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="command_command.command.html#label" class="tsd-kind-icon">label</a></li>
+								<li class="tsd-kind-accessor tsd-parent-kind-class"><a href="command_command.command.html#name" class="tsd-kind-icon">name</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="command_command.command.html#names" class="tsd-kind-icon">names</a></li>
+								<li class="tsd-kind-set-signature tsd-parent-kind-class"><a href="command_command.command.html#prefixes" class="tsd-kind-icon">prefixes</a></li>
+								<li class="tsd-kind-set-signature tsd-parent-kind-class"><a href="command_command.command.html#type" class="tsd-kind-icon">type</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#check" class="tsd-kind-icon">check</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#getargs" class="tsd-kind-icon">get<wbr>Args</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#getname" class="tsd-kind-icon">get<wbr>Name</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onbefore" class="tsd-kind-icon">on<wbr>Before</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onbeforerun" class="tsd-kind-icon">on<wbr>Before<wbr>Run</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#oncancel" class="tsd-kind-icon">on<wbr>Cancel</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#oncancelrun" class="tsd-kind-icon">on<wbr>Cancel<wbr>Run</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onerror" class="tsd-kind-icon">on<wbr>Error</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onpermissionsfail" class="tsd-kind-icon">on<wbr>Permissions<wbr>Fail</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onpermissionsfailclient" class="tsd-kind-icon">on<wbr>Permissions<wbr>Fail<wbr>Client</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onratelimit" class="tsd-kind-icon">on<wbr>Ratelimit</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onrunerror" class="tsd-kind-icon">on<wbr>Run<wbr>Error</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onsuccess" class="tsd-kind-icon">on<wbr>Success</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#ontypeerror" class="tsd-kind-icon">on<wbr>Type<wbr>Error</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#run" class="tsd-kind-icon">run</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#setaliases" class="tsd-kind-icon">set<wbr>Aliases</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#setargs" class="tsd-kind-icon">set<wbr>Args</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#setchoices" class="tsd-kind-icon">set<wbr>Choices</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#setdefault" class="tsd-kind-icon">set<wbr>Default</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#sethelp" class="tsd-kind-icon">set<wbr>Help</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#setlabel" class="tsd-kind-icon">set<wbr>Label</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#setname" class="tsd-kind-icon">set<wbr>Name</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#setprefixes" class="tsd-kind-icon">set<wbr>Prefixes</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#settype" class="tsd-kind-icon">set<wbr>Type</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-has-type-parameter">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-has-type-parameter">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Command&lt;ParsedArgsFinished&gt;<span class="tsd-signature-symbol">(</span>commandClient<span class="tsd-signature-symbol">: </span><a href="commandclient.commandclient-1.html" class="tsd-signature-type" data-tsd-kind="Class">CommandClient</a>, options<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_command.commandoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandOptions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L140">src/command/command.ts:140</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>ParsedArgsFinished = <span class="tsd-signature-type">any</span></h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>commandClient: <a href="commandclient.commandclient-1.html" class="tsd-signature-type" data-tsd-kind="Class">CommandClient</a></h5>
+								</li>
+								<li>
+									<h5>options: <a href="../interfaces/command_command.commandoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandOptions</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="_file" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> _file</h3>
+					<div class="tsd-signature tsd-kind-icon">_file<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L113">src/command/command.ts:113</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="arg" class="tsd-anchor"></a>
+					<h3>arg</h3>
+					<div class="tsd-signature tsd-kind-icon">arg<span class="tsd-signature-symbol">:</span> <a href="command_argument.argument.html" class="tsd-signature-type" data-tsd-kind="Class">Argument</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L117">src/command/command.ts:117</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="argparser" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> arg<wbr>Parser</h3>
+					<div class="tsd-signature tsd-kind-icon">arg<wbr>Parser<span class="tsd-signature-symbol">:</span> <a href="command_argumentparser.argumentparser.html" class="tsd-signature-type" data-tsd-kind="Class">ArgumentParser</a><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L114">src/command/command.ts:114</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="commandclient" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> command<wbr>Client</h3>
+					<div class="tsd-signature tsd-kind-icon">command<wbr>Client<span class="tsd-signature-symbol">:</span> <a href="commandclient.commandclient-1.html" class="tsd-signature-type" data-tsd-kind="Class">CommandClient</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L115">src/command/command.ts:115</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="disabledm" class="tsd-anchor"></a>
+					<h3>disable<wbr>Dm</h3>
+					<div class="tsd-signature tsd-kind-icon">disable<wbr>Dm<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L118">src/command/command.ts:118</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="disabledmreply" class="tsd-anchor"></a>
+					<h3>disable<wbr>DmReply</h3>
+					<div class="tsd-signature tsd-kind-icon">disable<wbr>DmReply<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L119">src/command/command.ts:119</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="metadata" class="tsd-anchor"></a>
+					<h3>metadata</h3>
+					<div class="tsd-signature tsd-kind-icon">metadata<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol"> = {}</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L120">src/command/command.ts:120</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-index-signature">
+								<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="permissions" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> permissions</h3>
+					<div class="tsd-signature tsd-kind-icon">permissions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L121">src/command/command.ts:121</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="permissionsclient" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> permissions<wbr>Client</h3>
+					<div class="tsd-signature tsd-kind-icon">permissions<wbr>Client<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L122">src/command/command.ts:122</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="permissionsignoreclientowner" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> permissions<wbr>Ignore<wbr>Client<wbr>Owner</h3>
+					<div class="tsd-signature tsd-kind-icon">permissions<wbr>Ignore<wbr>Client<wbr>Owner<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L123">src/command/command.ts:123</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="priority" class="tsd-anchor"></a>
+					<h3>priority</h3>
+					<div class="tsd-signature tsd-kind-icon">priority<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L124">src/command/command.ts:124</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="ratelimits" class="tsd-anchor"></a>
+					<h3>ratelimits</h3>
+					<div class="tsd-signature tsd-kind-icon">ratelimits<span class="tsd-signature-symbol">:</span> <a href="command_ratelimit.commandratelimit.html" class="tsd-signature-type" data-tsd-kind="Class">CommandRatelimit</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L125">src/command/command.ts:125</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="responseoptional" class="tsd-anchor"></a>
+					<h3>response<wbr>Optional</h3>
+					<div class="tsd-signature tsd-kind-icon">response<wbr>Optional<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L126">src/command/command.ts:126</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="triggertypingafter" class="tsd-anchor"></a>
+					<h3>trigger<wbr>Typing<wbr>After</h3>
+					<div class="tsd-signature tsd-kind-icon">trigger<wbr>Typing<wbr>After<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -1</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L127">src/command/command.ts:127</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class">
+					<a name="aliases" class="tsd-anchor"></a>
+					<h3>aliases</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> aliases<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> aliases<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L204">src/command/command.ts:204</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L208">src/command/command.ts:208</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-set-signature tsd-parent-kind-class">
+					<a name="args" class="tsd-anchor"></a>
+					<h3>args</h3>
+					<ul class="tsd-signatures tsd-kind-set-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> args<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_argument.argumentoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ArgumentOptions</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L212">src/command/command.ts:212</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <a href="../interfaces/command_argument.argumentoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ArgumentOptions</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class">
+					<a name="choices" class="tsd-anchor"></a>
+					<h3>choices</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> choices<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> choices<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L216">src/command/command.ts:216</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L220">src/command/command.ts:220</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class">
+					<a name="default" class="tsd-anchor"></a>
+					<h3>default</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> default<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> default<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L224">src/command/command.ts:224</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L228">src/command/command.ts:228</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class">
+					<a name="help" class="tsd-anchor"></a>
+					<h3>help</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> help<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> help<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L232">src/command/command.ts:232</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L236">src/command/command.ts:236</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class">
+					<a name="label" class="tsd-anchor"></a>
+					<h3>label</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> label<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> label<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L240">src/command/command.ts:240</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L244">src/command/command.ts:244</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-accessor tsd-parent-kind-class">
+					<a name="name" class="tsd-anchor"></a>
+					<h3>name</h3>
+					<ul class="tsd-signatures tsd-kind-accessor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> name<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> name<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L248">src/command/command.ts:248</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L252">src/command/command.ts:252</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+					<a name="names" class="tsd-anchor"></a>
+					<h3>names</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> names<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L256">src/command/command.ts:256</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-set-signature tsd-parent-kind-class">
+					<a name="prefixes" class="tsd-anchor"></a>
+					<h3>prefixes</h3>
+					<ul class="tsd-signatures tsd-kind-set-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> prefixes<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L260">src/command/command.ts:260</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-set-signature tsd-parent-kind-class">
+					<a name="type" class="tsd-anchor"></a>
+					<h3>type</h3>
+					<ul class="tsd-signatures tsd-kind-set-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">set</span> type<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><a href="../modules/command_argument.html#argumenttype" class="tsd-signature-type" data-tsd-kind="Type alias">ArgumentType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L264">src/command/command.ts:264</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <a href="../modules/command_argument.html#argumenttype" class="tsd-signature-type" data-tsd-kind="Type alias">ArgumentType</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="check" class="tsd-anchor"></a>
+					<h3>check</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">check<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L313">src/command/command.ts:313</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="getargs" class="tsd-anchor"></a>
+					<h3>get<wbr>Args</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Args<span class="tsd-signature-symbol">(</span>attributes<span class="tsd-signature-symbol">: </span><a href="../interfaces/commandclient.commandattributes.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandAttributes</a>, context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>errors<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">; </span>parsed<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L317">src/command/command.ts:317</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>attributes: <a href="../interfaces/commandclient.commandattributes.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandAttributes</a></h5>
+								</li>
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>errors<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">; </span>parsed<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="getname" class="tsd-anchor"></a>
+					<h3>get<wbr>Name</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Name<span class="tsd-signature-symbol">(</span>content<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L356">src/command/command.ts:356</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>content: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="onbefore" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Before</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Before<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L129">src/command/command.ts:129</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="onbeforerun" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Before<wbr>Run</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Before<wbr>Run<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L130">src/command/command.ts:130</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>args: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="oncancel" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Cancel</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Cancel<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L131">src/command/command.ts:131</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="oncancelrun" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Cancel<wbr>Run</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Cancel<wbr>Run<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L132">src/command/command.ts:132</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>args: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="onerror" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Error</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Error<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, error<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L133">src/command/command.ts:133</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>args: <span class="tsd-signature-type">any</span></h5>
+								</li>
+								<li>
+									<h5>error: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="onpermissionsfail" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Permissions<wbr>Fail</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Permissions<wbr>Fail<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, permissions<span class="tsd-signature-symbol">: </span><a href="../modules/command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L134">src/command/command.ts:134</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>permissions: <a href="../modules/command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="onpermissionsfailclient" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Permissions<wbr>Fail<wbr>Client</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Permissions<wbr>Fail<wbr>Client<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, permissions<span class="tsd-signature-symbol">: </span><a href="../modules/command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L135">src/command/command.ts:135</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>permissions: <a href="../modules/command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="onratelimit" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Ratelimit</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Ratelimit<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, ratelimits<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>item<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_ratelimit.commandratelimititem.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandRatelimitItem</a><span class="tsd-signature-symbol">; </span>ratelimit<span class="tsd-signature-symbol">: </span><a href="command_ratelimit.commandratelimit.html" class="tsd-signature-type" data-tsd-kind="Class">CommandRatelimit</a><span class="tsd-signature-symbol">; </span>remaining<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span>, metadata<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>global<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>now<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L136">src/command/command.ts:136</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>ratelimits: <span class="tsd-signature-symbol">{ </span>item<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_ratelimit.commandratelimititem.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandRatelimitItem</a><span class="tsd-signature-symbol">; </span>ratelimit<span class="tsd-signature-symbol">: </span><a href="command_ratelimit.commandratelimit.html" class="tsd-signature-type" data-tsd-kind="Class">CommandRatelimit</a><span class="tsd-signature-symbol">; </span>remaining<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+								<li>
+									<h5>metadata: <span class="tsd-signature-symbol">{ </span>global<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>now<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></h5>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter">
+											<h5>global<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></h5>
+										</li>
+										<li class="tsd-parameter">
+											<h5>now<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
+										</li>
+									</ul>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="onrunerror" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Run<wbr>Error</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Run<wbr>Error<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ParsedArgsFinished</span>, error<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L138">src/command/command.ts:138</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>args: <span class="tsd-signature-type">ParsedArgsFinished</span></h5>
+								</li>
+								<li>
+									<h5>error: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="onsuccess" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Success</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Success<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L139">src/command/command.ts:139</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>args: <span class="tsd-signature-type">ParsedArgsFinished</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="ontypeerror" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Type<wbr>Error</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>Type<wbr>Error<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, errors<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L140">src/command/command.ts:140</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>args: <span class="tsd-signature-type">any</span></h5>
+								</li>
+								<li>
+									<h5>errors: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="run" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> run</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">run<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L137">src/command/command.ts:137</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+								<li>
+									<h5>args: <span class="tsd-signature-type">ParsedArgsFinished</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setaliases" class="tsd-anchor"></a>
+					<h3>set<wbr>Aliases</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Aliases<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L268">src/command/command.ts:268</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setargs" class="tsd-anchor"></a>
+					<h3>set<wbr>Args</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Args<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_argument.argumentoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ArgumentOptions</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L273">src/command/command.ts:273</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <a href="../interfaces/command_argument.argumentoptions.html" class="tsd-signature-type" data-tsd-kind="Interface">ArgumentOptions</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setchoices" class="tsd-anchor"></a>
+					<h3>set<wbr>Choices</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Choices<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L278">src/command/command.ts:278</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setdefault" class="tsd-anchor"></a>
+					<h3>set<wbr>Default</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Default<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L283">src/command/command.ts:283</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="sethelp" class="tsd-anchor"></a>
+					<h3>set<wbr>Help</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Help<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L288">src/command/command.ts:288</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setlabel" class="tsd-anchor"></a>
+					<h3>set<wbr>Label</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Label<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L293">src/command/command.ts:293</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setname" class="tsd-anchor"></a>
+					<h3>set<wbr>Name</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Name<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L298">src/command/command.ts:298</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="setprefixes" class="tsd-anchor"></a>
+					<h3>set<wbr>Prefixes</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Prefixes<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L303">src/command/command.ts:303</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="settype" class="tsd-anchor"></a>
+					<h3>set<wbr>Type</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Type<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><a href="../modules/command_argument.html#argumenttype" class="tsd-signature-type" data-tsd-kind="Type alias">ArgumentType</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/command/command.ts#L308">src/command/command.ts:308</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>value: <a href="../modules/command_argument.html#argumenttype" class="tsd-signature-type" data-tsd-kind="Type alias">ArgumentType</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="command_command.command.html" class="tsd-signature-type" data-tsd-kind="Class">Command</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">ParsedArgsFinished</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+					<li class="current tsd-kind-module">
+						<a href="../modules/command_command.html">command/command</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="command_command.command.html" class="tsd-kind-icon">Command</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-has-type-parameter">
+								<a href="command_command.command.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#_file" class="tsd-kind-icon">_file</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#arg" class="tsd-kind-icon">arg</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#argparser" class="tsd-kind-icon">arg<wbr>Parser</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#commandclient" class="tsd-kind-icon">command<wbr>Client</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#disabledm" class="tsd-kind-icon">disable<wbr>Dm</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#disabledmreply" class="tsd-kind-icon">disable<wbr>DmReply</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#metadata" class="tsd-kind-icon">metadata</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#permissions" class="tsd-kind-icon">permissions</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#permissionsclient" class="tsd-kind-icon">permissions<wbr>Client</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#permissionsignoreclientowner" class="tsd-kind-icon">permissions<wbr>Ignore<wbr>Client<wbr>Owner</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#priority" class="tsd-kind-icon">priority</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#ratelimits" class="tsd-kind-icon">ratelimits</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#responseoptional" class="tsd-kind-icon">response<wbr>Optional</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="command_command.command.html#triggertypingafter" class="tsd-kind-icon">trigger<wbr>Typing<wbr>After</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class">
+								<a href="command_command.command.html#aliases" class="tsd-kind-icon">aliases</a>
+							</li>
+							<li class=" tsd-kind-set-signature tsd-parent-kind-class">
+								<a href="command_command.command.html#args" class="tsd-kind-icon">args</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class">
+								<a href="command_command.command.html#choices" class="tsd-kind-icon">choices</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class">
+								<a href="command_command.command.html#default" class="tsd-kind-icon">default</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class">
+								<a href="command_command.command.html#help" class="tsd-kind-icon">help</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class">
+								<a href="command_command.command.html#label" class="tsd-kind-icon">label</a>
+							</li>
+							<li class=" tsd-kind-accessor tsd-parent-kind-class">
+								<a href="command_command.command.html#name" class="tsd-kind-icon">name</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="command_command.command.html#names" class="tsd-kind-icon">names</a>
+							</li>
+							<li class=" tsd-kind-set-signature tsd-parent-kind-class">
+								<a href="command_command.command.html#prefixes" class="tsd-kind-icon">prefixes</a>
+							</li>
+							<li class=" tsd-kind-set-signature tsd-parent-kind-class">
+								<a href="command_command.command.html#type" class="tsd-kind-icon">type</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#check" class="tsd-kind-icon">check</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#getargs" class="tsd-kind-icon">get<wbr>Args</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#getname" class="tsd-kind-icon">get<wbr>Name</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#onbefore" class="tsd-kind-icon">on<wbr>Before</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#onbeforerun" class="tsd-kind-icon">on<wbr>Before<wbr>Run</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#oncancel" class="tsd-kind-icon">on<wbr>Cancel</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#oncancelrun" class="tsd-kind-icon">on<wbr>Cancel<wbr>Run</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#onerror" class="tsd-kind-icon">on<wbr>Error</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#onpermissionsfail" class="tsd-kind-icon">on<wbr>Permissions<wbr>Fail</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#onpermissionsfailclient" class="tsd-kind-icon">on<wbr>Permissions<wbr>Fail<wbr>Client</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#onratelimit" class="tsd-kind-icon">on<wbr>Ratelimit</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#onrunerror" class="tsd-kind-icon">on<wbr>Run<wbr>Error</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#onsuccess" class="tsd-kind-icon">on<wbr>Success</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#ontypeerror" class="tsd-kind-icon">on<wbr>Type<wbr>Error</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#run" class="tsd-kind-icon">run</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#setaliases" class="tsd-kind-icon">set<wbr>Aliases</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#setargs" class="tsd-kind-icon">set<wbr>Args</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#setchoices" class="tsd-kind-icon">set<wbr>Choices</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#setdefault" class="tsd-kind-icon">set<wbr>Default</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#sethelp" class="tsd-kind-icon">set<wbr>Help</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#setlabel" class="tsd-kind-icon">set<wbr>Label</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#setname" class="tsd-kind-icon">set<wbr>Name</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#setprefixes" class="tsd-kind-icon">set<wbr>Prefixes</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#settype" class="tsd-kind-icon">set<wbr>Type</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/command_command.commandoptions.html" class="tsd-kind-icon">Command<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackbefore" class="tsd-kind-icon">Command<wbr>Callback<wbr>Before</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackbeforerun" class="tsd-kind-icon">Command<wbr>Callback<wbr>Before<wbr>Run</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackcancel" class="tsd-kind-icon">Command<wbr>Callback<wbr>Cancel</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackcancelrun" class="tsd-kind-icon">Command<wbr>Callback<wbr>Cancel<wbr>Run</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackerror" class="tsd-kind-icon">Command<wbr>Callback<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackpermissionsfail" class="tsd-kind-icon">Command<wbr>Callback<wbr>Permissions<wbr>Fail</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackratelimit" class="tsd-kind-icon">Command<wbr>Callback<wbr>Ratelimit</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackrun" class="tsd-kind-icon">Command<wbr>Callback<wbr>Run</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackrunerror" class="tsd-kind-icon">Command<wbr>Callback<wbr>Run<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbacksuccess" class="tsd-kind-icon">Command<wbr>Callback<wbr>Success</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbacktypeerror" class="tsd-kind-icon">Command<wbr>Callback<wbr>Type<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#failedpermissions" class="tsd-kind-icon">Failed<wbr>Permissions</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-namespace"><span class="tsd-kind-icon">Namespace</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

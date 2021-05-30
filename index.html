@@ -1,0 +1,571 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Detritus Client</title>
+	<meta name="description" content="Documentation for Detritus Client">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script async src="assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">Detritus Client</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<h1>Detritus Client</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#detritus" id="detritus" style="color: inherit; text-decoration: none;">
+					<h1>Detritus</h1>
+				</a>
+				<p><img src="https://img.shields.io/npm/v/detritus-client?style=flat-square" alt="npm"></p>
+				<p>A wheels-attached, pure-TypeScript library for the Discord API.</p>
+				<ul>
+					<li><a href="https://detritusjs.com">API Documentation</a></li>
+					<li><a href="https://discord.gg/NEq6wws">Discord Help Server</a></li>
+					<li><a href="https://www.npmjs.com/package/detritus-client">npm</a></li>
+				</ul>
+				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+					<h2>Installation</h2>
+				</a>
+				<p>Detritus is distributed via npm. A high-level wrapper over the Discord API is provided
+					in this package, <code>detritus-client</code>. Low-level wrappers over Discord&#39;s REST API and Gateway
+					are provided through <a href="https://github.com/detritusjs/client-rest"><code>detritus-client-rest</code></a> and
+				<a href="https://github.com/detritusjs/client-socket"><code>detritus-client-socket</code></a>.</p>
+				<ul>
+					<li><code>$ npm i detritus-client</code></li>
+					<li><code>$ yarn add detritus-client</code></li>
+				</ul>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage</h2>
+				</a>
+				<p>Detritus is operated through the Clients classes:</p>
+				<ul>
+					<li><code>ShardClient</code> provides a base client for connecting to the Discord API and receiving events.</li>
+					<li><code>ClusterClient</code> provides a client that creates <code>ShardClient</code> classes inside of it for easier sharding</li>
+					<li><code>CommandClient</code> wraps over the <code>ClusterClient</code> or <code>ShardClient</code> to provide support for bot commands.</li>
+					<li><code>ClusterManager</code> provides a manager that&#39;ll spawn in multiple <code>ClusterClient</code> processes for big shardings</li>
+				</ul>
+				<p>More Examples are provided under the <a href="https://github.com/detritusjs/client/tree/master/examples"><code>examples/</code></a>
+				directory.</p>
+				<a href="#command-client-sample" id="command-client-sample" style="color: inherit; text-decoration: none;">
+					<h3>Command Client Sample</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> { </span><span style="color: #0070C1">CommandClient</span><span style="color: #000000"> } = </span><span style="color: #795E26">require</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;detritus-client&#039;</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Note: it is not advised to hard-code your bot token directly into the bot source.</span>
+<span style="color: #008000">//</span>
+<span style="color: #008000">// Tokens should be considered secrets and stored in a configuration file that is not</span>
+<span style="color: #008000">// part of your version control system, or an environment variable.</span>
+<span style="color: #008000">// By default, the CommandClient will use the ClusterClient</span>
+<span style="color: #008000">// The ShardClient/ClusterClient will be under CommandClient.client as soon as you create the object</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">token</span><span style="color: #000000"> = </span><span style="color: #A31515">&#039;&#039;</span><span style="color: #000000">;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">commandClient</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">CommandClient</span><span style="color: #000000">(</span><span style="color: #001080">token</span><span style="color: #000000">, {</span>
+<span style="color: #000000">  </span><span style="color: #008000">// Prefix `..`, if you want multiple prefixes pass in `prefixes: [&#039;..&#039;, &#039;...&#039;]`</span>
+<span style="color: #000000">  </span><span style="color: #001080">prefix:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;..&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Simple ping/pong command</span>
+<span style="color: #001080">commandClient</span><span style="color: #000000">.</span><span style="color: #795E26">add</span><span style="color: #000000">({</span>
+<span style="color: #000000">  </span><span style="color: #008000">// name describes the command trigger; in this case, ..ping</span>
+<span style="color: #000000">  </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;ping&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">  </span><span style="color: #795E26">run</span><span style="color: #001080">:</span><span style="color: #000000"> (</span><span style="color: #001080">context</span><span style="color: #000000">, </span><span style="color: #001080">args</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #008000">// Commands should return a promise to ensure that errors are handled</span>
+<span style="color: #000000">    </span><span style="color: #AF00DB">return</span><span style="color: #000000"> </span><span style="color: #001080">context</span><span style="color: #000000">.</span><span style="color: #795E26">reply</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;pong!&#039;</span><span style="color: #000000">);</span>
+<span style="color: #000000">  },</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Command demonstrating command pipelines</span>
+<span style="color: #001080">commandClient</span><span style="color: #000000">.</span><span style="color: #795E26">add</span><span style="color: #000000">({</span>
+<span style="color: #000000">  </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;owner&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">  </span><span style="color: #008000">// onBefore should return a boolean to indicate whether or not the command should proceed</span>
+<span style="color: #000000">  </span><span style="color: #795E26">onBefore</span><span style="color: #001080">:</span><span style="color: #000000"> (</span><span style="color: #001080">context</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">context</span><span style="color: #000000">.</span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">isOwner</span><span style="color: #000000">(</span><span style="color: #001080">context</span><span style="color: #000000">.</span><span style="color: #001080">userId</span><span style="color: #000000">),</span>
+<span style="color: #000000">  </span><span style="color: #795E26">onCancel</span><span style="color: #001080">:</span><span style="color: #000000"> (</span><span style="color: #001080">context</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> </span><span style="color: #001080">context</span><span style="color: #000000">.</span><span style="color: #795E26">reply</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;This command is only available to the bot owner.&#039;</span><span style="color: #000000">),</span>
+<span style="color: #000000">  </span><span style="color: #795E26">run</span><span style="color: #001080">:</span><span style="color: #000000"> </span><span style="color: #0000FF">async</span><span style="color: #000000"> (</span><span style="color: #001080">context</span><span style="color: #000000">) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #008000">// Commands may also run asynchronously.</span>
+<span style="color: #000000">    </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">context</span><span style="color: #000000">.</span><span style="color: #795E26">reply</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;You are the owner of the bot!&#039;</span><span style="color: #000000">);</span>
+<span style="color: #000000">  },</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// Spawn the client in an async context</span>
+<span style="color: #008000">//</span>
+<span style="color: #008000">// Note: Due to how Node handles tasks, the script will block until the Detritus client</span>
+<span style="color: #008000">// is killed.</span>
+<span style="color: #000000">(</span><span style="color: #0000FF">async</span><span style="color: #000000"> () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">commandClient</span><span style="color: #000000">.</span><span style="color: #795E26">run</span><span style="color: #000000">();</span>
+<span style="color: #000000">  </span><span style="color: #008000">// client has received the READY payload, do stuff now</span>
+<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">`Client has loaded with a shard count of </span><span style="color: #0000FF">${</span><span style="color: #001080">client</span><span style="color: #000000FF">.</span><span style="color: #001080">shardCount</span><span style="color: #0000FF">}</span><span style="color: #A31515">`</span><span style="color: #000000">);</span>
+<span style="color: #000000">})();</span>
+</code></pre>
+				<a href="#shard-client-sample" id="shard-client-sample" style="color: inherit; text-decoration: none;">
+					<h3>Shard Client Sample</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> { </span><span style="color: #0070C1">ShardClient</span><span style="color: #000000"> } = </span><span style="color: #795E26">require</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;detritus-client&#039;</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Note: it is not advised to hard-code your bot token directly into the bot source.</span>
+<span style="color: #008000">//</span>
+<span style="color: #008000">// Tokens should be considered secrets and stored in a configuration file that is not</span>
+<span style="color: #008000">// part of your version control system, or an environment variable.</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">token</span><span style="color: #000000"> = </span><span style="color: #A31515">&#039;&#039;</span><span style="color: #000000">;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">client</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">ShardClient</span><span style="color: #000000">(</span><span style="color: #001080">token</span><span style="color: #000000">, {</span>
+<span style="color: #000000">  </span><span style="color: #001080">gateway:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #008000">// This will tell our client to fill our Members cache on any of our guilds that are larger than the large threshold you pass in (default 250)</span>
+<span style="color: #000000">    </span><span style="color: #001080">loadAllMembers:</span><span style="color: #000000"> </span><span style="color: #0000FF">true</span><span style="color: #000000">,</span>
+<span style="color: #000000">  },</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// listen to our client&#039;s eventemitter</span>
+<span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">on</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;guildCreate&#039;</span><span style="color: #000000">, </span><span style="color: #0000FF">async</span><span style="color: #000000"> ({</span><span style="color: #001080">fromUnavailable</span><span style="color: #000000">, </span><span style="color: #001080">guild</span><span style="color: #000000">}) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">if</span><span style="color: #000000"> (</span><span style="color: #001080">fromUnavailable</span><span style="color: #000000">) {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">`Guild </span><span style="color: #0000FF">${</span><span style="color: #001080">guild</span><span style="color: #000000FF">.</span><span style="color: #001080">name</span><span style="color: #0000FF">}</span><span style="color: #A31515"> has just came back from being unavailable`</span><span style="color: #000000">);</span>
+<span style="color: #000000">  } </span><span style="color: #AF00DB">else</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">`Joined Guild </span><span style="color: #0000FF">${</span><span style="color: #001080">guild</span><span style="color: #000000FF">.</span><span style="color: #001080">name</span><span style="color: #0000FF">}</span><span style="color: #A31515">, bringing us up to </span><span style="color: #0000FF">${</span><span style="color: #001080">client</span><span style="color: #000000FF">.</span><span style="color: #001080">guilds</span><span style="color: #000000FF">.</span><span style="color: #001080">length</span><span style="color: #0000FF">}</span><span style="color: #A31515"> guilds.`</span><span style="color: #000000">);</span>
+<span style="color: #000000">  }</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// listen to our client&#039;s eventemitter</span>
+<span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">on</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;messageCreate&#039;</span><span style="color: #000000">, </span><span style="color: #0000FF">async</span><span style="color: #000000"> ({</span><span style="color: #001080">message</span><span style="color: #000000">}) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">if</span><span style="color: #000000"> (</span><span style="color: #001080">message</span><span style="color: #000000">.</span><span style="color: #001080">content</span><span style="color: #000000"> === </span><span style="color: #A31515">&#039;!ping&#039;</span><span style="color: #000000">) {</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">reply</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">message</span><span style="color: #000000">.</span><span style="color: #795E26">reply</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;pong!, deleting message in 5 seconds...&#039;</span><span style="color: #000000">);</span>
+<span style="color: #000000">    </span><span style="color: #795E26">setTimeout</span><span style="color: #000000">(</span><span style="color: #0000FF">async</span><span style="color: #000000"> () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">      </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">reply</span><span style="color: #000000">.</span><span style="color: #795E26">delete</span><span style="color: #000000">();</span>
+<span style="color: #000000">    }, </span><span style="color: #098658">5000</span><span style="color: #000000">);</span>
+<span style="color: #000000">  }</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #000000">(</span><span style="color: #0000FF">async</span><span style="color: #000000"> () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #795E26">run</span><span style="color: #000000">();</span>
+<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;Successfully connected to Discord!&#039;</span><span style="color: #000000">);</span>
+<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">`Currently have </span><span style="color: #0000FF">${</span><span style="color: #001080">client</span><span style="color: #000000FF">.</span><span style="color: #001080">guilds</span><span style="color: #000000FF">.</span><span style="color: #001080">length</span><span style="color: #0000FF">}</span><span style="color: #A31515"> guilds in cache.`</span><span style="color: #000000">);</span>
+<span style="color: #000000">  </span><span style="color: #008000">// set our presence, we can pass this into the client&#039;s options too under `gateway.presence`</span>
+<span style="color: #000000">  </span><span style="color: #001080">client</span><span style="color: #000000">.</span><span style="color: #001080">gateway</span><span style="color: #000000">.</span><span style="color: #795E26">setPresence</span><span style="color: #000000">({</span>
+<span style="color: #000000">    </span><span style="color: #001080">activity:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">      </span><span style="color: #008000">// What comes after our activity type, x.</span>
+<span style="color: #000000">      </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;with Detritus&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">      </span><span style="color: #008000">// Type 0 sets our message to `Playing x`</span>
+<span style="color: #000000">      </span><span style="color: #001080">type:</span><span style="color: #000000"> </span><span style="color: #098658">0</span><span style="color: #000000">,</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">    </span><span style="color: #008000">// do-not-disturb us</span>
+<span style="color: #000000">    </span><span style="color: #001080">status:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;dnd&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">  });</span>
+<span style="color: #000000">})();</span>
+</code></pre>
+				<a href="#cluster-client-sample" id="cluster-client-sample" style="color: inherit; text-decoration: none;">
+					<h3>Cluster Client Sample</h3>
+				</a>
+				<pre><code class="language-js"><span style="color: #0000FF">const</span><span style="color: #000000"> { </span><span style="color: #0070C1">ClusterClient</span><span style="color: #000000"> } = </span><span style="color: #795E26">require</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;detritus-client&#039;</span><span style="color: #000000">);</span>
+
+<span style="color: #008000">// Note: it is not advised to hard-code your bot token directly into the bot source.</span>
+<span style="color: #008000">//</span>
+<span style="color: #008000">// Tokens should be considered secrets and stored in a configuration file that is not</span>
+<span style="color: #008000">// part of your version control system, or an environment variable.</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">token</span><span style="color: #000000"> = </span><span style="color: #A31515">&#039;&#039;</span><span style="color: #000000">;</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">cluster</span><span style="color: #000000"> = </span><span style="color: #0000FF">new</span><span style="color: #000000"> </span><span style="color: #795E26">ClusterClient</span><span style="color: #000000">(</span><span style="color: #001080">token</span><span style="color: #000000">, {</span>
+<span style="color: #000000">  </span><span style="color: #001080">gateway:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #008000">// Pass in a presence we will send with the identify payload</span>
+<span style="color: #000000">    </span><span style="color: #001080">presence:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">      </span><span style="color: #001080">activity:</span><span style="color: #000000"> {</span>
+<span style="color: #000000">        </span><span style="color: #008000">// What comes after our activity type, x.</span>
+<span style="color: #000000">        </span><span style="color: #001080">name:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;with Detritus ClusterClient&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">        </span><span style="color: #008000">// Type 0 sets our message to `Playing x`</span>
+<span style="color: #000000">        </span><span style="color: #001080">type:</span><span style="color: #000000"> </span><span style="color: #098658">0</span><span style="color: #000000">,</span>
+<span style="color: #000000">      },</span>
+<span style="color: #000000">      </span><span style="color: #008000">// do-not-disturb us</span>
+<span style="color: #000000">      </span><span style="color: #001080">status:</span><span style="color: #000000"> </span><span style="color: #A31515">&#039;dnd&#039;</span><span style="color: #000000">,</span>
+<span style="color: #000000">    },</span>
+<span style="color: #000000">  },</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// listen to our client&#039;s eventemitter</span>
+<span style="color: #008000">// `shard` (which is the ShardClient the event originated from) is added onto EVERY event that you listen to on the cluster client</span>
+<span style="color: #001080">cluster</span><span style="color: #000000">.</span><span style="color: #795E26">on</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;guildCreate&#039;</span><span style="color: #000000">, </span><span style="color: #0000FF">async</span><span style="color: #000000"> ({</span><span style="color: #001080">fromUnavailable</span><span style="color: #000000">, </span><span style="color: #001080">guild</span><span style="color: #000000">, </span><span style="color: #001080">shard</span><span style="color: #000000">}) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">if</span><span style="color: #000000"> (</span><span style="color: #001080">fromUnavailable</span><span style="color: #000000">) {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">`Shard #</span><span style="color: #0000FF">${</span><span style="color: #001080">shard</span><span style="color: #000000FF">.</span><span style="color: #001080">shardId</span><span style="color: #0000FF">}</span><span style="color: #A31515">:`</span><span style="color: #000000">, </span><span style="color: #A31515">`Guild </span><span style="color: #0000FF">${</span><span style="color: #001080">guild</span><span style="color: #000000FF">.</span><span style="color: #001080">name</span><span style="color: #0000FF">}</span><span style="color: #A31515"> has just came back from being unavailable`</span><span style="color: #000000">);</span>
+<span style="color: #000000">  } </span><span style="color: #AF00DB">else</span><span style="color: #000000"> {</span>
+<span style="color: #000000">    </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">`Shard #</span><span style="color: #0000FF">${</span><span style="color: #001080">shard</span><span style="color: #000000FF">.</span><span style="color: #001080">shardId</span><span style="color: #0000FF">}</span><span style="color: #A31515">:`</span><span style="color: #000000">, </span><span style="color: #A31515">`Joined Guild </span><span style="color: #0000FF">${</span><span style="color: #001080">guild</span><span style="color: #000000FF">.</span><span style="color: #001080">name</span><span style="color: #0000FF">}</span><span style="color: #A31515">, bringing us up to </span><span style="color: #0000FF">${</span><span style="color: #001080">client</span><span style="color: #000000FF">.</span><span style="color: #001080">guilds</span><span style="color: #000000FF">.</span><span style="color: #001080">length</span><span style="color: #0000FF">}</span><span style="color: #A31515"> guilds.`</span><span style="color: #000000">);</span>
+<span style="color: #000000">  }</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #008000">// listen to our client&#039;s eventemitter</span>
+<span style="color: #008000">// `shard` (which is the ShardClient the event originated from) is added onto EVERY event that you listen to on the cluster client</span>
+<span style="color: #001080">cluster</span><span style="color: #000000">.</span><span style="color: #795E26">on</span><span style="color: #000000">(</span><span style="color: #A31515">&#039;messageCreate&#039;</span><span style="color: #000000">, </span><span style="color: #0000FF">async</span><span style="color: #000000"> ({</span><span style="color: #001080">message</span><span style="color: #000000">, </span><span style="color: #001080">shard</span><span style="color: #000000">}) </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">if</span><span style="color: #000000"> (</span><span style="color: #001080">message</span><span style="color: #000000">.</span><span style="color: #001080">content</span><span style="color: #000000"> === </span><span style="color: #A31515">&#039;!ping&#039;</span><span style="color: #000000">) {</span>
+<span style="color: #000000">    </span><span style="color: #0000FF">const</span><span style="color: #000000"> </span><span style="color: #0070C1">reply</span><span style="color: #000000"> = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">message</span><span style="color: #000000">.</span><span style="color: #795E26">reply</span><span style="color: #000000">(</span><span style="color: #A31515">`pong on shard #</span><span style="color: #0000FF">${</span><span style="color: #001080">shard</span><span style="color: #000000FF">.</span><span style="color: #001080">shardId</span><span style="color: #0000FF">}</span><span style="color: #A31515">!, deleting message in 5 seconds...`</span><span style="color: #000000">);</span>
+<span style="color: #000000">    </span><span style="color: #795E26">setTimeout</span><span style="color: #000000">(</span><span style="color: #0000FF">async</span><span style="color: #000000"> () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">      </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">reply</span><span style="color: #000000">.</span><span style="color: #795E26">delete</span><span style="color: #000000">();</span>
+<span style="color: #000000">    }, </span><span style="color: #098658">5000</span><span style="color: #000000">);</span>
+<span style="color: #000000">  }</span>
+<span style="color: #000000">});</span>
+
+<span style="color: #000000">(</span><span style="color: #0000FF">async</span><span style="color: #000000"> () </span><span style="color: #0000FF">=&gt;</span><span style="color: #000000"> {</span>
+<span style="color: #000000">  </span><span style="color: #008000">// shards are made after the cluster is ran, found in `ClusterClient.shards`.</span>
+<span style="color: #000000">  </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">cluster</span><span style="color: #000000">.</span><span style="color: #795E26">run</span><span style="color: #000000">();</span>
+<span style="color: #000000">  </span><span style="color: #001080">console</span><span style="color: #000000">.</span><span style="color: #795E26">log</span><span style="color: #000000">(</span><span style="color: #A31515">`Successfully launched shards </span><span style="color: #0000FF">${</span><span style="color: #001080">cluster</span><span style="color: #000000FF">.</span><span style="color: #001080">shardStart</span><span style="color: #0000FF">}</span><span style="color: #A31515"> to </span><span style="color: #0000FF">${</span><span style="color: #001080">cluster</span><span style="color: #000000FF">.</span><span style="color: #001080">shardEnd</span><span style="color: #0000FF">}</span><span style="color: #A31515"> with a shardCount of </span><span style="color: #0000FF">${</span><span style="color: #001080">cluster</span><span style="color: #000000FF">.</span><span style="color: #001080">shardCount</span><span style="color: #0000FF">}</span><span style="color: #A31515">`</span><span style="color: #000000">);</span>
+<span style="color: #000000">})();</span>
+</code></pre>
+				<a href="#contributing" id="contributing" style="color: inherit; text-decoration: none;">
+					<h2>Contributing</h2>
+				</a>
+				<p>Detritus is licensed under the BSD-2 license; see the <a href="LICENSE">LICENSE</a>.</p>
+				<p>To contribute, please first open an issue describing your requested changes,
+				and then open a pull request.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="modules.html">Exports</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/bucket.html">bucket</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/client.html">client</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/cluster_ipctypes.html">cluster/ipctypes</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/cluster_process.html">cluster/process</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/cluster_processchild.html">cluster/processchild</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/clusterclient.html">clusterclient</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/clustermanager.html">clustermanager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections.html">collections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_applications.html">collections/applications</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_basecollection.html">collections/basecollection</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_baseset.html">collections/baseset</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_channels.html">collections/channels</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_connectedaccounts.html">collections/connectedaccounts</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_emojis.html">collections/emojis</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_guilds.html">collections/guilds</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_members.html">collections/members</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_messages.html">collections/messages</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_notes.html">collections/notes</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_presences.html">collections/presences</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_relationships.html">collections/relationships</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_roles.html">collections/roles</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_sessions.html">collections/sessions</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_typing.html">collections/typing</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_users.html">collections/users</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_voicecalls.html">collections/voicecalls</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_voiceconnections.html">collections/voiceconnections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/collections_voicestates.html">collections/voicestates</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/command.html">command</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/command_argument.html">command/argument</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/command_argumentparser.html">command/argumentparser</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/command_command.html">command/command</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/command_context.html">command/context</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/command_events.html">command/events</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/command_ratelimit.html">command/ratelimit</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/commandclient.html">commandclient</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/constants.html">constants</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/errors.html">errors</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/gateway_clientevents.html">gateway/clientevents</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/gateway_handler.html">gateway/handler</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/gateway_rawevents.html">gateway/rawevents</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/index.html">index</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/media_encoders.html">media/encoders</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/media_encoders_opus.html">media/encoders/opus</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/media_handler.html">media/handler</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/media_mediaevents.html">media/mediaevents</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/media_rawevents.html">media/rawevents</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/media_voiceconnection.html">media/voiceconnection</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/rest.html">rest</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/rest_client.html">rest/client</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/rest_types.html">rest/types</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures.html">structures</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_application.html">structures/application</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_applicationnews.html">structures/applicationnews</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_attachment.html">structures/attachment</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_auditlog.html">structures/auditlog</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_basestructure.html">structures/basestructure</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_channel.html">structures/channel</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_connectedaccount.html">structures/connectedaccount</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_emoji.html">structures/emoji</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_gift.html">structures/gift</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_guild.html">structures/guild</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_integration.html">structures/integration</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_invite.html">structures/invite</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_member.html">structures/member</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_message.html">structures/message</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_messageembed.html">structures/messageembed</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_oauth2application.html">structures/oauth2application</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_overwrite.html">structures/overwrite</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_premiumsubscription.html">structures/premiumsubscription</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_presence.html">structures/presence</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_profile.html">structures/profile</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_reaction.html">structures/reaction</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_relationship.html">structures/relationship</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_role.html">structures/role</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_session.html">structures/session</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_sticker.html">structures/sticker</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_store.html">structures/store</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_team.html">structures/team</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_template.html">structures/template</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_typing.html">structures/typing</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_user.html">structures/user</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_voicecall.html">structures/voicecall</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_voiceregion.html">structures/voiceregion</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_voicestate.html">structures/voicestate</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/structures_webhook.html">structures/webhook</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/utils.html">utils</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/utils_audioformat.html">utils/audioformat</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/utils_embed.html">utils/embed</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/utils_markup.html">utils/markup</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="modules/utils_permissions.html">utils/permissions</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-namespace"><span class="tsd-kind-icon">Namespace</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,2527 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>GatewayDispatchHandler | Detritus Client</title>
+	<meta name="description" content="Documentation for Detritus Client">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/main.css">
+	<script async src="../assets/js/search.js" id="search-script"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="../assets/js/search.json" data-base="..">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="../index.html" class="title">Detritus Client</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="../modules.html">Detritus Client</a>
+				</li>
+				<li>
+					<a href="../modules/gateway_handler.html">gateway/handler</a>
+				</li>
+				<li>
+					<a href="gateway_handler.gatewaydispatchhandler.html">GatewayDispatchHandler</a>
+				</li>
+			</ul>
+			<h1>Class GatewayDispatchHandler</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Gateway Dispatch Handler</p>
+					</div>
+				</div>
+			</section>
+			<section class="tsd-panel tsd-hierarchy">
+				<h3>Hierarchy</h3>
+				<ul class="tsd-hierarchy">
+					<li>
+						<span class="target">GatewayDispatchHandler</span>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel-group tsd-index-group">
+				<h2>Index</h2>
+				<section class="tsd-panel tsd-index-panel">
+					<div class="tsd-index-content">
+						<section class="tsd-index-section ">
+							<h3>Constructors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Properties</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#handler" class="tsd-kind-icon">handler</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Accessors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#client" class="tsd-kind-icon">client</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Methods</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#activity_join_invite" class="tsd-kind-icon">ACTIVITY_<wbr>JOIN_<wbr>INVITE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#activity_join_request" class="tsd-kind-icon">ACTIVITY_<wbr>JOIN_<wbr>REQUEST</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#activity_start" class="tsd-kind-icon">ACTIVITY_<wbr>START</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#braintree_popup_bridge_callback" class="tsd-kind-icon">BRAINTREE_<wbr>POPUP_<wbr>BRIDGE_<wbr>CALLBACK</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#call_create" class="tsd-kind-icon">CALL_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#call_delete" class="tsd-kind-icon">CALL_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#call_update" class="tsd-kind-icon">CALL_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#channel_create" class="tsd-kind-icon">CHANNEL_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#channel_delete" class="tsd-kind-icon">CHANNEL_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#channel_pins_ack" class="tsd-kind-icon">CHANNEL_<wbr>PINS_<wbr>ACK</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#channel_pins_update" class="tsd-kind-icon">CHANNEL_<wbr>PINS_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#channel_recipient_add" class="tsd-kind-icon">CHANNEL_<wbr>RECIPIENT_<wbr>ADD</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#channel_recipient_remove" class="tsd-kind-icon">CHANNEL_<wbr>RECIPIENT_<wbr>REMOVE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#channel_update" class="tsd-kind-icon">CHANNEL_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#entitlement_create" class="tsd-kind-icon">ENTITLEMENT_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#entitlement_delete" class="tsd-kind-icon">ENTITLEMENT_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#entitlement_update" class="tsd-kind-icon">ENTITLEMENT_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#friend_suggestion_create" class="tsd-kind-icon">FRIEND_<wbr>SUGGESTION_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#friend_suggestion_delete" class="tsd-kind-icon">FRIEND_<wbr>SUGGESTION_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#gift_code_update" class="tsd-kind-icon">GIFT_<wbr>CODE_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_ban_add" class="tsd-kind-icon">GUILD_<wbr>BAN_<wbr>ADD</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_ban_remove" class="tsd-kind-icon">GUILD_<wbr>BAN_<wbr>REMOVE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_create" class="tsd-kind-icon">GUILD_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_delete" class="tsd-kind-icon">GUILD_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_emojis_update" class="tsd-kind-icon">GUILD_<wbr>EMOJIS_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_integrations_update" class="tsd-kind-icon">GUILD_<wbr>INTEGRATIONS_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_members_chunk" class="tsd-kind-icon">GUILD_<wbr>MEMBERS_<wbr>CHUNK</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_member_add" class="tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>ADD</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_member_list_update" class="tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>LIST_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_member_remove" class="tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>REMOVE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_member_update" class="tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_role_create" class="tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_role_delete" class="tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_role_update" class="tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#guild_update" class="tsd-kind-icon">GUILD_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#interaction_create" class="tsd-kind-icon">INTERACTION_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#invite_create" class="tsd-kind-icon">INVITE_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#invite_delete" class="tsd-kind-icon">INVITE_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#library_application_update" class="tsd-kind-icon">LIBRARY_<wbr>APPLICATION_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_create" class="tsd-kind-icon">LOBBY_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_delete" class="tsd-kind-icon">LOBBY_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_member_connect" class="tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>CONNECT</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_member_disconnect" class="tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>DISCONNECT</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_member_update" class="tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_message" class="tsd-kind-icon">LOBBY_<wbr>MESSAGE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_update" class="tsd-kind-icon">LOBBY_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_voice_server_update" class="tsd-kind-icon">LOBBY_<wbr>VOICE_<wbr>SERVER_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#lobby_voice_state_update" class="tsd-kind-icon">LOBBY_<wbr>VOICE_<wbr>STATE_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_ack" class="tsd-kind-icon">MESSAGE_<wbr>ACK</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_create" class="tsd-kind-icon">MESSAGE_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_delete" class="tsd-kind-icon">MESSAGE_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_delete_bulk" class="tsd-kind-icon">MESSAGE_<wbr>DELETE_<wbr>BULK</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_reaction_add" class="tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>ADD</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_reaction_remove" class="tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_reaction_remove_all" class="tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE_<wbr>ALL</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_reaction_remove_emoji" class="tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE_<wbr>EMOJI</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#message_update" class="tsd-kind-icon">MESSAGE_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#oauth2_token_remove" class="tsd-kind-icon">OAUTH2_<wbr>TOKEN_<wbr>REMOVE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#presences_replace" class="tsd-kind-icon">PRESENCES_<wbr>REPLACE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#presence_update" class="tsd-kind-icon">PRESENCE_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#ready" class="tsd-kind-icon">READY</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#recent_mention_delete" class="tsd-kind-icon">RECENT_<wbr>MENTION_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#relationship_add" class="tsd-kind-icon">RELATIONSHIP_<wbr>ADD</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#relationship_remove" class="tsd-kind-icon">RELATIONSHIP_<wbr>REMOVE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#resumed" class="tsd-kind-icon">RESUMED</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#sessions_replace" class="tsd-kind-icon">SESSIONS_<wbr>REPLACE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#stream_create" class="tsd-kind-icon">STREAM_<wbr>CREATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#stream_delete" class="tsd-kind-icon">STREAM_<wbr>DELETE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#stream_server_update" class="tsd-kind-icon">STREAM_<wbr>SERVER_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#stream_update" class="tsd-kind-icon">STREAM_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#typing_start" class="tsd-kind-icon">TYPING_<wbr>START</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_achievement_update" class="tsd-kind-icon">USER_<wbr>ACHIEVEMENT_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_connections_update" class="tsd-kind-icon">USER_<wbr>CONNECTIONS_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_feed_settings_update" class="tsd-kind-icon">USER_<wbr>FEED_<wbr>SETTINGS_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_guild_settings_update" class="tsd-kind-icon">USER_<wbr>GUILD_<wbr>SETTINGS_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_note_update" class="tsd-kind-icon">USER_<wbr>NOTE_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_payments_update" class="tsd-kind-icon">USER_<wbr>PAYMENTS_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_payment_sources_update" class="tsd-kind-icon">USER_<wbr>PAYMENT_<wbr>SOURCES_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_required_action_update" class="tsd-kind-icon">USER_<wbr>REQUIRED_<wbr>ACTION_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_settings_update" class="tsd-kind-icon">USER_<wbr>SETTINGS_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#user_update" class="tsd-kind-icon">USER_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#voice_server_update" class="tsd-kind-icon">VOICE_<wbr>SERVER_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#voice_state_update" class="tsd-kind-icon">VOICE_<wbr>STATE_<wbr>UPDATE</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="gateway_handler.gatewaydispatchhandler.html#webhooks_update" class="tsd-kind-icon">WEBHOOKS_<wbr>UPDATE</a></li>
+							</ul>
+						</section>
+					</div>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Gateway<wbr>Dispatch<wbr>Handler<span class="tsd-signature-symbol">(</span>handler<span class="tsd-signature-symbol">: </span><a href="gateway_handler.gatewayhandler.html" class="tsd-signature-type" data-tsd-kind="Class">GatewayHandler</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="gateway_handler.gatewaydispatchhandler.html" class="tsd-signature-type" data-tsd-kind="Class">GatewayDispatchHandler</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L135">src/gateway/handler.ts:135</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>handler: <a href="gateway_handler.gatewayhandler.html" class="tsd-signature-type" data-tsd-kind="Class">GatewayHandler</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="gateway_handler.gatewaydispatchhandler.html" class="tsd-signature-type" data-tsd-kind="Class">GatewayDispatchHandler</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="handler" class="tsd-anchor"></a>
+					<h3>handler</h3>
+					<div class="tsd-signature tsd-kind-icon">handler<span class="tsd-signature-symbol">:</span> <a href="gateway_handler.gatewayhandler.html" class="tsd-signature-type" data-tsd-kind="Class">GatewayHandler</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L135">src/gateway/handler.ts:135</a></li>
+						</ul>
+					</aside>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+					<a name="client" class="tsd-anchor"></a>
+					<h3>client</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> client<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="client.shardclient.html" class="tsd-signature-type" data-tsd-kind="Class">ShardClient</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L141">src/gateway/handler.ts:141</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="client.shardclient.html" class="tsd-signature-type" data-tsd-kind="Class">ShardClient</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="activity_join_invite" class="tsd-anchor"></a>
+					<h3>ACTIVITY_<wbr>JOIN_<wbr>INVITE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">ACTIVITY_<wbr>JOIN_<wbr>INVITE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.activityjoininvite.html" class="tsd-signature-type" data-tsd-kind="Interface">ActivityJoinInvite</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L281">src/gateway/handler.ts:281</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.activityjoininvite.html" class="tsd-signature-type" data-tsd-kind="Interface">ActivityJoinInvite</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="activity_join_request" class="tsd-anchor"></a>
+					<h3>ACTIVITY_<wbr>JOIN_<wbr>REQUEST</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">ACTIVITY_<wbr>JOIN_<wbr>REQUEST<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.activityjoinrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">ActivityJoinRequest</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L285">src/gateway/handler.ts:285</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.activityjoinrequest.html" class="tsd-signature-type" data-tsd-kind="Interface">ActivityJoinRequest</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="activity_start" class="tsd-anchor"></a>
+					<h3>ACTIVITY_<wbr>START</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">ACTIVITY_<wbr>START<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.activitystart.html" class="tsd-signature-type" data-tsd-kind="Interface">ActivityStart</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L289">src/gateway/handler.ts:289</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.activitystart.html" class="tsd-signature-type" data-tsd-kind="Interface">ActivityStart</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="braintree_popup_bridge_callback" class="tsd-anchor"></a>
+					<h3>BRAINTREE_<wbr>POPUP_<wbr>BRIDGE_<wbr>CALLBACK</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">BRAINTREE_<wbr>POPUP_<wbr>BRIDGE_<wbr>CALLBACK<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.braintreepopupbridgecallback.html" class="tsd-signature-type" data-tsd-kind="Interface">BraintreePopupBridgeCallback</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L293">src/gateway/handler.ts:293</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.braintreepopupbridgecallback.html" class="tsd-signature-type" data-tsd-kind="Interface">BraintreePopupBridgeCallback</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="call_create" class="tsd-anchor"></a>
+					<h3>CALL_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CALL_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.callcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">CallCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L297">src/gateway/handler.ts:297</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.callcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">CallCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="call_delete" class="tsd-anchor"></a>
+					<h3>CALL_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CALL_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.calldelete.html" class="tsd-signature-type" data-tsd-kind="Interface">CallDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L311">src/gateway/handler.ts:311</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.calldelete.html" class="tsd-signature-type" data-tsd-kind="Interface">CallDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="call_update" class="tsd-anchor"></a>
+					<h3>CALL_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CALL_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.callupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">CallUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L322">src/gateway/handler.ts:322</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.callupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">CallUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="channel_create" class="tsd-anchor"></a>
+					<h3>CHANNEL_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CHANNEL_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.channelcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L341">src/gateway/handler.ts:341</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.channelcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="channel_delete" class="tsd-anchor"></a>
+					<h3>CHANNEL_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CHANNEL_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.channeldelete.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L355">src/gateway/handler.ts:355</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.channeldelete.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="channel_pins_ack" class="tsd-anchor"></a>
+					<h3>CHANNEL_<wbr>PINS_<wbr>ACK</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CHANNEL_<wbr>PINS_<wbr>ACK<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.channelpinsack.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelPinsAck</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L377">src/gateway/handler.ts:377</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.channelpinsack.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelPinsAck</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="channel_pins_update" class="tsd-anchor"></a>
+					<h3>CHANNEL_<wbr>PINS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CHANNEL_<wbr>PINS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.channelpinsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelPinsUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L381">src/gateway/handler.ts:381</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.channelpinsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelPinsUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="channel_recipient_add" class="tsd-anchor"></a>
+					<h3>CHANNEL_<wbr>RECIPIENT_<wbr>ADD</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CHANNEL_<wbr>RECIPIENT_<wbr>ADD<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.channelrecipientadd.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelRecipientAdd</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L421">src/gateway/handler.ts:421</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.channelrecipientadd.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelRecipientAdd</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="channel_recipient_remove" class="tsd-anchor"></a>
+					<h3>CHANNEL_<wbr>RECIPIENT_<wbr>REMOVE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CHANNEL_<wbr>RECIPIENT_<wbr>REMOVE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.channelrecipientremove.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelRecipientRemove</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L454">src/gateway/handler.ts:454</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.channelrecipientremove.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelRecipientRemove</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="channel_update" class="tsd-anchor"></a>
+					<h3>CHANNEL_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">CHANNEL_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.channelupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L399">src/gateway/handler.ts:399</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.channelupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">ChannelUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="entitlement_create" class="tsd-anchor"></a>
+					<h3>ENTITLEMENT_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">ENTITLEMENT_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.entitlementcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">EntitlementCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L483">src/gateway/handler.ts:483</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.entitlementcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">EntitlementCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="entitlement_delete" class="tsd-anchor"></a>
+					<h3>ENTITLEMENT_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">ENTITLEMENT_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.entitlementdelete.html" class="tsd-signature-type" data-tsd-kind="Interface">EntitlementDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L487">src/gateway/handler.ts:487</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.entitlementdelete.html" class="tsd-signature-type" data-tsd-kind="Interface">EntitlementDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="entitlement_update" class="tsd-anchor"></a>
+					<h3>ENTITLEMENT_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">ENTITLEMENT_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.entitlementupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">EntitlementUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L491">src/gateway/handler.ts:491</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.entitlementupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">EntitlementUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="friend_suggestion_create" class="tsd-anchor"></a>
+					<h3>FRIEND_<wbr>SUGGESTION_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">FRIEND_<wbr>SUGGESTION_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.friendsuggestioncreate.html" class="tsd-signature-type" data-tsd-kind="Interface">FriendSuggestionCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L495">src/gateway/handler.ts:495</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.friendsuggestioncreate.html" class="tsd-signature-type" data-tsd-kind="Interface">FriendSuggestionCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="friend_suggestion_delete" class="tsd-anchor"></a>
+					<h3>FRIEND_<wbr>SUGGESTION_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">FRIEND_<wbr>SUGGESTION_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.friendsuggestiondelete.html" class="tsd-signature-type" data-tsd-kind="Interface">FriendSuggestionDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L504">src/gateway/handler.ts:504</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.friendsuggestiondelete.html" class="tsd-signature-type" data-tsd-kind="Interface">FriendSuggestionDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="gift_code_update" class="tsd-anchor"></a>
+					<h3>GIFT_<wbr>CODE_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GIFT_<wbr>CODE_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.giftcodeupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GiftCodeUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L510">src/gateway/handler.ts:510</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.giftcodeupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GiftCodeUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_ban_add" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>BAN_<wbr>ADD</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>BAN_<wbr>ADD<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildbanadd.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildBanAdd</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L517">src/gateway/handler.ts:517</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildbanadd.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildBanAdd</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_ban_remove" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>BAN_<wbr>REMOVE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>BAN_<wbr>REMOVE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildbanremove.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildBanRemove</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L536">src/gateway/handler.ts:536</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildbanremove.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildBanRemove</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_create" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L555">src/gateway/handler.ts:555</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_delete" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guilddelete.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L585">src/gateway/handler.ts:585</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guilddelete.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_emojis_update" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>EMOJIS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>EMOJIS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildemojisupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildEmojisUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L654">src/gateway/handler.ts:654</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildemojisupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildEmojisUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_integrations_update" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>INTEGRATIONS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>INTEGRATIONS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildintegrationsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildIntegrationsUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L724">src/gateway/handler.ts:724</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildintegrationsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildIntegrationsUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_members_chunk" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>MEMBERS_<wbr>CHUNK</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>MEMBERS_<wbr>CHUNK<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberschunk.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMembersChunk</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L892">src/gateway/handler.ts:892</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberschunk.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMembersChunk</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_member_add" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>MEMBER_<wbr>ADD</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>ADD<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberadd.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMemberAdd</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L730">src/gateway/handler.ts:730</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberadd.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMemberAdd</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_member_list_update" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>MEMBER_<wbr>LIST_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>LIST_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberlistupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMemberListUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L764">src/gateway/handler.ts:764</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberlistupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMemberListUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_member_remove" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>MEMBER_<wbr>REMOVE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>REMOVE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberremove.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMemberRemove</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L770">src/gateway/handler.ts:770</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberremove.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMemberRemove</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_member_update" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>MEMBER_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMemberUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L840">src/gateway/handler.ts:840</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildmemberupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildMemberUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_role_create" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>ROLE_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildrolecreate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildRoleCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L997">src/gateway/handler.ts:997</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildrolecreate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildRoleCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_role_delete" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>ROLE_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildroledelete.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildRoleDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1021">src/gateway/handler.ts:1021</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildroledelete.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildRoleDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_role_update" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>ROLE_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildroleupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildRoleUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1048">src/gateway/handler.ts:1048</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildroleupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildRoleUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="guild_update" class="tsd-anchor"></a>
+					<h3>GUILD_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">GUILD_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.guildupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1081">src/gateway/handler.ts:1081</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.guildupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">GuildUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="interaction_create" class="tsd-anchor"></a>
+					<h3>INTERACTION_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">INTERACTION_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.interactioncreate.html" class="tsd-signature-type" data-tsd-kind="Interface">InteractionCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1104">src/gateway/handler.ts:1104</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.interactioncreate.html" class="tsd-signature-type" data-tsd-kind="Interface">InteractionCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="invite_create" class="tsd-anchor"></a>
+					<h3>INVITE_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">INVITE_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.invitecreate.html" class="tsd-signature-type" data-tsd-kind="Interface">InviteCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1132">src/gateway/handler.ts:1132</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.invitecreate.html" class="tsd-signature-type" data-tsd-kind="Interface">InviteCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="invite_delete" class="tsd-anchor"></a>
+					<h3>INVITE_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">INVITE_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.invitedelete.html" class="tsd-signature-type" data-tsd-kind="Interface">InviteDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1141">src/gateway/handler.ts:1141</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.invitedelete.html" class="tsd-signature-type" data-tsd-kind="Interface">InviteDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="library_application_update" class="tsd-anchor"></a>
+					<h3>LIBRARY_<wbr>APPLICATION_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LIBRARY_<wbr>APPLICATION_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.libraryapplicationupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LibraryApplicationUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1150">src/gateway/handler.ts:1150</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.libraryapplicationupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LibraryApplicationUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_create" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbycreate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1154">src/gateway/handler.ts:1154</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbycreate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_delete" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbydelete.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1158">src/gateway/handler.ts:1158</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbydelete.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_member_connect" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>MEMBER_<wbr>CONNECT</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>CONNECT<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbymemberconnect.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyMemberConnect</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1166">src/gateway/handler.ts:1166</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbymemberconnect.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyMemberConnect</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_member_disconnect" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>MEMBER_<wbr>DISCONNECT</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>DISCONNECT<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbymemberdisconnect.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyMemberDisconnect</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1170">src/gateway/handler.ts:1170</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbymemberdisconnect.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyMemberDisconnect</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_member_update" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>MEMBER_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbymemberupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyMemberUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1174">src/gateway/handler.ts:1174</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbymemberupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyMemberUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_message" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>MESSAGE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>MESSAGE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbymessage.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyMessage</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1178">src/gateway/handler.ts:1178</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbymessage.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyMessage</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_update" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbyupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1162">src/gateway/handler.ts:1162</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbyupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_voice_server_update" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>VOICE_<wbr>SERVER_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>VOICE_<wbr>SERVER_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbyvoiceserverupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyVoiceServerUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1182">src/gateway/handler.ts:1182</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbyvoiceserverupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyVoiceServerUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lobby_voice_state_update" class="tsd-anchor"></a>
+					<h3>LOBBY_<wbr>VOICE_<wbr>STATE_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">LOBBY_<wbr>VOICE_<wbr>STATE_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbyvoicestateupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyVoiceStateUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1186">src/gateway/handler.ts:1186</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.lobbyvoicestateupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">LobbyVoiceStateUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_ack" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>ACK</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>ACK<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messageack.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageAck</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1190">src/gateway/handler.ts:1190</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messageack.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageAck</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_create" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messagecreate.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1194">src/gateway/handler.ts:1194</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messagecreate.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_delete" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messagedelete.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1223">src/gateway/handler.ts:1223</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messagedelete.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_delete_bulk" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>DELETE_<wbr>BULK</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>DELETE_<wbr>BULK<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messagedeletebulk.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageDeleteBulk</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1239">src/gateway/handler.ts:1239</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messagedeletebulk.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageDeleteBulk</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_reaction_add" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>REACTION_<wbr>ADD</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>ADD<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messagereactionadd.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageReactionAdd</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1260">src/gateway/handler.ts:1260</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messagereactionadd.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageReactionAdd</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_reaction_remove" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>REACTION_<wbr>REMOVE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messagereactionremove.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageReactionRemove</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1322">src/gateway/handler.ts:1322</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messagereactionremove.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageReactionRemove</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_reaction_remove_all" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>REACTION_<wbr>REMOVE_<wbr>ALL</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE_<wbr>ALL<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messagereactionremoveall.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageReactionRemoveAll</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1371">src/gateway/handler.ts:1371</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messagereactionremoveall.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageReactionRemoveAll</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_reaction_remove_emoji" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>REACTION_<wbr>REMOVE_<wbr>EMOJI</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE_<wbr>EMOJI<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messagereactionremoveemoji.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageReactionRemoveEmoji</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1394">src/gateway/handler.ts:1394</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messagereactionremoveemoji.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageReactionRemoveEmoji</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="message_update" class="tsd-anchor"></a>
+					<h3>MESSAGE_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">MESSAGE_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.messageupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1430">src/gateway/handler.ts:1430</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.messageupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">MessageUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="oauth2_token_remove" class="tsd-anchor"></a>
+					<h3>OAUTH2_<wbr>TOKEN_<wbr>REMOVE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">OAUTH2_<wbr>TOKEN_<wbr>REMOVE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.oauth2tokenremove.html" class="tsd-signature-type" data-tsd-kind="Interface">Oauth2TokenRemove</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1474">src/gateway/handler.ts:1474</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.oauth2tokenremove.html" class="tsd-signature-type" data-tsd-kind="Interface">Oauth2TokenRemove</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="presences_replace" class="tsd-anchor"></a>
+					<h3>PRESENCES_<wbr>REPLACE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">PRESENCES_<wbr>REPLACE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.presencesreplace.html" class="tsd-signature-type" data-tsd-kind="Interface">PresencesReplace</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1538">src/gateway/handler.ts:1538</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.presencesreplace.html" class="tsd-signature-type" data-tsd-kind="Interface">PresencesReplace</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="presence_update" class="tsd-anchor"></a>
+					<h3>PRESENCE_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">PRESENCE_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.presenceupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">PresenceUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1478">src/gateway/handler.ts:1478</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.presenceupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">PresenceUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="ready" class="tsd-anchor"></a>
+					<h3>READY</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">READY<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.ready.html" class="tsd-signature-type" data-tsd-kind="Interface">Ready</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L146">src/gateway/handler.ts:146</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.ready.html" class="tsd-signature-type" data-tsd-kind="Interface">Ready</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="recent_mention_delete" class="tsd-anchor"></a>
+					<h3>RECENT_<wbr>MENTION_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">RECENT_<wbr>MENTION_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.recentmentiondelete.html" class="tsd-signature-type" data-tsd-kind="Interface">RecentMentionDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1553">src/gateway/handler.ts:1553</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.recentmentiondelete.html" class="tsd-signature-type" data-tsd-kind="Interface">RecentMentionDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="relationship_add" class="tsd-anchor"></a>
+					<h3>RELATIONSHIP_<wbr>ADD</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">RELATIONSHIP_<wbr>ADD<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.relationshipadd.html" class="tsd-signature-type" data-tsd-kind="Interface">RelationshipAdd</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1557">src/gateway/handler.ts:1557</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.relationshipadd.html" class="tsd-signature-type" data-tsd-kind="Interface">RelationshipAdd</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="relationship_remove" class="tsd-anchor"></a>
+					<h3>RELATIONSHIP_<wbr>REMOVE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">RELATIONSHIP_<wbr>REMOVE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.relationshipremove.html" class="tsd-signature-type" data-tsd-kind="Interface">RelationshipRemove</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1579">src/gateway/handler.ts:1579</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.relationshipremove.html" class="tsd-signature-type" data-tsd-kind="Interface">RelationshipRemove</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="resumed" class="tsd-anchor"></a>
+					<h3>RESUMED</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">RESUMED<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.resumed.html" class="tsd-signature-type" data-tsd-kind="Interface">Resumed</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L274">src/gateway/handler.ts:274</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.resumed.html" class="tsd-signature-type" data-tsd-kind="Interface">Resumed</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="sessions_replace" class="tsd-anchor"></a>
+					<h3>SESSIONS_<wbr>REPLACE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">SESSIONS_<wbr>REPLACE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.sessionsreplace.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionsReplace</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1594">src/gateway/handler.ts:1594</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.sessionsreplace.html" class="tsd-signature-type" data-tsd-kind="Interface">SessionsReplace</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="stream_create" class="tsd-anchor"></a>
+					<h3>STREAM_<wbr>CREATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">STREAM_<wbr>CREATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.streamcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">StreamCreate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1609">src/gateway/handler.ts:1609</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.streamcreate.html" class="tsd-signature-type" data-tsd-kind="Interface">StreamCreate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="stream_delete" class="tsd-anchor"></a>
+					<h3>STREAM_<wbr>DELETE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">STREAM_<wbr>DELETE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.streamdelete.html" class="tsd-signature-type" data-tsd-kind="Interface">StreamDelete</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1619">src/gateway/handler.ts:1619</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.streamdelete.html" class="tsd-signature-type" data-tsd-kind="Interface">StreamDelete</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="stream_server_update" class="tsd-anchor"></a>
+					<h3>STREAM_<wbr>SERVER_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">STREAM_<wbr>SERVER_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.streamserverupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">StreamServerUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1627">src/gateway/handler.ts:1627</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.streamserverupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">StreamServerUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="stream_update" class="tsd-anchor"></a>
+					<h3>STREAM_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">STREAM_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.streamupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">StreamUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1635">src/gateway/handler.ts:1635</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.streamupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">StreamUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="typing_start" class="tsd-anchor"></a>
+					<h3>TYPING_<wbr>START</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">TYPING_<wbr>START<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.typingstart.html" class="tsd-signature-type" data-tsd-kind="Interface">TypingStart</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1644">src/gateway/handler.ts:1644</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.typingstart.html" class="tsd-signature-type" data-tsd-kind="Interface">TypingStart</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_achievement_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>ACHIEVEMENT_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>ACHIEVEMENT_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.userachievementupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserAchievementUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1662">src/gateway/handler.ts:1662</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.userachievementupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserAchievementUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_connections_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>CONNECTIONS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>CONNECTIONS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.userconnectionsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserConnectionsUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1666">src/gateway/handler.ts:1666</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.userconnectionsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserConnectionsUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_feed_settings_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>FEED_<wbr>SETTINGS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>FEED_<wbr>SETTINGS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.userfeedsettingsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserFeedSettingsUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1680">src/gateway/handler.ts:1680</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.userfeedsettingsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserFeedSettingsUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_guild_settings_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>GUILD_<wbr>SETTINGS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>GUILD_<wbr>SETTINGS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.userguildsettingsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserGuildSettingsUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1684">src/gateway/handler.ts:1684</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.userguildsettingsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserGuildSettingsUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_note_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>NOTE_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>NOTE_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.usernoteupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserNoteUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1688">src/gateway/handler.ts:1688</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.usernoteupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserNoteUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_payments_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>PAYMENTS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>PAYMENTS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.userpaymentsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserPaymentsUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1706">src/gateway/handler.ts:1706</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.userpaymentsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserPaymentsUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_payment_sources_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>PAYMENT_<wbr>SOURCES_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>PAYMENT_<wbr>SOURCES_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.userpaymentsourcesupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserPaymentSourcesUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1702">src/gateway/handler.ts:1702</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.userpaymentsourcesupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserPaymentSourcesUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_required_action_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>REQUIRED_<wbr>ACTION_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>REQUIRED_<wbr>ACTION_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.userrequiredactionupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserRequiredActionUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1710">src/gateway/handler.ts:1710</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.userrequiredactionupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserRequiredActionUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_settings_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>SETTINGS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>SETTINGS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.usersettingsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserSettingsUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1721">src/gateway/handler.ts:1721</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.usersettingsupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserSettingsUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="user_update" class="tsd-anchor"></a>
+					<h3>USER_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">USER_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.userupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1725">src/gateway/handler.ts:1725</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.userupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">UserUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="voice_server_update" class="tsd-anchor"></a>
+					<h3>VOICE_<wbr>SERVER_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">VOICE_<wbr>SERVER_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.voiceserverupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">VoiceServerUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1748">src/gateway/handler.ts:1748</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.voiceserverupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">VoiceServerUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="voice_state_update" class="tsd-anchor"></a>
+					<h3>VOICE_<wbr>STATE_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">VOICE_<wbr>STATE_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.voicestateupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">VoiceStateUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1757">src/gateway/handler.ts:1757</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.voicestateupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">VoiceStateUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="webhooks_update" class="tsd-anchor"></a>
+					<h3>WEBHOOKS_<wbr>UPDATE</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">WEBHOOKS_<wbr>UPDATE<span class="tsd-signature-symbol">(</span>data<span class="tsd-signature-symbol">: </span><a href="../interfaces/gateway_rawevents.gatewayrawevents.webhooksupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">WebhooksUpdate</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/15ed404/src/gateway/handler.ts#L1784">src/gateway/handler.ts:1784</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>data: <a href="../interfaces/gateway_rawevents.gatewayrawevents.webhooksupdate.html" class="tsd-signature-type" data-tsd-kind="Interface">WebhooksUpdate</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class=" ">
+						<a href="../modules.html">Exports</a>
+					</li>
+					<li class="current tsd-kind-module">
+						<a href="../modules/gateway_handler.html">gateway/handler</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-class tsd-parent-kind-module">
+						<a href="gateway_handler.gatewaydispatchhandler.html" class="tsd-kind-icon">Gateway<wbr>Dispatch<wbr>Handler</a>
+						<ul>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#handler" class="tsd-kind-icon">handler</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#client" class="tsd-kind-icon">client</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#activity_join_invite" class="tsd-kind-icon">ACTIVITY_<wbr>JOIN_<wbr>INVITE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#activity_join_request" class="tsd-kind-icon">ACTIVITY_<wbr>JOIN_<wbr>REQUEST</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#activity_start" class="tsd-kind-icon">ACTIVITY_<wbr>START</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#braintree_popup_bridge_callback" class="tsd-kind-icon">BRAINTREE_<wbr>POPUP_<wbr>BRIDGE_<wbr>CALLBACK</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#call_create" class="tsd-kind-icon">CALL_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#call_delete" class="tsd-kind-icon">CALL_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#call_update" class="tsd-kind-icon">CALL_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#channel_create" class="tsd-kind-icon">CHANNEL_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#channel_delete" class="tsd-kind-icon">CHANNEL_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#channel_pins_ack" class="tsd-kind-icon">CHANNEL_<wbr>PINS_<wbr>ACK</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#channel_pins_update" class="tsd-kind-icon">CHANNEL_<wbr>PINS_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#channel_recipient_add" class="tsd-kind-icon">CHANNEL_<wbr>RECIPIENT_<wbr>ADD</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#channel_recipient_remove" class="tsd-kind-icon">CHANNEL_<wbr>RECIPIENT_<wbr>REMOVE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#channel_update" class="tsd-kind-icon">CHANNEL_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#entitlement_create" class="tsd-kind-icon">ENTITLEMENT_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#entitlement_delete" class="tsd-kind-icon">ENTITLEMENT_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#entitlement_update" class="tsd-kind-icon">ENTITLEMENT_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#friend_suggestion_create" class="tsd-kind-icon">FRIEND_<wbr>SUGGESTION_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#friend_suggestion_delete" class="tsd-kind-icon">FRIEND_<wbr>SUGGESTION_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#gift_code_update" class="tsd-kind-icon">GIFT_<wbr>CODE_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_ban_add" class="tsd-kind-icon">GUILD_<wbr>BAN_<wbr>ADD</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_ban_remove" class="tsd-kind-icon">GUILD_<wbr>BAN_<wbr>REMOVE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_create" class="tsd-kind-icon">GUILD_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_delete" class="tsd-kind-icon">GUILD_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_emojis_update" class="tsd-kind-icon">GUILD_<wbr>EMOJIS_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_integrations_update" class="tsd-kind-icon">GUILD_<wbr>INTEGRATIONS_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_members_chunk" class="tsd-kind-icon">GUILD_<wbr>MEMBERS_<wbr>CHUNK</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_member_add" class="tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>ADD</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_member_list_update" class="tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>LIST_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_member_remove" class="tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>REMOVE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_member_update" class="tsd-kind-icon">GUILD_<wbr>MEMBER_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_role_create" class="tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_role_delete" class="tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_role_update" class="tsd-kind-icon">GUILD_<wbr>ROLE_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#guild_update" class="tsd-kind-icon">GUILD_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#interaction_create" class="tsd-kind-icon">INTERACTION_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#invite_create" class="tsd-kind-icon">INVITE_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#invite_delete" class="tsd-kind-icon">INVITE_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#library_application_update" class="tsd-kind-icon">LIBRARY_<wbr>APPLICATION_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_create" class="tsd-kind-icon">LOBBY_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_delete" class="tsd-kind-icon">LOBBY_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_member_connect" class="tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>CONNECT</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_member_disconnect" class="tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>DISCONNECT</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_member_update" class="tsd-kind-icon">LOBBY_<wbr>MEMBER_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_message" class="tsd-kind-icon">LOBBY_<wbr>MESSAGE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_update" class="tsd-kind-icon">LOBBY_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_voice_server_update" class="tsd-kind-icon">LOBBY_<wbr>VOICE_<wbr>SERVER_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#lobby_voice_state_update" class="tsd-kind-icon">LOBBY_<wbr>VOICE_<wbr>STATE_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_ack" class="tsd-kind-icon">MESSAGE_<wbr>ACK</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_create" class="tsd-kind-icon">MESSAGE_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_delete" class="tsd-kind-icon">MESSAGE_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_delete_bulk" class="tsd-kind-icon">MESSAGE_<wbr>DELETE_<wbr>BULK</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_reaction_add" class="tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>ADD</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_reaction_remove" class="tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_reaction_remove_all" class="tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE_<wbr>ALL</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_reaction_remove_emoji" class="tsd-kind-icon">MESSAGE_<wbr>REACTION_<wbr>REMOVE_<wbr>EMOJI</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#message_update" class="tsd-kind-icon">MESSAGE_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#oauth2_token_remove" class="tsd-kind-icon">OAUTH2_<wbr>TOKEN_<wbr>REMOVE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#presences_replace" class="tsd-kind-icon">PRESENCES_<wbr>REPLACE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#presence_update" class="tsd-kind-icon">PRESENCE_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#ready" class="tsd-kind-icon">READY</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#recent_mention_delete" class="tsd-kind-icon">RECENT_<wbr>MENTION_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#relationship_add" class="tsd-kind-icon">RELATIONSHIP_<wbr>ADD</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#relationship_remove" class="tsd-kind-icon">RELATIONSHIP_<wbr>REMOVE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#resumed" class="tsd-kind-icon">RESUMED</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#sessions_replace" class="tsd-kind-icon">SESSIONS_<wbr>REPLACE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#stream_create" class="tsd-kind-icon">STREAM_<wbr>CREATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#stream_delete" class="tsd-kind-icon">STREAM_<wbr>DELETE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#stream_server_update" class="tsd-kind-icon">STREAM_<wbr>SERVER_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#stream_update" class="tsd-kind-icon">STREAM_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#typing_start" class="tsd-kind-icon">TYPING_<wbr>START</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_achievement_update" class="tsd-kind-icon">USER_<wbr>ACHIEVEMENT_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_connections_update" class="tsd-kind-icon">USER_<wbr>CONNECTIONS_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_feed_settings_update" class="tsd-kind-icon">USER_<wbr>FEED_<wbr>SETTINGS_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_guild_settings_update" class="tsd-kind-icon">USER_<wbr>GUILD_<wbr>SETTINGS_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_note_update" class="tsd-kind-icon">USER_<wbr>NOTE_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_payments_update" class="tsd-kind-icon">USER_<wbr>PAYMENTS_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_payment_sources_update" class="tsd-kind-icon">USER_<wbr>PAYMENT_<wbr>SOURCES_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_required_action_update" class="tsd-kind-icon">USER_<wbr>REQUIRED_<wbr>ACTION_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_settings_update" class="tsd-kind-icon">USER_<wbr>SETTINGS_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#user_update" class="tsd-kind-icon">USER_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#voice_server_update" class="tsd-kind-icon">VOICE_<wbr>SERVER_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#voice_state_update" class="tsd-kind-icon">VOICE_<wbr>STATE_<wbr>UPDATE</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="gateway_handler.gatewaydispatchhandler.html#webhooks_update" class="tsd-kind-icon">WEBHOOKS_<wbr>UPDATE</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				<ul class="after-current">
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="gateway_handler.gatewayhandler.html" class="tsd-kind-icon">Gateway<wbr>Handler</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/gateway_handler.chunkwaiting.html" class="tsd-kind-icon">Chunk<wbr>Waiting</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/gateway_handler.gatewayhandleroptions.html" class="tsd-kind-icon">Gateway<wbr>Handler<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/gateway_handler.html#gatewaydispatchhandlerfunction" class="tsd-kind-icon">Gateway<wbr>Dispatch<wbr>Handler<wbr>Function</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-namespace"><span class="tsd-kind-icon">Namespace</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
