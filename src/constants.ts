@@ -276,6 +276,9 @@ export enum ClientEvents {
   ACTIVITY_JOIN_INVITE = 'activityJoinInvite',
   ACTIVITY_JOIN_REQUEST = 'activityJoinRequest',
   ACTIVITY_START = 'activityStart',
+  APPLICATION_COMMAND_CREATE = 'applicationCommandCreate',
+  APPLICATION_COMMAND_DELETE = 'applicationCommandDelete',
+  APPLICATION_COMMAND_UPDATE = 'applicationCommandUpdate',
   BRAINTREE_POPUP_BRIDGE_CALLBACK = 'braintreePopupBridgeCallback',
   CALL_CREATE = 'callCreate',
   CALL_DELETE = 'callDelete',
@@ -398,6 +401,12 @@ export enum ClusterIPCOpCodes {
   RESPAWN_ALL = 3,
   EVAL = 4,
   IDENTIFY_REQUEST = 5,
+  REST_REQUEST = 6,
+}
+
+export enum ClusterIPCRestRequestTypes {
+  FETCH_APPLICATIONS = 0,
+  FETCH_COMMANDS = 1,
 }
 
 export enum Colors {

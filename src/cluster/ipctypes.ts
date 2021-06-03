@@ -1,11 +1,16 @@
-import { SocketStates } from '../constants';
+import {
+  ClusterIPCOpCodes,
+  ClusterIPCRestRequestTypes,
+  SocketStates,
+} from '../constants';
 
 
 export namespace ClusterIPCTypes {
   export interface IPCMessage {
-    op: number,
+    op: ClusterIPCOpCodes,
     data: any,
     request: boolean,
+    clusterId?: number,
     shard?: number,
   }
 
@@ -30,6 +35,17 @@ export namespace ClusterIPCTypes {
 
   export interface IdentifyRequest {
     shardId: number,
+  }
+
+  export interface RestRequest {
+    data?: any,
+    error?: {
+      message: string,
+      name: string,
+      stack: string,
+    },
+    result?: any,
+    type: ClusterIPCRestRequestTypes,
   }
 
   export interface ShardState {

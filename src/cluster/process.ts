@@ -2,9 +2,9 @@ import { ChildProcess, fork } from 'child_process';
 
 import { EventSpewer, Timers } from 'detritus-utils';
 
-import { ClusterManager } from '../clustermanager';
+import { ClusterManager, ClusterManagerRestCachePayload } from '../clustermanager';
 import { BaseCollection } from '../collections/basecollection';
-import { ClusterIPCOpCodes, SocketStates } from '../constants';
+import { ClusterIPCOpCodes, ClusterIPCRestRequestTypes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 
 import { ClusterIPCTypes } from './ipctypes';
@@ -33,7 +33,7 @@ export class ClusterProcess extends EventSpewer {
   readonly clusterId: number = -1;
   readonly manager: ClusterManager;
 
-  env: {[key: string]: string | undefined} = {};
+  env: Record<string, string | undefined> = {};
   process: ChildProcess | null = null;
 
   constructor(
@@ -119,6 +119,64 @@ export class ClusterProcess extends EventSpewer {
           }; return;
           case ClusterIPCOpCodes.RESPAWN_ALL: {
 
+          }; return;
+          case ClusterIPCOpCodes.REST_REQUEST: {
+            const data: ClusterIPCTypes.RestRequest = message.data;
+            try {
+              switch (data.type) {
+                case ClusterIPCRestRequestTypes.FETCH_APPLICATIONS: {
+                  let payload: ClusterManagerRestCachePayload;
+                  if (this.manager.restCache.has(data.type)) {
+                    payload = this.manager.restCache.get(data.type)!;
+                    if (payload.promise) {
+                      payload.result = await payload.promise;
+                      payload.promise = undefined;
+                    }
+                  } else {
+                    payload = {
+                      promise: this.manager.rest.fetchApplicationsDetectable(),
+                    };
+                    this.manager.restCache.set(data.type, payload);
+                    payload.result = await payload.promise;
+                    payload.promise = undefined;
+                  }
+                  await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
+                    result: payload.result,
+                    type: data.type,
+                  }, false, message.shardId, message.clusterId);
+                }; break;
+                case ClusterIPCRestRequestTypes.FETCH_COMMANDS: {
+                  let payload: ClusterManagerRestCachePayload;
+                  if (this.manager.restCache.has(data.type)) {
+                    payload = this.manager.restCache.get(data.type)!;
+                    if (payload.promise) {
+                      payload.result = await payload.promise;
+                      payload.promise = undefined;
+                    }
+                  } else {
+                    payload = {
+                      promise: this.manager.rest.fetchApplicationCommands(data.data.applicationId),
+                    };
+                    this.manager.restCache.set(data.type, payload);
+                    payload.result = await payload.promise;
+                    payload.promise = undefined;
+                  }
+                  await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
+                    result: payload.result,
+                    type: data.type,
+                  }, false, message.shardId, message.clusterId);
+                }; break;
+              }
+            } catch(error) {
+              await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
+                ...data,
+                error: {
+                  message: error.message,
+                  name: error.name,
+                  stack: error.stack,
+                },
+              }, false, message.shardId, message.clusterId);
+            }
           }; return;
           case ClusterIPCOpCodes.SHARD_STATE: {
             const data: ClusterIPCTypes.ShardState = message.data;
@@ -244,8 +302,9 @@ export class ClusterProcess extends EventSpewer {
     data: any = null,
     request: boolean = false,
     shard?: number,
+    clusterId?: number,
   ): Promise<void> {
-    return this.send({op, data, request, shard});
+    return this.send({op, data, request, clusterId, shard});
   }
 
   async run(

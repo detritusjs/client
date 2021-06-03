@@ -1,3 +1,5 @@
+import * as Crypto from 'crypto';
+
 import { ApplicationCommandOptionTypes, DetritusKeys, DiscordKeys } from '../constants';
 
 import { BaseSet } from '../collections/baseset';
@@ -202,6 +204,14 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     this.onSuccess = data.onSuccess || this.onSuccess;
   }
 
+  get _optionsKey(): string {
+    return (this._options) ? this._options.map((x) => x.key).join(':') : '';
+  }
+
+  get hash(): string {
+    return Crypto.createHash('md5').update(this.key).digest('hex');
+  }
+
   get hasRun(): boolean {
     if (this.isGroup) {
       return (this.options) ? this.options.some((option) => option.hasRun) : false;
@@ -211,6 +221,10 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
 
   get isGroup(): boolean {
     return (this.options) ? this.options.some((option) => option.isSubCommand || option.isSubCommandGroup) : false;
+  }
+
+  get key(): string {
+    return `${this.name}-${this.description}-${this._optionsKey}`;
   }
 
   get options(): Array<SlashCommandOption> | undefined {
@@ -344,6 +358,14 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     this.onSuccess = data.onSuccess || this.onSuccess;
   }
 
+  get _choicesKey(): string {
+    return (this.choices) ? this.choices.map((x) => x.key).join(':') : '';
+  }
+
+  get _optionsKey(): string {
+    return (this._options) ? this._options.map((x) => x.key).join(':') : '';
+  }
+
   get hasRun(): boolean {
     if (this.isSubCommand) {
       return typeof(this.run) === 'function';
@@ -359,6 +381,10 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
 
   get isSubCommandGroup(): boolean {
     return this.type === ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
+  }
+
+  get key(): string {
+    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}-${this._choicesKey}`;
   }
 
   get options(): Array<SlashCommandOption> | undefined {
@@ -511,5 +537,9 @@ export class SlashCommandOptionChoice extends Structure {
   constructor(data: SlashCommandOptionChoiceOptions = {}) {
     super();
     this.merge(data);
+  }
+
+  get key(): string {
+    return `${this.name}-${this.value}-${typeof(this.value)}`;
   }
 }

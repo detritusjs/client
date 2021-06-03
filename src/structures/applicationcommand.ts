@@ -1,3 +1,5 @@
+import * as Crypto from 'crypto';
+
 import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
@@ -46,6 +48,18 @@ export class ApplicationCommand extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  get _optionsKey(): string {
+    return (this.options) ? this.options.map((x) => x.key).join(':') : '';
+  }
+
+  get hash(): string {
+    return Crypto.createHash('md5').update(this.key).digest('hex');
+  }
+
+  get key(): string {
+    return `${this.name}-${this.description}-${this._optionsKey}`;
   }
 
   edit(options: RequestTypes.EditApplicationCommand | RequestTypes.EditApplicationGuildCommand) {
@@ -110,9 +124,21 @@ export class ApplicationCommandOption extends BaseStructure {
 
   constructor(command: ApplicationCommand, data: BaseStructureData, isClone?: boolean) {
     super(command.client, undefined, isClone);
-    this.merge(data);
     this.command = command;
+    this.merge(data);
     Object.defineProperty(this, 'command', {enumerable: false});
+  }
+
+  get _choicesKey(): string {
+    return (this.choices) ? this.choices.map((x) => x.key).join(':') : '';
+  }
+
+  get _optionsKey(): string {
+    return (this.options) ? this.options.map((x) => x.key).join(':') : '';
+  }
+
+  get key(): string {
+    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}-${this._choicesKey}`;
   }
 
   mergeValue(key: string, value: any): void {
@@ -169,9 +195,13 @@ export class ApplicationCommandOptionChoice extends BaseStructure {
 
   constructor(option: ApplicationCommandOption, data: BaseStructureData, isClone?: boolean) {
     super(option.client, undefined, isClone);
-    this.merge(data);
     this.option = option;
+    this.merge(data);
     Object.defineProperty(this, 'option', {enumerable: false});
+  }
+
+  get key(): string {
+    return `${this.name}-${this.value}-${typeof(this.value)}`;
   }
 }
 
@@ -236,8 +266,8 @@ export class ApplicationCommandPermission extends BaseStructure {
 
   constructor(commandPermissions: ApplicationCommandPermissions, data: BaseStructureData, isClone?: boolean) {
     super(commandPermissions.client, undefined, isClone);
-    this.merge(data);
     this.commandPermissions = commandPermissions;
+    this.merge(data);
     Object.defineProperty(this, 'commandPermissions', {enumerable: false});
   }
 

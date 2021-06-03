@@ -19,6 +19,7 @@ import {
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
 import {
+  ApplicationCommand,
   InteractionDataApplicationCommand,
   InteractionDataApplicationCommandOption,
   InteractionDataApplicationCommandResolved,
@@ -37,6 +38,7 @@ import {
 
 export interface SlashCommandClientOptions extends ClusterClientOptions {
   activateOnEdits?: boolean,
+  checkCommands?: boolean,
   ignoreMe?: boolean,
   maxEditDuration?: number,
   mentionsEnabled?: boolean,
@@ -62,9 +64,10 @@ export interface SlashCommandClientRunOptions extends ClusterClientRunOptions {
 export class SlashCommandClient extends EventSpewer {
   readonly _clientSubscriptions: Array<EventSubscription> = [];
 
+  checkCommands: boolean = true;
   client: ClusterClient | ShardClient;
   commands = new BaseSet<SlashCommand>();
-  commandsChecked: boolean = false;
+  commandsVerified: boolean = false;
   ran: boolean = false;
 
   constructor(
@@ -73,6 +76,8 @@ export class SlashCommandClient extends EventSpewer {
   ) {
     super();
     options = Object.assign({useClusterClient: true}, options);
+
+    this.checkCommands = (options.checkCommands || options.checkCommands === undefined);
 
     if (process.env.CLUSTER_MANAGER === 'true') {
       token = process.env.CLUSTER_TOKEN as string;
@@ -213,13 +218,48 @@ export class SlashCommandClient extends EventSpewer {
 
   async checkApplicationCommands(): Promise<boolean> {
     if (!this.client.ran) {
-      return this.commandsChecked = false;
+      return this.commandsVerified = false;
     }
-    if (this.commandsChecked) {
+    if (this.commandsVerified) {
       return true;
     }
-    const commands = await this.rest.fetchApplicationCommands(this.client.applicationId);
-    return this.commandsChecked = true;
+    const commands = await this.fetchApplicationCommands();
+    for (let [commandId, command] of commands) {
+      const localCommand = this.commands.find((cmd) => cmd.name === command.name);
+      if (localCommand && localCommand.hash === command.hash) {
+        localCommand.ids.add(command.id);
+      }
+    }
+    for (let localCommand of this.commands) {
+      if (!localCommand.ids.length) {
+        return this.commandsVerified = false;
+      }
+    }
+    return this.commandsVerified = true;
+  }
+
+  async checkAndUploadCommands(): Promise<void> {
+    if (!await this.checkApplicationCommands()) {
+      await this.uploadApplicationCommands();
+    }
+  }
+
+  async fetchApplicationCommands(): Promise<BaseCollection<string, ApplicationCommand>> {
+    // add ability for ClusterManager checks
+    if (!this.client.ran) {
+      throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
+    }
+    return this.rest.fetchApplicationCommands(this.client.applicationId);
+  }
+
+  async uploadApplicationCommands(): Promise<BaseCollection<string, ApplicationCommand>> {
+    // add ability for ClusterManager
+    if (!this.client.ran) {
+      throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
+    }
+    return this.rest.bulkOverwriteApplicationCommands(this.client.applicationId, this.commands.map((command) => {
+      return Object.assign(command.toJSON(), {id: command.ids.first()});
+    }));
   }
 
   parseArgs(data: InteractionDataApplicationCommand): ParsedArgs {
@@ -271,7 +311,7 @@ export class SlashCommandClient extends EventSpewer {
             }; break;
           }
         }
-        args[option.name] = value;
+        args[name] = value;
       }
     }
     return args;
@@ -308,7 +348,9 @@ export class SlashCommandClient extends EventSpewer {
       return this.client;
     }
     await this.client.run(options);
-    await this.checkApplicationCommands();
+    if (this.checkCommands) {
+      await this.checkAndUploadCommands();
+    }
     Object.defineProperty(this, 'ran', {value: true});
     return this.client;
   }
@@ -337,6 +379,12 @@ export class SlashCommandClient extends EventSpewer {
     const context = new SlashContext(this, interaction, command, invoker);
     if (context.inDm) {
       // dm checks? maybe add ability to disable it in dm?
+      if (invoker.disableDm) {
+        const error = new Error('Command with DMs disabled used in DM');
+        const payload: SlashCommandEvents.CommandError = {command, context, error};
+        this.emit(ClientEvents.COMMAND_ERROR, payload);
+        return;
+      }
     } else {
       // check the bot's permissions in the server
       // should never be ignored since it's most likely the bot will rely on this permission to do whatever action

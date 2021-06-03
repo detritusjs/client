@@ -1,9 +1,10 @@
+import { ClusterIPCRestRequestTypes } from '../constants';
+import { Application } from '../structures/application';
+
 import {
   BaseClientCollection,
   BaseClientCollectionOptions,
 } from './basecollection';
-
-import { Application } from '../structures/application';
 
 
 export interface ApplicationsOptions extends BaseClientCollectionOptions {};
@@ -35,7 +36,11 @@ export class Applications extends BaseClientCollection<string, Application> {
         if (!this.shouldRefresh) {
           return;
         }
-        applications = await this.client.rest.raw.fetchApplicationsDetectable() as Array<any>;
+        if (this.client.cluster && this.client.cluster.manager) {
+          applications = await this.client.cluster.manager.restRequest(ClusterIPCRestRequestTypes.FETCH_APPLICATIONS) as Array<any>;
+        } else {
+          applications = await this.client.rest.raw.fetchApplicationsDetectable() as Array<any>;
+        }
         this.lastRefresh = Date.now();
       }
       this.clear();

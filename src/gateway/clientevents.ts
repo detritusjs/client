@@ -6,6 +6,7 @@ import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { ChannelTypes, ClientEvents } from '../constants';
 import {
+  ApplicationCommand,
   Channel,
   Emoji,
   Guild,
@@ -69,6 +70,19 @@ export namespace GatewayClientEvents {
 
   export interface ActivityStart {
 
+  }
+
+  export interface ApplicationCommandCreate {
+    _raw: GatewayRawEvents.ApplicationCommandCreate,
+    command: ApplicationCommand,
+  }
+
+  export interface ApplicationCommandDelete extends ApplicationCommandCreate {
+    _raw: GatewayRawEvents.ApplicationCommandDelete,
+  }
+
+  export interface ApplicationCommandUpdate extends ApplicationCommandCreate {
+    _raw: GatewayRawEvents.ApplicationCommandUpdate,
   }
 
   export interface BraintreePopupBridgeCallback {

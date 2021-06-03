@@ -11,6 +11,7 @@ import {
 import { GatewayError, GatewayHTTPError } from '../errors';
 
 import {
+  ApplicationCommand,
   createChannelFromData,
   Channel,
   ChannelDM,
@@ -296,6 +297,24 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.ACTIVITY_START](data: GatewayRawEvents.ActivityStart) {
 
+  }
+
+  [GatewayDispatchEvents.APPLICATION_COMMAND_CREATE](data: GatewayRawEvents.ApplicationCommandCreate) {
+    const command = new ApplicationCommand(this.client, data);
+    const payload: GatewayClientEvents.ApplicationCommandCreate = {_raw: data, command};
+    this.client.emit(ClientEvents.APPLICATION_COMMAND_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.APPLICATION_COMMAND_DELETE](data: GatewayRawEvents.ApplicationCommandDelete) {
+    const command = new ApplicationCommand(this.client, data);
+    const payload: GatewayClientEvents.ApplicationCommandDelete = {_raw: data, command};
+    this.client.emit(ClientEvents.APPLICATION_COMMAND_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.APPLICATION_COMMAND_UPDATE](data: GatewayRawEvents.ApplicationCommandUpdate) {
+    const command = new ApplicationCommand(this.client, data);
+    const payload: GatewayClientEvents.ApplicationCommandUpdate = {_raw: data, command};
+    this.client.emit(ClientEvents.APPLICATION_COMMAND_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK](data: GatewayRawEvents.BraintreePopupBridgeCallback) {
