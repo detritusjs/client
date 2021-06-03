@@ -110,8 +110,11 @@ export class Interaction extends BaseStructure {
     return this.client.rest.executeWebhook(this.applicationId, this.token, options);
   }
 
-  respond(options: RequestTypes.CreateInteractionResponse) {
-    return this.client.rest.createInteractionResponse(this.id, this.token, options);
+  respond(
+    options: RequestTypes.CreateInteractionResponse | number,
+    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+  ) {
+    return this.client.rest.createInteractionResponse(this.id, this.token, options, data);
   }
 
   mergeValue(key: string, value: any): void {

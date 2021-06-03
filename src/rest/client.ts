@@ -484,9 +484,10 @@ export class RestClient {
   createInteractionResponse(
     interactionId: string,
     token: string,
-    options: RequestTypes.CreateInteractionResponse,
+    options: RequestTypes.CreateInteractionResponse | number,
+    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
   ) {
-    return this.raw.createInteractionResponse(interactionId, token, options);
+    return this.raw.createInteractionResponse(interactionId, token, options, data);
   }
 
   createLobby(

@@ -22,7 +22,7 @@ const slashClient = new SlashCommandClient(cluster);
 slashClient.add({
   description: 'ping!',
   name: 'ping',
-  run: (context) => context.respond({data: {content: 'pong'}, type: InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE}),
+  run: (context) => context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, 'pong!'),
 });
 
 slashClient.add({
@@ -43,9 +43,9 @@ slashClient.add({
       run: (context, args) => {
         if (args.long) {
           // get long videos here
-          return context.respond({data: {content: 'cat video but long'}, type: InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE});
+          return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, 'cat video but long');
         }
-        return context.respond({data: {content: 'cat video'}, type: InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE});
+        return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, 'cat video');
       },
     },
   ],

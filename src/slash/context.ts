@@ -259,8 +259,11 @@ export class SlashContext {
     return this.fetchMessage('@original');
   }
 
-  respond(options: RequestTypes.CreateInteractionResponse) {
-    return this.rest.createInteractionResponse(this.id, this.token, options);
+  respond(
+    options: RequestTypes.CreateInteractionResponse | number,
+    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+  ) {
+    return this.rest.createInteractionResponse(this.id, this.token, options, data);
   }
 
   toJSON() {
