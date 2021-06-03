@@ -65,6 +65,7 @@ export class SlashCommandClient extends EventSpewer {
   client: ClusterClient | ShardClient;
   commands = new BaseSet<SlashCommand>();
   commandsChecked: boolean = false;
+  ran: boolean = false;
 
   constructor(
     token: ClusterClient | ShardClient | string,
@@ -98,11 +99,8 @@ export class SlashCommandClient extends EventSpewer {
     Object.defineProperties(this, {
       _clientSubscriptions: {enumerable: false, writable: false},
       client: {enumerable: false, writable: false},
+      ran: {configurable: true, writable: false},
     });
-  }
-
-  get ran(): boolean {
-    return this.client.ran;
   }
 
   get rest() {
@@ -214,7 +212,7 @@ export class SlashCommandClient extends EventSpewer {
   }
 
   async checkApplicationCommands(): Promise<boolean> {
-    if (!this.ran) {
+    if (!this.client.ran) {
       return this.commandsChecked = false;
     }
     if (this.commandsChecked) {
@@ -307,11 +305,11 @@ export class SlashCommandClient extends EventSpewer {
     options: SlashCommandClientRunOptions = {},
   ): Promise<ClusterClient | ShardClient> {
     if (this.ran) {
-      await this.checkApplicationCommands();
       return this.client;
     }
     await this.client.run(options);
     await this.checkApplicationCommands();
+    Object.defineProperty(this, 'ran', {value: true});
     return this.client;
   }
 
