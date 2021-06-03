@@ -14,6 +14,7 @@ import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
 import { AuthTypes, ClientEvents, SocketStates, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { GatewayClientEvents } from './gateway/clientevents';
+import { SlashCommandClient } from './slashcommandclient';
 
 
 export interface ClusterClientOptions extends ShardClientOptions {
@@ -39,6 +40,7 @@ export class ClusterClient extends EventSpewer {
   readonly commandClient: CommandClient | null = null;
   readonly manager: ClusterProcessChild | null = null;
   readonly rest: DetritusRestClient;
+  readonly slashCommandClient: SlashCommandClient | null = null;
 
   buckets = new BaseCollection<number, Bucket>();
   maxConcurrency: number = 1;
@@ -122,6 +124,10 @@ export class ClusterClient extends EventSpewer {
       shardOptions: {enumerable: false, writable: false},
       token: {enumerable: false, writable: false},
     });
+  }
+
+  get applicationId(): string {
+    return (this.shards.length) ? this.shards.first()!.applicationId : '';
   }
 
   setShardCount(value: number): void {

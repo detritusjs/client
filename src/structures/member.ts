@@ -26,9 +26,11 @@ export type MemberOrUser = Member | User;
 
 
 const keysMember = new BaseSet<string>([
+  DiscordKeys.AVATAR,
   DiscordKeys.DEAF,
   DiscordKeys.GUILD_ID,
   DiscordKeys.HOISTED_ROLE,
+  DiscordKeys.IS_PENDING,
   DiscordKeys.JOINED_AT,
   DiscordKeys.MUTE,
   DiscordKeys.NICK,
@@ -56,12 +58,14 @@ export class Member extends UserMixin {
   readonly _keys = keysMember;
   readonly _keysMerge = keysMergeMember;
   readonly _keysSkipDifference = keysSkipDifferenceMember;
+  _avatar: null | string = null;
   _roles?: Array<string>;
   _permissions?: bigint = 0n;
 
   deaf: boolean = false;
   guildId: string = '';
   hoistedRoleId: null | string = null;
+  isPending: boolean = false;
   joinedAtUnix: number = 0;
   left: boolean = false;
   mute: boolean = false;
@@ -78,6 +82,10 @@ export class Member extends UserMixin {
     super(client, undefined, isClone);
     this.merge(data);
     Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
+  }
+
+  get avatar(): null | string {
+    return this._avatar || this.user.avatar;
   }
 
   get canAdministrator(): boolean {
@@ -456,6 +464,9 @@ export class Member extends UserMixin {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case DiscordKeys.AVATAR: {
+          this._avatar = value;
+        }; return;
         case DiscordKeys.HOISTED_ROLE: {
           this.hoistedRoleId = value;
         }; return;
@@ -502,7 +513,7 @@ export class Member extends UserMixin {
         data[DiscordKeys.HOISTED_ROLE] = this.hoistedRoleId;
       }
       if (DiscordKeys.ROLES in data) {
-        data[DiscordKeys.ROLES] = Array.from(data.roles.keys());
+        data[DiscordKeys.ROLES] = Array.from(this.roles.keys());
       }
     }
     return data;

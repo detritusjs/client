@@ -226,7 +226,7 @@ export class Emoji extends BaseStructure {
             user = new User(this.client, value);
           } else {
             if (this.client.users.has(value.id)) {
-              user = <User> this.client.users.get(value.id);
+              user = this.client.users.get(value.id)!;
               user.merge(value);
             } else {
               user = new User(this.client, value);
@@ -248,7 +248,7 @@ export class Emoji extends BaseStructure {
     const data = super.toJSON() as any;
     if (!withRoles) {
       if (DiscordKeys.ROLES in data) {
-        data[DiscordKeys.ROLES] = Array.from(data.roles.keys());
+        data[DiscordKeys.ROLES] = Array.from(this.roles.keys());
       }
     }
     return data;

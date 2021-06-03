@@ -12,6 +12,8 @@ import { ClientEvents } from '../constants';
 
 import {
   Application,
+  ApplicationCommand,
+  ApplicationCommandPermissions,
   ApplicationNews,
   AuditLog,
   Channel,
@@ -270,27 +272,48 @@ export class RestClient {
     return this.raw.bulkDeleteMessages(channelId, messageIds);
   }
 
-  bulkOverwriteApplicationCommands(
+  async bulkOverwriteApplicationCommands(
     applicationId: string,
     commands: Array<RequestTypes.CreateApplicationCommand>,
-  ) {
-    return this.raw.bulkOverwriteApplicationCommands(applicationId, commands);
+  ): Promise<BaseCollection<string, ApplicationCommand>> {
+    const data = await this.raw.bulkOverwriteApplicationCommands(applicationId, commands);
+    const collection = new BaseCollection<string, ApplicationCommand>();
+
+    for (let raw of data) {
+      const command = new ApplicationCommand(this.client, raw);
+      collection.set(command.id, command);
+    }
+    return collection;
   }
 
-  bulkOverwriteApplicationGuildCommands(
+  async bulkOverwriteApplicationGuildCommands(
     applicationId: string,
     guildId: string,
     commands: Array<RequestTypes.CreateApplicationGuildCommand>,
-  ) {
-    return this.raw.bulkOverwriteApplicationGuildCommands(applicationId, guildId, commands);
+  ): Promise<BaseCollection<string, ApplicationCommand>> {
+    const data = await this.raw.bulkOverwriteApplicationGuildCommands(applicationId, guildId, commands);
+    const collection = new BaseCollection<string, ApplicationCommand>();
+
+    for (let raw of data) {
+      const command = new ApplicationCommand(this.client, raw);
+      collection.set(command.id, command);
+    }
+    return collection;
   }
 
-  bulkOverwriteApplicationGuildCommandsPermissions(
+  async bulkOverwriteApplicationGuildCommandsPermissions(
     applicationId: string,
     guildId: string,
-    permissions: Array<RequestTypes.EditApplicationGuildCommandPermission>,
-  ) {
-    return this.raw.bulkOverwriteApplicationGuildCommandsPermissions(applicationId, guildId, permissions);
+    permissions: RequestTypes.BulkOverwriteApplicationGuildCommandsPermissions,
+  ): Promise<BaseCollection<string, ApplicationCommandPermissions>> {
+    const data = await this.raw.bulkOverwriteApplicationGuildCommandsPermissions(applicationId, guildId, permissions);
+    const collection = new BaseCollection<string, ApplicationCommandPermissions>();
+
+    for (let raw of data) {
+      const commandPermissions = new ApplicationCommandPermissions(this.client, raw);
+      collection.set(commandPermissions.id, commandPermissions);
+    }
+    return collection;
   }
 
   connectionCallback(
@@ -818,30 +841,33 @@ export class RestClient {
     return this.raw.disableAccount(options);
   }
 
-  editApplicationCommand(
+  async editApplicationCommand(
     applicationId: string,
     commandId: string,
     options: RequestTypes.EditApplicationCommand = {},
-  ) {
-    return this.raw.editApplicationCommand(applicationId, commandId, options);
+  ): Promise<ApplicationCommand>{
+    const data = await this.raw.editApplicationCommand(applicationId, commandId, options);
+    return new ApplicationCommand(this.client, data);
   }
 
-  editApplicationGuildCommand(
+  async editApplicationGuildCommand(
     applicationId: string,
     guildId: string,
     commandId: string,
     options: RequestTypes.EditApplicationGuildCommand = {},
-  ) {
-    return this.raw.editApplicationGuildCommand(applicationId, guildId, commandId, options);
+  ): Promise<ApplicationCommand> {
+    const data = await this.raw.editApplicationGuildCommand(applicationId, guildId, commandId, options);
+    return new ApplicationCommand(this.client, data);
   }
 
-  editApplicationGuildCommandPermissions(
+  async editApplicationGuildCommandPermissions(
     applicationId: string,
     guildId: string,
     commandId: string,
     options: RequestTypes.EditApplicationGuildCommandPermissions,
-  ) {
-    return this.raw.editApplicationGuildCommandPermissions(applicationId, guildId, commandId, options);
+  ): Promise<ApplicationCommandPermissions> {
+    const data = await this.raw.editApplicationGuildCommandPermissions(applicationId, guildId, commandId, options);
+    return new ApplicationCommandPermissions(this.client, data);
   }
 
   editApplicationNews(
@@ -1217,47 +1243,71 @@ export class RestClient {
     return this.raw.fetchActivities();
   }
 
-  fetchApplicationCommands(
+  async fetchApplicationCommands(
     applicationId: string,
-  ) {
-    return this.raw.fetchApplicationCommands(applicationId);
+  ): Promise<BaseCollection<string, ApplicationCommand>> {
+    const data = await this.raw.fetchApplicationCommands(applicationId);
+    const collection = new BaseCollection<string, ApplicationCommand>();
+
+    for (let raw of data) {
+      const command = new ApplicationCommand(this.client, raw);
+      collection.set(command.id, command);
+    }
+    return collection;
   }
 
-  fetchApplicationCommand(
+  async fetchApplicationCommand(
     applicationId: string,
     commandId: string,
-  ) {
-    return this.raw.fetchApplicationCommand(applicationId, commandId);
+  ): Promise<ApplicationCommand>{
+    const data = await this.raw.fetchApplicationCommand(applicationId, commandId);
+    return new ApplicationCommand(this.client, data);
   }
 
-  fetchApplicationGuildCommands(
+  async fetchApplicationGuildCommands(
     applicationId: string,
     guildId: string,
-  ) {
-    return this.raw.fetchApplicationGuildCommands(applicationId, guildId);
+  ): Promise<BaseCollection<string, ApplicationCommand>> {
+    const data = await this.raw.fetchApplicationGuildCommands(applicationId, guildId);
+    const collection = new BaseCollection<string, ApplicationCommand>();
+
+    for (let raw of data) {
+      const command = new ApplicationCommand(this.client, raw);
+      collection.set(command.id, command);
+    }
+    return collection;
   }
 
-  fetchApplicationGuildCommandsPermissions(
+  async fetchApplicationGuildCommandsPermissions(
     applicationId: string,
     guildId: string,
-  ) {
-    return this.raw.fetchApplicationGuildCommandsPermissions(applicationId, guildId);
+  ): Promise<BaseCollection<string, ApplicationCommandPermissions>> {
+    const data = await this.raw.fetchApplicationGuildCommandsPermissions(applicationId, guildId);
+    const collection = new BaseCollection<string, ApplicationCommandPermissions>();
+
+    for (let raw of data) {
+      const commandPermissions = new ApplicationCommandPermissions(this.client, raw);
+      collection.set(commandPermissions.id, commandPermissions);
+    }
+    return collection;
   }
 
-  fetchApplicationGuildCommand(
+  async fetchApplicationGuildCommand(
     applicationId: string,
     guildId: string,
     commandId: string,
-  ) {
-    return this.raw.fetchApplicationGuildCommand(applicationId, guildId, commandId);
+  ): Promise<ApplicationCommand> {
+    const data = await this.raw.fetchApplicationGuildCommand(applicationId, guildId, commandId);
+    return new ApplicationCommand(this.client, data);
   }
 
-  fetchApplicationGuildCommandPermissions(
+  async fetchApplicationGuildCommandPermissions(
     applicationId: string,
     guildId: string,
     commandId: string,
-  ) {
-    return this.raw.fetchApplicationGuildCommandPermissions(applicationId, guildId, commandId);
+  ): Promise<ApplicationCommandPermissions> {
+    const data = await this.raw.fetchApplicationGuildCommandPermissions(applicationId, guildId, commandId);
+    return new ApplicationCommandPermissions(this.client, data);
   }
 
   async fetchApplicationNews(

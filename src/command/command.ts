@@ -78,7 +78,7 @@ export interface CommandOptions extends ArgumentOptions {
   args?: Array<ArgumentOptions>,
   disableDm?: boolean,
   disableDmReply?: boolean,
-  metadata?: {[key: string]: any},
+  metadata?: Record<string, any>,
   name: string,
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
@@ -117,7 +117,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   arg: Argument;
   disableDm: boolean = false;
   disableDmReply: boolean = false;
-  metadata: {[key: string]: any} = {};
+  metadata: Record<string, any> = {};
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean = false;
@@ -185,7 +185,6 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
 
     Object.defineProperties(this, {
       _file: {configurable: true, writable: false},
-      client: {enumerable: false, writable: false},
       commandClient: {enumerable: false, writable: false},
     });
 

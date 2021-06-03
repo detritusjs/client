@@ -56,6 +56,10 @@ export class Context {
     return this.client.application;
   }
 
+  get applicationId() {
+    return this.client.applicationId;
+  }
+
   get cluster(): ClusterClient | null {
     return this.client.cluster;
   }

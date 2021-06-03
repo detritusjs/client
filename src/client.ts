@@ -303,11 +303,15 @@ export class ShardClient extends EventSpewer {
     this.voiceStates = options.pass.voiceStates || new VoiceStates(this, options.cache.voiceStates);
   }
 
-  get clientId(): string {
+  get applicationId(): string {
     if (this.application) {
       return this.application.id;
     }
     return this.userId;
+  }
+
+  get clientId(): string {
+    return this.applicationId;
   }
 
   get isBot(): boolean {

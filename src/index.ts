@@ -3,6 +3,7 @@ import { Endpoints } from 'detritus-client-rest';
 import * as Collections from './collections';
 import * as Command from './command';
 import * as Constants from './constants';
+import * as Slash from './slash';
 import * as Structures from './structures';
 import * as Utils from './utils';
 
@@ -11,6 +12,7 @@ export {
   Command,
   Constants,
   Endpoints,
+  Slash,
   Structures,
   Utils,
 };
@@ -22,3 +24,4 @@ export * from './gateway/clientevents';
 export * from './gateway/rawevents';
 export * from './media/mediaevents';
 export * from './media/rawevents';
+export * from './slashcommandclient';

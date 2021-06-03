@@ -1,4 +1,5 @@
 export * from './application';
+export * from './applicationcommand';
 export * from './applicationnews';
 export * from './attachment';
 export * from './auditlog';

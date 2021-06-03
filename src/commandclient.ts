@@ -73,7 +73,7 @@ export interface CommandReply {
 
 
 /**
- * Command Client, hooks onto the ShardClient to provide easier command handling
+ * Command Client, hooks onto a ClusterClient or ShardClient to provide easier command handling
  * Flow is `onMessageCheck` -> `onPrefixCheck` -> `onCommandCheck`
  * @category Clients
  */
@@ -90,7 +90,6 @@ export class CommandClient extends EventSpewer {
     custom: BaseSet<string>,
     mention: BaseSet<string>,
   };
-  ran: boolean;
   ratelimits: Array<CommandRatelimit> = [];
   ratelimiter = new CommandRatelimiter();
   replies: BaseCollection<string, CommandReply>;
@@ -100,7 +99,7 @@ export class CommandClient extends EventSpewer {
   onPrefixCheck?(context: Context): CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
   constructor(
-    token: ShardClient | string,
+    token: ClusterClient | ShardClient | string,
     options: CommandClientOptions = {},
   ) {
     super();
@@ -137,7 +136,6 @@ export class CommandClient extends EventSpewer {
       custom: new BaseSet<string>(),
       mention: new BaseSet<string>(),
     });
-    this.ran = this.client.ran;
     this.replies = new BaseCollection({expire: this.maxEditDuration});
 
     this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
@@ -199,6 +197,10 @@ export class CommandClient extends EventSpewer {
       ran: {configurable: true, writable: false},
       replies: {enumerable: false, writable: false},
     });
+  }
+
+  get ran(): boolean {
+    return this.client.ran;
   }
 
   get rest() {
@@ -475,7 +477,6 @@ export class CommandClient extends EventSpewer {
       return this.client;
     }
     await this.client.run(options);
-    Object.defineProperty(this, 'ran', {value: true});
     this.addMentionPrefixes();
     return this.client;
   }
