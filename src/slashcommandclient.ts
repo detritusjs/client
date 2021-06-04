@@ -69,7 +69,6 @@ export class SlashCommandClient extends EventSpewer {
   checkCommands: boolean = true;
   client: ClusterClient | ShardClient;
   commands = new BaseSet<SlashCommand>();
-  commandsVerified: boolean = false;
   ran: boolean = false;
 
   constructor(
@@ -122,6 +121,17 @@ export class SlashCommandClient extends EventSpewer {
 
   get rest() {
     return this.client.rest;
+  }
+
+  get shouldCheckCommands(): boolean {
+    if (this.checkCommands) {
+      if (this.manager) {
+        // only should check on the first cluster process
+        return this.manager.clusterId === 0;
+      }
+      return true;
+    }
+    return false;
   }
 
   /* Generic Command Function */
@@ -243,10 +253,7 @@ export class SlashCommandClient extends EventSpewer {
 
   async checkApplicationCommands(): Promise<boolean> {
     if (!this.client.ran) {
-      return this.commandsVerified = false;
-    }
-    if (this.commandsVerified) {
-      return true;
+      return false;
     }
     const commands = await this.fetchApplicationCommands();
     for (let [commandId, command] of commands) {
@@ -257,10 +264,10 @@ export class SlashCommandClient extends EventSpewer {
     }
     for (let localCommand of this.commands) {
       if (!localCommand.ids.length) {
-        return this.commandsVerified = false;
+        return false;
       }
     }
-    return this.commandsVerified = true;
+    return true;
   }
 
   async checkAndUploadCommands(): Promise<void> {
@@ -386,7 +393,7 @@ export class SlashCommandClient extends EventSpewer {
       return this.client;
     }
     await this.client.run(options);
-    if (this.checkCommands) {
+    if (this.shouldCheckCommands) {
       await this.checkAndUploadCommands();
     }
     Object.defineProperty(this, 'ran', {value: true});

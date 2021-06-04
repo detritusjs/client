@@ -21,7 +21,7 @@ export class ClusterProcessChild extends EventSpewer {
   readonly cluster: ClusterClient;
 
   clusterCount: number = 1;
-  clusterId: number = -1;
+  clusterId: number = 0;
 
   constructor(cluster: ClusterClient) {
     super();

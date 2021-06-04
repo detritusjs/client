@@ -130,6 +130,10 @@ export class ClusterClient extends EventSpewer {
     return (this.shards.length) ? this.shards.first()!.applicationId : '';
   }
 
+  get clusterId(): number {
+    return (this.manager) ? this.manager.clusterId : 0;
+  }
+
   setShardCount(value: number): void {
     Object.defineProperty(this, 'shardCount', {value});
   }
