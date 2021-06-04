@@ -8,10 +8,12 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
+import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection, BaseSet } from './collections';
 import {
   ApplicationCommandOptionTypes,
   ClientEvents,
+  ClusterIPCRestRequestTypes,
   InteractionTypes,
   Permissions,
   IS_TS_NODE,
@@ -80,8 +82,14 @@ export class SlashCommandClient extends EventSpewer {
     this.checkCommands = (options.checkCommands || options.checkCommands === undefined);
 
     if (process.env.CLUSTER_MANAGER === 'true') {
-      token = process.env.CLUSTER_TOKEN as string;
       options.useClusterClient = true;
+      if (token instanceof ClusterClient) {
+        if (process.env.CLUSTER_TOKEN !== token.token) {
+          throw new Error('Cluster Client must have matching tokens with the Manager!');
+        }
+      } else {
+        token = process.env.CLUSTER_TOKEN as string;
+      }
     }
 
     let client: ClusterClient | ShardClient;
@@ -106,6 +114,10 @@ export class SlashCommandClient extends EventSpewer {
       client: {enumerable: false, writable: false},
       ran: {configurable: true, writable: false},
     });
+  }
+
+  get manager(): ClusterProcessChild | null {
+    return (this.client instanceof ClusterClient) ? this.client.manager : null;
   }
 
   get rest() {
@@ -216,6 +228,19 @@ export class SlashCommandClient extends EventSpewer {
     return this;
   }
 
+  clear(): void {
+    for (let command of this.commands) {
+      if (command._file) {
+        const requirePath = require.resolve(command._file);
+        if (requirePath) {
+          delete require.cache[requirePath];
+        }
+      }
+    }
+    this.commands.clear();
+    this.resetSubscriptions();
+  }
+
   async checkApplicationCommands(): Promise<boolean> {
     if (!this.client.ran) {
       return this.commandsVerified = false;
@@ -249,7 +274,20 @@ export class SlashCommandClient extends EventSpewer {
     if (!this.client.ran) {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
-    return this.rest.fetchApplicationCommands(this.client.applicationId);
+    let data: Array<any>;
+    if (this.manager) {
+      data = await this.manager.restRequest(ClusterIPCRestRequestTypes.FETCH_COMMANDS, {applicationId: this.client.applicationId});
+    } else {
+      data = await this.rest.fetchApplicationCommands(this.client.applicationId);
+    }
+    const collection = new BaseCollection<string, ApplicationCommand>();
+
+    const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
+    for (let raw of data) {
+      const command = new ApplicationCommand(shard, raw);
+      collection.set(command.id, command);
+    }
+    return collection;
   }
 
   async uploadApplicationCommands(): Promise<BaseCollection<string, ApplicationCommand>> {

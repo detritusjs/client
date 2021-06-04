@@ -107,8 +107,14 @@ export class CommandClient extends EventSpewer {
     options = Object.assign({useClusterClient: true}, options);
 
     if (process.env.CLUSTER_MANAGER === 'true') {
-      token = process.env.CLUSTER_TOKEN as string;
       options.useClusterClient = true;
+      if (token instanceof ClusterClient) {
+        if (process.env.CLUSTER_TOKEN !== token.token) {
+          throw new Error('Cluster Client must have matching tokens with the Manager!');
+        }
+      } else {
+        token = process.env.CLUSTER_TOKEN as string;
+      }
     }
 
     let client: ClusterClient | ShardClient;

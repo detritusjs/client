@@ -53,7 +53,7 @@ export class ClusterProcessChild extends EventSpewer {
         if (this._shardsIdentifying.has(shardId)) {
           return true;
         } else {
-          await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId: shard.shardId});
+          await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
         }
         return false;
       };

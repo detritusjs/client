@@ -140,6 +140,7 @@ export class ClusterProcess extends EventSpewer {
                     payload.result = await payload.promise;
                     payload.promise = undefined;
                   }
+                  this.manager.restCache.delete(data.type);
                   await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
                     result: payload.result,
                     type: data.type,
@@ -161,6 +162,7 @@ export class ClusterProcess extends EventSpewer {
                     payload.result = await payload.promise;
                     payload.promise = undefined;
                   }
+                  this.manager.restCache.delete(data.type);
                   await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
                     result: payload.result,
                     type: data.type,
