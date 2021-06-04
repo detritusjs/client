@@ -104,8 +104,11 @@ export class ClusterClient extends EventSpewer {
     this.shardOptions.pass = Object.assign({}, this.shardOptions.pass);
     this.shardOptions.pass.cluster = this;
 
-    if (this.shardOptions.pass.commandClient !== undefined) {
+    if (this.shardOptions.pass.commandClient) {
       this.commandClient = this.shardOptions.pass.commandClient;
+    }
+    if (this.shardOptions.pass.slashCommandClient) {
+      this.slashCommandClient = this.shardOptions.pass.slashCommandClient;
     }
 
     if (isUsingClusterManager) {
@@ -122,6 +125,7 @@ export class ClusterClient extends EventSpewer {
       shardStart: {configurable: true, writable: false},
       shards: {writable: false},
       shardOptions: {enumerable: false, writable: false},
+      slashCommandClient: {enumerable: false, writable: false},
       token: {enumerable: false, writable: false},
     });
   }
@@ -250,9 +254,14 @@ export class ClusterClient extends EventSpewer {
 
       const shardOptions = Object.assign({}, this.shardOptions);
       shardOptions.gateway = Object.assign({}, shardOptions.gateway, {shardCount, shardId});
-      if (this.commandClient) {
+      if (this.commandClient || this.slashCommandClient) {
         shardOptions.pass = Object.assign({}, shardOptions.pass);
-        shardOptions.pass.commandClient = this.commandClient;
+        if (this.commandClient) {
+          shardOptions.pass.commandClient = this.commandClient;
+        }
+        if (this.slashCommandClient) {
+          shardOptions.pass.slashCommandClient = this.slashCommandClient;
+        }
       }
 
       const shard = new ShardClient(this.token, shardOptions);

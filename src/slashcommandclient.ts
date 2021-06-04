@@ -10,6 +10,7 @@ import {
 } from './clusterclient';
 import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection, BaseSet } from './collections';
+import { CommandClient } from './commandclient';
 import {
   ApplicationCommandOptionTypes,
   ClientEvents,
@@ -72,13 +73,17 @@ export class SlashCommandClient extends EventSpewer {
   ran: boolean = false;
 
   constructor(
-    token: ClusterClient | ShardClient | string,
+    token: ClusterClient | CommandClient | ShardClient | string,
     options: SlashCommandClientOptions = {},
   ) {
     super();
     options = Object.assign({useClusterClient: true}, options);
 
     this.checkCommands = (options.checkCommands || options.checkCommands === undefined);
+
+    if (token instanceof CommandClient) {
+      token = token.client;
+    }
 
     if (process.env.CLUSTER_MANAGER === 'true') {
       options.useClusterClient = true;

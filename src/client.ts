@@ -7,6 +7,9 @@ import { EventSpewer, EventSubscription, Timers } from 'detritus-utils';
 
 import { ClusterClient } from './clusterclient';
 import { CommandClient } from './commandclient';
+import { RestClient } from './rest';
+import { SlashCommandClient } from './slashcommandclient';
+
 import {
   AuthTypes,
   ClientEvents,
@@ -15,7 +18,6 @@ import {
 } from './constants';
 import { ChunkWaiting, GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
 import { GatewayClientEvents } from './gateway/clientevents';
-import { RestClient } from './rest';
 
 import { BaseCollection } from './collections/basecollection';
 import { BaseSet } from './collections/baseset';
@@ -100,6 +102,7 @@ export interface ShardClientCacheOptions {
 export interface ShardClientPassOptions {
   cluster?: ClusterClient,
   commandClient?: CommandClient,
+  slashCommandClient?: SlashCommandClient,
   applications?: Applications,
   channels?: Channels,
   connectedAccounts?: ConnectedAccounts,
@@ -161,6 +164,7 @@ export class ShardClient extends EventSpewer {
   application: Oauth2Application | null = null;
   cluster: ClusterClient | null = null;
   commandClient: CommandClient | null = null;
+  slashCommandClient: SlashCommandClient | null = null;
 
   /** Default Image Format to use for any url getters*/
   imageFormat: ImageFormats = ImageFormats.PNG;
@@ -231,6 +235,8 @@ export class ShardClient extends EventSpewer {
     }
     this.cluster = options.pass.cluster || this.cluster;
     this.commandClient = options.pass.commandClient || this.commandClient;
+    this.slashCommandClient = options.pass.slashCommandClient || this.slashCommandClient;
+
     this.gateway = new Gateway.Socket(token, options.gateway);
     this.gatewayHandler = new GatewayHandler(this, options.gateway);
     this.rest = new RestClient(token, Object.assign({
@@ -241,7 +247,7 @@ export class ShardClient extends EventSpewer {
       this._isBot = !!options.isBot;
     }
     if (options.imageFormat) {
-      const imageFormat = <ImageFormats> <unknown> options.imageFormat.toLowerCase();
+      const imageFormat = options.imageFormat.toLowerCase() as unknown as ImageFormats;
       if (!IMAGE_FORMATS.includes(imageFormat)) {
         throw new Error(`Image format must be one of ${JSON.stringify(IMAGE_FORMATS)}`);
       }
@@ -256,6 +262,7 @@ export class ShardClient extends EventSpewer {
       gateway: {enumerable: false, writable: false},
       ran: {configurable: true, writable: false},
       rest: {enumerable: false, writable: false},
+      slashCommandClient: {configurable: true, enumerable: false, writable: false},
       token: {enumerable: false, writable: false},
     });
 

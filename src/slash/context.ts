@@ -60,6 +60,10 @@ export class SlashContext {
     return this.client.cluster;
   }
 
+  get commandClient() {
+    return this.client.commandClient;
+  }
+
   get gateway() {
     return this.client.gateway;
   }

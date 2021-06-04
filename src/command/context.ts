@@ -88,6 +88,10 @@ export class Context {
     return this.client.shardId;
   }
 
+  get slashCommandClient() {
+    return this.client.slashCommandClient;
+  }
+
   get response(): Message | null {
     if (this.commandClient.replies.has(this.messageId)) {
       const { reply } = this.commandClient.replies.get(this.messageId) as CommandReply;
