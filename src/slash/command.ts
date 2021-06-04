@@ -375,6 +375,10 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     this.run = data.run || this.run;
     this.onRunError = data.onRunError || this.onRunError;
     this.onSuccess = data.onSuccess || this.onSuccess;
+
+    if (typeof(this.run) === 'function') {
+      this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
+    }
   }
 
   get _choicesKey(): string {
@@ -438,9 +442,9 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
             if (!this._options.has(name)) {
               return null;
             }
-            const x = this._options.get(name)!;
-            if (x.isSubCommand || x.isSubCommandGroup) {
-              return x.getInvoker(option);
+            const localCommand = this._options.get(name)!;
+            if (localCommand.isSubCommand || localCommand.isSubCommandGroup) {
+              return localCommand.getInvoker(x);
             }
           }
         }
