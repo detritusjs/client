@@ -219,6 +219,7 @@ export class ClusterClient extends EventSpewer {
     if (this.ran) {
       return this;
     }
+    Object.defineProperty(this, 'ran', {value: true});
     options = Object.assign({
       delay: DEFAULT_SHARD_LAUNCH_DELAY,
       url: process.env.GATEWAY_URL,
@@ -307,7 +308,6 @@ export class ClusterClient extends EventSpewer {
     for (let [shardId, shard] of this.shards) {
       await shard.run(options);
     }
-    Object.defineProperty(this, 'ran', {value: true});
     this.emit(ClientEvents.READY);
     return this;
   }

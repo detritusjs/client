@@ -496,11 +496,15 @@ export class ShardClient extends EventSpewer {
   async run(
     options: ShardClientRunOptions = {},
   ): Promise<ShardClient> {
+    if (this.ran) {
+      return this;
+    }
+    Object.defineProperty(this, 'ran', {value: true});
     const wait = options.wait || options.wait === undefined;
 
     let url: string;
     if (options.url) {
-      url = <string> options.url;
+      url = options.url as string;
     } else {
       const data = await this.rest.fetchGateway();
       url = data.url;
@@ -513,7 +517,6 @@ export class ShardClient extends EventSpewer {
         this.once(ClientEvents.KILLED, ({error}) => reject(error));
       });
     }
-    Object.defineProperty(this, 'ran', {value: true});
     return this;
   }
 
