@@ -214,14 +214,17 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   }
 
   get hasRun(): boolean {
-    if (this.isGroup) {
-      return (this.options) ? this.options.some((option) => option.hasRun) : false;
+    if (this.isGroup && this._options) {
+      return this._options.every((option) => option.hasRun);
     }
     return typeof(this.run) === 'function';
   }
 
   get isGroup(): boolean {
-    return (this.options) ? this.options.some((option) => option.isSubCommand || option.isSubCommandGroup) : false;
+    if (this._options) {
+      return this._options.some((option) => option.isSubCommand || option.isSubCommandGroup);
+    }
+    return false;
   }
 
   get key(): string {
@@ -386,9 +389,12 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     if (this.isSubCommand) {
       return typeof(this.run) === 'function';
     } else if (this.isSubCommandGroup) {
-      return (this.options) ? this.options.some((option) => option.hasRun) : false;
+      if (this._options) {
+        return this._options.every((option) => option.hasRun);
+      }
+      return false;
     }
-    return false;
+    return true;
   }
 
   get isSubCommand(): boolean {
@@ -433,7 +439,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
               return null;
             }
             const x = this._options.get(name)!;
-            if (x.isSubCommandGroup) {
+            if (x.isSubCommand || x.isSubCommandGroup) {
               return x.getInvoker(option);
             }
           }
