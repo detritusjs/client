@@ -1232,7 +1232,7 @@ export class RestClient {
     compatibleType?: string,
   ): Promise<Message | null> {
     const data = await this.raw.executeWebhook(webhookId, webhookToken, options, compatibleType);
-    if (typeof(options) !== 'string' && options.wait) {
+    if (data) {
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
       return message;

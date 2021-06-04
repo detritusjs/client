@@ -231,7 +231,7 @@ export class SlashContext {
     return null;
   }
 
-  createMessage(options: RequestTypes.ExecuteWebhook = {}) {
+  createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
     return this.rest.executeWebhook(this.applicationId, this.token, options);
   }
 

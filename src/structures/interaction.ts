@@ -94,6 +94,10 @@ export class Interaction extends BaseStructure {
     return this.user.id;
   }
 
+  createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
+    return this.client.rest.executeWebhook(this.applicationId, this.token, options);
+  }
+
   deleteMessage(messageId: string) {
     return this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId);
   }
@@ -106,8 +110,8 @@ export class Interaction extends BaseStructure {
     return this.client.rest.fetchWebhookTokenMessage(this.applicationId, this.token, messageId);
   }
 
-  reply(options: RequestTypes.ExecuteWebhook) {
-    return this.client.rest.executeWebhook(this.applicationId, this.token, options);
+  reply(options: RequestTypes.ExecuteWebhook | string = {}) {
+    return this.createMessage(options);
   }
 
   respond(

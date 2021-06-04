@@ -74,7 +74,7 @@ export interface SlashCommandOptions {
   defaultPermission?: boolean,
   description?: string,
   name?: string,
-  options?: Array<SlashCommandOption | SlashCommandOptionOptions>,
+  options?: Array<SlashCommandOption | SlashCommandOptionOptions | typeof SlashCommandOption>,
 
   disableDm?: boolean,
   disableDmReply?: boolean,
@@ -96,12 +96,13 @@ export interface SlashCommandOptions {
 }
 
 export interface SlashCommandOptionOptions {
+  _file?: string,
   choices?: Array<SlashCommandOptionChoice | SlashCommandOptionChoiceOptions>,
   description?: string,
   name?: string,
-  options?: Array<SlashCommandOption | SlashCommandOptionOptions>,
+  options?: Array<SlashCommandOption | SlashCommandOptionOptions | typeof SlashCommandOption>,
   required?: boolean,
-  type?: ApplicationCommandOptionTypes | String | Boolean | Number | string,
+  type?: ApplicationCommandOptionTypes | StringConstructor | BooleanConstructor | NumberConstructor | string,
 
   disableDm?: boolean,
   disableDmReply?: boolean,
@@ -287,7 +288,14 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
           }
           this._options.clear();
           for (let raw of value) {
-            const option = (raw instanceof SlashCommandOption) ? raw : new SlashCommandOption(raw);
+            let option: SlashCommandOption;
+            if (typeof(raw) === 'function') {
+              option = new raw();
+            } else if (raw instanceof SlashCommandOption) {
+              option = raw;
+            } else {
+              option = new SlashCommandOption(raw)
+            }
             this._options.set(option.name, option);
           }
         } else {
@@ -310,6 +318,7 @@ const keysSlashCommandOption = new BaseSet<string>([
 ]);
 
 export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structure {
+  readonly _file?: string;
   readonly _keys = keysSlashCommandOption;
   _options?: BaseCollection<string, SlashCommandOption>;
 
@@ -345,6 +354,13 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = !!data.permissionsIgnoreClientOwner;
+
+    if (data._file) {
+      this._file = data._file;
+    }
+    Object.defineProperties(this, {
+      _file: {configurable: true, writable: false},
+    });
 
     this.onBefore = data.onBefore || this.onBefore;
     this.onBeforeRun = data.onBeforeRun || this.onBeforeRun;
@@ -444,11 +460,18 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     return choice;
   }
 
-  addOption(value: SlashCommandOption | SlashCommandOptions): SlashCommandOption {
+  addOption(value: SlashCommandOption | SlashCommandOptions | typeof SlashCommandOption): SlashCommandOption {
     if (!this.options) {
       this.options = [];
     }
-    const option = (value instanceof SlashCommandOption) ? value : new SlashCommandOption(value);
+    let option: SlashCommandOption;
+    if (typeof(value) === 'function') {
+      option = new value();
+    } else if (value instanceof SlashCommandOption) {
+      option = value;
+    } else {
+      option = new SlashCommandOption(value)
+    }
     this.options.push(option);
     return option;
   }
@@ -507,7 +530,14 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
           }
           this._options.clear();
           for (let raw of value) {
-            const option = (raw instanceof SlashCommandOption) ? raw : new SlashCommandOption(raw);
+            let option: SlashCommandOption;
+            if (typeof(raw) === 'function') {
+              option = new raw();
+            } else if (raw instanceof SlashCommandOption) {
+              option = raw;
+            } else {
+              option = new SlashCommandOption(raw)
+            }
             this._options.set(option.name, option);
           }
           this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
