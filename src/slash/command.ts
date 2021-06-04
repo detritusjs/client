@@ -96,12 +96,12 @@ export interface SlashCommandOptions {
 }
 
 export interface SlashCommandOptionOptions {
-  choices?: Array<SlashCommandOptionChoice>,
+  choices?: Array<SlashCommandOptionChoice | SlashCommandOptionChoiceOptions>,
   description?: string,
   name?: string,
   options?: Array<SlashCommandOption | SlashCommandOptionOptions>,
   required?: boolean,
-  type?: ApplicationCommandOptionTypes,
+  type?: ApplicationCommandOptionTypes | String | Boolean | Number | string,
 
   disableDm?: boolean,
   disableDmReply?: boolean,
@@ -317,7 +317,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   description: string = '';
   name: string = '';
   required?: boolean;
-  type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.SUB_COMMAND;
+  type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.STRING;
 
   disableDm: boolean = false;
   metadata: Record<string, any> = {};
@@ -510,6 +510,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
             const option = (raw instanceof SlashCommandOption) ? raw : new SlashCommandOption(raw);
             this._options.set(option.name, option);
           }
+          this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
           if (this._options.some((option) => option.isSubCommand)) {
             this.type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
           }
@@ -517,6 +518,19 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
           this._options = undefined;
         }
       }; return;
+      case DiscordKeys.TYPE: {
+        if (typeof(value) === 'string') {
+          value = (ApplicationCommandOptionTypes as any)[value.toUpperCase()];
+        } else if (typeof(value) === 'number') {
+          // pass
+        } else {
+          switch (value) {
+            case Boolean: value = ApplicationCommandOptionTypes.BOOLEAN; break;
+            case Number: value = ApplicationCommandOptionTypes.INTEGER; break;
+            case String: value = ApplicationCommandOptionTypes.STRING; break;
+          }
+        }
+      }; break;
     }
     return super.mergeValue(key, value);
   }
