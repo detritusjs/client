@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.15.1-beta.12',
+  VERSION: '0.15.1-beta.13',
 });
 
 export type Snowflake = number | string;
@@ -402,11 +402,6 @@ export enum ClusterIPCOpCodes {
   EVAL = 4,
   IDENTIFY_REQUEST = 5,
   REST_REQUEST = 6,
-}
-
-export enum ClusterIPCRestRequestTypes {
-  FETCH_APPLICATIONS = 0,
-  FETCH_COMMANDS = 1,
 }
 
 export enum Colors {

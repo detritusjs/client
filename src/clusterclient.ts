@@ -191,7 +191,7 @@ export class ClusterClient extends EventSpewer {
 
       let applications: Array<any>;
       if (this.manager) {
-        applications = await this.manager.restRequest(ClusterIPCRestRequestTypes.FETCH_APPLICATIONS);
+        applications = await this.manager.sendRestRequest('fetchApplicationsDetectable');
       } else {
         applications = await this.rest.fetchApplicationsDetectable();
       }

@@ -280,7 +280,7 @@ export class SlashCommandClient extends EventSpewer {
     }
     let data: Array<any>;
     if (this.manager) {
-      data = await this.manager.restRequest(ClusterIPCRestRequestTypes.FETCH_COMMANDS, {applicationId: this.client.applicationId});
+      data = await this.manager.sendRestRequest('fetchApplicationCommands', [this.client.applicationId]);
     } else {
       data = await this.rest.fetchApplicationCommands(this.client.applicationId);
     }

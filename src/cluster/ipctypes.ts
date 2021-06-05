@@ -45,7 +45,8 @@ export namespace ClusterIPCTypes {
       stack: string,
     },
     result?: any,
-    type: ClusterIPCRestRequestTypes,
+    name: string,
+    args?: Array<any>,
   }
 
   export interface ShardState {
