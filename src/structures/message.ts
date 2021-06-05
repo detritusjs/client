@@ -191,6 +191,14 @@ export class Message extends BaseStructure {
     return (channel) ? channel.canAddReactions: this.inDm;
   }
 
+  get canReadHistory(): boolean {
+    if (this.inDm) {
+      return true;
+    }
+    const channel = this.channel;
+    return (channel) ? channel.canReadHistory : false;
+  }
+
   get canReply(): boolean {
     const channel = this.channel;
     return (channel) ? channel.canMessage : this.inDm;
@@ -490,7 +498,7 @@ export class Message extends BaseStructure {
   }
 
   async reply(options: MessageReplyOptions | string = {}) {
-    if (typeof(options) === 'object' && options.reference && !this.deleted) {
+    if (typeof(options) === 'object' && options.reference && this.canReadHistory) {
       options.messageReference = {
         channelId: this.channelId,
         failIfNotExists: true,
