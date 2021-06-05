@@ -95,6 +95,9 @@ export class ClusterProcess extends EventSpewer {
               }
             }
           }; return;
+          case ClusterIPCOpCodes.FILL_SLASH_COMMANDS: {
+            await this.manager.broadcast(message);
+          }; return;
           case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
             const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
             const ratelimitKey = this.manager.getRatelimitKey(shardId);

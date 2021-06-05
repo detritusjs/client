@@ -341,6 +341,14 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     }
     return super.mergeValue(key, value);
   }
+
+  toJSON() {
+    const data = super.toJSON();
+    if (this.ids.length) {
+      (data as any)['id'] = this.ids.first();
+    }
+    return data;
+  }
 }
 
 

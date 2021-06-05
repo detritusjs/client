@@ -14,6 +14,7 @@ import { CommandClient } from './commandclient';
 import {
   ApplicationCommandOptionTypes,
   ClientEvents,
+  ClusterIPCOpCodes,
   InteractionTypes,
   Permissions,
   IS_TS_NODE,
@@ -111,23 +112,20 @@ export class SlashCommandClient extends EventSpewer {
     });
   }
 
+  get canUpload(): boolean {
+    if (this.manager) {
+      // only upload on the first cluster process
+      return this.manager.clusterId === 0;
+    }
+    return true;
+  }
+
   get manager(): ClusterProcessChild | null {
     return (this.client instanceof ClusterClient) ? this.client.manager : null;
   }
 
   get rest() {
     return this.client.rest;
-  }
-
-  get shouldCheckCommands(): boolean {
-    if (this.checkCommands) {
-      if (this.manager) {
-        // only should check on the first cluster process
-        return this.manager.clusterId === 0;
-      }
-      return true;
-    }
-    return false;
   }
 
   /* Generic Command Function */
@@ -247,28 +245,22 @@ export class SlashCommandClient extends EventSpewer {
     this.resetSubscriptions();
   }
 
+  /* Application Command Checking */
   async checkApplicationCommands(): Promise<boolean> {
     if (!this.client.ran) {
       return false;
     }
     const commands = await this.fetchApplicationCommands();
-    for (let [commandId, command] of commands) {
-      const localCommand = this.commands.find((cmd) => cmd.name === command.name);
-      if (localCommand && localCommand.hash === command.hash) {
-        localCommand.ids.add(command.id);
-      }
-    }
-    for (let localCommand of this.commands) {
-      if (!localCommand.ids.length) {
-        return false;
-      }
-    }
-    return true;
+    return this.validateCommands(commands);
   }
 
   async checkAndUploadCommands(): Promise<void> {
-    if (!await this.checkApplicationCommands()) {
-      await this.uploadApplicationCommands();
+    if (!await this.checkApplicationCommands() && this.canUpload) {
+      const commands = await this.uploadApplicationCommands();
+      this.validateCommands(commands);
+      if (this.manager && this.manager.hasMultipleClusters) {
+        this.manager.sendIPC(ClusterIPCOpCodes.FILL_SLASH_COMMANDS, {data: commands});
+      }
     }
   }
 
@@ -278,7 +270,7 @@ export class SlashCommandClient extends EventSpewer {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
     let data: Array<any>;
-    if (this.manager) {
+    if (this.manager && this.manager.hasMultipleClusters) {
       data = await this.manager.sendRestRequest('fetchApplicationCommands', [this.client.applicationId]);
     } else {
       data = await this.rest.fetchApplicationCommands(this.client.applicationId);
@@ -298,10 +290,38 @@ export class SlashCommandClient extends EventSpewer {
     if (!this.client.ran) {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
-    return this.rest.bulkOverwriteApplicationCommands(this.client.applicationId, this.commands.map((command) => {
-      return Object.assign(command.toJSON(), {id: command.ids.first()});
+    const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
+    return shard.rest.bulkOverwriteApplicationCommands(this.client.applicationId, this.commands.map((command) => {
+      return command.toJSON();
     }));
   }
+
+  validateCommands(commands: BaseCollection<string, ApplicationCommand>): boolean {
+    for (let [commandId, command] of commands) {
+      const localCommand = this.commands.find((cmd) => cmd.name === command.name);
+      if (localCommand && localCommand.hash === command.hash) {
+        localCommand.ids.add(command.id);
+      }
+    }
+    for (let localCommand of this.commands) {
+      if (!localCommand.ids.length) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  validateCommandsFromRaw(data: Array<any>): boolean {
+    const collection = new BaseCollection<string, ApplicationCommand>();
+
+    const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
+    for (let raw of data) {
+      const command = new ApplicationCommand(shard, raw);
+      collection.set(command.id, command);
+    }
+    return this.validateCommands(collection);
+  }
+  /* end */
 
   parseArgs(data: InteractionDataApplicationCommand): ParsedArgs {
     if (data.options) {
@@ -389,7 +409,7 @@ export class SlashCommandClient extends EventSpewer {
       return this.client;
     }
     await this.client.run(options);
-    if (this.shouldCheckCommands) {
+    if (this.checkCommands) {
       await this.checkAndUploadCommands();
     }
     Object.defineProperty(this, 'ran', {value: true});

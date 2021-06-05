@@ -190,7 +190,7 @@ export class ClusterClient extends EventSpewer {
       refresh.last = Date.now();
 
       let applications: Array<any>;
-      if (this.manager) {
+      if (this.manager && this.manager.hasMultipleClusters) {
         applications = await this.manager.sendRestRequest('fetchApplicationsDetectable');
       } else {
         applications = await this.rest.fetchApplicationsDetectable();

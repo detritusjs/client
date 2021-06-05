@@ -32,6 +32,10 @@ export namespace ClusterIPCTypes {
     results?: Array<[any, boolean]>,
   }
 
+  export interface FillSlashCommands {
+    data: Array<any>,
+  }
+
   export interface IdentifyRequest {
     shardId: number,
   }

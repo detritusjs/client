@@ -65,6 +65,10 @@ export class ClusterProcessChild extends EventSpewer {
     });
   }
 
+  get hasMultipleClusters(): boolean {
+    return 1 < this.clusterCount;
+  }
+
   async onMessage(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {
     if (!message || typeof(message) !== 'object') {
       return;
@@ -98,6 +102,12 @@ export class ClusterProcessChild extends EventSpewer {
                 });
               }
             }
+          }
+        }; return;
+        case ClusterIPCOpCodes.FILL_SLASH_COMMANDS: {
+          const { data }: ClusterIPCTypes.FillSlashCommands = message.data;
+          if (this.cluster.slashCommandClient) {
+            this.cluster.slashCommandClient.validateCommandsFromRaw(data);
           }
         }; return;
         case ClusterIPCOpCodes.IDENTIFY_REQUEST: {

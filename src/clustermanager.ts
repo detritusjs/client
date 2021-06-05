@@ -40,7 +40,7 @@ export class ClusterManager extends EventSpewer {
   ran: boolean = false;
   respawn: boolean = true;
   rest: DetritusRestClient;
-  restCache = new BaseCollection<string | number, ClusterManagerRestCachePayload>({expire: 120000});
+  restCache = new BaseCollection<string | number, ClusterManagerRestCachePayload>({expire: 5 * 60 * 1000});
   shardCount: number = 0;
   shardEnd: number = -1;
   shardStart: number = 0;
