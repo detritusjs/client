@@ -255,6 +255,9 @@ export class SlashCommandClient extends EventSpewer {
   }
 
   async checkAndUploadCommands(): Promise<void> {
+    if (!this.client.ran) {
+      return;
+    }
     if (!await this.checkApplicationCommands() && this.canUpload) {
       const commands = await this.uploadApplicationCommands();
       this.validateCommands(commands);
@@ -262,6 +265,17 @@ export class SlashCommandClient extends EventSpewer {
         this.manager.sendIPC(ClusterIPCOpCodes.FILL_SLASH_COMMANDS, {data: commands});
       }
     }
+  }
+
+  createApplicationCommandsFromRaw(data: Array<any>): BaseCollection<string, ApplicationCommand> {
+    const collection = new BaseCollection<string, ApplicationCommand>();
+
+    const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
+    for (let raw of data) {
+      const command = new ApplicationCommand(shard, raw);
+      collection.set(command.id, command);
+    }
+    return collection;
   }
 
   async fetchApplicationCommands(): Promise<BaseCollection<string, ApplicationCommand>> {
@@ -275,14 +289,7 @@ export class SlashCommandClient extends EventSpewer {
     } else {
       data = await this.rest.fetchApplicationCommands(this.client.applicationId);
     }
-    const collection = new BaseCollection<string, ApplicationCommand>();
-
-    const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
-    for (let raw of data) {
-      const command = new ApplicationCommand(shard, raw);
-      collection.set(command.id, command);
-    }
-    return collection;
+    return this.createApplicationCommandsFromRaw(data);
   }
 
   async uploadApplicationCommands(): Promise<BaseCollection<string, ApplicationCommand>> {
@@ -297,28 +304,24 @@ export class SlashCommandClient extends EventSpewer {
   }
 
   validateCommands(commands: BaseCollection<string, ApplicationCommand>): boolean {
+    let matches = commands.length === this.commands.length;
     for (let [commandId, command] of commands) {
       const localCommand = this.commands.find((cmd) => cmd.name === command.name);
-      if (localCommand && localCommand.hash === command.hash) {
+      if (localCommand) {
+        localCommand.ids.clear();
         localCommand.ids.add(command.id);
+        if (matches && localCommand.hash !== command.hash) {
+          matches = false;
+        }
+      } else {
+        matches = false;
       }
     }
-    for (let localCommand of this.commands) {
-      if (!localCommand.ids.length) {
-        return false;
-      }
-    }
-    return true;
+    return matches;
   }
 
   validateCommandsFromRaw(data: Array<any>): boolean {
-    const collection = new BaseCollection<string, ApplicationCommand>();
-
-    const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
-    for (let raw of data) {
-      const command = new ApplicationCommand(shard, raw);
-      collection.set(command.id, command);
-    }
+    const collection = this.createApplicationCommandsFromRaw(data);
     return this.validateCommands(collection);
   }
   /* end */
