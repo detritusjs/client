@@ -24,6 +24,7 @@ Detritus is operated through the Clients classes:
 - `ShardClient` provides a base client for connecting to the Discord API and receiving events.
 - `ClusterClient` provides a client that creates `ShardClient` classes inside of it for easier sharding
 - `CommandClient` wraps over the `ClusterClient` or `ShardClient` to provide support for bot commands.
+- `SlashCommandClient` wraps over the `ClusterClient` or `ShardClient` to provide support for slash commands.
 - `ClusterManager` provides a manager that'll spawn in multiple `ClusterClient` processes for big shardings
 
 More Examples are provided under the [`examples/`](https://github.com/detritusjs/client/tree/master/examples)
@@ -74,7 +75,63 @@ commandClient.add({
 // is killed.
 (async () => {
   const client = await commandClient.run();
-  // client has received the READY payload, do stuff now
+  console.log(`Client has loaded with a shard count of ${client.shardCount}`);
+})();
+```
+
+### SlashCommand Client Sample
+
+```js
+const { Constants, SlashCommandClient } = require('detritus-client');
+const { InteractionCallbackTypes, MessageFlags } = Constants;
+
+// Note: it is not advised to hard-code your bot token directly into the bot source.
+//
+// Tokens should be considered secrets and stored in a configuration file that is not
+// part of your version control system, or an environment variable.
+// By default, the SlashCommandClient will use the ClusterClient
+// The ShardClient/ClusterClient will be under SlashCommandClient.client as soon as you create the object
+const token = '';
+const slashClient = new SlashCommandClient(token);
+
+// Simple ping/pong command
+slashClient.add({
+  description: 'Ping!',
+  name: 'ping',
+  run: (context, args) => {
+    // Commands should return a promise to ensure that errors are handled
+    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, 'pong!');
+  },
+});
+
+// Command demonstrating command pipelines
+slashClient.add({
+  description: 'Are you the owner or part of the team for this application?',
+  name: 'owner',
+  // onBefore should return a boolean to indicate whether or not the command should proceed
+  onBefore: (context) => context.client.isOwner(context.userId),
+  // we want the error to only show to the user to not clunk up the chat
+  onCancel: (context) => {
+    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+      content: 'This command is only available to the bot owner.'),
+      flags: MessageFlags.EPHEMERAL,
+    });
+  },
+  run: async (context) => {
+    // Commands may also run asynchronously.
+    await context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, 'You are the owner of the bot!');
+  },
+});
+
+// Spawn the client in an async context
+//
+// Note: Due to how Node handles tasks, the script will block until the Detritus client
+// is killed.
+(async () => {
+  // Slash Client will compare the local commands w/ commands stored on discord
+  // If any of them differ, it will call `.bulkOverwriteApplicationCommands()` with the local commands
+  // Guild-specific Slash commands are not supported right now
+  const client = await slashClient.run();
   console.log(`Client has loaded with a shard count of ${client.shardCount}`);
 })();
 ```
