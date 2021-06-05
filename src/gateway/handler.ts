@@ -153,7 +153,7 @@ export class GatewayDispatchHandler {
 
   /* Dispatch Events */
   async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
-    this.client.reset();
+    this.client.reset(false);
 
     for (let [nonce, cache] of this.handler._chunksWaiting) {
       cache.promise.reject(new Error('Gateway re-identified before a result came.'));

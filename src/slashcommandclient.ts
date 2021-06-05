@@ -40,14 +40,7 @@ import {
 
 
 export interface SlashCommandClientOptions extends ClusterClientOptions {
-  activateOnEdits?: boolean,
   checkCommands?: boolean,
-  ignoreMe?: boolean,
-  maxEditDuration?: number,
-  mentionsEnabled?: boolean,
-  prefix?: string,
-  prefixes?: Array<string>,
-  prefixSpace?: boolean,
   useClusterClient?: boolean,
 }
 

@@ -373,7 +373,7 @@ export class ShardClient extends EventSpewer {
     if (!this.killed) {
       Object.defineProperty(this, '_killed', {value: true});
       this.gateway.kill(error);
-      this.reset();
+      this.reset(true);
       if (this.cluster) {
         // must be a better way to handle this
         // maybe kill the entire cluster?
@@ -476,8 +476,10 @@ export class ShardClient extends EventSpewer {
     });
   }
 
-  reset(): void {
-    this.applications.clear();
+  reset(applications: boolean = true): void {
+    if (application) {
+      this.applications.clear();
+    }
     this.channels.clear();
     this.connectedAccounts.clear();
     this.guilds.clear();
@@ -487,6 +489,8 @@ export class ShardClient extends EventSpewer {
     this.presences.clear();
     this.relationships.clear();
     this.sessions.clear();
+    this.stageInstances.clear();
+    this.typings.clear();
     this.users.clear();
     this.voiceCalls.clear();
     this.voiceConnections.clear();
