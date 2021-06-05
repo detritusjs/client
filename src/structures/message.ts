@@ -501,7 +501,7 @@ export class Message extends BaseStructure {
     if (typeof(options) === 'object' && options.reference && this.canReadHistory) {
       options.messageReference = {
         channelId: this.channelId,
-        failIfNotExists: true,
+        failIfNotExists: false,
         guildId: this.guildId,
         messageId: this.id,
       };
