@@ -203,6 +203,10 @@ export class SlashContext {
     return this.interaction.member;
   }
 
+  get name() {
+    return this.data.fullName;
+  }
+
   get token() {
     return this.interaction.token;
   }

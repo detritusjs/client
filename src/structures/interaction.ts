@@ -186,6 +186,16 @@ export class InteractionDataApplicationCommand extends BaseStructure {
     Object.defineProperty(this, 'interaction', {enumerable: false});
   }
 
+  get fullName(): string {
+    if (this.options && this.options.length) {
+      const option = this.options.first()!;
+      if (option.isSubCommand || option.isSubCommandGroup) {
+        return `${this.name} ${option.fullName}`;
+      }
+    }
+    return this.name;
+  }
+
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
@@ -205,6 +215,10 @@ export class InteractionDataApplicationCommand extends BaseStructure {
       }
       return super.mergeValue(key, value);
     }
+  }
+
+  toString(): string {
+    return this.fullName;
   }
 }
 
@@ -238,6 +252,14 @@ export class InteractionDataApplicationCommandOption extends BaseStructure {
     this.interactionData = interactionData;
     this.merge(data);
     Object.defineProperty(this, 'interactionData', {enumerable: false});
+  }
+
+  get fullName(): string {
+    if (this.isSubCommandGroup && this.options && this.options.length) {
+      const option = this.options.first()!;
+      return `${this.name} ${option.fullName}`;
+    }
+    return this.name;
   }
 
   get isSubCommand(): boolean {
