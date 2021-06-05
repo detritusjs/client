@@ -72,7 +72,7 @@
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
 						<p>Command itself
-						Command flow is ratelimit check -&gt; permission check -&gt; <code>onBefore</code> -&gt; arg parse -&gt; <code>onBeforeRun</code> -&gt; <code>run</code> -&gt; <code>onSuccess | onRunError</code></p>
+						Command flow is ratelimit check -&gt; dm/permission check -&gt; <code>onBefore</code> -&gt; arg parse -&gt; <code>onBeforeRun</code> -&gt; <code>run</code> -&gt; <code>onSuccess | onRunError</code></p>
 					</div>
 				</div>
 			</section>
@@ -146,6 +146,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onbeforerun" class="tsd-kind-icon">on<wbr>Before<wbr>Run</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#oncancel" class="tsd-kind-icon">on<wbr>Cancel</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#oncancelrun" class="tsd-kind-icon">on<wbr>Cancel<wbr>Run</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#ondmblocked" class="tsd-kind-icon">on<wbr>DmBlocked</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onerror" class="tsd-kind-icon">on<wbr>Error</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onpermissionsfail" class="tsd-kind-icon">on<wbr>Permissions<wbr>Fail</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="command_command.command.html#onpermissionsfailclient" class="tsd-kind-icon">on<wbr>Permissions<wbr>Fail<wbr>Client</a></li>
@@ -180,7 +181,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L140">src/command/command.ts:140</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L147">src/command/command.ts:147</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -211,7 +212,7 @@
 					<div class="tsd-signature tsd-kind-icon">_file<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L113">src/command/command.ts:113</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L119">src/command/command.ts:119</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -221,7 +222,7 @@
 					<div class="tsd-signature tsd-kind-icon">arg<span class="tsd-signature-symbol">:</span> <a href="command_argument.argument.html" class="tsd-signature-type" data-tsd-kind="Class">Argument</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L117">src/command/command.ts:117</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L123">src/command/command.ts:123</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -231,7 +232,7 @@
 					<div class="tsd-signature tsd-kind-icon">arg<wbr>Parser<span class="tsd-signature-symbol">:</span> <a href="command_argumentparser.argumentparser.html" class="tsd-signature-type" data-tsd-kind="Class">ArgumentParser</a><span class="tsd-signature-symbol"> = ...</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L114">src/command/command.ts:114</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L120">src/command/command.ts:120</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -241,7 +242,7 @@
 					<div class="tsd-signature tsd-kind-icon">command<wbr>Client<span class="tsd-signature-symbol">:</span> <a href="commandclient.commandclient-1.html" class="tsd-signature-type" data-tsd-kind="Class">CommandClient</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L115">src/command/command.ts:115</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L121">src/command/command.ts:121</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -251,7 +252,7 @@
 					<div class="tsd-signature tsd-kind-icon">disable<wbr>Dm<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L118">src/command/command.ts:118</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L124">src/command/command.ts:124</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -261,27 +262,19 @@
 					<div class="tsd-signature tsd-kind-icon">disable<wbr>DmReply<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L119">src/command/command.ts:119</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L125">src/command/command.ts:125</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="metadata" class="tsd-anchor"></a>
 					<h3>metadata</h3>
-					<div class="tsd-signature tsd-kind-icon">metadata<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol"> = {}</span></div>
+					<div class="tsd-signature tsd-kind-icon">metadata<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = {}</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L120">src/command/command.ts:120</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L126">src/command/command.ts:126</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter-index-signature">
-								<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">any</span></h5>
-							</li>
-						</ul>
-					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="permissions" class="tsd-anchor"></a>
@@ -289,7 +282,7 @@
 					<div class="tsd-signature tsd-kind-icon">permissions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L121">src/command/command.ts:121</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L127">src/command/command.ts:127</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -299,7 +292,7 @@
 					<div class="tsd-signature tsd-kind-icon">permissions<wbr>Client<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L122">src/command/command.ts:122</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L128">src/command/command.ts:128</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -309,7 +302,7 @@
 					<div class="tsd-signature tsd-kind-icon">permissions<wbr>Ignore<wbr>Client<wbr>Owner<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L123">src/command/command.ts:123</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L129">src/command/command.ts:129</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -319,7 +312,7 @@
 					<div class="tsd-signature tsd-kind-icon">priority<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L124">src/command/command.ts:124</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L130">src/command/command.ts:130</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -329,7 +322,7 @@
 					<div class="tsd-signature tsd-kind-icon">ratelimits<span class="tsd-signature-symbol">:</span> <a href="command_ratelimit.commandratelimit.html" class="tsd-signature-type" data-tsd-kind="Class">CommandRatelimit</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> = []</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L125">src/command/command.ts:125</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L131">src/command/command.ts:131</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -339,7 +332,7 @@
 					<div class="tsd-signature tsd-kind-icon">response<wbr>Optional<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L126">src/command/command.ts:126</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L132">src/command/command.ts:132</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -349,7 +342,7 @@
 					<div class="tsd-signature tsd-kind-icon">trigger<wbr>Typing<wbr>After<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -1</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L127">src/command/command.ts:127</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L133">src/command/command.ts:133</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -367,7 +360,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L206">src/command/command.ts:206</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L213">src/command/command.ts:213</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -375,7 +368,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L210">src/command/command.ts:210</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L217">src/command/command.ts:217</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -398,7 +391,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L214">src/command/command.ts:214</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L221">src/command/command.ts:221</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -422,7 +415,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L218">src/command/command.ts:218</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L225">src/command/command.ts:225</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -430,7 +423,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L222">src/command/command.ts:222</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L229">src/command/command.ts:229</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -454,7 +447,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L226">src/command/command.ts:226</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L233">src/command/command.ts:233</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
@@ -462,7 +455,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L230">src/command/command.ts:230</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L237">src/command/command.ts:237</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -486,7 +479,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L234">src/command/command.ts:234</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L241">src/command/command.ts:241</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -494,7 +487,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L238">src/command/command.ts:238</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L245">src/command/command.ts:245</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -518,7 +511,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L242">src/command/command.ts:242</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L249">src/command/command.ts:249</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -526,7 +519,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L246">src/command/command.ts:246</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L253">src/command/command.ts:253</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -550,7 +543,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L250">src/command/command.ts:250</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L257">src/command/command.ts:257</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -558,7 +551,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L254">src/command/command.ts:254</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L261">src/command/command.ts:261</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -581,7 +574,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L258">src/command/command.ts:258</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L265">src/command/command.ts:265</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
@@ -598,7 +591,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L262">src/command/command.ts:262</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L269">src/command/command.ts:269</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -621,7 +614,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L266">src/command/command.ts:266</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L273">src/command/command.ts:273</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -647,7 +640,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L315">src/command/command.ts:315</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L322">src/command/command.ts:322</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -670,7 +663,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L319">src/command/command.ts:319</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L326">src/command/command.ts:326</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -696,7 +689,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L358">src/command/command.ts:358</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L365">src/command/command.ts:365</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -719,7 +712,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L129">src/command/command.ts:129</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L136">src/command/command.ts:136</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -742,7 +735,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L130">src/command/command.ts:130</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L137">src/command/command.ts:137</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -768,7 +761,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L131">src/command/command.ts:131</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L138">src/command/command.ts:138</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -791,7 +784,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L132">src/command/command.ts:132</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L139">src/command/command.ts:139</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -808,6 +801,29 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="ondmblocked" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>DmBlocked</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">on<wbr>DmBlocked<span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L135">src/command/command.ts:135</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>context: <a href="command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">any</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="onerror" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> on<wbr>Error</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -817,7 +833,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L133">src/command/command.ts:133</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L140">src/command/command.ts:140</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -846,7 +862,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L134">src/command/command.ts:134</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L141">src/command/command.ts:141</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -872,7 +888,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L135">src/command/command.ts:135</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L142">src/command/command.ts:142</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -898,7 +914,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L136">src/command/command.ts:136</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L143">src/command/command.ts:143</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -935,7 +951,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L138">src/command/command.ts:138</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L145">src/command/command.ts:145</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -964,7 +980,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L139">src/command/command.ts:139</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L146">src/command/command.ts:146</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -990,7 +1006,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L140">src/command/command.ts:140</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L147">src/command/command.ts:147</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1019,7 +1035,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L137">src/command/command.ts:137</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L144">src/command/command.ts:144</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1045,7 +1061,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L270">src/command/command.ts:270</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L277">src/command/command.ts:277</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1068,7 +1084,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L275">src/command/command.ts:275</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L282">src/command/command.ts:282</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1091,7 +1107,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L280">src/command/command.ts:280</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L287">src/command/command.ts:287</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1114,7 +1130,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L285">src/command/command.ts:285</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L292">src/command/command.ts:292</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1137,7 +1153,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L290">src/command/command.ts:290</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L297">src/command/command.ts:297</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1160,7 +1176,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L295">src/command/command.ts:295</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L302">src/command/command.ts:302</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1183,7 +1199,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L300">src/command/command.ts:300</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L307">src/command/command.ts:307</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1206,7 +1222,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L305">src/command/command.ts:305</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L312">src/command/command.ts:312</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1229,7 +1245,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L310">src/command/command.ts:310</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L317">src/command/command.ts:317</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1359,6 +1375,9 @@
 								<a href="command_command.command.html#oncancelrun" class="tsd-kind-icon">on<wbr>Cancel<wbr>Run</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="command_command.command.html#ondmblocked" class="tsd-kind-icon">on<wbr>DmBlocked</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="command_command.command.html#onerror" class="tsd-kind-icon">on<wbr>Error</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
@@ -1427,6 +1446,9 @@
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
 						<a href="../modules/command_command.html#commandcallbackcancelrun" class="tsd-kind-icon">Command<wbr>Callback<wbr>Cancel<wbr>Run</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="../modules/command_command.html#commandcallbackdmblocked" class="tsd-kind-icon">Command<wbr>Callback<wbr>DmBlocked</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
 						<a href="../modules/command_command.html#commandcallbackerror" class="tsd-kind-icon">Command<wbr>Callback<wbr>Error</a>

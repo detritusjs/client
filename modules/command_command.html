@@ -88,6 +88,7 @@
 								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="command_command.html#commandcallbackbeforerun" class="tsd-kind-icon">Command<wbr>Callback<wbr>Before<wbr>Run</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="command_command.html#commandcallbackcancel" class="tsd-kind-icon">Command<wbr>Callback<wbr>Cancel</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="command_command.html#commandcallbackcancelrun" class="tsd-kind-icon">Command<wbr>Callback<wbr>Cancel<wbr>Run</a></li>
+								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="command_command.html#commandcallbackdmblocked" class="tsd-kind-icon">Command<wbr>Callback<wbr>DmBlocked</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="command_command.html#commandcallbackerror" class="tsd-kind-icon">Command<wbr>Callback<wbr>Error</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="command_command.html#commandcallbackpermissionsfail" class="tsd-kind-icon">Command<wbr>Callback<wbr>Permissions<wbr>Fail</a></li>
 								<li class="tsd-kind-type-alias tsd-parent-kind-module"><a href="command_command.html#commandcallbackratelimit" class="tsd-kind-icon">Command<wbr>Callback<wbr>Ratelimit</a></li>
@@ -112,7 +113,7 @@
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Before<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L16">src/command/command.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L21">src/command/command.ts:21</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -143,7 +144,7 @@
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Before<wbr>Run<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><a href="command_argumentparser.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L21">src/command/command.ts:21</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L26">src/command/command.ts:26</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -177,7 +178,7 @@
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Cancel<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L26">src/command/command.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L31">src/command/command.ts:31</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -208,7 +209,7 @@
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Cancel<wbr>Run<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><a href="command_argumentparser.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L31">src/command/command.ts:31</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L36">src/command/command.ts:36</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -237,12 +238,43 @@
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
+					<a name="commandcallbackdmblocked" class="tsd-anchor"></a>
+					<h3>Command<wbr>Callback<wbr>DmBlocked</h3>
+					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>DmBlocked<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L16">src/command/command.ts:16</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter-signature">
+								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></li>
+								</ul>
+								<ul class="tsd-descriptions">
+									<li class="tsd-description">
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>context: <a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></h4>
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
 					<a name="commandcallbackerror" class="tsd-anchor"></a>
 					<h3>Command<wbr>Callback<wbr>Error</h3>
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><a href="command_argumentparser.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a>, error<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L36">src/command/command.ts:36</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L41">src/command/command.ts:41</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -276,10 +308,10 @@
 				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
 					<a name="commandcallbackpermissionsfail" class="tsd-anchor"></a>
 					<h3>Command<wbr>Callback<wbr>Permissions<wbr>Fail</h3>
-					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Permissions<wbr>Fail<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, permissions<span class="tsd-signature-symbol">: </span><a href="command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></div>
+					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Permissions<wbr>Fail<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, permissions<span class="tsd-signature-symbol">: </span><a href="command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L41">src/command/command.ts:41</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L46">src/command/command.ts:46</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -287,7 +319,7 @@
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-signature">
 								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, permissions<span class="tsd-signature-symbol">: </span><a href="command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></li>
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, permissions<span class="tsd-signature-symbol">: </span><a href="command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></li>
 								</ul>
 								<ul class="tsd-descriptions">
 									<li class="tsd-description">
@@ -300,7 +332,7 @@
 												<h5>permissions: <a href="command_command.html#failedpermissions" class="tsd-signature-type" data-tsd-kind="Type alias">FailedPermissions</a></h5>
 											</li>
 										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></h4>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></h4>
 									</li>
 								</ul>
 							</li>
@@ -310,10 +342,10 @@
 				<section class="tsd-panel tsd-member tsd-kind-type-alias tsd-parent-kind-module">
 					<a name="commandcallbackratelimit" class="tsd-anchor"></a>
 					<h3>Command<wbr>Callback<wbr>Ratelimit</h3>
-					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Ratelimit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, ratelimits<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>item<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_ratelimit.commandratelimititem.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandRatelimitItem</a><span class="tsd-signature-symbol">; </span>ratelimit<span class="tsd-signature-symbol">: </span><a href="../classes/command_ratelimit.commandratelimit.html" class="tsd-signature-type" data-tsd-kind="Class">CommandRatelimit</a><span class="tsd-signature-symbol">; </span>remaining<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span>, metadata<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>global<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>now<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></div>
+					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Ratelimit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, ratelimits<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>item<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_ratelimit.commandratelimititem.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandRatelimitItem</a><span class="tsd-signature-symbol">; </span>ratelimit<span class="tsd-signature-symbol">: </span><a href="../classes/command_ratelimit.commandratelimit.html" class="tsd-signature-type" data-tsd-kind="Class">CommandRatelimit</a><span class="tsd-signature-symbol">; </span>remaining<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span>, metadata<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>global<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>now<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L51">src/command/command.ts:51</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L56">src/command/command.ts:56</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -321,7 +353,7 @@
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-signature">
 								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-type-alias">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, ratelimits<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>item<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_ratelimit.commandratelimititem.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandRatelimitItem</a><span class="tsd-signature-symbol">; </span>ratelimit<span class="tsd-signature-symbol">: </span><a href="../classes/command_ratelimit.commandratelimit.html" class="tsd-signature-type" data-tsd-kind="Class">CommandRatelimit</a><span class="tsd-signature-symbol">; </span>remaining<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span>, metadata<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>global<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>now<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></li>
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, ratelimits<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>item<span class="tsd-signature-symbol">: </span><a href="../interfaces/command_ratelimit.commandratelimititem.html" class="tsd-signature-type" data-tsd-kind="Interface">CommandRatelimitItem</a><span class="tsd-signature-symbol">; </span>ratelimit<span class="tsd-signature-symbol">: </span><a href="../classes/command_ratelimit.commandratelimit.html" class="tsd-signature-type" data-tsd-kind="Class">CommandRatelimit</a><span class="tsd-signature-symbol">; </span>remaining<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">[]</span>, metadata<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{ </span>global<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">; </span>now<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></li>
 								</ul>
 								<ul class="tsd-descriptions">
 									<li class="tsd-description">
@@ -345,7 +377,7 @@
 												</ul>
 											</li>
 										</ul>
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></h4>
+										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></h4>
 									</li>
 								</ul>
 							</li>
@@ -358,7 +390,7 @@
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Run<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><a href="command_argumentparser.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L60">src/command/command.ts:60</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L65">src/command/command.ts:65</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -392,7 +424,7 @@
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Run<wbr>Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><a href="command_argumentparser.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a>, error<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L65">src/command/command.ts:65</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L70">src/command/command.ts:70</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -429,7 +461,7 @@
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Success<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><a href="command_argumentparser.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L46">src/command/command.ts:46</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L51">src/command/command.ts:51</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -463,7 +495,7 @@
 					<div class="tsd-signature tsd-kind-icon">Command<wbr>Callback<wbr>Type<wbr>Error<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">(</span>context<span class="tsd-signature-symbol">: </span><a href="../classes/command_context.context.html" class="tsd-signature-type" data-tsd-kind="Class">Context</a>, args<span class="tsd-signature-symbol">: </span><a href="command_argumentparser.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a>, errors<span class="tsd-signature-symbol">: </span><a href="command_argumentparser.html#parsederrors" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedErrors</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol"> =&gt; </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> | </span><a href="../classes/structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L70">src/command/command.ts:70</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L75">src/command/command.ts:75</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -503,7 +535,7 @@
 					<div class="tsd-signature tsd-kind-icon">Failed<wbr>Permissions<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">bigint</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/command/command.ts#L11">src/command/command.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/command/command.ts#L11">src/command/command.ts:11</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -539,6 +571,9 @@
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
 						<a href="command_command.html#commandcallbackcancelrun" class="tsd-kind-icon">Command<wbr>Callback<wbr>Cancel<wbr>Run</a>
+					</li>
+					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
+						<a href="command_command.html#commandcallbackdmblocked" class="tsd-kind-icon">Command<wbr>Callback<wbr>DmBlocked</a>
 					</li>
 					<li class=" tsd-kind-type-alias tsd-parent-kind-module">
 						<a href="command_command.html#commandcallbackerror" class="tsd-kind-icon">Command<wbr>Callback<wbr>Error</a>

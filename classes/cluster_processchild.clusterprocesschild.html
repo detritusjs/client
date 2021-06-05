@@ -94,6 +94,7 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#_restrequestswaiting" class="tsd-kind-icon">_rest<wbr>Requests<wbr>Waiting</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#_shardsidentifying" class="tsd-kind-icon">_shards<wbr>Identifying</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#cluster" class="tsd-kind-icon">cluster</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#clustercount" class="tsd-kind-icon">cluster<wbr>Count</a></li>
@@ -102,6 +103,12 @@
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static tsd-is-external"><a href="cluster_processchild.clusterprocesschild.html#capturerejections" class="tsd-kind-icon">capture<wbr>Rejections</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static tsd-is-external"><a href="cluster_processchild.clusterprocesschild.html#defaultmaxlisteners" class="tsd-kind-icon">default<wbr>Max<wbr>Listeners</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static tsd-is-external"><a href="cluster_processchild.clusterprocesschild.html#errormonitor" class="tsd-kind-icon">error<wbr>Monitor</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
+							<h3>Accessors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#hasmultipleclusters" class="tsd-kind-icon">has<wbr>Multiple<wbr>Clusters</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -129,6 +136,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#send" class="tsd-kind-icon">send</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#sendipc" class="tsd-kind-icon">sendIPC</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#sendipcorwarn" class="tsd-kind-icon">sendIPCOr<wbr>Warn</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="cluster_processchild.clusterprocesschild.html#sendrestrequest" class="tsd-kind-icon">send<wbr>Rest<wbr>Request</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="cluster_processchild.clusterprocesschild.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external"><a href="cluster_processchild.clusterprocesschild.html#subscribe" class="tsd-kind-icon">subscribe</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-static tsd-is-external"><a href="cluster_processchild.clusterprocesschild.html#listenercount-1" class="tsd-kind-icon">listener<wbr>Count</a></li>
@@ -152,7 +160,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides EventSpewer.constructor</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L18">src/cluster/processchild.ts:18</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L24">src/cluster/processchild.ts:24</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -169,12 +177,22 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="_restrequestswaiting" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> _rest<wbr>Requests<wbr>Waiting</h3>
+					<div class="tsd-signature tsd-kind-icon">_rest<wbr>Requests<wbr>Waiting<span class="tsd-signature-symbol">:</span> <a href="collections_basecollection.basecollection.html" class="tsd-signature-type" data-tsd-kind="Class">BaseCollection</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span>promise<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span>reject<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Function</span><span class="tsd-signature-symbol">; </span>resolve<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Function</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L15">src/cluster/processchild.ts:15</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="_shardsidentifying" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> _shards<wbr>Identifying</h3>
 					<div class="tsd-signature tsd-kind-icon">_shards<wbr>Identifying<span class="tsd-signature-symbol">:</span> <a href="collections_baseset.baseset.html" class="tsd-signature-type" data-tsd-kind="Class">BaseSet</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L14">src/cluster/processchild.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L20">src/cluster/processchild.ts:20</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -184,7 +202,7 @@
 					<div class="tsd-signature tsd-kind-icon">cluster<span class="tsd-signature-symbol">:</span> <a href="clusterclient.clusterclient-1.html" class="tsd-signature-type" data-tsd-kind="Class">ClusterClient</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L15">src/cluster/processchild.ts:15</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L21">src/cluster/processchild.ts:21</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -194,17 +212,17 @@
 					<div class="tsd-signature tsd-kind-icon">cluster<wbr>Count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 1</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L17">src/cluster/processchild.ts:17</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L23">src/cluster/processchild.ts:23</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="clusterid" class="tsd-anchor"></a>
 					<h3>cluster<wbr>Id</h3>
-					<div class="tsd-signature tsd-kind-icon">cluster<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = -1</span></div>
+					<div class="tsd-signature tsd-kind-icon">cluster<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L18">src/cluster/processchild.ts:18</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L24">src/cluster/processchild.ts:24</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -269,6 +287,26 @@
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Accessors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+					<a name="hasmultipleclusters" class="tsd-anchor"></a>
+					<h3>has<wbr>Multiple<wbr>Clusters</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> hasMultipleClusters<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L68">src/cluster/processchild.ts:68</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 					<a name="addlistener" class="tsd-anchor"></a>
@@ -325,7 +363,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L149">src/cluster/processchild.ts:149</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L180">src/cluster/processchild.ts:180</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -533,7 +571,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides EventSpewer.on</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L208">src/cluster/processchild.ts:208</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L254">src/cluster/processchild.ts:254</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -569,7 +607,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides EventSpewer.on</p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L209">src/cluster/processchild.ts:209</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L255">src/cluster/processchild.ts:255</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -613,7 +651,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L62">src/cluster/processchild.ts:62</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L72">src/cluster/processchild.ts:72</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -906,7 +944,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L113">src/cluster/processchild.ts:113</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L144">src/cluster/processchild.ts:144</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -929,7 +967,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L126">src/cluster/processchild.ts:126</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L157">src/cluster/processchild.ts:157</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -961,7 +999,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/aaaca7b/src/cluster/processchild.ts#L135">src/cluster/processchild.ts:135</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L166">src/cluster/processchild.ts:166</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -980,6 +1018,32 @@
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="sendrestrequest" class="tsd-anchor"></a>
+					<h3>send<wbr>Rest<wbr>Request</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">send<wbr>Rest<wbr>Request<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, args<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/36c475a/src/cluster/processchild.ts#L239">src/cluster/processchild.ts:239</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> args: <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -1183,6 +1247,9 @@
 								<a href="cluster_processchild.clusterprocesschild.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="cluster_processchild.clusterprocesschild.html#_restrequestswaiting" class="tsd-kind-icon">_rest<wbr>Requests<wbr>Waiting</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="cluster_processchild.clusterprocesschild.html#_shardsidentifying" class="tsd-kind-icon">_shards<wbr>Identifying</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
@@ -1205,6 +1272,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited tsd-is-static tsd-is-external">
 								<a href="cluster_processchild.clusterprocesschild.html#errormonitor" class="tsd-kind-icon">error<wbr>Monitor</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="cluster_processchild.clusterprocesschild.html#hasmultipleclusters" class="tsd-kind-icon">has<wbr>Multiple<wbr>Clusters</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 								<a href="cluster_processchild.clusterprocesschild.html#addlistener" class="tsd-kind-icon">add<wbr>Listener</a>
@@ -1271,6 +1341,9 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="cluster_processchild.clusterprocesschild.html#sendipcorwarn" class="tsd-kind-icon">sendIPCOr<wbr>Warn</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="cluster_processchild.clusterprocesschild.html#sendrestrequest" class="tsd-kind-icon">send<wbr>Rest<wbr>Request</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited tsd-is-external">
 								<a href="cluster_processchild.clusterprocesschild.html#setmaxlisteners" class="tsd-kind-icon">set<wbr>Max<wbr>Listeners</a>
