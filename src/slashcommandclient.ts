@@ -14,7 +14,6 @@ import { CommandClient } from './commandclient';
 import {
   ApplicationCommandOptionTypes,
   ClientEvents,
-  ClusterIPCRestRequestTypes,
   InteractionTypes,
   Permissions,
   IS_TS_NODE,

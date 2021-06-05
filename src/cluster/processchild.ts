@@ -3,7 +3,7 @@ import { EventSpewer } from 'detritus-utils';
 import { ClusterClient } from '../clusterclient';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { ClientEvents, ClusterIPCOpCodes, ClusterIPCRestRequestTypes, SocketStates } from '../constants';
+import { ClientEvents, ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 import { GatewayClientEvents } from '../gateway/clientevents';
 import { Snowflake } from '../utils';

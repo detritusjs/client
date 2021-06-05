@@ -1,4 +1,3 @@
-import { ClusterIPCRestRequestTypes } from '../constants';
 import { Application } from '../structures/application';
 
 import {

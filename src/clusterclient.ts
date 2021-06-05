@@ -12,7 +12,7 @@ import {
 import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
-import { AuthTypes, ClientEvents, ClusterIPCRestRequestTypes, SocketStates, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
+import { AuthTypes, ClientEvents, SocketStates, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { SlashCommandClient } from './slashcommandclient';
 

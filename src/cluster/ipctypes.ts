@@ -1,6 +1,5 @@
 import {
   ClusterIPCOpCodes,
-  ClusterIPCRestRequestTypes,
   SocketStates,
 } from '../constants';
 

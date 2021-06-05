@@ -4,7 +4,7 @@ import { EventSpewer, Timers } from 'detritus-utils';
 
 import { ClusterManager, ClusterManagerRestCachePayload } from '../clustermanager';
 import { BaseCollection } from '../collections/basecollection';
-import { ClusterIPCOpCodes, ClusterIPCRestRequestTypes, SocketStates } from '../constants';
+import { ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 
 import { ClusterIPCTypes } from './ipctypes';
