@@ -70,11 +70,11 @@ export type CommandCallbackRunError = (context: SlashContext, args: ParsedArgs, 
 
 
 const ON_FUNCTION_NAMES = Object.freeze([
+  'onDmBlocked',
   'onBefore',
   'onBeforeRun',
   'onCancel',
   'onCancelRun',
-  'onDmBlocked',
   'onError',
   'onPermissionsFail',
   'onPermissionsFailClient',
@@ -205,7 +205,6 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     if (DetritusKeys[DiscordKeys.DEFAULT_PERMISSION] in data) {
       (data as any)[DiscordKeys.DEFAULT_PERMISSION] = (data as any)[DetritusKeys[DiscordKeys.DEFAULT_PERMISSION]];
     }
-    this.merge(data);
 
     this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
     this.metadata = Object.assign(this.metadata, data.metadata);
@@ -231,6 +230,8 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     this.run = data.run || this.run;
     this.onRunError = data.onRunError || this.onRunError;
     this.onSuccess = data.onSuccess || this.onSuccess;
+
+    this.merge(data);
   }
 
   get _optionsKey(): string {
@@ -401,7 +402,6 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
 
   constructor(data: SlashCommandOptionOptions = {}) {
     super();
-    this.merge(data);
 
     this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
     this.metadata = Object.assign(this.metadata, data.metadata);
@@ -412,6 +412,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     if (data._file) {
       this._file = data._file;
     }
+
     Object.defineProperties(this, {
       _file: {configurable: true, writable: false},
     });
@@ -431,6 +432,8 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     if (typeof(this.run) === 'function') {
       this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
     }
+
+    this.merge(data);
   }
 
   get _choicesKey(): string {
