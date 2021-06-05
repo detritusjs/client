@@ -14,6 +14,7 @@ import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
 import { AuthTypes, ClientEvents, SocketStates, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { GatewayClientEvents } from './gateway/clientevents';
+import { SlashCommandClient } from './slashcommandclient';
 
 
 export interface ClusterClientOptions extends ShardClientOptions {
@@ -39,6 +40,7 @@ export class ClusterClient extends EventSpewer {
   readonly commandClient: CommandClient | null = null;
   readonly manager: ClusterProcessChild | null = null;
   readonly rest: DetritusRestClient;
+  readonly slashCommandClient: SlashCommandClient | null = null;
 
   buckets = new BaseCollection<number, Bucket>();
   maxConcurrency: number = 1;
@@ -102,8 +104,11 @@ export class ClusterClient extends EventSpewer {
     this.shardOptions.pass = Object.assign({}, this.shardOptions.pass);
     this.shardOptions.pass.cluster = this;
 
-    if (this.shardOptions.pass.commandClient !== undefined) {
+    if (this.shardOptions.pass.commandClient) {
       this.commandClient = this.shardOptions.pass.commandClient;
+    }
+    if (this.shardOptions.pass.slashCommandClient) {
+      this.slashCommandClient = this.shardOptions.pass.slashCommandClient;
     }
 
     if (isUsingClusterManager) {
@@ -120,8 +125,17 @@ export class ClusterClient extends EventSpewer {
       shardStart: {configurable: true, writable: false},
       shards: {writable: false},
       shardOptions: {enumerable: false, writable: false},
+      slashCommandClient: {enumerable: false, writable: false},
       token: {enumerable: false, writable: false},
     });
+  }
+
+  get applicationId(): string {
+    return (this.shards.length) ? this.shards.first()!.applicationId : '';
+  }
+
+  get clusterId(): number {
+    return (this.manager) ? this.manager.clusterId : 0;
   }
 
   setShardCount(value: number): void {
@@ -173,8 +187,14 @@ export class ClusterClient extends EventSpewer {
     const firstShard = this.shards.first();
     const enabled = (firstShard) ? firstShard.applications.enabled : false;
     if (enabled) {
-      const applications = await this.rest.fetchApplicationsDetectable();
       refresh.last = Date.now();
+
+      let applications: Array<any>;
+      if (this.manager && this.manager.hasMultipleClusters) {
+        applications = await this.manager.sendRestRequest('fetchApplicationsDetectable');
+      } else {
+        applications = await this.rest.fetchApplicationsDetectable();
+      }
       for (let [shardId, shard] of this.shards) {
         shard.applications.fill(applications);
       }
@@ -199,6 +219,7 @@ export class ClusterClient extends EventSpewer {
     if (this.ran) {
       return this;
     }
+    Object.defineProperty(this, 'ran', {value: true});
     options = Object.assign({
       delay: DEFAULT_SHARD_LAUNCH_DELAY,
       url: process.env.GATEWAY_URL,
@@ -234,9 +255,14 @@ export class ClusterClient extends EventSpewer {
 
       const shardOptions = Object.assign({}, this.shardOptions);
       shardOptions.gateway = Object.assign({}, shardOptions.gateway, {shardCount, shardId});
-      if (this.commandClient) {
+      if (this.commandClient || this.slashCommandClient) {
         shardOptions.pass = Object.assign({}, shardOptions.pass);
-        shardOptions.pass.commandClient = this.commandClient;
+        if (this.commandClient) {
+          shardOptions.pass.commandClient = this.commandClient;
+        }
+        if (this.slashCommandClient) {
+          shardOptions.pass.slashCommandClient = this.slashCommandClient;
+        }
       }
 
       const shard = new ShardClient(this.token, shardOptions);
@@ -282,7 +308,6 @@ export class ClusterClient extends EventSpewer {
     for (let [shardId, shard] of this.shards) {
       await shard.run(options);
     }
-    Object.defineProperty(this, 'ran', {value: true});
     this.emit(ClientEvents.READY);
     return this;
   }
@@ -298,6 +323,12 @@ export class ClusterClient extends EventSpewer {
   on(event: 'activityJoinRequest', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityJoinRequest) => any): this;
   on(event: ClientEvents.ACTIVITY_START, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityStart) => any): this;
   on(event: 'activityStart', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityStart) => any): this;
+  on(event: ClientEvents.APPLICATION_COMMAND_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandCreate) => any): this;
+  on(event: 'applicationCommandCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandCreate) => any): this;
+  on(event: ClientEvents.APPLICATION_COMMAND_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandDelete) => any): this;
+  on(event: 'applicationCommandDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandDelete) => any): this;
+  on(event: ClientEvents.APPLICATION_COMMAND_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandUpdate) => any): this;
+  on(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandUpdate) => any): this;
   on(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   on(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   on(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.CallCreate) => any): this;
@@ -508,6 +539,12 @@ export class ClusterClient extends EventSpewer {
   once(event: 'activityJoinRequest', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityJoinRequest) => any): this;
   once(event: ClientEvents.ACTIVITY_START, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityStart) => any): this;
   once(event: 'activityStart', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityStart) => any): this;
+  once(event: ClientEvents.APPLICATION_COMMAND_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandCreate) => any): this;
+  once(event: 'applicationCommandCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandCreate) => any): this;
+  once(event: ClientEvents.APPLICATION_COMMAND_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandDelete) => any): this;
+  once(event: 'applicationCommandDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandDelete) => any): this;
+  once(event: ClientEvents.APPLICATION_COMMAND_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandUpdate) => any): this;
+  once(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandUpdate) => any): this;
   once(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   once(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   once(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.CallCreate) => any): this;
@@ -716,6 +753,12 @@ export class ClusterClient extends EventSpewer {
   subscribe(event: 'activityJoinRequest', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityJoinRequest) => any): EventSubscription;
   subscribe(event: ClientEvents.ACTIVITY_START, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityStart) => any): EventSubscription;
   subscribe(event: 'activityStart', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ActivityStart) => any): EventSubscription;
+  subscribe(event: ClientEvents.APPLICATION_COMMAND_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandCreate) => any): EventSubscription;
+  subscribe(event: 'applicationCommandCreate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.APPLICATION_COMMAND_DELETE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandDelete) => any): EventSubscription;
+  subscribe(event: 'applicationCommandDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.APPLICATION_COMMAND_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandUpdate) => any): EventSubscription;
+  subscribe(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.ApplicationCommandUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.BraintreePopupBridgeCallback) => any): EventSubscription;
   subscribe(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.BraintreePopupBridgeCallback) => any): EventSubscription;
   subscribe(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.CallCreate) => any): EventSubscription;

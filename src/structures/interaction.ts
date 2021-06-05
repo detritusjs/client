@@ -3,7 +3,13 @@ import { RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { ChannelTypes, DiscordKeys, InteractionTypes, MessageComponentTypes } from '../constants';
+import {
+  ApplicationCommandOptionTypes,
+  ChannelTypes,
+  DiscordKeys,
+  InteractionTypes,
+  MessageComponentTypes,
+} from '../constants';
 
 import {
   BaseStructure,
@@ -52,6 +58,7 @@ export class Interaction extends BaseStructure {
   id: string = '';
   member?: Member;
   message?: Message;
+  responded: boolean = false;
   token: string = '';
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
@@ -81,31 +88,59 @@ export class Interaction extends BaseStructure {
   }
 
   get inDm(): boolean {
-    return !!this.member;
+    return !this.member;
   }
 
   get userId(): string {
     return this.user.id;
   }
 
+  createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
+    return this.client.rest.executeWebhook(this.applicationId, this.token, options);
+  }
+
+  async createResponse(
+    options: RequestTypes.CreateInteractionResponse | number,
+    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+  ) {
+    const response = await this.client.rest.createInteractionResponse(this.id, this.token, options, data);
+    this.responded = true;
+    return response;
+  }
+
   deleteMessage(messageId: string) {
     return this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId);
+  }
+
+  deleteResponse() {
+    return this.deleteMessage('@original');
   }
 
   editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
     return this.client.rest.editWebhookTokenMessage(this.applicationId, this.token, messageId, options);
   }
 
+  editResponse(options: RequestTypes.EditWebhookTokenMessage = {}) {
+    return this.editMessage('@original', options);
+  }
+
   fetchMessage(messageId: string) {
     return this.client.rest.fetchWebhookTokenMessage(this.applicationId, this.token, messageId);
   }
 
-  reply(options: RequestTypes.ExecuteWebhook) {
-    return this.client.rest.executeWebhook(this.applicationId, this.token, options);
+  fetchResponse() {
+    return this.fetchMessage('@original');
   }
 
-  respond(options: RequestTypes.CreateInteractionResponse) {
-    return this.client.rest.createInteractionResponse(this.id, this.token, options);
+  reply(options: RequestTypes.ExecuteWebhook | string = {}) {
+    return this.createMessage(options);
+  }
+
+  respond(
+    options: RequestTypes.CreateInteractionResponse | number,
+    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+  ) {
+    return this.createResponse(options, data);
   }
 
   mergeValue(key: string, value: any): void {
@@ -117,10 +152,10 @@ export class Interaction extends BaseStructure {
 
             }; break;
             case InteractionTypes.APPLICATION_COMMAND: {
-              value = new InteractionDataApplicationCommand(this.client, value);
+              value = new InteractionDataApplicationCommand(this, value);
             }; break;
             case InteractionTypes.MESSAGE_COMPONENT: {
-              value = new InteractionDataComponent(this.client, value);
+              value = new InteractionDataComponent(this, value);
             }; break;
           }
         }; break;
@@ -155,27 +190,121 @@ const keysInteractionDataApplicationCommand = new BaseSet<string>([
  */
 export class InteractionDataApplicationCommand extends BaseStructure {
   readonly _keys = keysInteractionDataApplicationCommand;
+  readonly interaction: Interaction;
 
   id: string = '';
   name: string = '';
-  options: any;
-  resolved!: InteractionDataApplicationCommandResolved;
+  options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
+  resolved?: InteractionDataApplicationCommandResolved;
 
   constructor(
-    client: ShardClient,
+    interaction: Interaction,
     data?: BaseStructureData,
     isClone?: boolean,
   ) {
-    super(client, undefined, isClone);
+    super(interaction.client, undefined, isClone);
+    this.interaction = interaction;
     this.merge(data);
+    Object.defineProperty(this, 'interaction', {enumerable: false});
+  }
+
+  get fullName(): string {
+    if (this.options && this.options.length) {
+      const option = this.options.first()!;
+      if (option.isSubCommand || option.isSubCommandGroup) {
+        return `${this.name} ${option.fullName}`;
+      }
+    }
+    return this.name;
   }
 
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case DiscordKeys.OPTIONS: {
+          if (!this.options) {
+            this.options = new BaseCollection<string, InteractionDataApplicationCommandOption>();
+          }
+          this.options.clear();
+          for (let raw of value) {
+            const option = new InteractionDataApplicationCommandOption(this, raw, this.isClone);
+            this.options.set(option.name, option);
+          }
+        }; return;
         case DiscordKeys.RESOLVED: {
-          value = new InteractionDataApplicationCommandResolved(this.client, value);
+          value = new InteractionDataApplicationCommandResolved(this, value, this.isClone);
         }; break;
+      }
+      return super.mergeValue(key, value);
+    }
+  }
+
+  toString(): string {
+    return this.fullName;
+  }
+}
+
+
+const keysInteractionDataApplicationCommandOption = new BaseSet<string>([
+  DiscordKeys.NAME,
+  DiscordKeys.OPTIONS,
+  DiscordKeys.TYPE,
+  DiscordKeys.VALUE,
+]);
+
+/**
+ * Interaction Data Application Command Option Structure
+ * @category Structure
+ */
+export class InteractionDataApplicationCommandOption extends BaseStructure {
+  readonly _keys = keysInteractionDataApplicationCommandOption;
+  readonly interactionData: InteractionDataApplicationCommand;
+
+  name: string = '';
+  options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
+  type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.SUB_COMMAND;
+  value?: boolean | number | string;
+
+  constructor(
+    interactionData: InteractionDataApplicationCommand,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(interactionData.client, undefined, isClone);
+    this.interactionData = interactionData;
+    this.merge(data);
+    Object.defineProperty(this, 'interactionData', {enumerable: false});
+  }
+
+  get fullName(): string {
+    if (this.isSubCommandGroup && this.options && this.options.length) {
+      const option = this.options.first()!;
+      return `${this.name} ${option.fullName}`;
+    }
+    return this.name;
+  }
+
+  get isSubCommand(): boolean {
+    return this.type === ApplicationCommandOptionTypes.SUB_COMMAND;
+  }
+
+  get isSubCommandGroup(): boolean {
+    return this.type === ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.OPTIONS: {
+          if (!this.options) {
+            this.options = new BaseCollection<string, InteractionDataApplicationCommandOption>();
+          }
+          this.options.clear();
+          for (let raw of value) {
+            const option = new InteractionDataApplicationCommandOption(this.interactionData, raw, this.isClone);
+            this.options.set(option.name, option);
+          }
+        }; return;
       }
       return super.mergeValue(key, value);
     }
@@ -201,6 +330,7 @@ const keysMergeInteractionDataApplicationCommandResolved = new BaseSet<string>([
 export class InteractionDataApplicationCommandResolved extends BaseStructure {
   readonly _keys = keysInteractionDataApplicationCommandResolved;
   readonly _keysMerge = keysMergeInteractionDataApplicationCommandResolved;
+  readonly interactionData: InteractionDataApplicationCommand;
 
   channels?: BaseCollection<string, {id: string, name: string, permissions: bigint, type: ChannelTypes}>;
   members?: BaseCollection<string, Member>;
@@ -208,12 +338,18 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
   users?: BaseCollection<string, User>;
 
   constructor(
-    client: ShardClient,
+    interactionData: InteractionDataApplicationCommand,
     data?: BaseStructureData,
     isClone?: boolean,
   ) {
-    super(client, undefined, isClone);
+    super(interactionData.client, undefined, isClone);
+    this.interactionData = interactionData;
     this.merge(data);
+    Object.defineProperty(this, 'interactionData', {enumerable: false});
+  }
+
+  get guildId(): string | null {
+    return this.interactionData.interaction.guildId || null;
   }
 
   mergeValue(key: string, value: any): void {
@@ -225,6 +361,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
           }
           this.channels.clear();
           for (let channelId in value) {
+            value[channelId][DiscordKeys.GUILD_ID] = this.guildId;
             this.channels.set(channelId, value[channelId]);
           }
         }; return;
@@ -234,8 +371,11 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
           }
           this.members.clear();
           for (let userId in value) {
-            value[userId].user = (this.users) ? this.users.get(userId) : this.client.users.get(userId);
+            value[userId][DiscordKeys.GUILD_ID] = this.guildId;
             const member = new Member(this.client, value[userId], true);
+            if (!member.user) {
+              member.user = (this.users) ? this.users.get(userId)! : this.client.users.get(userId)!;
+            }
             this.members.set(userId, member);
           }
         }; return;
@@ -245,6 +385,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
           }
           this.roles.clear();
           for (let roleId in value) {
+            value[roleId][DiscordKeys.GUILD_ID] = this.guildId;
             const role = new Role(this.client, value[roleId]);
             this.roles.set(roleId, role);
           }
@@ -278,17 +419,20 @@ const keysInteractionDataComponent = new BaseSet<string>([
  */
 export class InteractionDataComponent extends BaseStructure {
   readonly _keys = keysInteractionDataComponent;
+  readonly interaction: Interaction;
 
   componentType: MessageComponentTypes = MessageComponentTypes.BUTTON;
   customId: string = '';
   values?: Array<string>;
 
   constructor(
-    client: ShardClient,
+    interaction: Interaction,
     data?: BaseStructureData,
     isClone?: boolean,
   ) {
-    super(client, undefined, isClone);
+    super(interaction.client, undefined, isClone);
+    this.interaction = interaction;
     this.merge(data);
+    Object.defineProperty(this, 'interaction', {enumerable: false});
   }
 }

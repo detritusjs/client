@@ -13,6 +13,11 @@ export type FailedPermissions = Array<bigint>;
 /**
  * @category Command
  */
+export type CommandCallbackDmBlocked = (context: Context) => Promise<any | Message> | any | Message;
+
+/**
+ * @category Command
+ */
 export type CommandCallbackBefore = (context: Context) => Promise<boolean> | boolean;
 
 /**
@@ -38,7 +43,7 @@ export type CommandCallbackError = (context: Context, args: ParsedArgs, error: a
 /**
  * @category Command
  */
-export type CommandCallbackPermissionsFail = (context: Context, permissions: FailedPermissions) => Promise<any> | any;
+export type CommandCallbackPermissionsFail = (context: Context, permissions: FailedPermissions) => Promise<any | Message> | any | Message;
 
 /**
  * @category Command
@@ -52,7 +57,7 @@ export type CommandCallbackRatelimit = (
   context: Context,
   ratelimits: Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}>,
   metadata: {global: boolean, now: number},
-) => Promise<any> | any;
+) => Promise<any | Message> | any | Message;
 
 /**
  * @category Command
@@ -78,7 +83,7 @@ export interface CommandOptions extends ArgumentOptions {
   args?: Array<ArgumentOptions>,
   disableDm?: boolean,
   disableDmReply?: boolean,
-  metadata?: {[key: string]: any},
+  metadata?: Record<string, any>,
   name: string,
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
@@ -89,6 +94,7 @@ export interface CommandOptions extends ArgumentOptions {
   responseOptional?: boolean,
   triggerTypingAfter?: number,
 
+  onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
   onBeforeRun?: CommandCallbackBeforeRun,
   onCancel?: CommandCallbackCancel,
@@ -106,7 +112,7 @@ export interface CommandOptions extends ArgumentOptions {
 
 /**
  * Command itself
- * Command flow is ratelimit check -> permission check -> `onBefore` -> arg parse -> `onBeforeRun` -> `run` -> `onSuccess | onRunError`
+ * Command flow is ratelimit check -> dm/permission check -> `onBefore` -> arg parse -> `onBeforeRun` -> `run` -> `onSuccess | onRunError`
  * @category Command
  */
 export class Command<ParsedArgsFinished = ParsedArgs> {
@@ -117,7 +123,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   arg: Argument;
   disableDm: boolean = false;
   disableDmReply: boolean = false;
-  metadata: {[key: string]: any} = {};
+  metadata: Record<string, any> = {};
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean = false;
@@ -126,16 +132,17 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   responseOptional: boolean = false;
   triggerTypingAfter: number = -1;
 
+  onDmBlocked?(context: Context): Promise<any | Message> | any | Message;
   onBefore?(context: Context): Promise<boolean> | boolean;
   onBeforeRun?(context: Context, args: ParsedArgs): Promise<boolean> | boolean;
   onCancel?(context: Context): Promise<any | Message> | any | Message;
   onCancelRun?(context: Context, args: ParsedArgs): Promise<any | Message> | any | Message;
   onError?(context: Context, args: ParsedArgs, error: any): Promise<any> | any;
-  onPermissionsFail?(context: Context, permissions: FailedPermissions): Promise<any> | any;
-  onPermissionsFailClient?(context: Context, permissions: FailedPermissions): Promise<any> | any;
-  onRatelimit?(context: Context, ratelimits: Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}>, metadata: {global: boolean, now: number}): Promise<any> | any;
+  onPermissionsFail?(context: Context, permissions: FailedPermissions): Promise<any | Message> | any | Message;
+  onPermissionsFailClient?(context: Context, permissions: FailedPermissions): Promise<any | Message> | any | Message;
+  onRatelimit?(context: Context, ratelimits: Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}>, metadata: {global: boolean, now: number}): Promise<any | Message> | any | Message;
   run?(context: Context, args: ParsedArgsFinished): Promise<any | Message> | any | Message;
-  onRunError?(context: Context, args: ParsedArgsFinished, error: any): Promise<any> | any;
+  onRunError?(context: Context, args: ParsedArgsFinished, error: any): Promise<any | Message> | any | Message;
   onSuccess?(context: Context, args: ParsedArgsFinished): Promise<any> | any;
   onTypeError?(context: Context, args: ParsedArgs, errors: ParsedErrors): Promise<any | Message> | any | Message;
 
@@ -185,10 +192,10 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
 
     Object.defineProperties(this, {
       _file: {configurable: true, writable: false},
-      client: {enumerable: false, writable: false},
       commandClient: {enumerable: false, writable: false},
     });
 
+    this.onDmBlocked = options.onDmBlocked || this.onDmBlocked;
     this.onBefore = options.onBefore || this.onBefore;
     this.onBeforeRun = options.onBeforeRun || this.onBeforeRun;
     this.onCancel = options.onCancel || this.onCancel;

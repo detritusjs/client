@@ -263,6 +263,15 @@ export class Structure {
         let value = this._getFromSnake(key);
         if (typeof(value) === 'bigint') {
           value = String(value);
+        } else if (value instanceof Structure) {
+          value = value.toJSON();
+        } else if (Array.isArray(value) && value.some((x) => x instanceof Structure)) {
+          value = value.map((x) => {
+            if (x instanceof Structure) {
+              return x.toJSON();
+            }
+            return x;
+          });
         }
         obj[key] = value;
       }

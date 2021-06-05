@@ -1,6 +1,7 @@
 import { EventSpewer } from 'detritus-utils';
 
 import { ClusterClient } from '../clusterclient';
+import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { ClientEvents, ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
@@ -11,17 +12,22 @@ import { ClusterIPCTypes } from './ipctypes';
 
 
 export class ClusterProcessChild extends EventSpewer {
+  readonly _restRequestsWaiting = new BaseCollection<string | number, {
+    promise: Promise<any>,
+    reject: Function,
+    resolve: Function,
+  }>();
   readonly _shardsIdentifying = new BaseSet<number>();
   readonly cluster: ClusterClient;
 
   clusterCount: number = 1;
-  clusterId: number = -1;
+  clusterId: number = 0;
 
   constructor(cluster: ClusterClient) {
     super();
     this.cluster = cluster;
-    this.clusterCount = +((<string> process.env.CLUSTER_COUNT) || this.clusterCount);
-    this.clusterId = +((<string> process.env.CLUSTER_ID) || this.clusterId);
+    this.clusterCount = +((process.env.CLUSTER_COUNT as string) || this.clusterCount);
+    this.clusterId = +((process.env.CLUSTER_ID as string) || this.clusterId);
 
     process.on('message', this.onMessage.bind(this));
     process.on('message', this.emit.bind(this, 'ipc'));
@@ -47,7 +53,7 @@ export class ClusterProcessChild extends EventSpewer {
         if (this._shardsIdentifying.has(shardId)) {
           return true;
         } else {
-          await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId: shard.shardId});
+          await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
         }
         return false;
       };
@@ -57,6 +63,10 @@ export class ClusterProcessChild extends EventSpewer {
       cluster: {enumerable: false, writable: false},
       clusterId: {writable: false},
     });
+  }
+
+  get hasMultipleClusters(): boolean {
+    return 1 < this.clusterCount;
   }
 
   async onMessage(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {
@@ -94,6 +104,12 @@ export class ClusterProcessChild extends EventSpewer {
             }
           }
         }; return;
+        case ClusterIPCOpCodes.FILL_SLASH_COMMANDS: {
+          const { data }: ClusterIPCTypes.FillSlashCommands = message.data;
+          if (this.cluster.slashCommandClient) {
+            this.cluster.slashCommandClient.validateCommandsFromRaw(data);
+          }
+        }; return;
         case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
           // we received an ok to identify
           const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
@@ -101,6 +117,21 @@ export class ClusterProcessChild extends EventSpewer {
           if (shard) {
             this._shardsIdentifying.add(shardId);
             shard.gateway.identify();
+          }
+        }; return;
+        case ClusterIPCOpCodes.REST_REQUEST: {
+          const { clusterId } = message;
+          if (clusterId === this.clusterId) {
+            const { error, name, result }: ClusterIPCTypes.RestRequest = message.data;
+            if (this._restRequestsWaiting.has(name)) {
+              const waiting = this._restRequestsWaiting.get(name)!;
+              if (error) {
+                waiting.reject(new ClusterIPCError(error));
+              } else {
+                waiting.resolve(result);
+              }
+            }
+            this._restRequestsWaiting.delete(name);
           }
         }; return;
       }
@@ -111,7 +142,7 @@ export class ClusterProcessChild extends EventSpewer {
   }
 
   async send(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {
-    const parent = <any> process;
+    const parent = process as any;
     return new Promise((resolve, reject) => {
       parent.send(message, (error: Error | null) => {
         if (error) {
@@ -129,7 +160,7 @@ export class ClusterProcessChild extends EventSpewer {
     request: boolean = false,
     shard?: number,
   ): Promise<void> {
-    return this.send({op, data, request, shard});
+    return this.send({op, data, request, clusterId: this.clusterId, shard});
   }
 
   async sendIPCOrWarn(
@@ -147,7 +178,7 @@ export class ClusterProcessChild extends EventSpewer {
   }
 
   async broadcastEval(code: Function | string, ...args: any[]): Promise<Array<any>> {
-    const parent = <any> process;
+    const parent = process as any;
     const nonce = Snowflake.generate().id;
     return new Promise(async (resolve, reject) => {
       const listener = (
@@ -203,6 +234,21 @@ export class ClusterProcessChild extends EventSpewer {
         reject(error);
       }
     });
+  }
+
+  async sendRestRequest(name: string, args?: Array<any>): Promise<any> {
+    // add a timeout
+    const promise = new Promise(async (resolve, reject) => {
+      if (this._restRequestsWaiting.has(name)) {
+        const waiting = this._restRequestsWaiting.get(name)!;
+        resolve(waiting.promise);
+      } else {
+        await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {args, name}, true);
+        const waiting = {promise, reject, resolve};
+        this._restRequestsWaiting.set(name, waiting);
+      }
+    });
+    return promise;
   }
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;

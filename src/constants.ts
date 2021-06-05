@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.15.0',
+  VERSION: '0.15.1',
 });
 
 export type Snowflake = number | string;
@@ -276,6 +276,9 @@ export enum ClientEvents {
   ACTIVITY_JOIN_INVITE = 'activityJoinInvite',
   ACTIVITY_JOIN_REQUEST = 'activityJoinRequest',
   ACTIVITY_START = 'activityStart',
+  APPLICATION_COMMAND_CREATE = 'applicationCommandCreate',
+  APPLICATION_COMMAND_DELETE = 'applicationCommandDelete',
+  APPLICATION_COMMAND_UPDATE = 'applicationCommandUpdate',
   BRAINTREE_POPUP_BRIDGE_CALLBACK = 'braintreePopupBridgeCallback',
   CALL_CREATE = 'callCreate',
   CALL_DELETE = 'callDelete',
@@ -398,6 +401,8 @@ export enum ClusterIPCOpCodes {
   RESPAWN_ALL = 3,
   EVAL = 4,
   IDENTIFY_REQUEST = 5,
+  REST_REQUEST = 6,
+  FILL_SLASH_COMMANDS = 7,
 }
 
 export enum Colors {
@@ -1229,6 +1234,7 @@ export const DiscordKeys = Object.freeze({
   CHANNEL: 'channel',
   CHANNELS: 'channels',
   CHANNEL_ID: 'channel_id',
+  CHOICES: 'choices',
   CLIENT: 'client',
   CLIENT_INFO: 'client_info',
   CLIENT_STATUS: 'client_status',
@@ -1252,6 +1258,7 @@ export const DiscordKeys = Object.freeze({
   DEAF: 'deaf',
   DEFAULT: 'default',
   DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
+  DEFAULT_PERMISSION: 'default_permission',
   DELETE_MEMBER_DAYS: 'delete_member_days',
   DENY: 'deny',
   DENY_NEW: 'deny_new',
@@ -1312,6 +1319,7 @@ export const DiscordKeys = Object.freeze({
   ICON: 'icon',
   ICON_URL: 'icon_url',
   ID: 'id',
+  IDS: 'ids',
   IMAGE: 'image',
   INLINE: 'inline',
   INSTANCE: 'instance',
@@ -1395,6 +1403,7 @@ export const DiscordKeys = Object.freeze({
   PARTY_ID: 'party_id',
   PAYOUT_ACCOUNT_STATUS: 'payout_account_status',
   PENDING: 'pending',
+  PERMISSION: 'permission',
   PERMISSIONS: 'permissions',
   PERMISSIONS_NEW: 'permissions_new',
   PERMISSION_OVERWRITES: 'permission_overwrites',
@@ -1433,6 +1442,7 @@ export const DiscordKeys = Object.freeze({
   REGION: 'region',
   RELEASE_DATE: 'release_date',
   REQUEST_TO_SPEAK_TIMESTAMP: 'request_to_speak_timestamp',
+  REQUIRED: 'required',
   REQUIRE_COLONS: 'require_colons',
   RESOLVED: 'resolved',
   REVOKED: 'revoked',
@@ -1585,6 +1595,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.CHANNEL]: 'channel',
   [DiscordKeys.CHANNELS]: 'channels',
   [DiscordKeys.CHANNEL_ID]: 'channelId',
+  [DiscordKeys.CHOICES]: 'choices',
   [DiscordKeys.CLIENT]: 'client',
   [DiscordKeys.CLIENT_INFO]: 'clientInfo',
   [DiscordKeys.CLIENT_STATUS]: 'clientStatus',
@@ -1608,6 +1619,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DEAF]: 'deaf',
   [DiscordKeys.DEFAULT]: 'default',
   [DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS]: 'defaultMessageNotifications',
+  [DiscordKeys.DEFAULT_PERMISSION]: 'defaultPermission',
   [DiscordKeys.DELETE_MEMBER_DAYS]: 'deleteMemberDays',
   [DiscordKeys.DENY]: 'deny',
   [DiscordKeys.DENY_NEW]: 'denyNew',
@@ -1668,6 +1680,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ICON]: 'icon',
   [DiscordKeys.ICON_URL]: 'iconUrl',
   [DiscordKeys.ID]: 'id',
+  [DiscordKeys.IDS]: 'ids',
   [DiscordKeys.IMAGE]: 'image',
   [DiscordKeys.INLINE]: 'inline',
   [DiscordKeys.INSTANCE]: 'instance',
@@ -1751,6 +1764,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PARTY_ID]: 'partyId',
   [DiscordKeys.PAYOUT_ACCOUNT_STATUS]: 'payoutAccountStatus',
   [DiscordKeys.PENDING]: 'pending',
+  [DiscordKeys.PERMISSION]: 'permission',
   [DiscordKeys.PERMISSIONS]: 'permissions',
   [DiscordKeys.PERMISSIONS_NEW]: 'permissionsNew',
   [DiscordKeys.PERMISSION_OVERWRITES]: 'permissionOverwrites',
@@ -1789,6 +1803,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.REGION]: 'region',
   [DiscordKeys.RELEASE_DATE]: 'releaseDate',
   [DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP]: 'requestToSpeakTimestamp',
+  [DiscordKeys.REQUIRED]: 'required',
   [DiscordKeys.REQUIRE_COLONS]: 'requireColons',
   [DiscordKeys.RESOLVED]: 'resolved',
   [DiscordKeys.REVOKED]: 'revoked',

@@ -91,8 +91,8 @@ const keysComponentActionRow = new BaseSet<string>([
     return super.mergeValue(key, value);
   }
 
-  toJSON(): RequestTypes.CreateChannelMessageComponent {
-    return super.toJSON() as RequestTypes.CreateChannelMessageComponent;
+  toJSON(): RequestTypes.RawChannelMessageComponent {
+    return super.toJSON() as RequestTypes.RawChannelMessageComponent;
   }
 }
 
@@ -124,9 +124,9 @@ const keysComponentButton = new BaseSet<string>([
 
   constructor(data: ComponentData = {}) {
     super();
-    Object.assign(data, {
-      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
-    });
+    if (DetritusKeys[DiscordKeys.CUSTOM_ID] in data) {
+      (data as any)[DiscordKeys.CUSTOM_ID] = (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]];
+    }
     this.merge(data);
     this.type = MessageComponentTypes.BUTTON;
   }
@@ -182,7 +182,7 @@ const keysComponentButton = new BaseSet<string>([
     return super.mergeValue(key, value);
   }
 
-  toJSON(): RequestTypes.CreateChannelMessageComponent {
+  toJSON(): RequestTypes.RawChannelMessageComponent {
     const data = super.toJSON() as any;
     if (data.emoji instanceof Emoji) {
       data.emoji = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};
@@ -270,8 +270,8 @@ const keysComponentSelectMenu = new BaseSet<string>([
     return super.mergeValue(key, value);
   }
 
-  toJSON(): RequestTypes.CreateChannelMessageComponent {
-    return super.toJSON() as RequestTypes.CreateChannelMessageComponent;
+  toJSON(): RequestTypes.RawChannelMessageComponent {
+    return super.toJSON() as RequestTypes.RawChannelMessageComponent;
   }
 }
 
@@ -345,7 +345,7 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
     return super.mergeValue(key, value);
   }
 
-  toJSON(): RequestTypes.CreateChannelMessageComponent {
+  toJSON(): RequestTypes.RawChannelMessageComponentSelectMenuOption {
     const data = super.toJSON() as any;
     if (data.emoji instanceof Emoji) {
       data.emoji = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};

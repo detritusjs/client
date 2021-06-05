@@ -24,6 +24,38 @@ export namespace GatewayRawEvents {
     user_id: string,
   }
 
+  export interface ApplicationCommandCreate {
+    application_id: string,
+    default_permission?: boolean,
+    description: string,
+    guild_id?: string,
+    id: string,
+    name: string,
+    options?: Array<ApplicationCommandOption>,
+  }
+
+  export interface ApplicationCommandOption {
+    choices?: Array<ApplicationCommandOptionChoice>,
+    description: string,
+    name: string,
+    options?: Array<ApplicationCommandOption>,
+    required?: boolean,
+    type: number,
+  }
+
+  export interface ApplicationCommandOptionChoice {
+    name: string,
+    value: string | number,
+  }
+
+  export interface ApplicationCommandDelete extends ApplicationCommandCreate {
+    
+  }
+
+  export interface ApplicationCommandUpdate extends ApplicationCommandCreate {
+    
+  }
+
   export interface BraintreePopupBridgeCallback {
     path: string,
     query: any,

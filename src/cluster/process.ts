@@ -2,7 +2,7 @@ import { ChildProcess, fork } from 'child_process';
 
 import { EventSpewer, Timers } from 'detritus-utils';
 
-import { ClusterManager } from '../clustermanager';
+import { ClusterManager, ClusterManagerRestCachePayload } from '../clustermanager';
 import { BaseCollection } from '../collections/basecollection';
 import { ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
@@ -33,7 +33,7 @@ export class ClusterProcess extends EventSpewer {
   readonly clusterId: number = -1;
   readonly manager: ClusterManager;
 
-  env: {[key: string]: string | undefined} = {};
+  env: Record<string, string | undefined> = {};
   process: ChildProcess | null = null;
 
   constructor(
@@ -95,6 +95,9 @@ export class ClusterProcess extends EventSpewer {
               }
             }
           }; return;
+          case ClusterIPCOpCodes.FILL_SLASH_COMMANDS: {
+            await this.manager.broadcast(message);
+          }; return;
           case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
             const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
             const ratelimitKey = this.manager.getRatelimitKey(shardId);
@@ -119,6 +122,44 @@ export class ClusterProcess extends EventSpewer {
           }; return;
           case ClusterIPCOpCodes.RESPAWN_ALL: {
 
+          }; return;
+          case ClusterIPCOpCodes.REST_REQUEST: {
+            const data: ClusterIPCTypes.RestRequest = message.data;
+            try {
+              if (data.name in this.manager.rest && typeof((this.manager.rest as any)[data.name]) === 'function') {
+                let payload: ClusterManagerRestCachePayload;
+                if (this.manager.restCache.has(data.name)) {
+                  payload = this.manager.restCache.get(data.name)!;
+                  if (payload.promise) {
+                    payload.result = await payload.promise;
+                    payload.promise = undefined;
+                  }
+                } else {
+                  payload = {
+                    promise: (this.manager.rest as any)[data.name](...(data.args || [])),
+                  };
+                  this.manager.restCache.set(data.name, payload);
+                  payload.result = await payload.promise;
+                  payload.promise = undefined;
+                }
+                this.manager.restCache.delete(data.name);
+                await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
+                  result: payload.result,
+                  name: data.name,
+                }, false, message.shardId, message.clusterId);
+              } else {
+                throw Error('Invalid rest function name');
+              }
+            } catch(error) {
+              await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
+                ...data,
+                error: {
+                  message: error.message,
+                  name: error.name,
+                  stack: error.stack,
+                },
+              }, false, message.shardId, message.clusterId);
+            }
           }; return;
           case ClusterIPCOpCodes.SHARD_STATE: {
             const data: ClusterIPCTypes.ShardState = message.data;
@@ -244,8 +285,9 @@ export class ClusterProcess extends EventSpewer {
     data: any = null,
     request: boolean = false,
     shard?: number,
+    clusterId?: number,
   ): Promise<void> {
-    return this.send({op, data, request, shard});
+    return this.send({op, data, request, clusterId, shard});
   }
 
   async run(

@@ -7,6 +7,9 @@ import { EventSpewer, EventSubscription, Timers } from 'detritus-utils';
 
 import { ClusterClient } from './clusterclient';
 import { CommandClient } from './commandclient';
+import { RestClient } from './rest';
+import { SlashCommandClient } from './slashcommandclient';
+
 import {
   AuthTypes,
   ClientEvents,
@@ -15,7 +18,6 @@ import {
 } from './constants';
 import { ChunkWaiting, GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
 import { GatewayClientEvents } from './gateway/clientevents';
-import { RestClient } from './rest';
 
 import { BaseCollection } from './collections/basecollection';
 import { BaseSet } from './collections/baseset';
@@ -100,6 +102,7 @@ export interface ShardClientCacheOptions {
 export interface ShardClientPassOptions {
   cluster?: ClusterClient,
   commandClient?: CommandClient,
+  slashCommandClient?: SlashCommandClient,
   applications?: Applications,
   channels?: Channels,
   connectedAccounts?: ConnectedAccounts,
@@ -161,6 +164,7 @@ export class ShardClient extends EventSpewer {
   application: Oauth2Application | null = null;
   cluster: ClusterClient | null = null;
   commandClient: CommandClient | null = null;
+  slashCommandClient: SlashCommandClient | null = null;
 
   /** Default Image Format to use for any url getters*/
   imageFormat: ImageFormats = ImageFormats.PNG;
@@ -231,6 +235,8 @@ export class ShardClient extends EventSpewer {
     }
     this.cluster = options.pass.cluster || this.cluster;
     this.commandClient = options.pass.commandClient || this.commandClient;
+    this.slashCommandClient = options.pass.slashCommandClient || this.slashCommandClient;
+
     this.gateway = new Gateway.Socket(token, options.gateway);
     this.gatewayHandler = new GatewayHandler(this, options.gateway);
     this.rest = new RestClient(token, Object.assign({
@@ -241,7 +247,7 @@ export class ShardClient extends EventSpewer {
       this._isBot = !!options.isBot;
     }
     if (options.imageFormat) {
-      const imageFormat = <ImageFormats> <unknown> options.imageFormat.toLowerCase();
+      const imageFormat = options.imageFormat.toLowerCase() as unknown as ImageFormats;
       if (!IMAGE_FORMATS.includes(imageFormat)) {
         throw new Error(`Image format must be one of ${JSON.stringify(IMAGE_FORMATS)}`);
       }
@@ -256,6 +262,7 @@ export class ShardClient extends EventSpewer {
       gateway: {enumerable: false, writable: false},
       ran: {configurable: true, writable: false},
       rest: {enumerable: false, writable: false},
+      slashCommandClient: {configurable: true, enumerable: false, writable: false},
       token: {enumerable: false, writable: false},
     });
 
@@ -303,11 +310,15 @@ export class ShardClient extends EventSpewer {
     this.voiceStates = options.pass.voiceStates || new VoiceStates(this, options.cache.voiceStates);
   }
 
-  get clientId(): string {
+  get applicationId(): string {
     if (this.application) {
       return this.application.id;
     }
     return this.userId;
+  }
+
+  get clientId(): string {
+    return this.applicationId;
   }
 
   get isBot(): boolean {
@@ -362,7 +373,7 @@ export class ShardClient extends EventSpewer {
     if (!this.killed) {
       Object.defineProperty(this, '_killed', {value: true});
       this.gateway.kill(error);
-      this.reset();
+      this.reset(true);
       if (this.cluster) {
         // must be a better way to handle this
         // maybe kill the entire cluster?
@@ -465,8 +476,10 @@ export class ShardClient extends EventSpewer {
     });
   }
 
-  reset(): void {
-    this.applications.clear();
+  reset(applications: boolean = true): void {
+    if (applications) {
+      this.applications.clear();
+    }
     this.channels.clear();
     this.connectedAccounts.clear();
     this.guilds.clear();
@@ -476,6 +489,8 @@ export class ShardClient extends EventSpewer {
     this.presences.clear();
     this.relationships.clear();
     this.sessions.clear();
+    this.stageInstances.clear();
+    this.typings.clear();
     this.users.clear();
     this.voiceCalls.clear();
     this.voiceConnections.clear();
@@ -485,11 +500,15 @@ export class ShardClient extends EventSpewer {
   async run(
     options: ShardClientRunOptions = {},
   ): Promise<ShardClient> {
+    if (this.ran) {
+      return this;
+    }
+    Object.defineProperty(this, 'ran', {value: true});
     const wait = options.wait || options.wait === undefined;
 
     let url: string;
     if (options.url) {
-      url = <string> options.url;
+      url = options.url as string;
     } else {
       const data = await this.rest.fetchGateway();
       url = data.url;
@@ -502,7 +521,6 @@ export class ShardClient extends EventSpewer {
         this.once(ClientEvents.KILLED, ({error}) => reject(error));
       });
     }
-    Object.defineProperty(this, 'ran', {value: true});
     return this;
   }
 
@@ -573,6 +591,12 @@ export class ShardClient extends EventSpewer {
   on(event: 'activityJoinRequest', listener: (payload: GatewayClientEvents.ActivityJoinRequest) => any): this;
   on(event: ClientEvents.ACTIVITY_START, listener: (payload: GatewayClientEvents.ActivityStart) => any): this;
   on(event: 'activityStart', listener: (payload: GatewayClientEvents.ActivityStart) => any): this;
+  on(event: ClientEvents.APPLICATION_COMMAND_CREATE, listener: (payload: GatewayClientEvents.ApplicationCommandCreate) => any): this;
+  on(event: 'applicationCommandCreate', listener: (payload: GatewayClientEvents.ApplicationCommandCreate) => any): this;
+  on(event: ClientEvents.APPLICATION_COMMAND_DELETE, listener: (payload: GatewayClientEvents.ApplicationCommandDelete) => any): this;
+  on(event: 'applicationCommandDelete', listener: (payload: GatewayClientEvents.ApplicationCommandDelete) => any): this;
+  on(event: ClientEvents.APPLICATION_COMMAND_UPDATE, listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): this;
+  on(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): this;
   on(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   on(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   on(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.CallCreate) => any): this;
@@ -779,6 +803,12 @@ export class ShardClient extends EventSpewer {
   once(event: 'activityJoinRequest', listener: (payload: GatewayClientEvents.ActivityJoinRequest) => any): this;
   once(event: ClientEvents.ACTIVITY_START, listener: (payload: GatewayClientEvents.ActivityStart) => any): this;
   once(event: 'activityStart', listener: (payload: GatewayClientEvents.ActivityStart) => any): this;
+  once(event: ClientEvents.APPLICATION_COMMAND_CREATE, listener: (payload: GatewayClientEvents.ApplicationCommandCreate) => any): this;
+  once(event: 'applicationCommandCreate', listener: (payload: GatewayClientEvents.ApplicationCommandCreate) => any): this;
+  once(event: ClientEvents.APPLICATION_COMMAND_DELETE, listener: (payload: GatewayClientEvents.ApplicationCommandDelete) => any): this;
+  once(event: 'applicationCommandDelete', listener: (payload: GatewayClientEvents.ApplicationCommandDelete) => any): this;
+  once(event: ClientEvents.APPLICATION_COMMAND_UPDATE, listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): this;
+  once(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): this;
   once(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   once(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   once(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.CallCreate) => any): this;
@@ -983,6 +1013,12 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'activityJoinRequest', listener: (payload: GatewayClientEvents.ActivityJoinRequest) => any): EventSubscription;
   subscribe(event: ClientEvents.ACTIVITY_START, listener: (payload: GatewayClientEvents.ActivityStart) => any): EventSubscription;
   subscribe(event: 'activityStart', listener: (payload: GatewayClientEvents.ActivityStart) => any): EventSubscription;
+  subscribe(event: ClientEvents.APPLICATION_COMMAND_CREATE, listener: (payload: GatewayClientEvents.ApplicationCommandCreate) => any): EventSubscription;
+  subscribe(event: 'applicationCommandCreate', listener: (payload: GatewayClientEvents.ApplicationCommandCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.APPLICATION_COMMAND_DELETE, listener: (payload: GatewayClientEvents.ApplicationCommandDelete) => any): EventSubscription;
+  subscribe(event: 'applicationCommandDelete', listener: (payload: GatewayClientEvents.ApplicationCommandDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.APPLICATION_COMMAND_UPDATE, listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): EventSubscription;
+  subscribe(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): EventSubscription;
   subscribe(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): EventSubscription;
   subscribe(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.CallCreate) => any): EventSubscription;

@@ -11,6 +11,7 @@ import {
 import { ClientEvents, Permissions, IS_TS_NODE } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
+import { SlashCommandClient } from './slashcommandclient';
 import { PermissionTools, getFiles } from './utils';
 
 import {
@@ -73,7 +74,7 @@ export interface CommandReply {
 
 
 /**
- * Command Client, hooks onto the ShardClient to provide easier command handling
+ * Command Client, hooks onto a ClusterClient or ShardClient to provide easier command handling
  * Flow is `onMessageCheck` -> `onPrefixCheck` -> `onCommandCheck`
  * @category Clients
  */
@@ -90,7 +91,7 @@ export class CommandClient extends EventSpewer {
     custom: BaseSet<string>,
     mention: BaseSet<string>,
   };
-  ran: boolean;
+  ran: boolean = false;
   ratelimits: Array<CommandRatelimit> = [];
   ratelimiter = new CommandRatelimiter();
   replies: BaseCollection<string, CommandReply>;
@@ -100,15 +101,25 @@ export class CommandClient extends EventSpewer {
   onPrefixCheck?(context: Context): CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
   constructor(
-    token: ShardClient | string,
+    token: ClusterClient | ShardClient | SlashCommandClient | string,
     options: CommandClientOptions = {},
   ) {
     super();
     options = Object.assign({useClusterClient: true}, options);
 
+    if (token instanceof SlashCommandClient) {
+      token = token.client;
+    }
+
     if (process.env.CLUSTER_MANAGER === 'true') {
-      token = process.env.CLUSTER_TOKEN as string;
       options.useClusterClient = true;
+      if (token instanceof ClusterClient) {
+        if (process.env.CLUSTER_TOKEN !== token.token) {
+          throw new Error('Cluster Client must have matching tokens with the Manager!');
+        }
+      } else {
+        token = process.env.CLUSTER_TOKEN as string;
+      }
     }
 
     let client: ClusterClient | ShardClient;
@@ -137,7 +148,6 @@ export class CommandClient extends EventSpewer {
       custom: new BaseSet<string>(),
       mention: new BaseSet<string>(),
     });
-    this.ran = this.client.ran;
     this.replies = new BaseCollection({expire: this.maxEditDuration});
 
     this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
@@ -162,7 +172,7 @@ export class CommandClient extends EventSpewer {
       }
     }
 
-    if (this.ran) {
+    if (this.client.ran) {
       this.addMentionPrefixes();
     }
 
@@ -188,7 +198,6 @@ export class CommandClient extends EventSpewer {
     Object.defineProperties(this, {
       _clientSubscriptions: {enumerable: false, writable: false},
       activateOnEdits: {configurable: true, writable: false},
-      client: {enumerable: false, writable: false},
       commands: {writable: false},
       maxEditDuration: {configurable: true, writable: false},
       mentionsEnabled: {configurable: true, writable: false},
@@ -197,7 +206,6 @@ export class CommandClient extends EventSpewer {
       prefixes: {writable: false},
       prefixSpace: {configurable: true, writable: false},
       ran: {configurable: true, writable: false},
-      replies: {enumerable: false, writable: false},
     });
   }
 
@@ -475,8 +483,8 @@ export class CommandClient extends EventSpewer {
       return this.client;
     }
     await this.client.run(options);
-    Object.defineProperty(this, 'ran', {value: true});
     this.addMentionPrefixes();
+    Object.defineProperty(this, 'ran', {value: true});
     return this.client;
   }
 
@@ -628,7 +636,8 @@ export class CommandClient extends EventSpewer {
 
           if (typeof(command.onRatelimit) === 'function') {
             try {
-              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+              const reply = await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+              this.storeReply(message.id, command, context, reply);
             } catch(error) {
               // do something with this error?
             }
@@ -640,19 +649,29 @@ export class CommandClient extends EventSpewer {
 
     if (context.inDm) {
       if (command.disableDm) {
-        const error = new Error('Command with DMs disabled used in DM');
-        if (command.disableDmReply) {
-          const payload: CommandEvents.CommandError = {command, context, error};
-          this.emit(ClientEvents.COMMAND_ERROR, payload);
-        } else {
+        if (typeof(command.onDmBlocked) === 'function') {
           try {
-            const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
+            const reply = await Promise.resolve(command.onDmBlocked(context));
             this.storeReply(message.id, command, context, reply);
-            const payload: CommandEvents.CommandError = {command, context, error, reply};
+          } catch(error) {
+            const payload: CommandEvents.CommandError = {command, context, error};
             this.emit(ClientEvents.COMMAND_ERROR, payload);
-          } catch(e) {
-            const payload: CommandEvents.CommandError = {command, context, error, extra: e};
+          }
+        } else {
+          const error = new Error('Command with DMs disabled used in DM');
+          if (command.disableDmReply) {
+            const payload: CommandEvents.CommandError = {command, context, error};
             this.emit(ClientEvents.COMMAND_ERROR, payload);
+          } else {
+            try {
+              const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
+              this.storeReply(message.id, command, context, reply);
+              const payload: CommandEvents.CommandError = {command, context, error, reply};
+              this.emit(ClientEvents.COMMAND_ERROR, payload);
+            } catch(e) {
+              const payload: CommandEvents.CommandError = {command, context, error, extra: e};
+              this.emit(ClientEvents.COMMAND_ERROR, payload);
+            }
           }
         }
         return;
@@ -685,7 +704,8 @@ export class CommandClient extends EventSpewer {
           this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, payload);
           if (typeof(command.onPermissionsFailClient) === 'function') {
             try {
-              await Promise.resolve(command.onPermissionsFailClient(context, failed));
+              const reply = await Promise.resolve(command.onPermissionsFailClient(context, failed));
+              this.storeReply(message.id, command, context, reply);
             } catch(error) {
               // do something with this error?
             }
@@ -723,7 +743,8 @@ export class CommandClient extends EventSpewer {
             this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL, payload);
             if (typeof(command.onPermissionsFail) === 'function') {
               try {
-                await Promise.resolve(command.onPermissionsFail(context, failed));
+                const reply = await Promise.resolve(command.onPermissionsFail(context, failed));
+                this.storeReply(message.id, command, context, reply);
               } catch(error) {
                 // do something with this error?
               }
@@ -815,7 +836,8 @@ export class CommandClient extends EventSpewer {
         const payload: CommandEvents.CommandRunError = {args, command, context, error, prefix};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(command.onRunError) === 'function') {
-          await Promise.resolve(command.onRunError(context, args, error));
+          const reply = await Promise.resolve(command.onRunError(context, args, error));
+          this.storeReply(message.id, command, context, reply);
         }
       }
     } catch(error) {
