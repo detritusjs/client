@@ -244,6 +244,19 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     return `${this.name}-${this.description}-${this._optionsKey}`;
   }
 
+  get length(): number {
+    return this.description.length + this.name.length + this.lengthOptions;
+  }
+
+  get lengthOptions(): number {
+    if (this._options) {
+      return this._options.reduce((x, option) => {
+        return x + option.length;
+      }, 0);
+    }
+    return 0;
+  }
+
   get options(): Array<SlashCommandOption> | undefined {
     return (this._options) ? this._options.toArray() : this._options;
   }
@@ -431,6 +444,31 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
 
   get key(): string {
     return `${this.name}-${this.description}-${this.type}-${this._optionsKey}-${this._choicesKey}`;
+  }
+
+  get length(): number {
+    return this.description.length + this.name.length + this.lengthOptions;
+  }
+
+  get lengthChoices(): number {
+    if (this.choices) {
+      return this.choices.reduce((x, choice) => {
+        if (this.type === ApplicationCommandOptionTypes.INTEGER) {
+          return choice.name.length;
+        }
+        return choice.length;
+      }, 0);
+    }
+    return 0;
+  }
+
+  get lengthOptions(): number {
+    if (this._options) {
+      return this._options.reduce((x, option) => {
+        return x + option.length;
+      }, 0);
+    }
+    return 0;
   }
 
   get options(): Array<SlashCommandOption> | undefined {
@@ -624,5 +662,12 @@ export class SlashCommandOptionChoice extends Structure {
 
   get key(): string {
     return `${this.name}-${this.value}-${typeof(this.value)}`;
+  }
+
+  get length(): number {
+    if (typeof(this.value) === 'string') {
+      return this.name.length + this.value.length;
+    }
+    return this.name.length;
   }
 }
