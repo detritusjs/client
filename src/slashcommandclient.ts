@@ -254,11 +254,11 @@ export class SlashCommandClient extends EventSpewer {
     return this.validateCommands(commands);
   }
 
-  async checkAndUploadCommands(): Promise<void> {
+  async checkAndUploadCommands(force: boolean = false): Promise<void> {
     if (!this.client.ran) {
       return;
     }
-    if (!await this.checkApplicationCommands() && this.canUpload) {
+    if (!await this.checkApplicationCommands() && (force || this.canUpload)) {
       const commands = await this.uploadApplicationCommands();
       this.validateCommands(commands);
       if (this.manager && this.manager.hasMultipleClusters) {
