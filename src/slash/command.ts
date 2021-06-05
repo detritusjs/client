@@ -504,6 +504,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       }
       this._options.clear();
       for (let option of value) {
+        option._mergeValuesFromParent(this);
         this._options.set(option.name, option);
       }
       if (this._options.some((option) => option.isSubCommand)) {
@@ -606,6 +607,11 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       for (let name of SET_VARIABLE_NAMES) {
         if ((this as any)[name] === undefined) {
           (this as any)[name] = (parent as any)[name];
+        }
+      }
+      if (this.isSubCommandGroup && this._options) {
+        for (let [name, option] of this._options) {
+          option._mergeValuesFromParent(this);
         }
       }
     }
