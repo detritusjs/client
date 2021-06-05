@@ -21,6 +21,11 @@ export type FailedPermissions = Array<bigint>;
 /**
  * @category SlashCommand
  */
+export type CommandCallbackDmBlocked = (context: SlashContext) => Promise<any> | any;
+
+/**
+ * @category SlashCommand
+ */
 export type CommandCallbackBefore = (context: SlashContext) => Promise<boolean> | boolean;
 
 /**
@@ -69,12 +74,20 @@ const ON_FUNCTION_NAMES = Object.freeze([
   'onBeforeRun',
   'onCancel',
   'onCancelRun',
+  'onDmBlocked',
   'onError',
   'onPermissionsFail',
   'onPermissionsFailClient',
   'run',
   'onRunError',
   'onSuccess',
+]);
+
+const SET_VARIABLE_NAMES = Object.freeze([
+  'disableDm',
+  'permissions',
+  'permissionsClient',
+  'permissionsIgnoreClientOwner',
 ]);
 
 /**
@@ -90,12 +103,12 @@ export interface SlashCommandOptions {
   options?: Array<SlashCommandOption | SlashCommandOptionOptions | typeof SlashCommandOption>,
 
   disableDm?: boolean,
-  disableDmReply?: boolean,
   metadata?: Record<string, any>,
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
 
+  onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
   onBeforeRun?: CommandCallbackBeforeRun,
   onCancel?: CommandCallbackCancel,
@@ -118,12 +131,12 @@ export interface SlashCommandOptionOptions {
   type?: ApplicationCommandOptionTypes | StringConstructor | BooleanConstructor | NumberConstructor | string,
 
   disableDm?: boolean,
-  disableDmReply?: boolean,
   metadata?: Record<string, any>,
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
 
+  onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
   onBeforeRun?: CommandCallbackBeforeRun,
   onCancel?: CommandCallbackCancel,
@@ -169,12 +182,13 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   guildIds?: Array<string>;
   name: string = '';
 
-  disableDm: boolean = false;
+  disableDm?: boolean;
   metadata: Record<string, any> = {};
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
-  permissionsIgnoreClientOwner?: boolean = false;
+  permissionsIgnoreClientOwner?: boolean;
 
+  onDmBlocked?(context: SlashContext): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
   onBeforeRun?(context: SlashContext, args: ParsedArgs): Promise<boolean> | boolean;
   onCancel?(context: SlashContext): Promise<any> | any;
@@ -193,11 +207,11 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     }
     this.merge(data);
 
-    this.disableDm = !!data.disableDm;
+    this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
     this.metadata = Object.assign(this.metadata, data.metadata);
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
-    this.permissionsIgnoreClientOwner = !!data.permissionsIgnoreClientOwner;
+    this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
 
     if (data._file) {
       this._file = data._file;
@@ -206,6 +220,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
       _file: {configurable: true, writable: false},
     });
 
+    this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
     this.onBefore = data.onBefore || this.onBefore;
     this.onBeforeRun = data.onBeforeRun || this.onBeforeRun;
     this.onCancel = data.onCancel || this.onCancel;
@@ -325,13 +340,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
             } else {
               option = new SlashCommandOption(raw)
             }
-            if (option.isSubCommand || option.isSubCommandGroup) {
-              for (let name of ON_FUNCTION_NAMES) {
-                if (typeof((option as any)[name]) !== 'function') {
-                  (option as any)[name] = (this as any)[name];
-                }
-              }
-            }
+            option._mergeValuesFromParent(this);
             this._options.set(option.name, option);
           }
         } else {
@@ -372,12 +381,13 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   required?: boolean;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.STRING;
 
-  disableDm: boolean = false;
+  disableDm?: boolean;
   metadata: Record<string, any> = {};
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
-  permissionsIgnoreClientOwner?: boolean = false;
+  permissionsIgnoreClientOwner?: boolean;
 
+  onDmBlocked?(context: SlashContext): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
   onBeforeRun?(context: SlashContext, args: ParsedArgs): Promise<boolean> | boolean;
   onCancel?(context: SlashContext): Promise<any> | any;
@@ -393,11 +403,11 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     super();
     this.merge(data);
 
-    this.disableDm = !!data.disableDm;
+    this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
     this.metadata = Object.assign(this.metadata, data.metadata);
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
-    this.permissionsIgnoreClientOwner = !!data.permissionsIgnoreClientOwner;
+    this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
 
     if (data._file) {
       this._file = data._file;
@@ -406,6 +416,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       _file: {configurable: true, writable: false},
     });
 
+    this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
     this.onBefore = data.onBefore || this.onBefore;
     this.onBeforeRun = data.onBeforeRun || this.onBeforeRun;
     this.onCancel = data.onCancel || this.onCancel;
@@ -582,6 +593,21 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     return this;
   }
 
+  _mergeValuesFromParent(parent: SlashCommand | SlashCommandOption): void {
+    if (this.isSubCommand || this.isSubCommandGroup) {
+      for (let name of ON_FUNCTION_NAMES) {
+        if (typeof((this as any)[name]) !== 'function') {
+          (this as any)[name] = (parent as any)[name];
+        }
+      }
+      for (let name of SET_VARIABLE_NAMES) {
+        if ((this as any)[name] === undefined) {
+          (this as any)[name] = (parent as any)[name];
+        }
+      }
+    }
+  }
+
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.CHOICES: {
@@ -614,20 +640,12 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
             } else {
               option = new SlashCommandOption(raw)
             }
+            option._mergeValuesFromParent(this);
             this._options.set(option.name, option);
           }
           this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
           if (this._options.some((option) => option.isSubCommand)) {
             this.type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
-          }
-          for (let [key, option] of this._options) {
-            if (option.isSubCommand || option.isSubCommandGroup) {
-              for (let name of ON_FUNCTION_NAMES) {
-                if (typeof((option as any)[name]) !== 'function') {
-                  (option as any)[name] = (this as any)[name];
-                }
-              }
-            }
           }
         } else {
           this._options = undefined;

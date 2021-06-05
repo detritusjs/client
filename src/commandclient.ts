@@ -636,7 +636,8 @@ export class CommandClient extends EventSpewer {
 
           if (typeof(command.onRatelimit) === 'function') {
             try {
-              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+              const reply = await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+              this.storeReply(message.id, command, context, reply);
             } catch(error) {
               // do something with this error?
             }
@@ -648,19 +649,29 @@ export class CommandClient extends EventSpewer {
 
     if (context.inDm) {
       if (command.disableDm) {
-        const error = new Error('Command with DMs disabled used in DM');
-        if (command.disableDmReply) {
-          const payload: CommandEvents.CommandError = {command, context, error};
-          this.emit(ClientEvents.COMMAND_ERROR, payload);
-        } else {
+        if (typeof(command.onDmBlocked) === 'function') {
           try {
-            const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
+            const reply = await Promise.resolve(command.onDmBlocked(context));
             this.storeReply(message.id, command, context, reply);
-            const payload: CommandEvents.CommandError = {command, context, error, reply};
+          } catch(error) {
+            const payload: CommandEvents.CommandError = {command, context, error};
             this.emit(ClientEvents.COMMAND_ERROR, payload);
-          } catch(e) {
-            const payload: CommandEvents.CommandError = {command, context, error, extra: e};
+          }
+        } else {
+          const error = new Error('Command with DMs disabled used in DM');
+          if (command.disableDmReply) {
+            const payload: CommandEvents.CommandError = {command, context, error};
             this.emit(ClientEvents.COMMAND_ERROR, payload);
+          } else {
+            try {
+              const reply = await message.reply(`Cannot use \`${command.name}\` in DMs.`);
+              this.storeReply(message.id, command, context, reply);
+              const payload: CommandEvents.CommandError = {command, context, error, reply};
+              this.emit(ClientEvents.COMMAND_ERROR, payload);
+            } catch(e) {
+              const payload: CommandEvents.CommandError = {command, context, error, extra: e};
+              this.emit(ClientEvents.COMMAND_ERROR, payload);
+            }
           }
         }
         return;
@@ -693,7 +704,8 @@ export class CommandClient extends EventSpewer {
           this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, payload);
           if (typeof(command.onPermissionsFailClient) === 'function') {
             try {
-              await Promise.resolve(command.onPermissionsFailClient(context, failed));
+              const reply = await Promise.resolve(command.onPermissionsFailClient(context, failed));
+              this.storeReply(message.id, command, context, reply);
             } catch(error) {
               // do something with this error?
             }
@@ -731,7 +743,8 @@ export class CommandClient extends EventSpewer {
             this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL, payload);
             if (typeof(command.onPermissionsFail) === 'function') {
               try {
-                await Promise.resolve(command.onPermissionsFail(context, failed));
+                const reply = await Promise.resolve(command.onPermissionsFail(context, failed));
+                this.storeReply(message.id, command, context, reply);
               } catch(error) {
                 // do something with this error?
               }
@@ -823,7 +836,8 @@ export class CommandClient extends EventSpewer {
         const payload: CommandEvents.CommandRunError = {args, command, context, error, prefix};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(command.onRunError) === 'function') {
-          await Promise.resolve(command.onRunError(context, args, error));
+          const reply = await Promise.resolve(command.onRunError(context, args, error));
+          this.storeReply(message.id, command, context, reply);
         }
       }
     } catch(error) {

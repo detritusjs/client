@@ -444,9 +444,18 @@ export class SlashCommandClient extends EventSpewer {
     if (context.inDm) {
       // dm checks? maybe add ability to disable it in dm?
       if (invoker.disableDm) {
-        const error = new Error('Command with DMs disabled used in DM');
-        const payload: SlashCommandEvents.CommandError = {command, context, error};
-        this.emit(ClientEvents.COMMAND_ERROR, payload);
+        if (typeof(invoker.onDmBlocked) === 'function') {
+          try {
+            await Promise.resolve(invoker.onDmBlocked(context));
+          } catch(error) {
+            const payload: SlashCommandEvents.CommandError = {command, context, error};
+            this.emit(ClientEvents.COMMAND_ERROR, payload);
+          }
+        } else {
+          const error = new Error('Command with DMs disabled used in DM');
+          const payload: SlashCommandEvents.CommandError = {command, context, error};
+          this.emit(ClientEvents.COMMAND_ERROR, payload);
+        }
         return;
       }
     } else {
