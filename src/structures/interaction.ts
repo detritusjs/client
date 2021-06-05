@@ -58,6 +58,7 @@ export class Interaction extends BaseStructure {
   id: string = '';
   member?: Member;
   message?: Message;
+  responded: boolean = false;
   token: string = '';
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
@@ -98,16 +99,37 @@ export class Interaction extends BaseStructure {
     return this.client.rest.executeWebhook(this.applicationId, this.token, options);
   }
 
+  async createResponse(
+    options: RequestTypes.CreateInteractionResponse | number,
+    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+  ) {
+    const response = await this.client.rest.createInteractionResponse(this.id, this.token, options, data);
+    this.responded = true;
+    return response;
+  }
+
   deleteMessage(messageId: string) {
     return this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId);
+  }
+
+  deleteResponse() {
+    return this.deleteMessage('@original');
   }
 
   editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
     return this.client.rest.editWebhookTokenMessage(this.applicationId, this.token, messageId, options);
   }
 
+  editResponse(options: RequestTypes.EditWebhookTokenMessage = {}) {
+    return this.editMessage('@original', options);
+  }
+
   fetchMessage(messageId: string) {
     return this.client.rest.fetchWebhookTokenMessage(this.applicationId, this.token, messageId);
+  }
+
+  fetchResponse() {
+    return this.fetchMessage('@original');
   }
 
   reply(options: RequestTypes.ExecuteWebhook | string = {}) {
@@ -118,7 +140,7 @@ export class Interaction extends BaseStructure {
     options: RequestTypes.CreateInteractionResponse | number,
     data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
   ) {
-    return this.client.rest.createInteractionResponse(this.id, this.token, options, data);
+    return this.createResponse(options, data);
   }
 
   mergeValue(key: string, value: any): void {

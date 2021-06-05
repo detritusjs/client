@@ -207,6 +207,10 @@ export class SlashContext {
     return this.data.fullName;
   }
 
+  get responded() {
+    return this.interaction.responded;
+  }
+
   get token() {
     return this.interaction.token;
   }
@@ -240,38 +244,45 @@ export class SlashContext {
   }
 
   createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
-    return this.rest.executeWebhook(this.applicationId, this.token, options);
+    return this.interaction.createMessage(options);
+  }
+
+  createResponse(
+    options: RequestTypes.CreateInteractionResponse | number,
+    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+  ) {
+    return this.interaction.createResponse(options, data);
   }
 
   deleteMessage(messageId: string) {
-    return this.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId);
+    return this.interaction.deleteMessage(messageId);
   }
 
   deleteResponse() {
-    return this.deleteMessage('@original');
+    return this.interaction.deleteResponse();
   }
 
   editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
-    return this.rest.editWebhookTokenMessage(this.applicationId, this.token, messageId, options);
+    return this.interaction.editMessage(messageId, options);
   }
 
   editResponse(options: RequestTypes.EditWebhookTokenMessage = {}) {
-    return this.editMessage('@original', options);
+    return this.interaction.editResponse(options);
   }
 
   fetchMessage(messageId: string) {
-    return this.rest.fetchWebhookTokenMessage(this.applicationId, this.token, messageId);
+    return this.interaction.fetchMessage(messageId);
   }
 
   fetchResponse() {
-    return this.fetchMessage('@original');
+    return this.interaction.fetchResponse();
   }
 
   respond(
     options: RequestTypes.CreateInteractionResponse | number,
     data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
   ) {
-    return this.rest.createInteractionResponse(this.id, this.token, options, data);
+    return this.createResponse(options, data);
   }
 
   toJSON() {
