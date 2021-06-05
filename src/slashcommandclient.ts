@@ -115,7 +115,6 @@ export class SlashCommandClient extends EventSpewer {
 
     Object.defineProperties(this, {
       _clientSubscriptions: {enumerable: false, writable: false},
-      client: {enumerable: false, writable: false},
       ran: {configurable: true, writable: false},
     });
   }

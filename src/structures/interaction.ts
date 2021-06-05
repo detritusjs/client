@@ -87,7 +87,7 @@ export class Interaction extends BaseStructure {
   }
 
   get inDm(): boolean {
-    return !!this.member;
+    return !this.member;
   }
 
   get userId(): string {

@@ -64,6 +64,19 @@ export type CommandCallbackRun = (context: SlashContext, args: ParsedArgs) => Pr
 export type CommandCallbackRunError = (context: SlashContext, args: ParsedArgs, error: any) => Promise<any> | any;
 
 
+const ON_FUNCTION_NAMES = Object.freeze([
+  'onBefore',
+  'onBeforeRun',
+  'onCancel',
+  'onCancelRun',
+  'onError',
+  'onPermissionsFail',
+  'onPermissionsFailClient',
+  'run',
+  'onRunError',
+  'onSuccess',
+]);
+
 /**
  * Command Options
  * @category Command Options
@@ -298,6 +311,13 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
               option = raw;
             } else {
               option = new SlashCommandOption(raw)
+            }
+            if (option.isSubCommand || option.isSubCommandGroup) {
+              for (let name of ON_FUNCTION_NAMES) {
+                if (typeof((option as any)[name]) !== 'function') {
+                  (option as any)[name] = (this as any)[name];
+                }
+              }
             }
             this._options.set(option.name, option);
           }
@@ -553,6 +573,15 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
           this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
           if (this._options.some((option) => option.isSubCommand)) {
             this.type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
+          }
+          for (let [key, option] of this._options) {
+            if (option.isSubCommand || option.isSubCommandGroup) {
+              for (let name of ON_FUNCTION_NAMES) {
+                if (typeof((option as any)[name]) !== 'function') {
+                  (option as any)[name] = (this as any)[name];
+                }
+              }
+            }
           }
         } else {
           this._options = undefined;

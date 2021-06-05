@@ -40,6 +40,11 @@ import { Sticker } from './sticker';
 import { User } from './user';
 
 
+export interface MessageReplyOptions extends RequestTypes.CreateMessage {
+  reference?: boolean,
+}
+
+
 const keysMessage = new BaseSet<string>([
   DiscordKeys.ACTIVITY,
   DiscordKeys.APPLICATION,
@@ -484,7 +489,15 @@ export class Message extends BaseStructure {
     return this.client.rest.removeMention(this.id);
   }
 
-  async reply(options: RequestTypes.CreateMessage | string = {}) {
+  async reply(options: MessageReplyOptions | string = {}) {
+    if (typeof(options) === 'object' && options.reference && !this.deleted) {
+      options.messageReference = {
+        channelId: this.channelId,
+        failIfNotExists: true,
+        guildId: this.guildId,
+        messageId: this.id,
+      };
+    }
     return this.client.rest.createMessage(this.channelId, options);
   }
 

@@ -198,7 +198,6 @@ export class CommandClient extends EventSpewer {
     Object.defineProperties(this, {
       _clientSubscriptions: {enumerable: false, writable: false},
       activateOnEdits: {configurable: true, writable: false},
-      client: {enumerable: false, writable: false},
       commands: {writable: false},
       maxEditDuration: {configurable: true, writable: false},
       mentionsEnabled: {configurable: true, writable: false},
@@ -207,7 +206,6 @@ export class CommandClient extends EventSpewer {
       prefixes: {writable: false},
       prefixSpace: {configurable: true, writable: false},
       ran: {configurable: true, writable: false},
-      replies: {enumerable: false, writable: false},
     });
   }
 

@@ -6,12 +6,12 @@ import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
 import { CommandClient, CommandReply } from '../commandclient';
 
-import { Message, Typing } from '../structures';
+import { Message, Typing, MessageReplyOptions } from '../structures';
 
 import { Command } from './command';
 
 
-export type EditOrCreate = RequestTypes.CreateMessage & RequestTypes.EditMessage;
+export type EditOrCreate = RequestTypes.CreateMessage & RequestTypes.EditMessage & MessageReplyOptions;
 export interface EditOrReply extends EditOrCreate {
   delete?: boolean,
 }
@@ -282,7 +282,7 @@ export class Context {
     if (this.commandClient.replies.has(this.messageId)) {
       options = Object.assign({attachments: [], content: '', embed: null}, options);
 
-      const old = this.commandClient.replies.get(this.messageId) as CommandReply;
+      const old = this.commandClient.replies.get(this.messageId)!;
       if (options.activity || options.applicationId) {
         if (options.delete || options.delete === undefined) {
           await old.reply.delete();
