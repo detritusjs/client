@@ -477,7 +477,7 @@ export class ShardClient extends EventSpewer {
   }
 
   reset(applications: boolean = true): void {
-    if (application) {
+    if (applications) {
       this.applications.clear();
     }
     this.channels.clear();
