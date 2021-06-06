@@ -802,6 +802,7 @@ export class CommandClient extends EventSpewer {
         if (command.triggerTypingAfter !== -1) {
           if (command.triggerTypingAfter) {
             timeout = new Timers.Timeout();
+            Object.defineProperty(context, 'typingTimeout', {value: timeout});
             timeout.start(command.triggerTypingAfter, async () => {
               try {
                 await context.triggerTyping();

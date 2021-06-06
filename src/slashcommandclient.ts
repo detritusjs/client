@@ -15,6 +15,7 @@ import {
   ApplicationCommandOptionTypes,
   ClientEvents,
   ClusterIPCOpCodes,
+  InteractionCallbackTypes,
   InteractionTypes,
   Permissions,
   IS_TS_NODE,
@@ -563,9 +564,30 @@ export class SlashCommandClient extends EventSpewer {
         }
       }
 
+      let timeout: Timers.Timeout | null = null;
       try {
+        if (invoker.triggerLoadingAfter !== undefined) {
+          if (invoker.triggerLoadingAfter) {
+            timeout = new Timers.Timeout();
+            Object.defineProperty(context, 'loadingTimeout', {value: timeout});
+            timeout.start(invoker.triggerLoadingAfter, async () => {
+              try {
+                await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+              } catch(error) {
+                // do something maybe?
+              }
+            });
+          } else {
+            await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+          }
+        }
+
         if (typeof(invoker.run) === 'function') {
           await Promise.resolve(invoker.run(context, args));
+        }
+
+        if (timeout) {
+          timeout.stop();
         }
 
         const payload: SlashCommandEvents.CommandRan = {args, command, context};
@@ -574,6 +596,10 @@ export class SlashCommandClient extends EventSpewer {
           await Promise.resolve(invoker.onSuccess(context, args));
         }
       } catch(error) {
+        if (timeout) {
+          timeout.stop();
+        }
+
         const payload: SlashCommandEvents.CommandRunError = {args, command, context, error};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(invoker.onRunError) === 'function') {

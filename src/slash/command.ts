@@ -88,6 +88,7 @@ const SET_VARIABLE_NAMES = Object.freeze([
   'permissions',
   'permissionsClient',
   'permissionsIgnoreClientOwner',
+  'triggerLoadingAfter',
 ]);
 
 /**
@@ -107,6 +108,7 @@ export interface SlashCommandOptions {
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
+  triggerLoadingAfter?: number,
 
   onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
@@ -135,6 +137,7 @@ export interface SlashCommandOptionOptions {
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
+  triggerLoadingAfter?: number,
 
   onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
@@ -187,6 +190,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean;
+  triggerLoadingAfter?: number;
 
   onDmBlocked?(context: SlashContext): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
@@ -211,6 +215,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
+    this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
 
     if (data._file) {
       this._file = data._file;
@@ -387,6 +392,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean;
+  triggerLoadingAfter?: number;
 
   onDmBlocked?(context: SlashContext): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
@@ -408,6 +414,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
+    this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
 
     if (data._file) {
       this._file = data._file;

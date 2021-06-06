@@ -7,6 +7,7 @@ import {
   ApplicationCommandOptionTypes,
   ChannelTypes,
   DiscordKeys,
+  InteractionCallbackTypes,
   InteractionTypes,
   MessageComponentTypes,
 } from '../constants';
@@ -22,6 +23,13 @@ import { Message } from './message';
 import { Role } from './role';
 import { User } from './user';
 
+
+export type InteractionEditOrRespond = RequestTypes.CreateInteractionResponseInnerPayload & RequestTypes.EditWebhookTokenMessage;
+
+const DEFERRED_TYPES = Object.freeze([
+  InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+  InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE,
+]);
 
 const keysInteraction = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
@@ -91,6 +99,14 @@ export class Interaction extends BaseStructure {
     return !this.member;
   }
 
+  get isFromApplicationCommand() {
+    return this.type === InteractionTypes.APPLICATION_COMMAND;
+  }
+
+  get isFromMessageComponent() {
+    return this.type === InteractionTypes.MESSAGE_COMPONENT;
+  }
+
   get userId(): string {
     return this.user.id;
   }
@@ -122,6 +138,23 @@ export class Interaction extends BaseStructure {
 
   editResponse(options: RequestTypes.EditWebhookTokenMessage = {}) {
     return this.editMessage('@original', options);
+  }
+
+  editOrRespond(options: InteractionEditOrRespond | string = {}) {
+    // try respond, try edit, try followup
+    if (this.responded) {
+      if (typeof(options) === 'string') {
+        options = {content: options};
+      }
+      return this.editResponse(options);
+    }
+
+    let type: InteractionCallbackTypes = InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE;
+    switch (this.type) {
+      case InteractionTypes.APPLICATION_COMMAND: type = InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE; break;
+      case InteractionTypes.MESSAGE_COMPONENT: type = InteractionCallbackTypes.UPDATE_MESSAGE; break;
+    }
+    return this.respond(type, options);
   }
 
   fetchMessage(messageId: string) {
