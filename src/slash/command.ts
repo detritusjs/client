@@ -323,6 +323,14 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     return null;
   }
 
+  _transferValuesToChildren(): void {
+    if (this._options) {
+      for (let [name, option] of this._options) {
+        option._transferValuesToChildren(this);
+      }
+    }
+  }
+
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.ID: {
@@ -346,7 +354,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
             } else {
               option = new SlashCommandOption(raw)
             }
-            option._mergeValuesFromParent(this);
+            option._transferValuesToChildren(this);
             this._options.set(option.name, option);
           }
         } else {
@@ -511,7 +519,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       }
       this._options.clear();
       for (let option of value) {
-        option._mergeValuesFromParent(this);
+        option._transferValuesToChildren(this);
         this._options.set(option.name, option);
       }
       if (this._options.some((option) => option.isSubCommand)) {
@@ -604,7 +612,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     return this;
   }
 
-  _mergeValuesFromParent(parent: SlashCommand | SlashCommandOption): void {
+  _transferValuesToChildren(parent: SlashCommand | SlashCommandOption): void {
     if (this.isSubCommand || this.isSubCommandGroup) {
       for (let name of ON_FUNCTION_NAMES) {
         if (typeof((this as any)[name]) !== 'function') {
@@ -618,7 +626,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       }
       if (this.isSubCommandGroup && this._options) {
         for (let [name, option] of this._options) {
-          option._mergeValuesFromParent(this);
+          option._transferValuesToChildren(this);
         }
       }
     }
@@ -656,7 +664,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
             } else {
               option = new SlashCommandOption(raw)
             }
-            option._mergeValuesFromParent(this);
+            option._transferValuesToChildren(this);
             this._options.set(option.name, option);
           }
           this.type = ApplicationCommandOptionTypes.SUB_COMMAND;

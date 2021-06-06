@@ -158,6 +158,7 @@ export class SlashCommandClient extends EventSpewer {
       }
     }
 
+    command._transferValuesToChildren();
     if (!command.hasRun) {
       throw new Error('Command needs a run function');
     }
