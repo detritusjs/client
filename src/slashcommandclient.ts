@@ -567,7 +567,7 @@ export class SlashCommandClient extends EventSpewer {
 
       let timeout: Timers.Timeout | null = null;
       try {
-        if (invoker.triggerLoadingAfter !== undefined) {
+        if (invoker.triggerLoadingAfter !== undefined && 0 <= invoker.triggerLoadingAfter) {
           if (invoker.triggerLoadingAfter) {
             timeout = new Timers.Timeout();
             Object.defineProperty(context, 'loadingTimeout', {value: timeout});
