@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.15.2-beta.2',
+  VERSION: '0.15.2-beta.3',
 });
 
 export type Snowflake = number | string;
@@ -1221,6 +1221,8 @@ export const DiscordKeys = Object.freeze({
   AVAILABLE: 'available',
   AVATAR: 'avatar',
   BANNER: 'banner',
+  BANNER_COLOR: 'banner_color',
+  BIO: 'bio',
   BITRATE: 'bitrate',
   BOT: 'bot',
   BOT_PUBLIC: 'bot_public',
@@ -1582,6 +1584,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.AVAILABLE]: 'available',
   [DiscordKeys.AVATAR]: 'avatar',
   [DiscordKeys.BANNER]: 'banner',
+  [DiscordKeys.BANNER_COLOR]: 'bannerColor',
+  [DiscordKeys.BIO]: 'bio',
   [DiscordKeys.BITRATE]: 'bitrate',
   [DiscordKeys.BOT]: 'bot',
   [DiscordKeys.BOT_PUBLIC]: 'botPublic',

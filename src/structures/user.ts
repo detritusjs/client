@@ -41,7 +41,7 @@ const keysUser = new BaseSet<string>([
 export class User extends BaseStructure {
   readonly _keys = keysUser;
 
-  avatar: string | null = null;
+  avatar: null | string = null;
   bot: boolean = false;
   discriminator: string = '0000';
   id: string = '';
@@ -301,6 +301,9 @@ export class UserWithToken extends User {
 
 const keysUserWithFlags = new BaseSet<string>([
   ...keysUser,
+  DiscordKeys.BANNER,
+  DiscordKeys.BANNER_COLOR,
+  DiscordKeys.BIO,
   DiscordKeys.FLAGS,
 ]);
 
@@ -312,6 +315,9 @@ const keysUserWithFlags = new BaseSet<string>([
 export class UserWithFlags extends User {
   readonly _keys = keysUserWithFlags;
 
+  banner: null | string = null;
+  bannerColor: null | string = null;
+  bio: null | string = null;
   flags: number = 0;
 
   constructor(
@@ -321,6 +327,19 @@ export class UserWithFlags extends User {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  get bannerUrl(): null | string {
+    return this.bannerUrlFormat();
+  }
+
+  bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+    if (!this.banner) {
+      return null;
+    }
+    const hash = this.banner;
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.BANNER(this.id, hash, format), query);
   }
 
   hasFlag(flag: number): boolean {
@@ -422,7 +441,7 @@ export class UserMixin extends BaseStructure {
   }
 
   get avatarUrl(): string {
-    return this.user.avatarUrl;
+    return this.avatarUrlFormat();
   }
 
   get bot(): boolean {

@@ -527,7 +527,7 @@ export class GuildPartial extends BaseGuild {
       this.client.imageFormat,
     );
     return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.GUILD_BANNER(this.id, hash, format),
+      Endpoints.CDN.URL + Endpoints.CDN.BANNER(this.id, hash, format),
       query,
     );
   }
