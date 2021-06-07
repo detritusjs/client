@@ -50,9 +50,23 @@ const keysComponentActionRow = new BaseSet<string>([
     this.type = MessageComponentTypes.ACTION_ROW;
   }
 
+  addButton(data: ComponentButton | ComponentData = {}): this {
+    if (data instanceof ComponentButton) {
+      return this.addComponent(data);
+    }
+    return this.addComponent(new ComponentButton(data));
+  }
+
   addComponent(component: ComponentButton | ComponentSelectMenu): this {
     this.components.push(component);
     return this;
+  }
+
+  addSelectMenu(data: ComponentSelectMenu | ComponentData = {}): this {
+    if (data instanceof ComponentSelectMenu) {
+      return this.addComponent(data);
+    }
+    return this.addComponent(new ComponentSelectMenu(data));
   }
 
   createButton(data: ComponentData = {}): ComponentButton {

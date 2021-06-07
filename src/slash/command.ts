@@ -89,6 +89,7 @@ const SET_VARIABLE_NAMES = Object.freeze([
   'permissionsClient',
   'permissionsIgnoreClientOwner',
   'triggerLoadingAfter',
+  'triggerLoadingAsEphemeral',
 ]);
 
 /**
@@ -109,6 +110,7 @@ export interface SlashCommandOptions {
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
   triggerLoadingAfter?: number,
+  triggerLoadingAsEphemeral?: boolean,
 
   onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
@@ -138,6 +140,7 @@ export interface SlashCommandOptionOptions {
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
   triggerLoadingAfter?: number,
+  triggerLoadingAsEphemeral?: boolean,
 
   onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
@@ -191,6 +194,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean;
   triggerLoadingAfter?: number;
+  triggerLoadingAsEphemeral?: boolean;
 
   onDmBlocked?(context: SlashContext): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
@@ -216,6 +220,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
     this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
+    this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
 
     if (data._file) {
       this._file = data._file;
@@ -401,6 +406,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean;
   triggerLoadingAfter?: number;
+  triggerLoadingAsEphemeral?: boolean;
 
   onDmBlocked?(context: SlashContext): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
@@ -423,6 +429,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
     this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
+    this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
 
     if (data._file) {
       this._file = data._file;

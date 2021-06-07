@@ -56,5 +56,5 @@
     "typedoc": "typedoc"
   },
   "types": "lib/index.d.ts",
-  "version": "0.15.2-beta.3"
+  "version": "0.15.2-beta.4"
 }
