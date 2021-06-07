@@ -6,7 +6,11 @@ import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
 import { SlashCommandClient } from '../slashcommandclient';
 
-import { Interaction, InteractionDataApplicationCommand } from '../structures';
+import {
+  Interaction,
+  InteractionDataApplicationCommand,
+  InteractionEditOrRespond,
+} from '../structures';
 
 import { SlashCommand, SlashCommandOption } from './command';
 
@@ -21,6 +25,7 @@ export class SlashContext {
   readonly command: SlashCommand;
   readonly interaction: Interaction;
   readonly invoker: SlashCommand | SlashCommandOption;
+  readonly loadingTimeout?: Timers.Timeout;
   readonly slashCommandClient: SlashCommandClient;
 
   metadata?: Record<string, any>;
@@ -268,6 +273,10 @@ export class SlashContext {
 
   editResponse(options: RequestTypes.EditWebhookTokenMessage = {}) {
     return this.interaction.editResponse(options);
+  }
+
+  editOrRespond(options: InteractionEditOrRespond | string = {}) {
+    return this.interaction.editOrRespond(options);
   }
 
   fetchMessage(messageId: string) {

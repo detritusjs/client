@@ -1,10 +1,13 @@
-import { RequestTypes } from 'detritus-client-rest';
+import {
+  Endpoints,
+  RequestTypes,
+} from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, Permissions, PERMISSIONS_ALL } from '../constants';
-import { PermissionTools } from '../utils';
+import { PermissionTools, UrlQuery, addQuery, getFormatFromHash } from '../utils';
 
 import { BaseStructureData } from './basestructure';
 
@@ -85,7 +88,7 @@ export class Member extends UserMixin {
   }
 
   get avatar(): null | string {
-    return this._avatar || this.user.avatar;
+    return this._avatar;
   }
 
   get canAdministrator(): boolean {
@@ -183,6 +186,10 @@ export class Member extends UserMixin {
 
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
+  }
+
+  get hasGuildAvatar(): boolean {
+    return !!this._avatar;
   }
 
   get highestRole(): null | Role {
@@ -304,6 +311,15 @@ export class Member extends UserMixin {
 
   get voiceState(): null | VoiceState {
     return this.client.voiceStates.get(this.guildId, this.id) || null;
+  }
+
+  avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
+    if (!this.avatar) {
+      return this.user.avatarUrlFormat(format, query);
+    }
+    const hash = this.avatar;
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_USER_AVATAR(this.guildId, this.id, hash, format), query);
   }
 
   can(

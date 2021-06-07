@@ -1,5 +1,6 @@
 import * as path from 'path';
 
+import { RequestTypes } from 'detritus-client-rest';
 import { EventSpewer, EventSubscription, Timers } from 'detritus-utils';
 
 import { ShardClient } from './client';
@@ -15,7 +16,9 @@ import {
   ApplicationCommandOptionTypes,
   ClientEvents,
   ClusterIPCOpCodes,
+  InteractionCallbackTypes,
   InteractionTypes,
+  MessageFlags,
   Permissions,
   IS_TS_NODE,
 } from './constants';
@@ -49,7 +52,7 @@ export interface SlashCommandClientAddOptions extends SlashCommandOptions {
 }
 
 export interface SlashCommandClientRunOptions extends ClusterClientRunOptions {
-
+  directories?: Array<string>,
 }
 
 
@@ -63,6 +66,7 @@ export class SlashCommandClient extends EventSpewer {
   checkCommands: boolean = true;
   client: ClusterClient | ShardClient;
   commands = new BaseSet<SlashCommand>();
+  directories = new BaseCollection<string, {subdirectories: boolean}>();
   ran: boolean = false;
 
   constructor(
@@ -157,6 +161,7 @@ export class SlashCommandClient extends EventSpewer {
       }
     }
 
+    command._transferValuesToChildren();
     if (!command.hasRun) {
       throw new Error('Command needs a run function');
     }
@@ -177,13 +182,14 @@ export class SlashCommandClient extends EventSpewer {
     directory: string,
     options: {isAbsolute?: boolean, subdirectories?: boolean} = {},
   ): Promise<this> {
-    options = Object.assign({}, options);
+    options = Object.assign({subdirectories: true}, options);
     if (!options.isAbsolute) {
       if (require.main) {
         // require.main.path exists but typescript doesn't let us use it..
         directory = path.join(path.dirname(require.main.filename), directory);
       }
     }
+    this.directories.set(directory, {subdirectories: !!options.subdirectories});
 
     const files: Array<string> = await getFiles(directory, options.subdirectories);
     const errors: Record<string, Error> = {};
@@ -243,6 +249,14 @@ export class SlashCommandClient extends EventSpewer {
     }
     this.commands.clear();
     this.resetSubscriptions();
+  }
+
+  async resetCommands(): Promise<void> {
+    this.clear();
+    for (let [directory, options] of this.directories) {
+      await this.addMultipleIn(directory, {isAbsolute: true, ...options});
+    }
+    await this.checkAndUploadCommands();
   }
 
   /* Application Command Checking */
@@ -411,6 +425,11 @@ export class SlashCommandClient extends EventSpewer {
     if (this.ran) {
       return this.client;
     }
+    if (options.directories) {
+      for (let directory of options.directories) {
+        await this.addMultipleIn(directory);
+      }
+    }
     await this.client.run(options);
     if (this.checkCommands) {
       await this.checkAndUploadCommands();
@@ -563,9 +582,36 @@ export class SlashCommandClient extends EventSpewer {
         }
       }
 
+      let timeout: Timers.Timeout | null = null;
       try {
+        if (invoker.triggerLoadingAfter !== undefined && 0 <= invoker.triggerLoadingAfter && !context.responded) {
+          let data: RequestTypes.CreateInteractionResponseInnerPayload | undefined;
+          if (invoker.triggerLoadingAsEphemeral) {
+            data = {flags: MessageFlags.EPHEMERAL};
+          }
+          if (invoker.triggerLoadingAfter) {
+            timeout = new Timers.Timeout();
+            Object.defineProperty(context, 'loadingTimeout', {value: timeout});
+            timeout.start(invoker.triggerLoadingAfter, async () => {
+              if (!context.responded) {
+                try {
+                  await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
+                } catch(error) {
+                  // do something maybe?
+                }
+              }
+            });
+          } else {
+            await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
+          }
+        }
+
         if (typeof(invoker.run) === 'function') {
           await Promise.resolve(invoker.run(context, args));
+        }
+
+        if (timeout) {
+          timeout.stop();
         }
 
         const payload: SlashCommandEvents.CommandRan = {args, command, context};
@@ -574,6 +620,10 @@ export class SlashCommandClient extends EventSpewer {
           await Promise.resolve(invoker.onSuccess(context, args));
         }
       } catch(error) {
+        if (timeout) {
+          timeout.stop();
+        }
+
         const payload: SlashCommandEvents.CommandRunError = {args, command, context, error};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(invoker.onRunError) === 'function') {

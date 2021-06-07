@@ -88,6 +88,8 @@ const SET_VARIABLE_NAMES = Object.freeze([
   'permissions',
   'permissionsClient',
   'permissionsIgnoreClientOwner',
+  'triggerLoadingAfter',
+  'triggerLoadingAsEphemeral',
 ]);
 
 /**
@@ -107,6 +109,8 @@ export interface SlashCommandOptions {
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
+  triggerLoadingAfter?: number,
+  triggerLoadingAsEphemeral?: boolean,
 
   onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
@@ -135,6 +139,8 @@ export interface SlashCommandOptionOptions {
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
+  triggerLoadingAfter?: number,
+  triggerLoadingAsEphemeral?: boolean,
 
   onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
@@ -187,6 +193,8 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean;
+  triggerLoadingAfter?: number;
+  triggerLoadingAsEphemeral?: boolean;
 
   onDmBlocked?(context: SlashContext): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
@@ -211,6 +219,8 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
+    this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
+    this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
 
     if (data._file) {
       this._file = data._file;
@@ -318,6 +328,14 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     return null;
   }
 
+  _transferValuesToChildren(): void {
+    if (this._options) {
+      for (let [name, option] of this._options) {
+        option._transferValuesToChildren(this);
+      }
+    }
+  }
+
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.ID: {
@@ -341,7 +359,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
             } else {
               option = new SlashCommandOption(raw)
             }
-            option._mergeValuesFromParent(this);
+            option._transferValuesToChildren(this);
             this._options.set(option.name, option);
           }
         } else {
@@ -387,6 +405,8 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean;
+  triggerLoadingAfter?: number;
+  triggerLoadingAsEphemeral?: boolean;
 
   onDmBlocked?(context: SlashContext): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
@@ -408,6 +428,8 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
+    this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
+    this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
 
     if (data._file) {
       this._file = data._file;
@@ -504,7 +526,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       }
       this._options.clear();
       for (let option of value) {
-        option._mergeValuesFromParent(this);
+        option._transferValuesToChildren(this);
         this._options.set(option.name, option);
       }
       if (this._options.some((option) => option.isSubCommand)) {
@@ -597,7 +619,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     return this;
   }
 
-  _mergeValuesFromParent(parent: SlashCommand | SlashCommandOption): void {
+  _transferValuesToChildren(parent: SlashCommand | SlashCommandOption): void {
     if (this.isSubCommand || this.isSubCommandGroup) {
       for (let name of ON_FUNCTION_NAMES) {
         if (typeof((this as any)[name]) !== 'function') {
@@ -611,7 +633,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       }
       if (this.isSubCommandGroup && this._options) {
         for (let [name, option] of this._options) {
-          option._mergeValuesFromParent(this);
+          option._transferValuesToChildren(this);
         }
       }
     }
@@ -649,7 +671,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
             } else {
               option = new SlashCommandOption(raw)
             }
-            option._mergeValuesFromParent(this);
+            option._transferValuesToChildren(this);
             this._options.set(option.name, option);
           }
           this.type = ApplicationCommandOptionTypes.SUB_COMMAND;

@@ -58,7 +58,7 @@ export interface CommandClientAdd extends CommandOptions {
 }
 
 export interface CommandClientRunOptions extends ClusterClientRunOptions {
-
+  directories?: Array<string>,
 }
 
 export interface CommandAttributes {
@@ -84,6 +84,7 @@ export class CommandClient extends EventSpewer {
   activateOnEdits: boolean = false;
   client: ClusterClient | ShardClient;
   commands: Array<Command>;
+  directories = new BaseCollection<string, {subdirectories: boolean}>();
   ignoreMe: boolean = true;
   maxEditDuration: number = 5 * 60 * 1000;
   mentionsEnabled: boolean = true;
@@ -290,13 +291,14 @@ export class CommandClient extends EventSpewer {
     directory: string,
     options: {isAbsolute?: boolean, subdirectories?: boolean} = {},
   ): Promise<CommandClient> {
-    options = Object.assign({}, options);
+    options = Object.assign({subdirectories: true}, options);
     if (!options.isAbsolute) {
       if (require.main) {
         // require.main.path exists but typescript doesn't let us use it..
         directory = path.join(path.dirname(require.main.filename), directory);
       }
     }
+    this.directories.set(directory, {subdirectories: !!options.subdirectories});
 
     const files: Array<string> = await getFiles(directory, options.subdirectories);
     const errors: {[key: string]: Error} = {};
@@ -345,6 +347,27 @@ export class CommandClient extends EventSpewer {
     return this;
   }
 
+  clear(): void {
+    for (let command of this.commands) {
+      if (command._file) {
+        const requirePath = require.resolve(command._file);
+        if (requirePath) {
+          delete require.cache[requirePath];
+        }
+      }
+    }
+    this.commands.length = 0;
+    this.resetSubscriptions();
+  }
+
+  async resetCommands(): Promise<void> {
+    this.clear();
+    for (let [directory, options] of this.directories) {
+      await this.addMultipleIn(directory, {isAbsolute: true, ...options});
+    }
+  }
+  /* end */
+
   addMentionPrefixes(): void {
     let userId: string | null = null;
     if (this.client instanceof ClusterClient) {
@@ -364,19 +387,6 @@ export class CommandClient extends EventSpewer {
       this.prefixes.mention.add(`<@${userId}>`);
       this.prefixes.mention.add(`<@!${userId}>`);
     }
-  }
-
-  clear(): void {
-    for (let command of this.commands) {
-      if (command._file) {
-        const requirePath = require.resolve(command._file);
-        if (requirePath) {
-          delete require.cache[requirePath];
-        }
-      }
-    }
-    this.commands.length = 0;
-    this.resetSubscriptions();
   }
 
   async getAttributes(context: Context): Promise<CommandAttributes | null> {
@@ -481,6 +491,11 @@ export class CommandClient extends EventSpewer {
   ): Promise<ClusterClient | ShardClient> {
     if (this.ran) {
       return this.client;
+    }
+    if (options.directories) {
+      for (let directory of options.directories) {
+        await this.addMultipleIn(directory);
+      }
     }
     await this.client.run(options);
     this.addMentionPrefixes();
@@ -802,6 +817,7 @@ export class CommandClient extends EventSpewer {
         if (command.triggerTypingAfter !== -1) {
           if (command.triggerTypingAfter) {
             timeout = new Timers.Timeout();
+            Object.defineProperty(context, 'typingTimeout', {value: timeout});
             timeout.start(command.triggerTypingAfter, async () => {
               try {
                 await context.triggerTyping();

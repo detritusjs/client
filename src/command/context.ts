@@ -26,11 +26,11 @@ export class Context {
   readonly commandClient: CommandClient;
   readonly message: Message;
   readonly typing: Typing | null;
+  readonly typingTimeout?: Timers.Timeout;
 
   command?: Command;
   metadata?: {[key: string]: any};
   prefix?: string;
-  typingTimeout?: Timers.Timeout;
 
   constructor(
     message: Message,
