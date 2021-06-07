@@ -319,7 +319,7 @@ export class Member extends UserMixin {
     }
     const hash = this.avatar;
     format = getFormatFromHash(hash, format, this.client.imageFormat);
-    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_AVATAR(this.guildId, this.id, hash, format), query);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_USER_AVATAR(this.guildId, this.id, hash, format), query);
   }
 
   can(
