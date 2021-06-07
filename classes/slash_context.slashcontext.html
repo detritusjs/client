@@ -100,6 +100,7 @@
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="slash_context.slashcontext.html#command" class="tsd-kind-icon">command</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="slash_context.slashcontext.html#interaction" class="tsd-kind-icon">interaction</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="slash_context.slashcontext.html#invoker" class="tsd-kind-icon">invoker</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="slash_context.slashcontext.html#loadingtimeout" class="tsd-kind-icon">loading<wbr>Timeout</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="slash_context.slashcontext.html#metadata" class="tsd-kind-icon">metadata</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="slash_context.slashcontext.html#slashcommandclient" class="tsd-kind-icon">slash<wbr>Command<wbr>Client</a></li>
 							</ul>
@@ -162,6 +163,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="slash_context.slashcontext.html#deletemessage" class="tsd-kind-icon">delete<wbr>Message</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="slash_context.slashcontext.html#deleteresponse" class="tsd-kind-icon">delete<wbr>Response</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="slash_context.slashcontext.html#editmessage" class="tsd-kind-icon">edit<wbr>Message</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="slash_context.slashcontext.html#editorrespond" class="tsd-kind-icon">edit<wbr>OrRespond</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="slash_context.slashcontext.html#editresponse" class="tsd-kind-icon">edit<wbr>Response</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="slash_context.slashcontext.html#fetchmessage" class="tsd-kind-icon">fetch<wbr>Message</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="slash_context.slashcontext.html#fetchresponse" class="tsd-kind-icon">fetch<wbr>Response</a></li>
@@ -185,7 +187,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L26">src/slash/context.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L31">src/slash/context.ts:31</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -216,7 +218,7 @@
 					<div class="tsd-signature tsd-kind-icon">client<span class="tsd-signature-symbol">:</span> <a href="client.shardclient.html" class="tsd-signature-type" data-tsd-kind="Class">ShardClient</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L20">src/slash/context.ts:20</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L24">src/slash/context.ts:24</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -226,7 +228,7 @@
 					<div class="tsd-signature tsd-kind-icon">command<span class="tsd-signature-symbol">:</span> <a href="slash_command.slashcommand.html" class="tsd-signature-type" data-tsd-kind="Class">SlashCommand</a><span class="tsd-signature-symbol">&lt;</span><a href="../modules/slash_command.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L21">src/slash/context.ts:21</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L25">src/slash/context.ts:25</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -236,7 +238,7 @@
 					<div class="tsd-signature tsd-kind-icon">interaction<span class="tsd-signature-symbol">:</span> <a href="structures_interaction.interaction.html" class="tsd-signature-type" data-tsd-kind="Class">Interaction</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L22">src/slash/context.ts:22</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L26">src/slash/context.ts:26</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -246,7 +248,17 @@
 					<div class="tsd-signature tsd-kind-icon">invoker<span class="tsd-signature-symbol">:</span> <a href="slash_command.slashcommandoption.html" class="tsd-signature-type" data-tsd-kind="Class">SlashCommandOption</a><span class="tsd-signature-symbol">&lt;</span><a href="../modules/slash_command.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="slash_command.slashcommand.html" class="tsd-signature-type" data-tsd-kind="Class">SlashCommand</a><span class="tsd-signature-symbol">&lt;</span><a href="../modules/slash_command.html#parsedargs" class="tsd-signature-type" data-tsd-kind="Type alias">ParsedArgs</a><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L23">src/slash/context.ts:23</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L27">src/slash/context.ts:27</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="loadingtimeout" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> <span class="tsd-flag ts-flagReadonly">Readonly</span> loading<wbr>Timeout</h3>
+					<div class="tsd-signature tsd-kind-icon">loading<wbr>Timeout<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Timeout</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L28">src/slash/context.ts:28</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -256,7 +268,7 @@
 					<div class="tsd-signature tsd-kind-icon">metadata<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L26">src/slash/context.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L31">src/slash/context.ts:31</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -266,7 +278,7 @@
 					<div class="tsd-signature tsd-kind-icon">slash<wbr>Command<wbr>Client<span class="tsd-signature-symbol">:</span> <a href="slashcommandclient.slashcommandclient-1.html" class="tsd-signature-type" data-tsd-kind="Class">SlashCommandClient</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L24">src/slash/context.ts:24</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L29">src/slash/context.ts:29</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -283,7 +295,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L51">src/slash/context.ts:51</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L56">src/slash/context.ts:56</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="structures_oauth2application.oauth2application.html" class="tsd-signature-type" data-tsd-kind="Class">Oauth2Application</a></h4>
@@ -300,7 +312,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L55">src/slash/context.ts:55</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L60">src/slash/context.ts:60</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -317,7 +329,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L92">src/slash/context.ts:92</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L97">src/slash/context.ts:97</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_applications.applications.html" class="tsd-signature-type" data-tsd-kind="Class">Applications</a></h4>
@@ -334,7 +346,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L166">src/slash/context.ts:166</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L171">src/slash/context.ts:171</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../modules/structures_channel.html#channel" class="tsd-signature-type" data-tsd-kind="Type alias">Channel</a></h4>
@@ -351,7 +363,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L170">src/slash/context.ts:170</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L175">src/slash/context.ts:175</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4>
@@ -368,7 +380,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L96">src/slash/context.ts:96</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L101">src/slash/context.ts:101</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_channels.channels.html" class="tsd-signature-type" data-tsd-kind="Class">Channels</a></h4>
@@ -385,7 +397,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L59">src/slash/context.ts:59</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L64">src/slash/context.ts:64</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="clusterclient.clusterclient-1.html" class="tsd-signature-type" data-tsd-kind="Class">ClusterClient</a></h4>
@@ -402,7 +414,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L63">src/slash/context.ts:63</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L68">src/slash/context.ts:68</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="commandclient.commandclient-1.html" class="tsd-signature-type" data-tsd-kind="Class">CommandClient</a></h4>
@@ -419,7 +431,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L162">src/slash/context.ts:162</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L167">src/slash/context.ts:167</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="structures_interaction.interactiondataapplicationcommand.html" class="tsd-signature-type" data-tsd-kind="Class">InteractionDataApplicationCommand</a></h4>
@@ -436,7 +448,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L100">src/slash/context.ts:100</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L105">src/slash/context.ts:105</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_emojis.emojis.html" class="tsd-signature-type" data-tsd-kind="Class">Emojis</a></h4>
@@ -453,7 +465,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L67">src/slash/context.ts:67</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L72">src/slash/context.ts:72</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Socket</span></h4>
@@ -470,7 +482,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L174">src/slash/context.ts:174</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L179">src/slash/context.ts:179</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="structures_guild.guild.html" class="tsd-signature-type" data-tsd-kind="Class">Guild</a></h4>
@@ -487,7 +499,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L178">src/slash/context.ts:178</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L183">src/slash/context.ts:183</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4>
@@ -504,7 +516,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L104">src/slash/context.ts:104</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L109">src/slash/context.ts:109</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_guilds.guilds.html" class="tsd-signature-type" data-tsd-kind="Class">Guilds</a></h4>
@@ -521,7 +533,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L182">src/slash/context.ts:182</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L187">src/slash/context.ts:187</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -538,7 +550,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L186">src/slash/context.ts:186</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L191">src/slash/context.ts:191</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -555,7 +567,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L190">src/slash/context.ts:190</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L195">src/slash/context.ts:195</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -572,7 +584,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L71">src/slash/context.ts:71</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L76">src/slash/context.ts:76</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="cluster_processchild.clusterprocesschild.html" class="tsd-signature-type" data-tsd-kind="Class">ClusterProcessChild</a></h4>
@@ -589,7 +601,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L194">src/slash/context.ts:194</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L199">src/slash/context.ts:199</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="structures_member.member.html" class="tsd-signature-type" data-tsd-kind="Class">Member</a></h4>
@@ -606,7 +618,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L202">src/slash/context.ts:202</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L207">src/slash/context.ts:207</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="structures_member.member.html" class="tsd-signature-type" data-tsd-kind="Class">Member</a></h4>
@@ -623,7 +635,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L108">src/slash/context.ts:108</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L113">src/slash/context.ts:113</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_members.members.html" class="tsd-signature-type" data-tsd-kind="Class">Members</a></h4>
@@ -640,7 +652,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L112">src/slash/context.ts:112</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L117">src/slash/context.ts:117</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_messages.messages.html" class="tsd-signature-type" data-tsd-kind="Class">Messages</a></h4>
@@ -657,7 +669,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L206">src/slash/context.ts:206</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L211">src/slash/context.ts:211</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -674,7 +686,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L116">src/slash/context.ts:116</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L121">src/slash/context.ts:121</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_notes.notes.html" class="tsd-signature-type" data-tsd-kind="Class">Notes</a></h4>
@@ -691,7 +703,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L75">src/slash/context.ts:75</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L80">src/slash/context.ts:80</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_basecollection.basecollection.html" class="tsd-signature-type" data-tsd-kind="Class">BaseCollection</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="structures_user.user.html" class="tsd-signature-type" data-tsd-kind="Class">User</a><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -708,7 +720,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L120">src/slash/context.ts:120</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L125">src/slash/context.ts:125</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_presences.presences.html" class="tsd-signature-type" data-tsd-kind="Class">Presences</a></h4>
@@ -725,7 +737,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L124">src/slash/context.ts:124</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L129">src/slash/context.ts:129</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_relationships.relationships.html" class="tsd-signature-type" data-tsd-kind="Class">Relationships</a></h4>
@@ -742,7 +754,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L210">src/slash/context.ts:210</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L215">src/slash/context.ts:215</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -759,7 +771,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L79">src/slash/context.ts:79</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L84">src/slash/context.ts:84</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="rest_client.restclient.html" class="tsd-signature-type" data-tsd-kind="Class">RestClient</a></h4>
@@ -776,7 +788,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L128">src/slash/context.ts:128</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L133">src/slash/context.ts:133</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_roles.roles.html" class="tsd-signature-type" data-tsd-kind="Class">Roles</a></h4>
@@ -793,7 +805,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L132">src/slash/context.ts:132</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L137">src/slash/context.ts:137</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_sessions.sessions.html" class="tsd-signature-type" data-tsd-kind="Class">Sessions</a></h4>
@@ -810,7 +822,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L83">src/slash/context.ts:83</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L88">src/slash/context.ts:88</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -827,7 +839,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L87">src/slash/context.ts:87</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L92">src/slash/context.ts:92</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -844,7 +856,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L136">src/slash/context.ts:136</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L141">src/slash/context.ts:141</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_stageinstances.stageinstances.html" class="tsd-signature-type" data-tsd-kind="Class">StageInstances</a></h4>
@@ -861,7 +873,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L214">src/slash/context.ts:214</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L219">src/slash/context.ts:219</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -878,7 +890,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L140">src/slash/context.ts:140</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L145">src/slash/context.ts:145</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_typing.typingcollection.html" class="tsd-signature-type" data-tsd-kind="Class">TypingCollection</a></h4>
@@ -895,7 +907,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L218">src/slash/context.ts:218</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L223">src/slash/context.ts:223</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="structures_user.user.html" class="tsd-signature-type" data-tsd-kind="Class">User</a></h4>
@@ -912,7 +924,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L222">src/slash/context.ts:222</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L227">src/slash/context.ts:227</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -929,7 +941,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L144">src/slash/context.ts:144</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L149">src/slash/context.ts:149</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_users.users.html" class="tsd-signature-type" data-tsd-kind="Class">Users</a></h4>
@@ -946,7 +958,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L148">src/slash/context.ts:148</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L153">src/slash/context.ts:153</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_voicecalls.voicecalls.html" class="tsd-signature-type" data-tsd-kind="Class">VoiceCalls</a></h4>
@@ -963,7 +975,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L226">src/slash/context.ts:226</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L231">src/slash/context.ts:231</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="structures_channel.channelguildvoice.html" class="tsd-signature-type" data-tsd-kind="Class">ChannelGuildVoice</a></h4>
@@ -980,7 +992,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L234">src/slash/context.ts:234</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L239">src/slash/context.ts:239</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="media_voiceconnection.voiceconnection.html" class="tsd-signature-type" data-tsd-kind="Class">VoiceConnection</a></h4>
@@ -997,7 +1009,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L152">src/slash/context.ts:152</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L157">src/slash/context.ts:157</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_voiceconnections.voiceconnections.html" class="tsd-signature-type" data-tsd-kind="Class">VoiceConnections</a></h4>
@@ -1014,7 +1026,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L238">src/slash/context.ts:238</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L243">src/slash/context.ts:243</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="structures_voicestate.voicestate.html" class="tsd-signature-type" data-tsd-kind="Class">VoiceState</a></h4>
@@ -1031,7 +1043,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L156">src/slash/context.ts:156</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L161">src/slash/context.ts:161</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections_voicestates.voicestates.html" class="tsd-signature-type" data-tsd-kind="Class">VoiceStates</a></h4>
@@ -1051,7 +1063,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L246">src/slash/context.ts:246</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L251">src/slash/context.ts:251</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1074,7 +1086,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L250">src/slash/context.ts:250</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L255">src/slash/context.ts:255</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1100,7 +1112,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L257">src/slash/context.ts:257</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L262">src/slash/context.ts:262</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1123,7 +1135,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L261">src/slash/context.ts:261</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L266">src/slash/context.ts:266</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1140,7 +1152,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L265">src/slash/context.ts:265</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L270">src/slash/context.ts:270</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1157,6 +1169,29 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="editorrespond" class="tsd-anchor"></a>
+					<h3>edit<wbr>OrRespond</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">edit<wbr>OrRespond<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="../modules/structures_interaction.html#interactioneditorrespond" class="tsd-signature-type" data-tsd-kind="Type alias">InteractionEditOrRespond</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L278">src/slash/context.ts:278</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>options: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> | </span><a href="../modules/structures_interaction.html#interactioneditorrespond" class="tsd-signature-type" data-tsd-kind="Type alias">InteractionEditOrRespond</a><span class="tsd-signature-symbol"> = {}</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="editresponse" class="tsd-anchor"></a>
 					<h3>edit<wbr>Response</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -1166,7 +1201,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L269">src/slash/context.ts:269</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L274">src/slash/context.ts:274</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1189,7 +1224,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L273">src/slash/context.ts:273</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L282">src/slash/context.ts:282</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1212,7 +1247,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L277">src/slash/context.ts:277</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L286">src/slash/context.ts:286</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -1229,7 +1264,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L281">src/slash/context.ts:281</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L290">src/slash/context.ts:290</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1255,7 +1290,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L288">src/slash/context.ts:288</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L297">src/slash/context.ts:297</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="structures_interaction.interaction.html" class="tsd-signature-type" data-tsd-kind="Class">Interaction</a></h4>
@@ -1272,7 +1307,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/f5b114a/src/slash/context.ts#L292">src/slash/context.ts:292</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/slash/context.ts#L301">src/slash/context.ts:301</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -1313,6 +1348,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="slash_context.slashcontext.html#invoker" class="tsd-kind-icon">invoker</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="slash_context.slashcontext.html#loadingtimeout" class="tsd-kind-icon">loading<wbr>Timeout</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="slash_context.slashcontext.html#metadata" class="tsd-kind-icon">metadata</a>
@@ -1469,6 +1507,9 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="slash_context.slashcontext.html#editmessage" class="tsd-kind-icon">edit<wbr>Message</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="slash_context.slashcontext.html#editorrespond" class="tsd-kind-icon">edit<wbr>OrRespond</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="slash_context.slashcontext.html#editresponse" class="tsd-kind-icon">edit<wbr>Response</a>
