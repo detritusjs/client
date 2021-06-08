@@ -31,7 +31,7 @@ export type CommandCallbackBefore = (context: SlashContext) => Promise<boolean> 
 /**
  * @category SlashCommand
  */
-export type CommandCallbackBeforeRun = (context: SlashContext) => Promise<boolean> | boolean;
+export type CommandCallbackBeforeRun = (context: SlashContext, args: ParsedArgs) => Promise<boolean> | boolean;
 
 /**
  * @category SlashCommand
