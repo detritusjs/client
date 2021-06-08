@@ -5,7 +5,6 @@ import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
   ApplicationCommandOptionTypes,
-  ChannelTypes,
   DiscordKeys,
   InteractionCallbackTypes,
   InteractionTypes,
@@ -16,7 +15,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { Channel } from './channel';
+import { Channel, createChannelFromData } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
 import { Message } from './message';
@@ -365,7 +364,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
   readonly _keysMerge = keysMergeInteractionDataApplicationCommandResolved;
   readonly interactionData: InteractionDataApplicationCommand;
 
-  channels?: BaseCollection<string, {id: string, name: string, permissions: bigint, type: ChannelTypes}>;
+  channels?: BaseCollection<string, Channel>;
   members?: BaseCollection<string, Member>;
   roles?: BaseCollection<string, Role>;
   users?: BaseCollection<string, User>;
@@ -394,8 +393,16 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
           }
           this.channels.clear();
           for (let channelId in value) {
-            value[channelId][DiscordKeys.GUILD_ID] = this.guildId;
-            this.channels.set(channelId, value[channelId]);
+            let channel: Channel;
+            if (this.client.channels.has(channelId)) {
+              channel = this.client.channels.get(channelId)!;
+              // do we want to just create it like below? or merge the values?
+              // not sure if discord verifies the data
+            } else {
+              value[channelId][DiscordKeys.GUILD_ID] = this.guildId;
+              channel = createChannelFromData(this.client, value[channelId]);
+            }
+            this.channels.set(channelId, channel);
           }
         }; return;
         case DiscordKeys.MEMBERS: {
