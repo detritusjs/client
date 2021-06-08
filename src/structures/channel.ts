@@ -1616,7 +1616,7 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     return collection;
   }
 
-  join(options: VoiceConnectOptions) {
+  join(options: VoiceConnectOptions = {}) {
     return this.client.voiceConnect(this.guildId, this.id, options);
   }
 }

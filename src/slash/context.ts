@@ -110,6 +110,10 @@ export class SlashContext {
     return this.client.guilds;
   }
 
+  get interactions() {
+    return this.client.interactions;
+  }
+
   get members() {
     return this.client.members;
   }

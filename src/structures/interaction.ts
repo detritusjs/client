@@ -9,7 +9,9 @@ import {
   InteractionCallbackTypes,
   InteractionTypes,
   MessageComponentTypes,
+  INTERACTION_TIMEOUT,
 } from '../constants';
+import { Snowflake } from '../utils';
 
 import {
   BaseStructure,
@@ -57,6 +59,7 @@ const keysMergeInteraction = new BaseSet<string>([
 export class Interaction extends BaseStructure {
   readonly _keys = keysInteraction;
   readonly _keysMerge = keysMergeInteraction;
+  readonly _deleted: boolean = false;
 
   applicationId: string = '';
   channelId?: string;
@@ -66,6 +69,8 @@ export class Interaction extends BaseStructure {
   member?: Member;
   message?: Message;
   responded: boolean = false;
+  responseDeleted?: boolean;
+  responseId?: string;
   token: string = '';
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
@@ -87,6 +92,25 @@ export class Interaction extends BaseStructure {
     return null;
   }
 
+  get createdAt(): Date {
+    return new Date(this.createdAtUnix);
+  }
+
+  get createdAtUnix(): number {
+    return Snowflake.timestamp(this.id);
+  }
+
+  get deleted(): boolean {
+    if (!this._deleted) {
+      const didTimeout = INTERACTION_TIMEOUT <= (Date.now() - this.createdAtUnix);
+      if (didTimeout) {
+        Object.defineProperty(this, '_deleted', {value: didTimeout});
+        this.client.interactions.delete(this.id);
+      }
+    }
+    return this._deleted;
+  }
+
   get guild(): Guild | null {
     if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
@@ -104,6 +128,13 @@ export class Interaction extends BaseStructure {
 
   get isFromMessageComponent() {
     return this.type === InteractionTypes.MESSAGE_COMPONENT;
+  }
+
+  get response(): Message | null {
+    if (this.responseId) {
+      return this.client.messages.get(this.responseId) || null;
+    }
+    return null;
   }
 
   get userId(): string {

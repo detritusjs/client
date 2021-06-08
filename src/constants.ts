@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.15.3-beta.1',
+  VERSION: '0.15.3-beta.2',
 });
 
 export type Snowflake = number | string;
@@ -62,6 +62,8 @@ export const MEDIA_ATTACHMENT_URL_PREFIX = Endpoints.Urls.MEDIA + 'attachments/'
 export const MEDIA_SIZES = Object.freeze([16, 20, 32, 40, 64, 80, 128, 160, 256, 320, 512, 640, 1024, 1280, 1536, 2048, 3072, 4096]);
 export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
 
+export const INTERACTION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
+export const TYPING_TIMEOUT = 10 * 1000; // 10 seconds
 
 
 export enum ApplicationCommandOptionTypes {
@@ -1124,8 +1126,6 @@ export enum TeamPayoutAccountStatuses {
   BLOCKED = 5,
   SUSPENDED = 6,
 }
-
-export const TYPING_TIMEOUT = 10000;
 
 export enum UserFlags {
   STAFF = 1 << 0,
