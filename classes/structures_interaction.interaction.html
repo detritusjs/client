@@ -101,6 +101,7 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#_deleted" class="tsd-kind-icon">_deleted</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite"><a href="structures_interaction.interaction.html#_keys" class="tsd-kind-icon">_keys</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-overwrite"><a href="structures_interaction.interaction.html#_keysmerge" class="tsd-kind-icon">_keys<wbr>Merge</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#applicationid" class="tsd-kind-icon">application<wbr>Id</a></li>
@@ -112,6 +113,8 @@
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#member" class="tsd-kind-icon">member</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#message" class="tsd-kind-icon">message</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#responded" class="tsd-kind-icon">responded</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#responsedeleted" class="tsd-kind-icon">response<wbr>Deleted</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#responseid" class="tsd-kind-icon">response<wbr>Id</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#token" class="tsd-kind-icon">token</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#type" class="tsd-kind-icon">type</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="structures_interaction.interaction.html#user" class="tsd-kind-icon">user</a></li>
@@ -122,11 +125,15 @@
 							<h3>Accessors</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#channel" class="tsd-kind-icon">channel</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#createdat" class="tsd-kind-icon">created<wbr>At</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#createdatunix" class="tsd-kind-icon">created<wbr>AtUnix</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#deleted" class="tsd-kind-icon">deleted</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#guild" class="tsd-kind-icon">guild</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#indm" class="tsd-kind-icon">in<wbr>Dm</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited"><a href="structures_interaction.interaction.html#isclone" class="tsd-kind-icon">is<wbr>Clone</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#isfromapplicationcommand" class="tsd-kind-icon">is<wbr>From<wbr>Application<wbr>Command</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#isfrommessagecomponent" class="tsd-kind-icon">is<wbr>From<wbr>Message<wbr>Component</a></li>
+								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#response" class="tsd-kind-icon">response</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited"><a href="structures_interaction.interaction.html#shardid" class="tsd-kind-icon">shard<wbr>Id</a></li>
 								<li class="tsd-kind-get-signature tsd-parent-kind-class"><a href="structures_interaction.interaction.html#userid" class="tsd-kind-icon">user<wbr>Id</a></li>
 							</ul>
@@ -176,7 +183,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L73">src/structures/interaction.ts:73</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L77">src/structures/interaction.ts:77</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -198,6 +205,16 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="_deleted" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> _deleted</h3>
+					<div class="tsd-signature tsd-kind-icon">_deleted<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L62">src/structures/interaction.ts:62</a></li>
+						</ul>
+					</aside>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
 					<a name="_keys" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagReadonly">Readonly</span> _keys</h3>
@@ -205,7 +222,7 @@
 					<aside class="tsd-sources">
 						<p>Overrides BaseStructure._keys</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L59">src/structures/interaction.ts:59</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L60">src/structures/interaction.ts:60</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -216,7 +233,7 @@
 					<aside class="tsd-sources">
 						<p>Overrides BaseStructure._keysMerge</p>
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L60">src/structures/interaction.ts:60</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L61">src/structures/interaction.ts:61</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -226,7 +243,7 @@
 					<div class="tsd-signature tsd-kind-icon">application<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#x27;&#x27;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L62">src/structures/interaction.ts:62</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L64">src/structures/interaction.ts:64</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -236,7 +253,7 @@
 					<div class="tsd-signature tsd-kind-icon">channel<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L63">src/structures/interaction.ts:63</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L65">src/structures/interaction.ts:65</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -247,7 +264,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#client">client</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L306">src/structures/basestructure.ts:306</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L306">src/structures/basestructure.ts:306</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -257,7 +274,7 @@
 					<div class="tsd-signature tsd-kind-icon">data<span class="tsd-signature-symbol">:</span> <a href="structures_interaction.interactiondataapplicationcommand.html" class="tsd-signature-type" data-tsd-kind="Class">InteractionDataApplicationCommand</a><span class="tsd-signature-symbol"> | </span><a href="structures_interaction.interactiondatacomponent.html" class="tsd-signature-type" data-tsd-kind="Class">InteractionDataComponent</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L64">src/structures/interaction.ts:64</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L66">src/structures/interaction.ts:66</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -267,7 +284,7 @@
 					<div class="tsd-signature tsd-kind-icon">guild<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L65">src/structures/interaction.ts:65</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L67">src/structures/interaction.ts:67</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -277,7 +294,7 @@
 					<div class="tsd-signature tsd-kind-icon">id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#x27;&#x27;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L66">src/structures/interaction.ts:66</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L68">src/structures/interaction.ts:68</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -287,7 +304,7 @@
 					<div class="tsd-signature tsd-kind-icon">member<span class="tsd-signature-symbol">:</span> <a href="structures_member.member.html" class="tsd-signature-type" data-tsd-kind="Class">Member</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L67">src/structures/interaction.ts:67</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L69">src/structures/interaction.ts:69</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -297,7 +314,7 @@
 					<div class="tsd-signature tsd-kind-icon">message<span class="tsd-signature-symbol">:</span> <a href="structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L68">src/structures/interaction.ts:68</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L70">src/structures/interaction.ts:70</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -307,7 +324,27 @@
 					<div class="tsd-signature tsd-kind-icon">responded<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L69">src/structures/interaction.ts:69</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L71">src/structures/interaction.ts:71</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="responsedeleted" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> response<wbr>Deleted</h3>
+					<div class="tsd-signature tsd-kind-icon">response<wbr>Deleted<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L72">src/structures/interaction.ts:72</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+					<a name="responseid" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> response<wbr>Id</h3>
+					<div class="tsd-signature tsd-kind-icon">response<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L73">src/structures/interaction.ts:73</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -317,7 +354,7 @@
 					<div class="tsd-signature tsd-kind-icon">token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#x27;&#x27;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L70">src/structures/interaction.ts:70</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L74">src/structures/interaction.ts:74</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -327,7 +364,7 @@
 					<div class="tsd-signature tsd-kind-icon">type<span class="tsd-signature-symbol">:</span> <a href="../enums/constants.interactiontypes.html" class="tsd-signature-type" data-tsd-kind="Enumeration">InteractionTypes</a><span class="tsd-signature-symbol"> = ...</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L71">src/structures/interaction.ts:71</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L75">src/structures/interaction.ts:75</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -337,7 +374,7 @@
 					<div class="tsd-signature tsd-kind-icon">user<span class="tsd-signature-symbol">:</span> <a href="structures_user.user.html" class="tsd-signature-type" data-tsd-kind="Class">User</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L72">src/structures/interaction.ts:72</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L76">src/structures/interaction.ts:76</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -347,7 +384,7 @@
 					<div class="tsd-signature tsd-kind-icon">version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L73">src/structures/interaction.ts:73</a></li>
+							<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L77">src/structures/interaction.ts:77</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -364,10 +401,61 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L84">src/structures/interaction.ts:84</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L88">src/structures/interaction.ts:88</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../modules/structures_channel.html#channel" class="tsd-signature-type" data-tsd-kind="Type alias">Channel</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+					<a name="createdat" class="tsd-anchor"></a>
+					<h3>created<wbr>At</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> createdAt<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Date</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L95">src/structures/interaction.ts:95</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Date</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+					<a name="createdatunix" class="tsd-anchor"></a>
+					<h3>created<wbr>AtUnix</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> createdAtUnix<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L99">src/structures/interaction.ts:99</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+					<a name="deleted" class="tsd-anchor"></a>
+					<h3>deleted</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> deleted<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L103">src/structures/interaction.ts:103</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -381,7 +469,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L91">src/structures/interaction.ts:91</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L114">src/structures/interaction.ts:114</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="structures_guild.guild.html" class="tsd-signature-type" data-tsd-kind="Class">Guild</a></h4>
@@ -398,7 +486,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L98">src/structures/interaction.ts:98</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L121">src/structures/interaction.ts:121</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -415,7 +503,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L317">src/structures/basestructure.ts:317</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L317">src/structures/basestructure.ts:317</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -432,7 +520,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L102">src/structures/interaction.ts:102</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L125">src/structures/interaction.ts:125</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -449,10 +537,27 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L106">src/structures/interaction.ts:106</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L129">src/structures/interaction.ts:129</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-get-signature tsd-parent-kind-class">
+					<a name="response" class="tsd-anchor"></a>
+					<h3>response</h3>
+					<ul class="tsd-signatures tsd-kind-get-signature tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">get</span> response<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L133">src/structures/interaction.ts:133</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -466,7 +571,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L321">src/structures/basestructure.ts:321</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L321">src/structures/basestructure.ts:321</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -483,7 +588,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L110">src/structures/interaction.ts:110</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L140">src/structures/interaction.ts:140</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -504,7 +609,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#_custom_">[custom]</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L282">src/structures/basestructure.ts:282</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L282">src/structures/basestructure.ts:282</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
@@ -522,7 +627,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#_getfromsnake">_getFromSnake</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L33">src/structures/basestructure.ts:33</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L33">src/structures/basestructure.ts:33</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -546,7 +651,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#_setfromsnake">_setFromSnake</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L37">src/structures/basestructure.ts:37</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L37">src/structures/basestructure.ts:37</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -573,7 +678,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#clone">clone</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L325">src/structures/basestructure.ts:325</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L325">src/structures/basestructure.ts:325</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="structures_interaction.interaction.html" class="tsd-signature-type" data-tsd-kind="Class">Interaction</a></h4>
@@ -590,7 +695,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L114">src/structures/interaction.ts:114</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L144">src/structures/interaction.ts:144</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -613,7 +718,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L118">src/structures/interaction.ts:118</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L148">src/structures/interaction.ts:148</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -639,7 +744,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L127">src/structures/interaction.ts:127</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L157">src/structures/interaction.ts:157</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -662,7 +767,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L131">src/structures/interaction.ts:131</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L161">src/structures/interaction.ts:161</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -680,7 +785,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#difference">difference</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L41">src/structures/basestructure.ts:41</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L41">src/structures/basestructure.ts:41</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -707,7 +812,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#differences">differences</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L67">src/structures/basestructure.ts:67</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L67">src/structures/basestructure.ts:67</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -731,7 +836,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#differencesbetween">differencesBetween</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L86">src/structures/basestructure.ts:86</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L86">src/structures/basestructure.ts:86</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -754,7 +859,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L135">src/structures/interaction.ts:135</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L165">src/structures/interaction.ts:165</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -780,7 +885,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L143">src/structures/interaction.ts:143</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L173">src/structures/interaction.ts:173</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -803,7 +908,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L139">src/structures/interaction.ts:139</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L169">src/structures/interaction.ts:169</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -826,7 +931,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L160">src/structures/interaction.ts:160</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L190">src/structures/interaction.ts:190</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -849,7 +954,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L164">src/structures/interaction.ts:164</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L194">src/structures/interaction.ts:194</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="structures_message.message.html" class="tsd-signature-type" data-tsd-kind="Class">Message</a><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -867,7 +972,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#hasdifference">hasDifference</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L107">src/structures/basestructure.ts:107</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L107">src/structures/basestructure.ts:107</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -894,7 +999,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#hasdifferences">hasDifferences</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L195">src/structures/basestructure.ts:195</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L195">src/structures/basestructure.ts:195</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -918,7 +1023,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#hasdifferencesbetween">hasDifferencesBetween</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L210">src/structures/basestructure.ts:210</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L210">src/structures/basestructure.ts:210</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -942,7 +1047,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#merge">merge</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L225">src/structures/basestructure.ts:225</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L225">src/structures/basestructure.ts:225</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -966,7 +1071,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#mergevalue">mergeValue</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L179">src/structures/interaction.ts:179</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L209">src/structures/interaction.ts:209</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -992,7 +1097,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L168">src/structures/interaction.ts:168</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L198">src/structures/interaction.ts:198</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1015,7 +1120,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/interaction.ts#L172">src/structures/interaction.ts:172</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/interaction.ts#L202">src/structures/interaction.ts:202</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -1042,7 +1147,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="structures_basestructure.basestructure.html">BaseStructure</a>.<a href="structures_basestructure.basestructure.html#tojson">toJSON</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/3b810b5/src/structures/basestructure.ts#L259">src/structures/basestructure.ts:259</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/08f9336/src/structures/basestructure.ts#L259">src/structures/basestructure.ts:259</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
@@ -1071,6 +1176,9 @@
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 								<a href="structures_interaction.interaction.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="structures_interaction.interaction.html#_deleted" class="tsd-kind-icon">_deleted</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-overwrite">
 								<a href="structures_interaction.interaction.html#_keys" class="tsd-kind-icon">_keys</a>
@@ -1106,6 +1214,12 @@
 								<a href="structures_interaction.interaction.html#responded" class="tsd-kind-icon">responded</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="structures_interaction.interaction.html#responsedeleted" class="tsd-kind-icon">response<wbr>Deleted</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
+								<a href="structures_interaction.interaction.html#responseid" class="tsd-kind-icon">response<wbr>Id</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="structures_interaction.interaction.html#token" class="tsd-kind-icon">token</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
@@ -1121,6 +1235,15 @@
 								<a href="structures_interaction.interaction.html#channel" class="tsd-kind-icon">channel</a>
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="structures_interaction.interaction.html#createdat" class="tsd-kind-icon">created<wbr>At</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="structures_interaction.interaction.html#createdatunix" class="tsd-kind-icon">created<wbr>AtUnix</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="structures_interaction.interaction.html#deleted" class="tsd-kind-icon">deleted</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
 								<a href="structures_interaction.interaction.html#guild" class="tsd-kind-icon">guild</a>
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
@@ -1134,6 +1257,9 @@
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
 								<a href="structures_interaction.interaction.html#isfrommessagecomponent" class="tsd-kind-icon">is<wbr>From<wbr>Message<wbr>Component</a>
+							</li>
+							<li class=" tsd-kind-get-signature tsd-parent-kind-class">
+								<a href="structures_interaction.interaction.html#response" class="tsd-kind-icon">response</a>
 							</li>
 							<li class=" tsd-kind-get-signature tsd-parent-kind-class tsd-is-inherited">
 								<a href="structures_interaction.interaction.html#shardid" class="tsd-kind-icon">shard<wbr>Id</a>
