@@ -220,6 +220,18 @@ export class SlashContext {
     return this.interaction.responded;
   }
 
+  get response() {
+    return this.interaction.response;
+  }
+
+  get responseDeleted() {
+    return this.interaction.responseDeleted;
+  }
+
+  get responseId() {
+    return this.interaction.responseId;
+  }
+
   get token() {
     return this.interaction.token;
   }
@@ -299,7 +311,7 @@ export class SlashContext {
   }
 
   toJSON() {
-    return this.interaction;
+    return this.interaction.toJSON();
   }
 
   toString() {

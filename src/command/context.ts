@@ -313,7 +313,7 @@ export class Context {
   }
 
   toJSON() {
-    return this.message;
+    return this.message.toJSON();
   }
 
   toString() {
