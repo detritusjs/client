@@ -201,6 +201,10 @@ export class User extends BaseStructure {
     return this.client.presences.get(this.id) || null;
   }
 
+  get tag(): string {
+    return `${this.username}#${this.discriminator}`;
+  }
+
   avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
     if (!this.avatar) {
       return addQuery(this.defaultAvatarUrl, query);
@@ -268,7 +272,7 @@ export class User extends BaseStructure {
   }
 
   toString(): string {
-    return `${this.username}#${this.discriminator}`;
+    return this.tag;
   }
 }
 
@@ -586,6 +590,10 @@ export class UserMixin extends BaseStructure {
 
   get system(): boolean | undefined {
     return this.user.system;
+  }
+
+  get tag(): string {
+    return this.user.tag;
   }
 
   get username(): string {

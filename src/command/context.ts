@@ -117,6 +117,10 @@ export class Context {
     return this.client.guilds;
   }
 
+  get interactions() {
+    return this.client.interactions;
+  }
+
   get members() {
     return this.client.members;
   }
@@ -309,7 +313,7 @@ export class Context {
   }
 
   toJSON() {
-    return this.message;
+    return this.message.toJSON();
   }
 
   toString() {

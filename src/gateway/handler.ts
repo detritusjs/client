@@ -642,6 +642,12 @@ export class GatewayDispatchHandler {
       if (me) {
         me.left = true;
       }
+      for (let [interactionId, interaction] of this.client.interactions) {
+        if (interaction.guildId === guildId) {
+          Object.defineProperty(interaction, '_deleted', {value: true});
+          this.client.interactions.delete(interactionId);
+        }
+      }
     }
 
     if (!isNew || !this.client.guilds.enabled) {
@@ -1144,6 +1150,7 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.INTERACTION_CREATE](data: GatewayRawEvents.InteractionCreate) {
     const interaction = new Interaction(this.client, data);
+    this.client.interactions.insert(interaction);
 
     const payload: GatewayClientEvents.InteractionCreate = {_raw: data, interaction};
     this.client.emit(ClientEvents.INTERACTION_CREATE, payload);
@@ -1236,6 +1243,11 @@ export class GatewayDispatchHandler {
       }
     }
 
+    if (message.interaction && this.client.interactions.has(message.interaction.id)) {
+      const interaction = this.client.interactions.get(message.interaction.id)!;
+      interaction.responseId = message.id;
+    }
+
     const payload: GatewayClientEvents.MessageCreate = {message, typing};
     this.client.emit(ClientEvents.MESSAGE_CREATE, payload);
   }
@@ -1250,6 +1262,19 @@ export class GatewayDispatchHandler {
       message = this.client.messages.get(messageId)!;
       message.deleted = true;
       this.client.messages.delete(messageId);
+
+      if (message.interaction && this.client.interactions.has(message.interaction.id)) {
+        const interaction = this.client.interactions.get(message.interaction.id)!;
+        interaction.responseDeleted = true;
+        interaction.responseId = messageId;
+      }
+    } else {
+      for (let [interactionId, interaction] of this.client.interactions) {
+        if (interaction.responseId === messageId) {
+          interaction.responseDeleted = true;
+          break;
+        }
+      }
     }
 
     const payload: GatewayClientEvents.MessageDelete = {channelId, guildId, message, messageId, raw: data};
@@ -1912,6 +1937,7 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.VOICE_STATE_UPDATE](data: GatewayRawEvents.VoiceStateUpdate) {
     let differences: GatewayClientEvents.Differences = null;
+    let joinedChannel = false;
     let leftChannel = false;
     let old: VoiceState | null = null;
     let voiceState: VoiceState;
@@ -1929,11 +1955,12 @@ export class GatewayDispatchHandler {
         leftChannel = true;
       }
     } else {
+      joinedChannel = true;
       voiceState = new VoiceState(this.client, data);
       this.client.voiceStates.insert(voiceState);
     }
 
-    const payload: GatewayClientEvents.VoiceStateUpdate = {differences, leftChannel, old, voiceState};
+    const payload: GatewayClientEvents.VoiceStateUpdate = {differences, joinedChannel, leftChannel, old, voiceState};
     this.client.emit(ClientEvents.VOICE_STATE_UPDATE, payload);
   }
 

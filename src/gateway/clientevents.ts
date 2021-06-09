@@ -599,6 +599,7 @@ export namespace GatewayClientEvents {
 
   export interface VoiceStateUpdate {
     differences: Differences,
+    joinedChannel: boolean,
     leftChannel: boolean,
     old: VoiceState | null,
     voiceState: VoiceState,
