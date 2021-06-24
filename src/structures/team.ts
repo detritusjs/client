@@ -144,7 +144,6 @@ export class TeamMember extends UserMixin {
   membershipState: TeamMembershipStates = TeamMembershipStates.BASE;
   permissions!: BaseSet<string>;
   teamId: string = '';
-  user!: User;
 
   constructor(
     client: ShardClient,
