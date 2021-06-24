@@ -732,6 +732,8 @@ export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
   type = ChannelTypes.DM;
 
+  declare lastMessageId?: null | string;
+
   constructor(
     client: ShardClient,
     data?: BaseStructureData,
@@ -956,6 +958,7 @@ export class ChannelDMGroup extends ChannelDM {
   readonly _keys = keysChannelDmGroup;
   type = ChannelTypes.GROUP_DM;
 
+  declare applicationId?: string;
   icon: null | string = null;
   ownerId: string = '';
 
@@ -1738,9 +1741,11 @@ export class ChannelGuildThread extends ChannelGuildBase {
   readonly _keys = keysChannelGuildThread;
   type = ChannelTypes.GUILD_PUBLIC_THREAD;
 
+  declare member?: ThreadMember;
   memberCount: number = 0;
   messageCount: number = 0;
   ownerId: string = '';
+  declare threadMetadata: ThreadMetadata;
 
   constructor(
     client: ShardClient,

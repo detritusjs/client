@@ -75,6 +75,7 @@ export class Member extends UserMixin {
   nick: null | string = null;
   pending: boolean = false;
   premiumSinceUnix: number = 0;
+  declare user: User;
 
   constructor(
     client: ShardClient,
