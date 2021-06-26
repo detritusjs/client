@@ -35,6 +35,12 @@ import {
 import { PermissionTools, getFiles } from './utils';
 
 import {
+  CommandRatelimit,
+  CommandRatelimitOptions,
+  CommandRatelimiter,
+} from './commandratelimit';
+
+import {
   CommandCallbackRun,
   ParsedArgs,
   SlashCommand,
@@ -46,6 +52,9 @@ import {
 
 export interface SlashCommandClientOptions extends ClusterClientOptions {
   checkCommands?: boolean,
+  ratelimit?: CommandRatelimitOptions,
+  ratelimits?: Array<CommandRatelimitOptions>,
+  ratelimiter?: CommandRatelimiter,
   strictCommandCheck?: boolean,
   useClusterClient?: boolean,
 }
@@ -72,6 +81,8 @@ export class SlashCommandClient extends EventSpewer {
   commandsById = new BaseCollection<string, BaseSet<SlashCommand>>();
   directories = new BaseCollection<string, {subdirectories: boolean}>();
   ran: boolean = false;
+  ratelimits: Array<CommandRatelimit> = [];
+  ratelimiter: CommandRatelimiter;
   strictCommandCheck: boolean = true;
 
   constructor(
@@ -82,6 +93,7 @@ export class SlashCommandClient extends EventSpewer {
     options = Object.assign({useClusterClient: true}, options);
 
     this.checkCommands = (options.checkCommands || options.checkCommands === undefined);
+    this.ratelimiter = options.ratelimiter || new CommandRatelimiter();
     this.strictCommandCheck = (options.strictCommandCheck || options.strictCommandCheck === undefined);
 
     if (token instanceof CommandClient) {
@@ -118,6 +130,21 @@ export class SlashCommandClient extends EventSpewer {
     if (this.client instanceof ClusterClient) {
       for (let [shardId, shard] of this.client.shards) {
         Object.defineProperty(shard, 'slashCommandClient', {value: this});
+      }
+    }
+
+    if (options.ratelimit) {
+      this.ratelimits.push(new CommandRatelimit(options.ratelimit));
+    }
+    if (options.ratelimits) {
+      for (let rOptions of options.ratelimits) {
+        if (typeof(rOptions.type) === 'string') {
+          const rType = (rOptions.type || '').toLowerCase();
+          if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
+            throw new Error(`Ratelimit with type ${rType} already exists`);
+          }
+        }
+        this.ratelimits.push(new CommandRatelimit(rOptions));
       }
     }
 
@@ -529,6 +556,48 @@ export class SlashCommandClient extends EventSpewer {
     }
 
     const context = new SlashContext(this, interaction, command, invoker);
+
+    if (this.ratelimits.length || (invoker.ratelimits && invoker.ratelimits.length)) {
+      const now = Date.now();
+      {
+        const ratelimits = this.ratelimiter.getExceeded(context, this.ratelimits, now);
+        if (ratelimits.length) {
+          const global = true;
+
+          const payload: SlashCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(invoker.onRatelimit) === 'function') {
+            try {
+              await Promise.resolve(invoker.onRatelimit(context, ratelimits, {global, now}));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+
+      if (invoker.ratelimits && invoker.ratelimits.length) {
+        const ratelimits = this.ratelimiter.getExceeded(context, invoker.ratelimits, now);
+        if (ratelimits.length) {
+          const global = false;
+
+          const payload: SlashCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(invoker.onRatelimit) === 'function') {
+            try {
+              await Promise.resolve(invoker.onRatelimit(context, ratelimits, {global, now}));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+    }
+
     if (context.inDm) {
       // dm checks? maybe add ability to disable it in dm?
       if (invoker.disableDm) {

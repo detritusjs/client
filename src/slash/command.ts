@@ -1,5 +1,6 @@
 import * as Crypto from 'crypto';
 
+import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from '../commandratelimit';
 import { ApplicationCommandOptionTypes, DetritusKeys, DiscordKeys } from '../constants';
 
 import { BaseSet } from '../collections/baseset';
@@ -15,6 +16,8 @@ import { SlashContext } from './context';
 
 export type ParsedArgs = Record<string, any>;
 
+export type CommandRatelimitInfo = {item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number};
+export type CommandRatelimitMetadata = {global: boolean, now: number};
 
 export type FailedPermissions = Array<bigint>;
 
@@ -64,6 +67,15 @@ export type CommandCallbackPermissionsFail = (context: SlashContext, permissions
 export type CommandCallbackSuccess = (context: SlashContext) => Promise<any> | any;
 
 /**
+* @category SlashCommand
+*/
+export type CommandCallbackRatelimit = (
+ context: SlashContext,
+ ratelimits: Array<CommandRatelimitInfo>,
+ metadata: CommandRatelimitMetadata,
+) => Promise<any> | any;
+
+/**
  * @category SlashCommand
  */
 export type CommandCallbackRun = (context: SlashContext, args: ParsedArgs) => Promise<any> | any;
@@ -84,6 +96,7 @@ const ON_FUNCTION_NAMES = Object.freeze([
   'onError',
   'onPermissionsFail',
   'onPermissionsFailClient',
+  'onRatelimit',
   'run',
   'onRunError',
   'onSuccess',
@@ -94,6 +107,7 @@ const SET_VARIABLE_NAMES = Object.freeze([
   'permissions',
   'permissionsClient',
   'permissionsIgnoreClientOwner',
+  'ratelimits',
   'triggerLoadingAfter',
   'triggerLoadingAsEphemeral',
 ]);
@@ -117,6 +131,8 @@ export interface SlashCommandOptions {
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
+  ratelimit?: boolean | CommandRatelimitOptions | null,
+  ratelimits?: Array<CommandRatelimitOptions>,
   triggerLoadingAfter?: number,
   triggerLoadingAsEphemeral?: boolean,
 
@@ -129,6 +145,7 @@ export interface SlashCommandOptions {
   onError?: CommandCallbackError,
   onPermissionsFail?: CommandCallbackPermissionsFail,
   onPermissionsFailClient?: CommandCallbackPermissionsFail,
+  onRatelimit?: CommandCallbackRatelimit,
   run?: CommandCallbackRun,
   onRunError?: CommandCallbackRunError,
   onSuccess?: CommandCallbackSuccess,
@@ -148,6 +165,8 @@ export interface SlashCommandOptionOptions {
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
   permissionsIgnoreClientOwner?: boolean,
+  ratelimit?: boolean | CommandRatelimitOptions | null,
+  ratelimits?: Array<CommandRatelimitOptions>,
   triggerLoadingAfter?: number,
   triggerLoadingAsEphemeral?: boolean,
 
@@ -160,6 +179,7 @@ export interface SlashCommandOptionOptions {
   onError?: CommandCallbackError,
   onPermissionsFail?: CommandCallbackPermissionsFail,
   onPermissionsFailClient?: CommandCallbackPermissionsFail,
+  onRatelimit?: CommandCallbackRatelimit,
   run?: CommandCallbackRun,
   onRunError?: CommandCallbackRunError,
   onSuccess?: CommandCallbackSuccess,
@@ -201,6 +221,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean;
+  ratelimits: Array<CommandRatelimit> = [];
   triggerLoadingAfter?: number;
   triggerLoadingAsEphemeral?: boolean;
 
@@ -213,6 +234,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   onError?(context: SlashContext, args: ParsedArgs, error: any): Promise<any> | any;
   onPermissionsFail?(context: SlashContext, permissions: FailedPermissions): Promise<any> | any;
   onPermissionsFailClient?(context: SlashContext, permissions: FailedPermissions): Promise<any> | any;
+  onRatelimit?(context: SlashContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
   run?(context: SlashContext, args: ParsedArgsFinished): Promise<any> | any;
   onRunError?(context: SlashContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
   onSuccess?(context: SlashContext, args: ParsedArgsFinished): Promise<any> | any;
@@ -231,6 +253,21 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
     this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
     this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
+
+    if (data.ratelimit) {
+      this.ratelimits.push(new CommandRatelimit(data.ratelimit, this));
+    }
+    if (data.ratelimits) {
+      for (let rOptions of data.ratelimits) {
+        if (typeof(rOptions.type) === 'string') {
+          const rType = (rOptions.type || '').toLowerCase();
+          if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
+            throw new Error(`Ratelimit with type ${rType} already exists`);
+          }
+        }
+        this.ratelimits.push(new CommandRatelimit(rOptions, this));
+      }
+    }
 
     if (data.guildIds) {
       this.guildIds = new BaseSet<string>(data.guildIds);
@@ -252,6 +289,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     this.onError = data.onError || this.onError;
     this.onPermissionsFail = data.onPermissionsFail || this.onPermissionsFail;
     this.onPermissionsFailClient = data.onPermissionsFailClient || this.onPermissionsFailClient;
+    this.onRatelimit = data.onRatelimit || this.onRatelimit;
     this.run = data.run || this.run;
     this.onRunError = data.onRunError || this.onRunError;
     this.onSuccess = data.onSuccess || this.onSuccess;
@@ -261,6 +299,10 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
 
   get _optionsKey(): string {
     return (this._options) ? this._options.map((x) => x.key).join(':') : '';
+  }
+
+  get fullName(): string {
+    return this.name;
   }
 
   get hash(): string {
@@ -394,6 +436,8 @@ const keysSlashCommandOption = new BaseSet<string>([
 ]);
 
 export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structure {
+  readonly parent?: SlashCommand | SlashCommandOption;
+
   readonly _file?: string;
   readonly _keys = keysSlashCommandOption;
   _options?: BaseCollection<string, SlashCommandOption>;
@@ -409,6 +453,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
   permissionsIgnoreClientOwner?: boolean;
+  ratelimits?: Array<CommandRatelimit>;
   triggerLoadingAfter?: number;
   triggerLoadingAsEphemeral?: boolean;
 
@@ -421,6 +466,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   onError?(context: SlashContext, args: ParsedArgs, error: any): Promise<any> | any;
   onPermissionsFail?(context: SlashContext, permissions: FailedPermissions): Promise<any> | any;
   onPermissionsFailClient?(context: SlashContext, permissions: FailedPermissions): Promise<any> | any;
+  onRatelimit?(context: SlashContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
   run?(context: SlashContext, args: ParsedArgsFinished): Promise<any> | any;
   onRunError?(context: SlashContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
   onSuccess?(context: SlashContext, args: ParsedArgsFinished): Promise<any> | any;
@@ -436,12 +482,33 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
     this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
 
+    if (data.ratelimit || data.ratelimits) {
+      if (!this.ratelimits) {
+        this.ratelimits = [];
+      }
+      if (data.ratelimit) {
+        this.ratelimits.push(new CommandRatelimit(data.ratelimit, this));
+      }
+      if (data.ratelimits) {
+        for (let rOptions of data.ratelimits) {
+          if (typeof(rOptions.type) === 'string') {
+            const rType = (rOptions.type || '').toLowerCase();
+            if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
+              throw new Error(`Ratelimit with type ${rType} already exists`);
+            }
+          }
+          this.ratelimits.push(new CommandRatelimit(rOptions, this));
+        }
+      }
+    }
+
     if (data._file) {
       this._file = data._file;
     }
 
     Object.defineProperties(this, {
       _file: {configurable: true, writable: false},
+      parent: {configurable: true, writable: false},
     });
 
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
@@ -453,6 +520,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     this.onError = data.onError || this.onError;
     this.onPermissionsFail = data.onPermissionsFail || this.onPermissionsFail;
     this.onPermissionsFailClient = data.onPermissionsFailClient || this.onPermissionsFailClient;
+    this.onRatelimit = data.onRatelimit || this.onRatelimit;
     this.run = data.run || this.run;
     this.onRunError = data.onRunError || this.onRunError;
     this.onSuccess = data.onSuccess || this.onSuccess;
@@ -470,6 +538,13 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
 
   get _optionsKey(): string {
     return (this._options) ? this._options.map((x) => x.key).join(':') : '';
+  }
+
+  get fullName(): string {
+    if (this.parent) {
+      return `${this.parent.fullName} ${this.name}`;
+    }
+    return this.name;
   }
 
   get hasRun(): boolean {
@@ -626,6 +701,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   }
 
   _transferValuesToChildren(parent: SlashCommand | SlashCommandOption): void {
+    Object.defineProperty(this, 'parent', {value: parent});
     if (this.isSubCommand || this.isSubCommandGroup) {
       for (let name of ON_FUNCTION_NAMES) {
         if (typeof((this as any)[name]) !== 'function') {
@@ -634,7 +710,19 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       }
       for (let name of SET_VARIABLE_NAMES) {
         if ((this as any)[name] === undefined) {
-          (this as any)[name] = (parent as any)[name];
+          switch (name) {
+            case 'ratelimits': {
+              if (parent.ratelimits && parent.ratelimits.length) {
+                this.ratelimits = [];
+                for (let ratelimit of parent.ratelimits) {
+                  this.ratelimits.push(new CommandRatelimit(ratelimit, this));
+                }
+              }
+            }; break;
+            default: {
+              (this as any)[name] = (parent as any)[name];
+            };
+          }
         }
       }
       if (this.isSubCommandGroup && this._options) {

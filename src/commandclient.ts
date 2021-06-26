@@ -25,7 +25,7 @@ import {
   CommandRatelimit,
   CommandRatelimitOptions,
   CommandRatelimiter,
-} from './command/ratelimit';
+} from './commandratelimit';
 
 import { BaseCollection, BaseSet } from './collections';
 import { Message, Typing, User } from './structures';
@@ -36,15 +36,17 @@ export interface CommandClientOptions extends ClusterClientOptions {
   ignoreMe?: boolean,
   maxEditDuration?: number,
   mentionsEnabled?: boolean,
-  onCommandCheck?: CommandClientCommandCheck,
-  onMessageCheck?: CommandClientMessageCheck,
-  onPrefixCheck?: CommandClientPrefixCheck,
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
   ratelimit?: CommandRatelimitOptions,
   ratelimits?: Array<CommandRatelimitOptions>,
+  ratelimiter?: CommandRatelimiter,
   useClusterClient?: boolean,
+
+  onCommandCheck?: CommandClientCommandCheck,
+  onMessageCheck?: CommandClientMessageCheck,
+  onPrefixCheck?: CommandClientPrefixCheck,
 }
 
 export type CommandClientCommandCheck = (context: Context, command: Command) => boolean | Promise<boolean>;
@@ -94,7 +96,7 @@ export class CommandClient extends EventSpewer {
   };
   ran: boolean = false;
   ratelimits: Array<CommandRatelimit> = [];
-  ratelimiter = new CommandRatelimiter();
+  ratelimiter: CommandRatelimiter;
   replies: BaseCollection<string, CommandReply>;
 
   onCommandCheck?(context: Context, command: Command): boolean | Promise<boolean>;
@@ -154,6 +156,7 @@ export class CommandClient extends EventSpewer {
       custom: new BaseSet<string>(),
       mention: new BaseSet<string>(),
     });
+    this.ratelimiter = options.ratelimiter || new CommandRatelimiter();
     this.replies = new BaseCollection({expire: this.maxEditDuration});
 
     this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
@@ -207,11 +210,12 @@ export class CommandClient extends EventSpewer {
       commands: {writable: false},
       maxEditDuration: {configurable: true, writable: false},
       mentionsEnabled: {configurable: true, writable: false},
-      onCommandCheck: {enumerable: false, writable: true},
-      onPrefixCheck: {enumerable: false, writable: true},
       prefixes: {writable: false},
       prefixSpace: {configurable: true, writable: false},
       ran: {configurable: true, writable: false},
+
+      onCommandCheck: {enumerable: false, writable: true},
+      onPrefixCheck: {enumerable: false, writable: true},
     });
   }
 

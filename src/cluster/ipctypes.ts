@@ -48,8 +48,10 @@ export namespace ClusterIPCTypes {
       stack: string,
     },
     result?: any,
-    name: string,
+
     args?: Array<any>,
+    hash: string,
+    name: string,
   }
 
   export interface ShardState {

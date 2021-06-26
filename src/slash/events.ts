@@ -1,3 +1,5 @@
+import { CommandRatelimit as CommandRatelimitCache, CommandRatelimitItem } from '../commandratelimit';
+
 import { FailedPermissions, ParsedArgs, SlashCommand } from './command';
 import { SlashContext } from './context';
 
@@ -27,6 +29,18 @@ export namespace SlashCommandEvents {
     command: SlashCommand,
     context: SlashContext,
     permissions: FailedPermissions,
+  }
+
+  export interface CommandRatelimit {
+    command: SlashCommand,
+    context: SlashContext,
+    global: boolean,
+    now: number,
+    ratelimits: Array<{
+      item: CommandRatelimitItem
+      ratelimit: CommandRatelimitCache,
+      remaining: number,
+    }>,
   }
 
   export interface CommandRan {

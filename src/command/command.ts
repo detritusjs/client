@@ -1,12 +1,15 @@
 import { CommandAttributes, CommandClient } from '../commandclient';
-import { Permissions } from '../constants';
+import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from '../commandratelimit';
+
 import { Message } from '../structures/message';
 
 import { ArgumentOptions, Argument, ArgumentDefault, ArgumentType } from './argument';
 import { ArgumentParser, ParsedArgs, ParsedErrors } from './argumentparser';
 import { Context } from './context';
-import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from './ratelimit';
 
+
+export type CommandRatelimitInfo = {item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number};
+export type CommandRatelimitMetadata = {global: boolean, now: number};
 
 export type FailedPermissions = Array<bigint>;
 
@@ -55,8 +58,8 @@ export type CommandCallbackSuccess = (context: Context, args: ParsedArgs) => Pro
  */
 export type CommandCallbackRatelimit = (
   context: Context,
-  ratelimits: Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}>,
-  metadata: {global: boolean, now: number},
+  ratelimits: Array<CommandRatelimitInfo>,
+  metadata: CommandRatelimitMetadata,
 ) => Promise<any | Message> | any | Message;
 
 /**
@@ -140,7 +143,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   onError?(context: Context, args: ParsedArgs, error: any): Promise<any> | any;
   onPermissionsFail?(context: Context, permissions: FailedPermissions): Promise<any | Message> | any | Message;
   onPermissionsFailClient?(context: Context, permissions: FailedPermissions): Promise<any | Message> | any | Message;
-  onRatelimit?(context: Context, ratelimits: Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}>, metadata: {global: boolean, now: number}): Promise<any | Message> | any | Message;
+  onRatelimit?(context: Context, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any | Message> | any | Message;
   run?(context: Context, args: ParsedArgsFinished): Promise<any | Message> | any | Message;
   onRunError?(context: Context, args: ParsedArgsFinished, error: any): Promise<any | Message> | any | Message;
   onSuccess?(context: Context, args: ParsedArgsFinished): Promise<any> | any;
@@ -236,6 +239,10 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
 
   set default(value: ArgumentDefault) {
     this.setDefault(value);
+  }
+
+  get fullName(): string {
+    return this.names[0] || this.name;
   }
 
   get help() {
