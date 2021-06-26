@@ -109,6 +109,11 @@ export class SlashCommandClient extends EventSpewer {
     }
     this.client = client;
     Object.defineProperty(this.client, 'slashCommandClient', {value: this});
+    if (this.client instanceof ClusterClient) {
+      for (let [shardId, shard] of this.client.shards) {
+        Object.defineProperty(shard, 'slashCommandClient', {value: this});
+      }
+    }
 
     Object.defineProperties(this, {
       _clientSubscriptions: {enumerable: false, writable: false},

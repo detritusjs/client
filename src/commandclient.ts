@@ -139,6 +139,11 @@ export class CommandClient extends EventSpewer {
     }
     this.client = client;
     Object.defineProperty(this.client, 'commandClient', {value: this});
+    if (this.client instanceof ClusterClient) {
+      for (let [shardId, shard] of this.client.shards) {
+        Object.defineProperty(shard, 'commandClient', {value: this});
+      }
+    }
 
     this.activateOnEdits = !!options.activateOnEdits || this.activateOnEdits;
     this.commands = [];
