@@ -16,11 +16,13 @@ import {
   ApplicationCommandOptionTypes,
   ClientEvents,
   ClusterIPCOpCodes,
+  DetritusKeys,
   InteractionCallbackTypes,
   InteractionTypes,
   MessageFlags,
   Permissions,
   IS_TS_NODE,
+  LOCAL_GUILD_ID,
 } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
@@ -44,6 +46,7 @@ import {
 
 export interface SlashCommandClientOptions extends ClusterClientOptions {
   checkCommands?: boolean,
+  strictCommandCheck?: boolean,
   useClusterClient?: boolean,
 }
 
@@ -66,8 +69,10 @@ export class SlashCommandClient extends EventSpewer {
   checkCommands: boolean = true;
   client: ClusterClient | ShardClient;
   commands = new BaseSet<SlashCommand>();
+  commandsById = new BaseCollection<string, BaseSet<SlashCommand>>();
   directories = new BaseCollection<string, {subdirectories: boolean}>();
   ran: boolean = false;
+  strictCommandCheck: boolean = true;
 
   constructor(
     token: ClusterClient | CommandClient | ShardClient | string,
@@ -77,6 +82,7 @@ export class SlashCommandClient extends EventSpewer {
     options = Object.assign({useClusterClient: true}, options);
 
     this.checkCommands = (options.checkCommands || options.checkCommands === undefined);
+    this.strictCommandCheck = (options.strictCommandCheck || options.strictCommandCheck === undefined);
 
     if (token instanceof CommandClient) {
       token = token.client;
@@ -172,6 +178,21 @@ export class SlashCommandClient extends EventSpewer {
     }
     this.commands.add(command);
 
+    const guildIds = (command.guildIds) ? command.guildIds.toArray() : [];
+    if (command.global) {
+      guildIds.unshift(LOCAL_GUILD_ID);
+    }
+    for (let guildId of guildIds) {
+      let commands: BaseSet<SlashCommand>;
+      if (this.commandsById.has(guildId)) {
+        commands = this.commandsById.get(guildId)!;
+      } else {
+        commands = new BaseSet();
+        this.commandsById.set(guildId, commands);
+      }
+      commands.add(command);
+    }
+
     this.setSubscriptions();
     return this;
   }
@@ -265,11 +286,11 @@ export class SlashCommandClient extends EventSpewer {
   }
 
   /* Application Command Checking */
-  async checkApplicationCommands(): Promise<boolean> {
+  async checkApplicationCommands(guildId?: string): Promise<boolean> {
     if (!this.client.ran) {
       return false;
     }
-    const commands = await this.fetchApplicationCommands();
+    const commands = await this.fetchApplicationCommands(guildId);
     return this.validateCommands(commands);
   }
 
@@ -277,11 +298,14 @@ export class SlashCommandClient extends EventSpewer {
     if (!this.client.ran) {
       return;
     }
-    if (!await this.checkApplicationCommands() && (force || this.canUpload)) {
-      const commands = await this.uploadApplicationCommands();
-      this.validateCommands(commands);
-      if (this.manager && this.manager.hasMultipleClusters) {
-        this.manager.sendIPC(ClusterIPCOpCodes.FILL_SLASH_COMMANDS, {data: commands});
+    for (let [guildId, localCommands] of this.commandsById) {
+      const guildIdOrUndefined = (guildId === LOCAL_GUILD_ID) ? undefined : guildId;
+      if (!await this.checkApplicationCommands(guildIdOrUndefined) && (force || this.canUpload)) {
+        const commands = await this.uploadApplicationCommands(guildIdOrUndefined);
+        this.validateCommands(commands);
+        if (this.manager && this.manager.hasMultipleClusters) {
+          this.manager.sendIPC(ClusterIPCOpCodes.FILL_SLASH_COMMANDS, {data: commands});
+        }
       }
     }
   }
@@ -297,46 +321,70 @@ export class SlashCommandClient extends EventSpewer {
     return collection;
   }
 
-  async fetchApplicationCommands(): Promise<BaseCollection<string, ApplicationCommand>> {
+  async fetchApplicationCommands(guildId?: string): Promise<BaseCollection<string, ApplicationCommand>> {
     // add ability for ClusterManager checks
     if (!this.client.ran) {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
     let data: Array<any>;
     if (this.manager && this.manager.hasMultipleClusters) {
-      data = await this.manager.sendRestRequest('fetchApplicationCommands', [this.client.applicationId]);
+      if (guildId) {
+        data = await this.manager.sendRestRequest('fetchApplicationGuildCommands', [this.client.applicationId, guildId]);
+      } else {
+        data = await this.manager.sendRestRequest('fetchApplicationCommands', [this.client.applicationId]);
+      }
     } else {
-      data = await this.rest.fetchApplicationCommands(this.client.applicationId);
+      if (guildId) {
+        data = await this.rest.fetchApplicationGuildCommands(this.client.applicationId, guildId);
+      } else {
+        data = await this.rest.fetchApplicationCommands(this.client.applicationId);
+      }
     }
     return this.createApplicationCommandsFromRaw(data);
   }
 
-  async uploadApplicationCommands(): Promise<BaseCollection<string, ApplicationCommand>> {
+  async uploadApplicationCommands(guildId?: string): Promise<BaseCollection<string, ApplicationCommand>> {
     // add ability for ClusterManager
     if (!this.client.ran) {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
+    const localCommands = (this.commandsById.get(guildId || LOCAL_GUILD_ID) || []).map((command: SlashCommand) => {
+      const data = command.toJSON();
+      (data as any)[DetritusKeys.ID] = command.ids.get(guildId || LOCAL_GUILD_ID);
+      return data;
+    });
+
     const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
-    return shard.rest.bulkOverwriteApplicationCommands(this.client.applicationId, this.commands.map((command) => {
-      return command.toJSON();
-    }));
+    if (guildId) {
+      return shard.rest.bulkOverwriteApplicationGuildCommands(this.client.applicationId, guildId, localCommands);
+    } else {
+      return shard.rest.bulkOverwriteApplicationCommands(this.client.applicationId, localCommands);
+    }
   }
 
   validateCommands(commands: BaseCollection<string, ApplicationCommand>): boolean {
-    let matches = commands.length === this.commands.length;
-    for (let [commandId, command] of commands) {
-      const localCommand = this.commands.find((cmd) => cmd.name === command.name);
-      if (localCommand) {
-        localCommand.ids.clear();
-        localCommand.ids.add(command.id);
-        if (matches && localCommand.hash !== command.hash) {
+    if (!commands.length) {
+      return true;
+    }
+    const guildId = commands.first()!.guildId || LOCAL_GUILD_ID;
+
+    const localCommands = this.commandsById.get(guildId);
+    if (localCommands) {
+      let matches = commands.length === localCommands.length;
+      for (let [commandId, command] of commands) {
+        const localCommand = localCommands.find((cmd) => cmd.name === command.name);
+        if (localCommand) {
+          localCommand.ids.set(guildId, command.id);
+          if (matches && localCommand.hash !== command.hash) {
+            matches = false;
+          }
+        } else {
           matches = false;
         }
-      } else {
-        matches = false;
       }
+      return matches;
     }
-    return matches;
+    return false;
   }
 
   validateCommandsFromRaw(data: Array<any>): boolean {
@@ -455,7 +503,23 @@ export class SlashCommandClient extends EventSpewer {
 
     // assume the interaction is global for now
     const data = interaction.data as InteractionDataApplicationCommand;
-    const command = this.commands.find((cmd) => cmd.name === data.name);
+
+    let command: SlashCommand | undefined;
+
+    const guildIds = (interaction.guildId) ? [interaction.guildId, LOCAL_GUILD_ID] : [LOCAL_GUILD_ID];
+    for (let guildId of guildIds) {
+      if (this.commandsById.has(guildId)) {
+        const localCommands = this.commandsById.get(guildId)!;
+        if (this.strictCommandCheck) {
+          command = localCommands.find((cmd) => cmd.ids.get(guildId) === data.id);
+        } else {
+          command = localCommands.find((cmd) => cmd.name === data.name);
+        }
+        if (command) {
+          break;
+        }
+      }
+    }
     if (!command) {
       return;
     }
@@ -588,29 +652,37 @@ export class SlashCommandClient extends EventSpewer {
       }
 
       let timeout: Timers.Timeout | null = null;
-      try {
-        if (invoker.triggerLoadingAfter !== undefined && 0 <= invoker.triggerLoadingAfter && !context.responded) {
-          let data: RequestTypes.CreateInteractionResponseInnerPayload | undefined;
-          if (invoker.triggerLoadingAsEphemeral) {
-            data = {flags: MessageFlags.EPHEMERAL};
-          }
-          if (invoker.triggerLoadingAfter) {
-            timeout = new Timers.Timeout();
-            Object.defineProperty(context, 'loadingTimeout', {value: timeout});
-            timeout.start(invoker.triggerLoadingAfter, async () => {
-              if (!context.responded) {
-                try {
+      if (invoker.triggerLoadingAfter !== undefined && 0 <= invoker.triggerLoadingAfter && !context.responded) {
+        let data: RequestTypes.CreateInteractionResponseInnerPayload | undefined;
+        if (invoker.triggerLoadingAsEphemeral) {
+          data = {flags: MessageFlags.EPHEMERAL};
+        }
+        if (invoker.triggerLoadingAfter) {
+          timeout = new Timers.Timeout();
+          Object.defineProperty(context, 'loadingTimeout', {value: timeout});
+          timeout.start(invoker.triggerLoadingAfter, async () => {
+            if (!context.responded) {
+              try {
+                if (typeof(invoker.onLoadingTrigger) === 'function') {
+                  await Promise.resolve(invoker.onLoadingTrigger(context, args));
+                } else {
                   await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
-                } catch(error) {
-                  // do something maybe?
                 }
+              } catch(error) {
+                // do something maybe?
               }
-            });
+            }
+          });
+        } else {
+          if (typeof(invoker.onLoadingTrigger) === 'function') {
+            await Promise.resolve(invoker.onLoadingTrigger(context, args));
           } else {
             await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
           }
         }
+      }
 
+      try {
         if (typeof(invoker.run) === 'function') {
           await Promise.resolve(invoker.run(context, args));
         }

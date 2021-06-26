@@ -26,6 +26,11 @@ export type CommandCallbackDmBlocked = (context: SlashContext) => Promise<any> |
 /**
  * @category SlashCommand
  */
+export type CommandCallbackLoadingTrigger = (context: SlashContext, args: ParsedArgs) => Promise<any> | any;
+
+/**
+ * @category SlashCommand
+ */
 export type CommandCallbackBefore = (context: SlashContext) => Promise<boolean> | boolean;
 
 /**
@@ -71,6 +76,7 @@ export type CommandCallbackRunError = (context: SlashContext, args: ParsedArgs, 
 
 const ON_FUNCTION_NAMES = Object.freeze([
   'onDmBlocked',
+  'onLoadingTrigger',
   'onBefore',
   'onBeforeRun',
   'onCancel',
@@ -105,6 +111,8 @@ export interface SlashCommandOptions {
   options?: Array<SlashCommandOption | SlashCommandOptionOptions | typeof SlashCommandOption>,
 
   disableDm?: boolean,
+  global?: boolean,
+  guildIds?: Array<string>,
   metadata?: Record<string, any>,
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
@@ -113,6 +121,7 @@ export interface SlashCommandOptions {
   triggerLoadingAsEphemeral?: boolean,
 
   onDmBlocked?: CommandCallbackDmBlocked,
+  onLoadingTrigger?: CommandCallbackLoadingTrigger,
   onBefore?: CommandCallbackBefore,
   onBeforeRun?: CommandCallbackBeforeRun,
   onCancel?: CommandCallbackCancel,
@@ -143,6 +152,7 @@ export interface SlashCommandOptionOptions {
   triggerLoadingAsEphemeral?: boolean,
 
   onDmBlocked?: CommandCallbackDmBlocked,
+  onLoadingTrigger?: CommandCallbackLoadingTrigger,
   onBefore?: CommandCallbackBefore,
   onBeforeRun?: CommandCallbackBeforeRun,
   onCancel?: CommandCallbackCancel,
@@ -163,7 +173,6 @@ export interface SlashCommandOptionChoiceOptions {
 const keysSlashCommand = new BaseSet<string>([
   DiscordKeys.DEFAULT_PERMISSION,
   DiscordKeys.DESCRIPTION,
-  DiscordKeys.ID,
   DiscordKeys.IDS,
   DiscordKeys.NAME,
   DiscordKeys.OPTIONS,
@@ -171,7 +180,6 @@ const keysSlashCommand = new BaseSet<string>([
 
 const keysSkipDifferenceSlashCommand = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
-  DiscordKeys.ID,
   DiscordKeys.IDS,
 ]);
 
@@ -183,9 +191,9 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
 
   defaultPermission: boolean = true;
   description: string = '';
-  ids = new BaseSet<string>();
+  ids = new BaseCollection<string, string>();
   global: boolean = true;
-  guildIds?: Array<string>;
+  guildIds?: BaseSet<string>;
   name: string = '';
 
   disableDm?: boolean;
@@ -197,6 +205,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   triggerLoadingAsEphemeral?: boolean;
 
   onDmBlocked?(context: SlashContext): Promise<any> | any;
+  onLoadingTrigger?(context: SlashContext, args: ParsedArgs): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
   onBeforeRun?(context: SlashContext, args: ParsedArgs): Promise<boolean> | boolean;
   onCancel?(context: SlashContext): Promise<any> | any;
@@ -215,12 +224,17 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     }
 
     this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
+    this.global = (data.global !== undefined) ? !!data.global : this.global;
     this.metadata = Object.assign(this.metadata, data.metadata);
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
     this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
     this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
+
+    if (data.guildIds) {
+      this.guildIds = new BaseSet<string>(data.guildIds);
+    }
 
     if (data._file) {
       this._file = data._file;
@@ -230,6 +244,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     });
 
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
+    this.onLoadingTrigger = data.onLoadingTrigger || this.onLoadingTrigger;
     this.onBefore = data.onBefore || this.onBefore;
     this.onBeforeRun = data.onBeforeRun || this.onBeforeRun;
     this.onCancel = data.onCancel || this.onCancel;
@@ -338,11 +353,8 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
 
   mergeValue(key: string, value: any): void {
     switch (key) {
-      case DiscordKeys.ID: {
-        this.ids.add(value);
-      }; return;
       case DiscordKeys.IDS: {
-        this.ids = new BaseSet<string>(value);
+        this.ids = new BaseCollection<string, string>(value);
       }; return;
       case DiscordKeys.OPTIONS: {
         if (value) {
@@ -368,14 +380,6 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
       }; return;
     }
     return super.mergeValue(key, value);
-  }
-
-  toJSON() {
-    const data = super.toJSON();
-    if (this.ids.length) {
-      (data as any)['id'] = this.ids.first();
-    }
-    return data;
   }
 }
 
@@ -409,6 +413,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   triggerLoadingAsEphemeral?: boolean;
 
   onDmBlocked?(context: SlashContext): Promise<any> | any;
+  onLoadingTrigger?(context: SlashContext, args: ParsedArgs): Promise<any> | any;
   onBefore?(context: SlashContext): Promise<boolean> | boolean;
   onBeforeRun?(context: SlashContext, args: ParsedArgs): Promise<boolean> | boolean;
   onCancel?(context: SlashContext): Promise<any> | any;
@@ -440,6 +445,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     });
 
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
+    this.onLoadingTrigger = data.onLoadingTrigger || this.onLoadingTrigger;
     this.onBefore = data.onBefore || this.onBefore;
     this.onBeforeRun = data.onBeforeRun || this.onBeforeRun;
     this.onCancel = data.onCancel || this.onCancel;
