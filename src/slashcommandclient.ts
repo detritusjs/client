@@ -220,7 +220,9 @@ export class SlashCommandClient extends EventSpewer {
       commands.add(command);
     }
 
-    this.setSubscriptions();
+    if (!this._clientSubscriptions.length) {
+      this.setSubscriptions();
+    }
     return this;
   }
 
@@ -301,7 +303,21 @@ export class SlashCommandClient extends EventSpewer {
       }
     }
     this.commands.clear();
-    this.resetSubscriptions();
+    for (let [guildId, commands] of this.commandsById) {
+      commands.clear();
+      this.commandsById.delete(guildId);
+    }
+    this.commandsById.clear();
+    this.clearSubscriptions();
+  }
+
+  clearSubscriptions(): void {
+    while (this._clientSubscriptions.length) {
+      const subscription = this._clientSubscriptions.shift();
+      if (subscription) {
+        subscription.remove();
+      }
+    }
   }
 
   async resetCommands(): Promise<void> {
@@ -475,17 +491,8 @@ export class SlashCommandClient extends EventSpewer {
     return args;
   }
 
-  resetSubscriptions(): void {
-    while (this._clientSubscriptions.length) {
-      const subscription = this._clientSubscriptions.shift();
-      if (subscription) {
-        subscription.remove();
-      }
-    }
-  }
-
   setSubscriptions(): void {
-    this.resetSubscriptions();
+    this.clearSubscriptions();
 
     const subscriptions = this._clientSubscriptions;
     subscriptions.push(this.client.subscribe(ClientEvents.INTERACTION_CREATE, this.handleInteractionCreate.bind(this)));
@@ -495,7 +502,7 @@ export class SlashCommandClient extends EventSpewer {
   kill(): void {
     this.client.kill();
     this.emit(ClientEvents.KILLED);
-    this.resetSubscriptions();
+    this.clearSubscriptions();
     this.removeAllListeners();
   }
 

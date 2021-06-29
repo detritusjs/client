@@ -285,7 +285,9 @@ export class CommandClient extends EventSpewer {
 
     this.commands.push(command);
     this.commands.sort((x, y) => y.priority - x.priority);
-    this.setSubscriptions();
+    if (!this._clientSubscriptions.length) {
+      this.setSubscriptions();
+    }
     return this;
   }
 
@@ -366,7 +368,16 @@ export class CommandClient extends EventSpewer {
       }
     }
     this.commands.length = 0;
-    this.resetSubscriptions();
+    this.clearSubscriptions();
+  }
+
+  clearSubscriptions(): void {
+    while (this._clientSubscriptions.length) {
+      const subscription = this._clientSubscriptions.shift();
+      if (subscription) {
+        subscription.remove();
+      }
+    }
   }
 
   async resetCommands(): Promise<void> {
@@ -469,17 +480,8 @@ export class CommandClient extends EventSpewer {
     return this.prefixes.custom;
   }
 
-  resetSubscriptions(): void {
-    while (this._clientSubscriptions.length) {
-      const subscription = this._clientSubscriptions.shift();
-      if (subscription) {
-        subscription.remove();
-      }
-    }
-  }
-
   setSubscriptions(): void {
-    this.resetSubscriptions();
+    this.clearSubscriptions();
 
     const subscriptions = this._clientSubscriptions;
     subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_CREATE, this.handleMessageCreate.bind(this)));
@@ -491,7 +493,7 @@ export class CommandClient extends EventSpewer {
   kill(): void {
     this.client.kill();
     this.emit(ClientEvents.KILLED);
-    this.resetSubscriptions();
+    this.clearSubscriptions();
     this.removeAllListeners();
   }
 
