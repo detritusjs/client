@@ -234,6 +234,11 @@ export namespace GatewayRawEvents {
     role: RawRole,
   }
 
+  export interface GuildStickersUpdate {
+    guild_id: string,
+    stickers: Array<RawSticker>,
+  }
+
   export interface GuildUpdate extends RawGuild {
 
   }
@@ -1053,10 +1058,12 @@ export namespace GatewayRawEvents {
 
   export interface RawSticker {
     asset: string,
+    available?: boolean,
     description: string,
+    guild_id?: string,
     id: string,
     name: string,
-    pack_id: string,
+    pack_id?: string,
     preview_asset: null | string,
     tags: string,
   }

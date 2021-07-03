@@ -34,6 +34,7 @@ import {
   Profile,
   Role,
   StageInstance,
+  Sticker,
   StoreApplicationAsset,
   StoreListing,
   Team,
@@ -451,6 +452,14 @@ export class RestClient {
     return emoji;
   }
 
+  async createGuildSticker(
+    guildId: string,
+    options: RequestTypes.CreateGuildSticker,
+  ): Promise<Sticker> {
+    const data = await this.raw.createGuildSticker(guildId, options);
+    return new Sticker(this.client, data);
+  }
+
   createGuildIntegration(
     guildId: string,
     options: RequestTypes.CreateGuildIntegration,
@@ -689,6 +698,14 @@ export class RestClient {
     options: RequestTypes.DeleteGuildRole = {},
   ) {
     return this.raw.deleteGuildRole(guildId, roleId, options);
+  }
+
+  deleteGuildSticker(
+    guildId: string,
+    stickerId: string,
+    options: RequestTypes.DeleteGuildSticker = {},
+  ) {
+    return this.raw.deleteGuildSticker(guildId, stickerId, options);
   }
 
   deleteGuildTemplate(
@@ -1051,6 +1068,25 @@ export class RestClient {
       }
     }
     return collection;
+  }
+
+  async editGuildSticker(
+    guildId: string,
+    stickerId: string,
+    options: RequestTypes.EditGuildSticker = {},
+    updateCache: boolean = true,
+  ): Promise<Sticker> {
+    const data = await this.raw.editGuildSticker(guildId, stickerId, options);
+    guildId = data.guild_id;
+
+    let sticker: Sticker;
+    if (updateCache && this.client.stickers.has(guildId, data.id)) {
+      sticker = this.client.stickers.get(guildId, data.id)!;
+      sticker.merge(data);
+    } else {
+      sticker = new Sticker(this.client, data);
+    }
+    return sticker;
   }
 
   editGuildVanity(
@@ -1889,6 +1925,47 @@ export class RestClient {
       }
     }
     return collection;
+  }
+
+  async fetchGuildSticker(
+    guildId: string,
+    stickerId: string,
+  ): Promise<Sticker> {
+    const data = await this.raw.fetchGuildSticker(guildId, stickerId);
+
+    let sticker: Sticker;
+    if (this.client.stickers.has(guildId, stickerId)) {
+      sticker = this.client.stickers.get(guildId, stickerId)!;
+      sticker.merge(data);
+    } else {
+      sticker = new Sticker(this.client, data);
+    }
+    return sticker;
+  }
+
+  async fetchGuildStickers(
+    guildId: string,
+  ): Promise<BaseCollection<string, Sticker>> {
+    const data = await this.raw.fetchGuildStickers(guildId);
+
+    if (this.client.guilds.has(guildId)) {
+      const guild = this.client.guilds.get(guildId)!;
+      guild.merge({stickers: data});
+      return guild.stickers;
+    } else {
+      const collection = new BaseCollection<string, Sticker>();
+      for (let raw of data) {
+        let sticker: Sticker;
+        if (this.client.stickers.has(guildId, raw.id)) {
+          sticker = this.client.stickers.get(guildId, raw.id)!;
+          sticker.merge(raw);
+        } else {
+          sticker = new Sticker(this.client, raw);
+        }
+        collection.set(sticker.id, sticker);
+      }
+      return collection;
+    }
   }
 
   async fetchGuildTemplates(

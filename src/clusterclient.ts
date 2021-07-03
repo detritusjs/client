@@ -397,6 +397,8 @@ export class ClusterClient extends EventSpewer {
   on(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete) => any): this;
   on(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
+  on(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): this;
+  on(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): this;
   on(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
   on(event: 'guildUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
   on(event: ClientEvents.INTERACTION_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.InteractionCreate) => any): this;
@@ -613,6 +615,8 @@ export class ClusterClient extends EventSpewer {
   once(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete) => any): this;
   once(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
   once(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
+  once(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): this;
+  once(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): this;
   once(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
   once(event: 'guildUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
   once(event: ClientEvents.INVITE_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.InviteCreate) => any): this;
@@ -827,6 +831,8 @@ export class ClusterClient extends EventSpewer {
   subscribe(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): EventSubscription;
   subscribe(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
+  subscribe(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): EventSubscription;
   subscribe(event: 'guildUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.INVITE_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.InviteCreate) => any): EventSubscription;
