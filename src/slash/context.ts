@@ -146,6 +146,10 @@ export class SlashContext {
     return this.client.stageInstances;
   }
 
+  get stickers() {
+    return this.client.stickers;
+  }
+
   get typings() {
     return this.client.typings;
   }
