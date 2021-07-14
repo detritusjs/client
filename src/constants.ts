@@ -1481,7 +1481,7 @@ export const DiscordKeys = Object.freeze({
   STARTED: 'started',
   STATE: 'state',
   STATUS: 'status',
-  STICKERS: 'stickers',
+  STICKERS: 'sticker_items',
   STOPPED: 'stopped',
   STORE_APPLICATION_STATE: 'store_application_state',
   STORE_LISTING: 'store_listing',
