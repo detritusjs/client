@@ -12,7 +12,11 @@ import {
 
 
 const keysSticker = new BaseSet<string>([
+  /**
+   * @deprecated empty string for now
+   */
   DiscordKeys.ASSET,
+  DiscordKeys.AVAILABLE,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.FORMAT_TYPE,
   DiscordKeys.ID,
@@ -28,15 +32,24 @@ const keysSticker = new BaseSet<string>([
  */
 export class Sticker extends BaseStructure {
   readonly _keys = keysSticker;
-
+  /**
+   * @deprecated previously the sticker asset hash, now an empty string*
+   * 
+   * * The URL for fetching sticker assets is currently private.
+   */
   asset: string = '';
   description: string = '';
   formatType: StickerFormats = StickerFormats.UNKNOWN;
   id: string = '';
+  available: boolean = false;
   name: string = '';
   packId: string = '';
+  /**
+   * @deprecated as the Sticker#asset is currently a private method
+   */
   previewAsset: null | string = null;
   tags: null | string = '';
+  sortValue: number = 0;
 
   constructor(
     client: ShardClient,
@@ -44,7 +57,16 @@ export class Sticker extends BaseStructure {
     isClone?: boolean,
   ) {
     super(client, undefined, isClone);
-    this.merge(data);
+    if (data?.available) {
+      this.available = true;
+      this.merge(data);
+    } else {
+      this.available = false;
+      this.id = data?.id;
+      this.name = data?.name;
+      this.formatType = data?.formatType;
+
+    }
   }
 
   get assetUrl(): string {
