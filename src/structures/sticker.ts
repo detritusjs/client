@@ -45,7 +45,7 @@ export class Sticker extends BaseStructure {
   name: string = '';
   packId: string = '';
   /**
-   * @deprecated as the Sticker#asset is currently a private method
+   * @deprecated as the Sticker#asset currently unfetchable
    */
   previewAsset: null | string = null;
   tags: null | string = '';
@@ -61,6 +61,8 @@ export class Sticker extends BaseStructure {
       this.available = true;
       this.merge(data);
     } else {
+      //TODO: check if this is always the case that Discord
+      // will send this data if the sticker is not available
       this.available = false;
       this.id = data?.id;
       this.name = data?.name;
@@ -68,7 +70,9 @@ export class Sticker extends BaseStructure {
 
     }
   }
-
+  /**
+   * @deprecated
+   */
   get assetUrl(): string {
     return this.assetUrlFormat();
   }
@@ -91,7 +95,9 @@ export class Sticker extends BaseStructure {
       };
     }
   }
-
+  /**
+   * @deprecated
+   */
   assetUrlFormat(format?: null | string, query?: UrlQuery): string {
     const hash = this.asset;
     if (!format) {
