@@ -16,6 +16,7 @@ export interface ClusterProcessOptions {
   shardCount: number,
   shardEnd: number,
   shardStart: number,
+  execArgv: string[],
 }
 
 export interface ClusterProcessRunOptions {
@@ -32,6 +33,7 @@ export class ClusterProcess extends EventSpewer {
   readonly _shardsWaiting = new BaseCollection<number, {resolve: Function, reject: Function}>();
   readonly clusterId: number = -1;
   readonly manager: ClusterManager;
+  readonly execArgv: string[];
 
   env: Record<string, string | undefined> = {};
   process: ChildProcess | null = null;
@@ -43,6 +45,7 @@ export class ClusterProcess extends EventSpewer {
     super();
     this.manager = manager;
     this.clusterId = options.clusterId;
+    this.execArgv = options.execArgv;
 
     Object.assign(this.env, process.env, options.env, {
       CLUSTER_COUNT: String(this.manager.clusterCount),
@@ -296,7 +299,7 @@ export class ClusterProcess extends EventSpewer {
     if (this.process) {
       return this.process;
     }
-    const process = fork(this.file, [], {env: this.env});
+    const process = fork(this.file, [], {env: this.env, execArgv: this.execArgv });
     this.process = process;
     this.process.on('message', this.onMessage.bind(this));
     this.process.on('exit', this.onExit.bind(this));

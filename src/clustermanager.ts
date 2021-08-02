@@ -18,6 +18,7 @@ export interface ClusterManagerOptions {
   shardCount?: number,
   shards?: [number, number],
   shardsPerCluster?: number,
+  execArgv?: string[]
 }
 
 export interface ClusterManagerRunOptions {
@@ -46,6 +47,7 @@ export class ClusterManager extends EventSpewer {
   shardStart: number = 0;
   shardsPerCluster: number = 4;
   token: string;
+  execArgv: string[]
 
   constructor(
     file: string,
@@ -63,7 +65,7 @@ export class ClusterManager extends EventSpewer {
       throw new Error('Token is required for this library to work.');
     }
     this.token = token;
-
+    this.execArgv = Array.isArray(options.execArgv) ? options.execArgv : [];
     this.maxConcurrency = options.maxConcurrency || this.maxConcurrency;
     this.respawn = (options.respawn || options.respawn === undefined);
     this.rest = new DetritusRestClient(token, {authType: AuthTypes.BOT});
@@ -144,6 +146,7 @@ export class ClusterManager extends EventSpewer {
         shardCount,
         shardEnd,
         shardStart,
+        execArgv: this.execArgv
       });
       this.processes.set(clusterId, clusterProcess);
       this.emit(ClientEvents.CLUSTER_PROCESS, {clusterProcess});
