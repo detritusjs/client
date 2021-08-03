@@ -65,7 +65,7 @@ export class ClusterManager extends EventSpewer {
       throw new Error('Token is required for this library to work.');
     }
     this.token = token;
-    this.execArgv = Array.isArray(options.execArgv) ? options.execArgv : [];
+    this.execArgv = Array.isArray(options.execArgv) ? options.execArgv : process.execArgv;
     this.maxConcurrency = options.maxConcurrency || this.maxConcurrency;
     this.respawn = (options.respawn || options.respawn === undefined);
     this.rest = new DetritusRestClient(token, {authType: AuthTypes.BOT});
