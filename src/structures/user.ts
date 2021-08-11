@@ -96,6 +96,10 @@ export class User extends BaseStructure {
     return this.hasFlag(UserFlags.BUG_HUNTER_LEVEL_2);
   }
 
+  get hasDiscordCertifiedModerator(): boolean {
+    return this.hasFlag(UserFlags.DISCORD_CERTIFIED_MODERATOR);
+  }
+
   get hasFreePremium(): boolean {
     return this.hasStaff || this.hasPartner;
   }
@@ -482,6 +486,10 @@ export class UserMixin extends BaseStructure {
 
   get hasBugHunterLevel2(): boolean {
     return this.user.hasBugHunterLevel2;
+  }
+
+  get hasDiscordCertifiedModerator(): boolean {
+    return this.user.hasDiscordCertifiedModerator;
   }
 
   get hasEarlySupporter(): boolean {

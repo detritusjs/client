@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.0-beta.5',
+  VERSION: '0.16.0',
 });
 
 export type Snowflake = number | string;
@@ -1166,6 +1166,7 @@ export enum UserFlags {
   BUG_HUNTER_LEVEL_2 = 1 << 14,
   VERIFIED_BOT = 1 << 16,
   VERIFIED_DEVELOPER = 1 << 17,
+  DISCORD_CERTIFIED_MODERATOR = 1 << 18,
 }
 
 // the level of their boost badge
