@@ -24,7 +24,7 @@ Detritus is operated through the Clients classes:
 - `ShardClient` provides a base client for connecting to the Discord API and receiving events.
 - `ClusterClient` provides a client that creates `ShardClient` classes inside of it for easier sharding
 - `CommandClient` wraps over the `ClusterClient` or `ShardClient` to provide support for bot commands.
-- `SlashCommandClient` wraps over the `ClusterClient` or `ShardClient` to provide support for slash commands.
+- `InteractionCommandClient` wraps over the `ClusterClient` or `ShardClient` to provide support for interaction commands.
 - `ClusterManager` provides a manager that'll spawn in multiple `ClusterClient` processes for big shardings
 
 More Examples are provided under the [`examples/`](https://github.com/detritusjs/client/tree/master/examples)
@@ -79,23 +79,23 @@ commandClient.add({
 })();
 ```
 
-### SlashCommand Client Sample
+### InteractionCommand Client Sample
 
 ```js
-const { Constants, SlashCommandClient } = require('detritus-client');
-const { InteractionCallbackTypes, MessageFlags } = Constants;
+const { Constants, InteractionCommandClient } = require('detritus-client');
+const { ApplicationCommandTypes, InteractionCallbackTypes, MessageFlags } = Constants;
 
 // Note: it is not advised to hard-code your bot token directly into the bot source.
 //
 // Tokens should be considered secrets and stored in a configuration file that is not
 // part of your version control system, or an environment variable.
-// By default, the SlashCommandClient will use the ClusterClient
-// The ShardClient/ClusterClient will be under SlashCommandClient.client as soon as you create the object
+// By default, the InteractionCommandClient will use the ClusterClient
+// The ShardClient/ClusterClient will be under InteractionCommandClient.client as soon as you create the object
 const token = '';
-const slashClient = new SlashCommandClient(token);
+const interactionClient = new InteractionCommandClient(token);
 
 // Simple ping/pong command
-slashClient.add({
+interactionClient.add({
   description: 'Ping!',
   name: 'ping',
   run: (context, args) => {
@@ -105,7 +105,7 @@ slashClient.add({
 });
 
 // Command demonstrating command pipelines
-slashClient.add({
+interactionClient.add({
   description: 'Are you the owner or part of the team for this application?',
   name: 'owner',
   // onBefore should return a boolean to indicate whether or not the command should proceed
@@ -123,15 +123,41 @@ slashClient.add({
   },
 });
 
+// Context Menu User Command
+interactionClient.add({
+  name: 'Poke',
+  type: ApplicationCommandTypes.USER,
+  run: async (context, args) => {
+    await context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+      content: `You poked ${args.member || args.user}`,
+      flags: MessageFlags.EPHEMERAL,
+    });
+  },
+});
+
+// Context Menu Message Command (tells you when the message was created)
+interactionClient.add({
+  name: 'Creation Date',
+  guildIds: [], // you can make it a guild command
+  type: ApplicationCommandTypes.MESSAGE,
+  run: async (context, args) => {
+    const { message } = args;
+    await context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+      content: `${message.id} was made at ${message.createdAt}`,
+      flags: MessageFlags.EPHEMERAL,
+    });
+  },
+});
+
 // Spawn the client in an async context
 //
 // Note: Due to how Node handles tasks, the script will block until the Detritus client
 // is killed.
 (async () => {
-  // Slash Client will compare the local commands w/ commands stored on discord
+  // Interaction Client will compare the local commands w/ commands stored on discord
   // If any of them differ, it will call `.bulkOverwriteApplicationCommands()` with the local commands
-  // Guild-specific Slash commands are not supported right now
-  const client = await slashClient.run();
+  // Guild-specific Interaction commands are not supported right now
+  const client = await interactionClient.run();
   console.log(`Client has loaded with a shard count of ${client.shardCount}`);
 })();
 ```

@@ -14,6 +14,7 @@ export * from './relationships';
 export * from './roles';
 export * from './sessions';
 export * from './stageinstances';
+export * from './stickers';
 export * from './typing';
 export * from './users';
 export * from './voicecalls';

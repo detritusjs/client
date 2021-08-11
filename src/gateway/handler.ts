@@ -28,6 +28,7 @@ import {
   Role,
   Session,
   StageInstance,
+  Sticker,
   ThreadMember,
   Typing,
   User,
@@ -1123,6 +1124,70 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.GuildRoleUpdate = {differences, guild, guildId, old, role};
     this.client.emit(ClientEvents.GUILD_ROLE_UPDATE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_STICKERS_UPDATE](data: GatewayRawEvents.GuildStickersUpdate) {
+    let differences: {
+      created: BaseCollection<string, Sticker>,
+      deleted: BaseCollection<string, Sticker>,
+      updated: BaseCollection<string, {sticker: Sticker, old: Sticker}>,
+    } | null = null;
+    let stickers: BaseCollection<string, Sticker>;
+    let guild: Guild | null = null;
+    const guildId = data['guild_id'];
+
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (this.client.hasEventListener(ClientEvents.GUILD_STICKERS_UPDATE)) {
+        differences = {
+          created: new BaseCollection<string, Sticker>(),
+          deleted: new BaseCollection<string, Sticker>(),
+          updated: new BaseCollection<string, {sticker: Sticker, old: Sticker}>(),
+        };
+        const unchanged = new BaseSet<string>();
+
+        // go through each one
+        for (let raw of data['stickers']) {
+          if (guild.stickers.has(raw.id)) {
+            // updated
+            const sticker = guild.stickers.get(raw.id)!;
+            if (sticker.hasDifferences(raw)) {
+              differences.updated.set(sticker.id, {
+                sticker,
+                old: sticker.clone(),
+              });
+              sticker.merge(raw);
+            } else {
+              unchanged.add(sticker.id);
+            }
+          } else {
+            // created
+            differences.created.set(raw.id, new Sticker(this.client, raw));
+          }
+        }
+        for (let [stickerId, sticker] of guild.stickers) {
+          if (!unchanged.has(stickerId) && !differences.updated.has(stickerId)) {
+            differences.deleted.set(stickerId, sticker);
+            guild.stickers.delete(stickerId);
+          }
+        }
+        for (let [stickerId, sticker] of differences.created) {
+          guild.stickers.set(stickerId, sticker);
+        }
+      } else {
+        guild.merge({stickers: data['stickers']});
+      }
+      stickers = guild.stickers;
+    } else {
+      stickers = new BaseCollection();
+      for (let raw of data['stickers']) {
+        const sticker = new Sticker(this.client, raw);
+        stickers.set(sticker.id, sticker);
+      }
+    }
+
+    const payload: GatewayClientEvents.GuildStickersUpdate = {differences, stickers, guild, guildId};
+    this.client.emit(ClientEvents.GUILD_STICKERS_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_UPDATE](data: GatewayRawEvents.GuildUpdate) {

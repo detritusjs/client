@@ -104,10 +104,10 @@ export class ClusterProcessChild extends EventSpewer {
             }
           }
         }; return;
-        case ClusterIPCOpCodes.FILL_SLASH_COMMANDS: {
-          const { data }: ClusterIPCTypes.FillSlashCommands = message.data;
-          if (this.cluster.slashCommandClient) {
-            this.cluster.slashCommandClient.validateCommandsFromRaw(data);
+        case ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS: {
+          const { data }: ClusterIPCTypes.FillInteractionCommands = message.data;
+          if (this.cluster.interactionCommandClient) {
+            this.cluster.interactionCommandClient.validateCommandsFromRaw(data);
           }
         }; return;
         case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
@@ -122,16 +122,16 @@ export class ClusterProcessChild extends EventSpewer {
         case ClusterIPCOpCodes.REST_REQUEST: {
           const { clusterId } = message;
           if (clusterId === this.clusterId) {
-            const { error, name, result }: ClusterIPCTypes.RestRequest = message.data;
-            if (this._restRequestsWaiting.has(name)) {
-              const waiting = this._restRequestsWaiting.get(name)!;
+            const { error, hash, result }: ClusterIPCTypes.RestRequest = message.data;
+            if (this._restRequestsWaiting.has(hash)) {
+              const waiting = this._restRequestsWaiting.get(hash)!;
               if (error) {
                 waiting.reject(new ClusterIPCError(error));
               } else {
                 waiting.resolve(result);
               }
             }
-            this._restRequestsWaiting.delete(name);
+            this._restRequestsWaiting.delete(hash);
           }
         }; return;
       }
@@ -238,14 +238,15 @@ export class ClusterProcessChild extends EventSpewer {
 
   async sendRestRequest(name: string, args?: Array<any>): Promise<any> {
     // add a timeout
+    const hash = (args) ? `${name}-${JSON.stringify(args)}` : name;
     const promise = new Promise(async (resolve, reject) => {
-      if (this._restRequestsWaiting.has(name)) {
-        const waiting = this._restRequestsWaiting.get(name)!;
+      if (this._restRequestsWaiting.has(hash)) {
+        const waiting = this._restRequestsWaiting.get(hash)!;
         resolve(waiting.promise);
       } else {
-        await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {args, name}, true);
+        await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {args, hash, name}, true);
         const waiting = {promise, reject, resolve};
-        this._restRequestsWaiting.set(name, waiting);
+        this._restRequestsWaiting.set(hash, waiting);
       }
     });
     return promise;

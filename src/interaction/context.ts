@@ -4,7 +4,7 @@ import { Timers } from 'detritus-utils';
 import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
-import { SlashCommandClient } from '../slashcommandclient';
+import { InteractionCommandClient } from '../interactioncommandclient';
 
 import {
   Interaction,
@@ -12,33 +12,33 @@ import {
   InteractionEditOrRespond,
 } from '../structures';
 
-import { SlashCommand, SlashCommandOption } from './command';
+import { InteractionCommand, InteractionCommandOption } from './command';
 
 
 
 /**
- * Slash Command Context
+ * Interaction Command Context
  * @category Command
  */
-export class SlashContext {
+export class InteractionContext {
   readonly client: ShardClient;
-  readonly command: SlashCommand;
+  readonly command: InteractionCommand;
   readonly interaction: Interaction;
-  readonly invoker: SlashCommand | SlashCommandOption;
+  readonly invoker: InteractionCommand | InteractionCommandOption;
   readonly loadingTimeout?: Timers.Timeout;
-  readonly slashCommandClient: SlashCommandClient;
+  readonly interactionCommandClient: InteractionCommandClient;
 
   metadata?: Record<string, any>;
 
   constructor(
-    slashCommandClient: SlashCommandClient,
+    interactionCommandClient: InteractionCommandClient,
     interaction: Interaction,
-    command: SlashCommand,
-    invoker: SlashCommand | SlashCommandOption,
+    command: InteractionCommand,
+    invoker: InteractionCommand | InteractionCommandOption,
   ) {
     this.command = command;
     this.interaction = interaction;
-    this.slashCommandClient = slashCommandClient;
+    this.interactionCommandClient = interactionCommandClient;
     this.invoker = invoker;
 
     this.client = interaction.client;
@@ -47,7 +47,7 @@ export class SlashContext {
       command: {enumerable: false, writable: false},
       interaction: {enumerable: false, writable: false},
       invoker: {enumerable: false, writable: false},
-      slashCommandClient: {enumerable: false, writable: false},
+      interactionCommandClient: {enumerable: false, writable: false},
     });
   }
 
@@ -144,6 +144,10 @@ export class SlashContext {
 
   get stageInstances() {
     return this.client.stageInstances;
+  }
+
+  get stickers() {
+    return this.client.stickers;
   }
 
   get typings() {
@@ -315,6 +319,6 @@ export class SlashContext {
   }
 
   toString() {
-    return `Slash Context (${this.interaction.id})`;
+    return `Interaction Context (${this.interaction.id})`;
   }
 }

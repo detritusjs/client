@@ -55,6 +55,7 @@ import { Message } from './message';
 import { Presence } from './presence';
 import { Role } from './role';
 import { StageInstance } from './stageinstance';
+import { Sticker } from './sticker';
 import { User } from './user';
 import { VoiceRegion } from './voiceregion';
 import { VoiceState } from './voicestate';
@@ -225,6 +226,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.createGuildRole(this.id, options);
   }
 
+  async createSticker(options: RequestTypes.CreateGuildSticker) {
+    return this.client.rest.createGuildSticker(this.id, options);
+  }
+
   async createTemplate(options: RequestTypes.CreateGuildTemplate) {
     return this.client.rest.createGuildTemplate(this.id, options);
   }
@@ -252,6 +257,10 @@ export class BaseGuild extends BaseStructure {
 
   async deleteRole(roleId: string, options: RequestTypes.DeleteGuildRole = {}) {
     return this.client.rest.deleteGuildRole(this.id, roleId, options);
+  }
+
+  async deleteSticker(stickerId: string) {
+    return this.client.rest.deleteGuildSticker(this.id, stickerId);
   }
 
   async deleteTemplate(templateId: string) {
@@ -301,6 +310,10 @@ export class BaseGuild extends BaseStructure {
 
   async editRolePositions(roles: RequestTypes.EditGuildRolePositions, options: RequestTypes.EditGuildRolePositionsExtra = {}) {
     return this.client.rest.editGuildRolePositions(this.id, roles, options);
+  }
+
+  async editSticker(stickerId: string, options: RequestTypes.EditGuildSticker = {}) {
+    return this.client.rest.editGuildSticker(this.id, stickerId, options);
   }
 
   async editVanityUrl(code: string, options: RequestTypes.EditGuildVanity = {}) {
@@ -370,6 +383,14 @@ export class BaseGuild extends BaseStructure {
 
   async fetchRoles() {
     return this.client.rest.fetchGuildRoles(this.id);
+  }
+
+  async fetchSticker(stickerId: string) {
+    return this.client.rest.fetchGuildSticker(this.id, stickerId);
+  }
+
+  async fetchStickers() {
+    return this.client.rest.fetchGuildStickers(this.id);
   }
 
   async fetchTemplates() {
@@ -607,6 +628,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.RULES_CHANNEL_ID,
   DiscordKeys.SPLASH,
   DiscordKeys.STAGE_INSTANCES,
+  DiscordKeys.STICKERS,
   DiscordKeys.SYSTEM_CHANNEL_FLAGS,
   DiscordKeys.SYSTEM_CHANNEL_ID,
   DiscordKeys.THREADS,
@@ -632,6 +654,7 @@ const keysSkipDifferenceGuild = new BaseSet<string>([
   DiscordKeys.MEMBERS,
   DiscordKeys.PRESENCES,
   DiscordKeys.ROLES,
+  DiscordKeys.STICKERS,
 ]);
 
 /**
@@ -686,6 +709,7 @@ export class Guild extends GuildPartial {
   rulesChannelId: null | string = null;
   splash: null | string = null;
   stageInstances: BaseCollection<string, StageInstance>;
+  stickers: BaseCollection<string, Sticker>;
   systemChannelFlags: number = 0;
   systemChannelId: null | string = null;
   unavailable: boolean = false;
@@ -702,11 +726,13 @@ export class Guild extends GuildPartial {
       this.members = new BaseCollection<string, Member>();
       this.roles = new BaseCollection<string, Role>();
       this.stageInstances = new BaseCollection<string, StageInstance>();
+      this.stickers = new BaseCollection<string, Sticker>();
     } else {
       this.emojis = new BaseCollection<string, Emoji>(this.client.emojis.options);
       this.members = new BaseCollection<string, Member>(this.client.members.options);
       this.roles = new BaseCollection<string, Role>(this.client.roles.options);
       this.stageInstances = new BaseCollection<string, StageInstance>(this.client.stageInstances.options);
+      this.stickers = new BaseCollection<string, Sticker>(this.client.stickers.options);
     }
     this.merge(data);
   }
@@ -1153,6 +1179,31 @@ export class Guild extends GuildPartial {
             this.stageInstances.clear();
             for (let stage of stageInstances) {
               this.stageInstances.set(stage.id, stage);
+            }
+          }
+        }; return;
+        case DiscordKeys.STICKERS: {
+          if (this.client.stickers.enabled) {
+            const stickers: Array<Sticker> = [];
+            for (let raw of value) {
+              raw.guild_id = this.id;
+
+              let sticker: Sticker;
+              if (this.isClone) {
+                sticker = new Sticker(this.client, raw, this.isClone);
+              } else {
+                if (this.stickers.has(raw.id)) {
+                  sticker = this.stickers.get(raw.id)!;
+                  sticker.merge(raw);
+                } else {
+                  sticker = new Sticker(this.client, raw);
+                }
+              }
+              stickers.push(sticker);
+            }
+            this.stickers.clear();
+            for (let sticker of stickers) {
+              this.stickers.set(sticker.id, sticker);
             }
           }
         }; return;

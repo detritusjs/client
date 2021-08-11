@@ -1,9 +1,9 @@
+import { CommandRatelimit as CommandRatelimitCache, CommandRatelimitItem } from '../commandratelimit';
 import { Message } from '../structures';
 
 import { ParsedArgs, ParsedErrors } from './argumentparser';
 import { Command, FailedPermissions } from './command';
 import { Context } from './context';
-import { CommandRatelimit as CommandRatelimitCache, CommandRatelimitItem } from './ratelimit';
 
 
 export namespace CommandEvents {

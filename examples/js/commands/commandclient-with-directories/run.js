@@ -65,8 +65,8 @@ client.add({
   label: 'text',
   name: 'echo',
   args: [{aliases: ['backwards'], name: 'reverse', type: 'bool'}],
-  onBefore: (context, args) => !!args.text,
-  onCancel: (context) => context.reply('give me text next time dummy'),
+  onBeforeRun: (context, args) => !!args.text,
+  onCancelRun: (context) => context.reply('give me text next time dummy'),
   run: (context, args) => {
     let text = args.text;
     if (args.reverse) {

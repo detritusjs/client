@@ -36,7 +36,7 @@ import { MessageEmbed } from './messageembed';
 import { PresenceActivity } from './presence';
 import { Reaction } from './reaction';
 import { Role } from './role';
-import { Sticker } from './sticker';
+import { Sticker, StickerItem } from './sticker';
 import { User } from './user';
 
 
@@ -71,6 +71,7 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.REACTIONS,
   DiscordKeys.REFERENCED_MESSAGE,
   DiscordKeys.STICKERS,
+  DiscordKeys.STICKER_ITEMS,
   DiscordKeys.THREAD,
   DiscordKeys.TIMESTAMP,
   DiscordKeys.TTS,
@@ -114,6 +115,7 @@ export class Message extends BaseStructure {
   _mentionRoles?: BaseCollection<string, null | Role>;
   _reactions?: BaseCollection<string, Reaction>;
   _stickers?: BaseCollection<string, Sticker>;
+  _stickerItems?: BaseCollection<string, StickerItem>;
 
   activity?: MessageActivity;
   application?: Application;
@@ -155,6 +157,7 @@ export class Message extends BaseStructure {
       _mentionRoles: {enumerable: false, writable: true},
       _reactions: {enumerable: false, writable: true},
       _stickers: {enumerable: false, writable: true},
+      _stickerItems: {enumerable: false, writable: true},
     });
 
     if (this.guildId && !this.member) {
@@ -343,6 +346,13 @@ export class Message extends BaseStructure {
   get stickers(): BaseCollection<string, Sticker> {
     if (this._stickers) {
       return this._stickers;
+    }
+    return emptyBaseCollection;
+  }
+
+  get stickerItems(): BaseCollection<string, StickerItem> {
+    if (this._stickerItems) {
+      return this._stickerItems;
     }
     return emptyBaseCollection;
   }
@@ -851,13 +861,38 @@ export class Message extends BaseStructure {
             }
             this._stickers.clear();
             for (let raw of value) {
-              const sticker = new Sticker(this.client, raw);
+              const guildId = raw.guild_id;
+
+              let sticker: Sticker;
+              if (guildId && this.client.stickers.has(guildId, raw.id)) {
+                sticker = this.client.stickers.get(guildId, raw.id)!;
+                sticker.merge(raw);
+              } else {
+                sticker = new Sticker(this.client, raw);
+              }
               this.stickers.set(sticker.id, sticker);
             }
           } else {
             if (this._stickers) {
               this._stickers.clear();
               this._stickers = undefined;
+            }
+          }
+        }; return;
+        case DiscordKeys.STICKER_ITEMS: {
+          if (value.length) {
+            if (!this._stickerItems) {
+              this._stickerItems = new BaseCollection<string, StickerItem>();
+            }
+            this._stickerItems.clear();
+            for (let raw of value) {
+              const sticker = new StickerItem(this.client, raw);
+              this.stickerItems.set(sticker.id, sticker);
+            }
+          } else {
+            if (this._stickerItems) {
+              this._stickerItems.clear();
+              this._stickerItems = undefined;
             }
           }
         }; return;

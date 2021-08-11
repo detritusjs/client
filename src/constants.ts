@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.15.3',
+  VERSION: '0.16.0',
 });
 
 export type Snowflake = number | string;
@@ -65,6 +65,12 @@ export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
 export const INTERACTION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 export const TYPING_TIMEOUT = 10 * 1000; // 10 seconds
 
+
+export enum ApplicationCommandTypes {
+  CHAT_INPUT = 1,
+  USER = 2,
+  MESSAGE = 3,
+}
 
 export enum ApplicationCommandOptionTypes {
   SUB_COMMAND = 1,
@@ -123,12 +129,14 @@ export enum ActivityPlatformTypes {
 
 export enum AuditLogActions {
   GUILD_UPDATE = 1,
+
   CHANNEL_CREATE = 10,
   CHANNEL_UPDATE = 11,
   CHANNEL_DELETE = 12,
   CHANNEL_OVERWRITE_CREATE = 13,
   CHANNEL_OVERWRITE_UPDATE = 14,
   CHANNEL_OVERWRITE_DELETE = 15,
+
   MEMBER_KICK = 20,
   MEMBER_PRUNE = 21,
   MEMBER_BAN_ADD = 22,
@@ -138,25 +146,38 @@ export enum AuditLogActions {
   MEMBER_MOVE = 26,
   MEMBER_DISCONNECT = 27,
   BOT_ADD = 28,
+
   ROLE_CREATE = 30,
   ROLE_UPDATE = 31,
   ROLE_DELETE = 32,
+
   INVITE_CREATE = 40,
   INVITE_UPDATE = 41,
   INVITE_DELETE = 42,
+
   WEBHOOK_CREATE = 50,
   WEBHOOK_UPDATE = 51,
   WEBHOOK_DELETE = 52,
+
   EMOJI_CREATE = 60,
   EMOJI_UPDATE = 61,
   EMOJI_DELETE = 62,
+
   MESSAGE_DELETE = 72,
   MESSAGE_BULK_DELETE = 73,
   MESSAGE_PIN = 74,
   MESSAGE_UNPIN = 75,
+
   INTEGRATION_CREATE = 80,
   INTEGRATION_UPDATE = 81,
   INTEGRATION_DELETE = 82,
+  STAGE_INSTANCE_CREATE = 83,
+  STAGE_INSTANCE_UPDATE = 84,
+  STAGE_INSTANCE_DELETE = 85,
+
+  STICKER_CREATE = 90,
+  STICKER_UPDATE = 91,
+  STICKER_DELETE = 92,
 }
 
 export const AuditLogActionTypes = Tools.normalize({
@@ -313,6 +334,7 @@ export enum ClientEvents {
   GUILD_ROLE_CREATE = 'guildRoleCreate',
   GUILD_ROLE_DELETE = 'guildRoleDelete',
   GUILD_ROLE_UPDATE = 'guildRoleUpdate',
+  GUILD_STICKERS_UPDATE = 'guildStickersUpdate',
   GUILD_UPDATE = 'guildUpdate',
   INTERACTION_CREATE = 'interactionCreate',
   INVITE_CREATE = 'inviteCreate',
@@ -404,7 +426,7 @@ export enum ClusterIPCOpCodes {
   EVAL = 4,
   IDENTIFY_REQUEST = 5,
   REST_REQUEST = 6,
-  FILL_SLASH_COMMANDS = 7,
+  FILL_INTERACTION_COMMANDS = 7,
 }
 
 export enum Colors {
@@ -1144,6 +1166,7 @@ export enum UserFlags {
   BUG_HUNTER_LEVEL_2 = 1 << 14,
   VERIFIED_BOT = 1 << 16,
   VERIFIED_DEVELOPER = 1 << 17,
+  DISCORD_CERTIFIED_MODERATOR = 1 << 18,
 }
 
 // the level of their boost badge
@@ -1371,6 +1394,7 @@ export const DiscordKeys = Object.freeze({
   MENTION_EVERYONE: 'mention_everyone',
   MENTION_ROLES: 'mention_roles',
   MESSAGE: 'message',
+  MESSAGES: 'messages',
   MESSAGE_COUNT: 'message_count',
   MESSAGE_ID: 'message_id',
   MESSAGE_REFERENCE: 'message_reference',
@@ -1471,6 +1495,7 @@ export const DiscordKeys = Object.freeze({
   SLUG: 'slug',
   SMALL_IMAGE: 'small_image',
   SMALL_TEXT: 'small_text',
+  SORT_VALUE: 'sort_value',
   SOURCE_CHANNEL: 'source_channel',
   SOURCE_GUILD: 'source_guild',
   SOURCE_GUILD_ID: 'source_guild_id',
@@ -1482,6 +1507,7 @@ export const DiscordKeys = Object.freeze({
   STATE: 'state',
   STATUS: 'status',
   STICKERS: 'stickers',
+  STICKER_ITEMS: 'sticker_items',
   STOPPED: 'stopped',
   STORE_APPLICATION_STATE: 'store_application_state',
   STORE_LISTING: 'store_listing',
@@ -1734,6 +1760,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MENTION_EVERYONE]: 'mentionEveryone',
   [DiscordKeys.MENTION_ROLES]: 'mentionRoles',
   [DiscordKeys.MESSAGE]: 'message',
+  [DiscordKeys.MESSAGES]: 'messages',
   [DiscordKeys.MESSAGE_COUNT]: 'messageCount',
   [DiscordKeys.MESSAGE_ID]: 'messageId',
   [DiscordKeys.MESSAGE_REFERENCE]: 'messageReference',
@@ -1834,6 +1861,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SLUG]: 'slug',
   [DiscordKeys.SMALL_IMAGE]: 'smallImage',
   [DiscordKeys.SMALL_TEXT]: 'smallText',
+  [DiscordKeys.SORT_VALUE]: 'sortValue',
   [DiscordKeys.SOURCE_CHANNEL]: 'sourceChannel',
   [DiscordKeys.SOURCE_GUILD]: 'sourceGuild',
   [DiscordKeys.SOURCE_GUILD_ID]: 'sourceGuildId',
@@ -1845,6 +1873,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.STATE]: 'state',
   [DiscordKeys.STATUS]: 'status',
   [DiscordKeys.STICKERS]: 'stickers',
+  [DiscordKeys.STICKER_ITEMS]: 'stickerItems',
   [DiscordKeys.STOPPED]: 'stopped',
   [DiscordKeys.STORE_APPLICATION_STATE]: 'storeApplicationState',
   [DiscordKeys.STORE_LISTING]: 'storeListing',
