@@ -104,10 +104,10 @@ export class ClusterProcessChild extends EventSpewer {
             }
           }
         }; return;
-        case ClusterIPCOpCodes.FILL_SLASH_COMMANDS: {
-          const { data }: ClusterIPCTypes.FillSlashCommands = message.data;
-          if (this.cluster.slashCommandClient) {
-            this.cluster.slashCommandClient.validateCommandsFromRaw(data);
+        case ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS: {
+          const { data }: ClusterIPCTypes.FillInteractionCommands = message.data;
+          if (this.cluster.interactionCommandClient) {
+            this.cluster.interactionCommandClient.validateCommandsFromRaw(data);
           }
         }; return;
         case ClusterIPCOpCodes.IDENTIFY_REQUEST: {

@@ -46,6 +46,8 @@ const keysMember = new BaseSet<string>([
 
 const keysMergeMember = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
+  DiscordKeys.ROLES,
+  DiscordKeys.HOISTED_ROLE,
 ]);
 
 const keysSkipDifferenceMember = new BaseSet<string>([
@@ -478,7 +480,17 @@ export class Member extends UserMixin {
   }
 
   mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
+    if (value === undefined) {
+      switch (key) {
+        case DiscordKeys.HOISTED_ROLE: {
+          // find the hoisted role since we got the member from rest or an interaction (which wont give us a hoisted role value)
+          const hoistedRole = (this.roles.filter((x) => !!x) as Array<Role>).sort((x, y) => y.position - x.position).find((x) => x.hoist);
+          if (hoistedRole) {
+            this.hoistedRoleId = hoistedRole.id;
+          }
+        }; return;
+      }
+    } else {
       switch (key) {
         case DiscordKeys.AVATAR: {
           this._avatar = value;

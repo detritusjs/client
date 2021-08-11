@@ -1,4 +1,4 @@
-const { ClusterClient, CommandClient, Constants, SlashCommandClient } = require('../../../lib');
+const { ClusterClient, CommandClient, Constants, InteractionCommandClient } = require('../../../lib');
 const { ApplicationCommandOptionTypes, InteractionCallbackTypes } = Constants;
 
 const token = '';
@@ -17,17 +17,19 @@ commandClient.add({
 
 
 const guildId = '';
-const slashClient = new SlashCommandClient(cluster);
+const interactionClient = new InteractionCommandClient(cluster);
 
-slashClient.add({
+interactionClient.add({
   description: 'ping!',
   name: 'ping',
+  guildIds: [guildId],
   run: (context) => context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, 'pong!'),
 });
 
-slashClient.add({
+interactionClient.add({
   description: 'cat stuff',
   name: 'cat',
+  guildIds: [guildId],
   options: [
     {
       description: 'cat image',
@@ -56,11 +58,6 @@ slashClient.add({
   await cluster.run();
   console.log('cluster ran');
   await commandClient.run();
-  await slashClient.run();
-  if (guildId) {
-    await cluster.rest.bulkOverwriteApplicationGuildCommands(cluster.applicationId, guildId, slashClient.commands);
-  } else {
-    await cluster.rest.bulkOverwriteApplicationCommands(cluster.applicationId, slashClient.commands);
-  }
+  await interactionClient.run();
   console.log('running');
 })();

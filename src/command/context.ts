@@ -88,8 +88,8 @@ export class Context {
     return this.client.shardId;
   }
 
-  get slashCommandClient() {
-    return this.client.slashCommandClient;
+  get interactionCommandClient() {
+    return this.client.interactionCommandClient;
   }
 
   get response(): Message | null {

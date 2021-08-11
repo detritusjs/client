@@ -95,7 +95,7 @@ export class ClusterProcess extends EventSpewer {
               }
             }
           }; return;
-          case ClusterIPCOpCodes.FILL_SLASH_COMMANDS: {
+          case ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS: {
             await this.manager.broadcast(message);
           }; return;
           case ClusterIPCOpCodes.IDENTIFY_REQUEST: {

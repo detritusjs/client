@@ -1,39 +1,39 @@
 import { CommandRatelimit as CommandRatelimitCache, CommandRatelimitItem } from '../commandratelimit';
 
-import { FailedPermissions, ParsedArgs, SlashCommand } from './command';
-import { SlashContext } from './context';
+import { FailedPermissions, ParsedArgs, InteractionCommand } from './command';
+import { InteractionContext } from './context';
 
 
-export namespace SlashCommandEvents {
+export namespace InteractionCommandEvents {
   export interface CommandError {
-    command: SlashCommand,
-    context: SlashContext,
+    command: InteractionCommand,
+    context: InteractionContext,
     error: Error,
     extra?: Error,
   }
 
   export interface CommandFail {
     args: ParsedArgs,
-    command: SlashCommand,
-    context: SlashContext,
+    command: InteractionCommand,
+    context: InteractionContext,
     error: Error,
   }
 
   export interface CommandPermissionsFailClient {
-    command: SlashCommand,
-    context: SlashContext,
+    command: InteractionCommand,
+    context: InteractionContext,
     permissions: FailedPermissions,
   }
 
   export interface CommandPermissionsFail {
-    command: SlashCommand,
-    context: SlashContext,
+    command: InteractionCommand,
+    context: InteractionContext,
     permissions: FailedPermissions,
   }
 
   export interface CommandRatelimit {
-    command: SlashCommand,
-    context: SlashContext,
+    command: InteractionCommand,
+    context: InteractionContext,
     global: boolean,
     now: number,
     ratelimits: Array<{
@@ -45,14 +45,14 @@ export namespace SlashCommandEvents {
 
   export interface CommandRan {
     args: ParsedArgs,
-    command: SlashCommand,
-    context: SlashContext,
+    command: InteractionCommand,
+    context: InteractionContext,
   }
 
   export interface CommandRunError {
     args: ParsedArgs,
-    command: SlashCommand,
-    context: SlashContext,
+    command: InteractionCommand,
+    context: InteractionContext,
     error: Error,
   }
 }

@@ -14,9 +14,11 @@ import { BaseCollection, BaseSet } from './collections';
 import { CommandClient } from './commandclient';
 import {
   ApplicationCommandOptionTypes,
+  ApplicationCommandTypes,
   ClientEvents,
   ClusterIPCOpCodes,
   DetritusKeys,
+  DiscordKeys,
   InteractionCallbackTypes,
   InteractionTypes,
   MessageFlags,
@@ -43,51 +45,62 @@ import {
 import {
   CommandCallbackRun,
   ParsedArgs,
-  SlashCommand,
-  SlashCommandEvents,
-  SlashCommandOptions,
-  SlashContext,
-} from './slash';
+  InteractionCommand,
+  InteractionCommandEvents,
+  InteractionCommandOptions,
+  InteractionContext,
+} from './interaction';
+import { Regexes } from './utils/markup';
 
 
-export interface SlashCommandClientOptions extends ClusterClientOptions {
+export interface InteractionCommandClientOptions extends ClusterClientOptions {
   checkCommands?: boolean,
   ratelimit?: CommandRatelimitOptions,
   ratelimits?: Array<CommandRatelimitOptions>,
   ratelimiter?: CommandRatelimiter,
   strictCommandCheck?: boolean,
   useClusterClient?: boolean,
+
+  onCommandCheck?: InteractionCommandClientCommandCheck,
+  onInteractionCheck?: InteractionCommandClientInteractionCheck,
 }
 
-export interface SlashCommandClientAddOptions extends SlashCommandOptions {
+export type InteractionCommandClientCommandCheck = (context: InteractionContext, command: InteractionCommand) => boolean | Promise<boolean>;
+export type InteractionCommandClientInteractionCheck = (context: InteractionContext) => boolean | Promise<boolean>;
+
+export interface InteractionCommandClientAddOptions extends InteractionCommandOptions {
   _class?: any,
 }
 
-export interface SlashCommandClientRunOptions extends ClusterClientRunOptions {
+export interface InteractionCommandClientRunOptions extends ClusterClientRunOptions {
   directories?: Array<string>,
 }
 
 
 /**
- * Slash Command Client, hooks onto a ClusterClient or ShardClient to provide easier command handling
+ * Interaction Command Client, hooks onto a ClusterClient or ShardClient to provide easier command handling
+ * Flow is `onInteractionCheck` -> `onCommandCheck`
  * @category Clients
  */
-export class SlashCommandClient extends EventSpewer {
+export class InteractionCommandClient extends EventSpewer {
   readonly _clientSubscriptions: Array<EventSubscription> = [];
 
   checkCommands: boolean = true;
   client: ClusterClient | ShardClient;
-  commands = new BaseSet<SlashCommand>();
-  commandsById = new BaseCollection<string, BaseSet<SlashCommand>>();
+  commands = new BaseSet<InteractionCommand>();
+  commandsById = new BaseCollection<string, BaseSet<InteractionCommand>>();
   directories = new BaseCollection<string, {subdirectories: boolean}>();
   ran: boolean = false;
   ratelimits: Array<CommandRatelimit> = [];
   ratelimiter: CommandRatelimiter;
   strictCommandCheck: boolean = true;
 
+  onCommandCheck?(context: InteractionContext, command: InteractionCommand): boolean | Promise<boolean>;
+  onInteractionCheck?(context: InteractionContext): boolean | Promise<boolean>;
+
   constructor(
     token: ClusterClient | CommandClient | ShardClient | string,
-    options: SlashCommandClientOptions = {},
+    options: InteractionCommandClientOptions = {},
   ) {
     super();
     options = Object.assign({useClusterClient: true}, options);
@@ -95,6 +108,9 @@ export class SlashCommandClient extends EventSpewer {
     this.checkCommands = (options.checkCommands || options.checkCommands === undefined);
     this.ratelimiter = options.ratelimiter || new CommandRatelimiter();
     this.strictCommandCheck = (options.strictCommandCheck || options.strictCommandCheck === undefined);
+  
+    this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
+    this.onInteractionCheck = options.onInteractionCheck || this.onInteractionCheck;
 
     if (token instanceof CommandClient) {
       token = token.client;
@@ -126,10 +142,10 @@ export class SlashCommandClient extends EventSpewer {
       throw new Error('Token has to be a string or an instance of a client');
     }
     this.client = client;
-    Object.defineProperty(this.client, 'slashCommandClient', {value: this});
+    Object.defineProperty(this.client, 'interactionCommandClient', {value: this});
     if (this.client instanceof ClusterClient) {
       for (let [shardId, shard] of this.client.shards) {
-        Object.defineProperty(shard, 'slashCommandClient', {value: this});
+        Object.defineProperty(shard, 'interactionCommandClient', {value: this});
       }
     }
 
@@ -151,6 +167,9 @@ export class SlashCommandClient extends EventSpewer {
     Object.defineProperties(this, {
       _clientSubscriptions: {enumerable: false, writable: false},
       ran: {configurable: true, writable: false},
+
+      onCommandCheck: {enumerable: false, writable: true},
+      onInteractionCheck: {enumerable: false, writable: true},
     });
   }
 
@@ -172,11 +191,11 @@ export class SlashCommandClient extends EventSpewer {
 
   /* Generic Command Function */
   add(
-    options: SlashCommand | SlashCommandClientAddOptions,
+    options: InteractionCommand | InteractionCommandClientAddOptions,
     run?: CommandCallbackRun,
   ): this {
-    let command: SlashCommand;
-    if (options instanceof SlashCommand) {
+    let command: InteractionCommand;
+    if (options instanceof InteractionCommand) {
       command = options;
     } else {
       if (run !== undefined) {
@@ -184,7 +203,7 @@ export class SlashCommandClient extends EventSpewer {
       }
       // create a normal command class with the options given
       if (options._class === undefined) {
-        command = new SlashCommand(options);
+        command = new InteractionCommand(options);
       } else {
         // check for `.constructor` to make sure it's a class
         if (options._class.constructor) {
@@ -210,7 +229,7 @@ export class SlashCommandClient extends EventSpewer {
       guildIds.unshift(LOCAL_GUILD_ID);
     }
     for (let guildId of guildIds) {
-      let commands: BaseSet<SlashCommand>;
+      let commands: BaseSet<InteractionCommand>;
       if (this.commandsById.has(guildId)) {
         commands = this.commandsById.get(guildId)!;
       } else {
@@ -226,7 +245,7 @@ export class SlashCommandClient extends EventSpewer {
     return this;
   }
 
-  addMultiple(commands: Array<SlashCommand | SlashCommandOptions> = []): this {
+  addMultiple(commands: Array<InteractionCommand | InteractionCommandOptions> = []): this {
     for (let command of commands) {
       this.add(command);
     }
@@ -255,7 +274,7 @@ export class SlashCommandClient extends EventSpewer {
       }
       if (typeof(imported) === 'function') {
         this.add({_file: filepath, _class: imported, name: ''});
-      } else if (imported instanceof SlashCommand) {
+      } else if (imported instanceof InteractionCommand) {
         Object.defineProperty(imported, '_file', {value: filepath});
         this.add(imported);
       } else if (typeof(imported) === 'object' && Object.keys(imported).length) {
@@ -347,7 +366,7 @@ export class SlashCommandClient extends EventSpewer {
         const commands = await this.uploadApplicationCommands(guildIdOrUndefined);
         this.validateCommands(commands);
         if (this.manager && this.manager.hasMultipleClusters) {
-          this.manager.sendIPC(ClusterIPCOpCodes.FILL_SLASH_COMMANDS, {data: commands});
+          this.manager.sendIPC(ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS, {data: commands});
         }
       }
     }
@@ -391,9 +410,10 @@ export class SlashCommandClient extends EventSpewer {
     if (!this.client.ran) {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
-    const localCommands = (this.commandsById.get(guildId || LOCAL_GUILD_ID) || []).map((command: SlashCommand) => {
+    const localCommands = (this.commandsById.get(guildId || LOCAL_GUILD_ID) || []).map((command: InteractionCommand) => {
       const data = command.toJSON();
-      (data as any)[DetritusKeys.ID] = command.ids.get(guildId || LOCAL_GUILD_ID);
+      (data as any)[DiscordKeys.ID] = command.ids.get(guildId || LOCAL_GUILD_ID);
+      (data as any)[DiscordKeys.IDS] = undefined;
       return data;
     });
 
@@ -415,7 +435,7 @@ export class SlashCommandClient extends EventSpewer {
     if (localCommands) {
       let matches = commands.length === localCommands.length;
       for (let [commandId, command] of commands) {
-        const localCommand = localCommands.find((cmd) => cmd.name === command.name);
+        const localCommand = localCommands.find((cmd) => cmd.name === command.name && cmd.type === command.type);
         if (localCommand) {
           localCommand.ids.set(guildId, command.id);
           if (matches && localCommand.hash !== command.hash) {
@@ -437,10 +457,36 @@ export class SlashCommandClient extends EventSpewer {
   /* end */
 
   parseArgs(data: InteractionDataApplicationCommand): ParsedArgs {
-    if (data.options) {
-      return this.parseArgsFromOptions(data.options, data.resolved);
+    if (data.isSlashCommand) {
+      if (data.options) {
+        return this.parseArgsFromOptions(data.options, data.resolved);
+      }
+    } else if (data.isContextCommand) {
+      return this.parseArgsFromContextMenu(data);
     }
     return {};
+  }
+
+  parseArgsFromContextMenu(data: InteractionDataApplicationCommand): ParsedArgs {
+    const args: ParsedArgs = {};
+    if (data.targetId && data.resolved) {
+      switch (data.type) {
+        case ApplicationCommandTypes.MESSAGE: {
+          if (data.resolved.messages) {
+            args.message = data.resolved.messages.get(data.targetId);
+          }
+        }; break;
+        case ApplicationCommandTypes.USER: {
+          if (data.resolved.members) {
+            args.member = data.resolved.members.get(data.targetId)!;
+          }
+          if (data.resolved.users) {
+            args.user = data.resolved.users.get(data.targetId);
+          }
+        }; break;
+      }
+    }
+    return args;
   }
 
   parseArgsFromOptions(
@@ -507,7 +553,7 @@ export class SlashCommandClient extends EventSpewer {
   }
 
   async run(
-    options: SlashCommandClientRunOptions = {},
+    options: InteractionCommandClientRunOptions = {},
   ): Promise<ClusterClient | ShardClient> {
     if (this.ran) {
       return this.client;
@@ -538,7 +584,7 @@ export class SlashCommandClient extends EventSpewer {
     // assume the interaction is global for now
     const data = interaction.data as InteractionDataApplicationCommand;
 
-    let command: SlashCommand | undefined;
+    let command: InteractionCommand | undefined;
 
     const guildIds = (interaction.guildId) ? [interaction.guildId, LOCAL_GUILD_ID] : [LOCAL_GUILD_ID];
     for (let guildId of guildIds) {
@@ -547,7 +593,7 @@ export class SlashCommandClient extends EventSpewer {
         if (this.strictCommandCheck) {
           command = localCommands.find((cmd) => cmd.ids.get(guildId) === data.id);
         } else {
-          command = localCommands.find((cmd) => cmd.name === data.name);
+          command = localCommands.find((cmd) => cmd.name === data.name && cmd.type === data.type);
         }
         if (command) {
           break;
@@ -562,7 +608,32 @@ export class SlashCommandClient extends EventSpewer {
       return;
     }
 
-    const context = new SlashContext(this, interaction, command, invoker);
+    const context = new InteractionContext(this, interaction, command, invoker);
+    if (typeof(this.onInteractionCheck) === 'function') {
+      try {
+        const shouldContinue = await Promise.resolve(this.onInteractionCheck(context));
+        if (!shouldContinue) {
+          return;
+        }
+      } catch(error) {
+        const payload: InteractionCommandEvents.CommandError = {command, context, error};
+        this.emit(ClientEvents.COMMAND_ERROR, payload);
+        return;
+      }
+    }
+
+    if (typeof(this.onCommandCheck) === 'function') {
+      try {
+        const shouldContinue = await Promise.resolve(this.onCommandCheck(context, command));
+        if (!shouldContinue) {
+          return;
+        }
+      } catch(error) {
+        const payload: InteractionCommandEvents.CommandError = {command, context, error};
+        this.emit(ClientEvents.COMMAND_ERROR, payload);
+        return;
+      }
+    }
 
     if (this.ratelimits.length || (invoker.ratelimits && invoker.ratelimits.length)) {
       const now = Date.now();
@@ -571,7 +642,7 @@ export class SlashCommandClient extends EventSpewer {
         if (ratelimits.length) {
           const global = true;
 
-          const payload: SlashCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          const payload: InteractionCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
           this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
 
           if (typeof(invoker.onRatelimit) === 'function') {
@@ -590,7 +661,7 @@ export class SlashCommandClient extends EventSpewer {
         if (ratelimits.length) {
           const global = false;
 
-          const payload: SlashCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          const payload: InteractionCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
           this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
 
           if (typeof(invoker.onRatelimit) === 'function') {
@@ -612,12 +683,12 @@ export class SlashCommandClient extends EventSpewer {
           try {
             await Promise.resolve(invoker.onDmBlocked(context));
           } catch(error) {
-            const payload: SlashCommandEvents.CommandError = {command, context, error};
+            const payload: InteractionCommandEvents.CommandError = {command, context, error};
             this.emit(ClientEvents.COMMAND_ERROR, payload);
           }
         } else {
           const error = new Error('Command with DMs disabled used in DM');
-          const payload: SlashCommandEvents.CommandError = {command, context, error};
+          const payload: InteractionCommandEvents.CommandError = {command, context, error};
           this.emit(ClientEvents.COMMAND_ERROR, payload);
         }
         return;
@@ -646,7 +717,7 @@ export class SlashCommandClient extends EventSpewer {
         }
 
         if (failed.length) {
-          const payload: SlashCommandEvents.CommandPermissionsFailClient = {command, context, permissions: failed};
+          const payload: InteractionCommandEvents.CommandPermissionsFailClient = {command, context, permissions: failed};
           this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, payload);
           if (typeof(invoker.onPermissionsFailClient) === 'function') {
             try {
@@ -684,7 +755,7 @@ export class SlashCommandClient extends EventSpewer {
           }
 
           if (failed.length) {
-            const payload: SlashCommandEvents.CommandPermissionsFail = {command, context, permissions: failed};
+            const payload: InteractionCommandEvents.CommandPermissionsFail = {command, context, permissions: failed};
             this.emit(ClientEvents.COMMAND_PERMISSIONS_FAIL, payload);
             if (typeof(invoker.onPermissionsFail) === 'function') {
               try {
@@ -709,7 +780,7 @@ export class SlashCommandClient extends EventSpewer {
           return;
         }
       } catch(error) {
-        const payload: SlashCommandEvents.CommandError = {command, context, error};
+        const payload: InteractionCommandEvents.CommandError = {command, context, error};
         this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
       }
@@ -767,7 +838,7 @@ export class SlashCommandClient extends EventSpewer {
           timeout.stop();
         }
 
-        const payload: SlashCommandEvents.CommandRan = {args, command, context};
+        const payload: InteractionCommandEvents.CommandRan = {args, command, context};
         this.emit(ClientEvents.COMMAND_RAN, payload);
         if (typeof(invoker.onSuccess) === 'function') {
           await Promise.resolve(invoker.onSuccess(context, args));
@@ -777,7 +848,7 @@ export class SlashCommandClient extends EventSpewer {
           timeout.stop();
         }
 
-        const payload: SlashCommandEvents.CommandRunError = {args, command, context, error};
+        const payload: InteractionCommandEvents.CommandRunError = {args, command, context, error};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(invoker.onRunError) === 'function') {
           await Promise.resolve(invoker.onRunError(context, args, error));
@@ -787,7 +858,7 @@ export class SlashCommandClient extends EventSpewer {
       if (typeof(invoker.onError) === 'function') {
         await Promise.resolve(invoker.onError(context, args, error));
       }
-      const payload: SlashCommandEvents.CommandFail = {args, command, context, error};
+      const payload: InteractionCommandEvents.CommandFail = {args, command, context, error};
       this.emit(ClientEvents.COMMAND_FAIL, payload);
     }
   }

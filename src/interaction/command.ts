@@ -1,7 +1,7 @@
 import * as Crypto from 'crypto';
 
 import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from '../commandratelimit';
-import { ApplicationCommandOptionTypes, DetritusKeys, DiscordKeys } from '../constants';
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes, DetritusKeys, DiscordKeys } from '../constants';
 
 import { BaseSet } from '../collections/baseset';
 import { BaseCollection } from '../collections/basecollection';
@@ -11,7 +11,7 @@ import {
   InteractionDataApplicationCommandOption,
 } from '../structures/interaction';
 
-import { SlashContext } from './context';
+import { InteractionContext } from './context';
 
 
 export type ParsedArgs = Record<string, any>;
@@ -22,68 +22,68 @@ export type CommandRatelimitMetadata = {global: boolean, now: number};
 export type FailedPermissions = Array<bigint>;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackDmBlocked = (context: SlashContext) => Promise<any> | any;
+export type CommandCallbackDmBlocked = (context: InteractionContext) => Promise<any> | any;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackLoadingTrigger = (context: SlashContext, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackLoadingTrigger = (context: InteractionContext, args: ParsedArgs) => Promise<any> | any;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackBefore = (context: SlashContext) => Promise<boolean> | boolean;
+export type CommandCallbackBefore = (context: InteractionContext) => Promise<boolean> | boolean;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackBeforeRun = (context: SlashContext, args: ParsedArgs) => Promise<boolean> | boolean;
+export type CommandCallbackBeforeRun = (context: InteractionContext, args: ParsedArgs) => Promise<boolean> | boolean;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackCancel = (context: SlashContext) => Promise<any> | any;
+export type CommandCallbackCancel = (context: InteractionContext) => Promise<any> | any;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackCancelRun = (context: SlashContext, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackCancelRun = (context: InteractionContext, args: ParsedArgs) => Promise<any> | any;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackError = (context: SlashContext, error: any) => Promise<any> | any;
+export type CommandCallbackError = (context: InteractionContext, error: any) => Promise<any> | any;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackPermissionsFail = (context: SlashContext, permissions: FailedPermissions) => Promise<any> | any;
+export type CommandCallbackPermissionsFail = (context: InteractionContext, permissions: FailedPermissions) => Promise<any> | any;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackSuccess = (context: SlashContext) => Promise<any> | any;
+export type CommandCallbackSuccess = (context: InteractionContext) => Promise<any> | any;
 
 /**
-* @category SlashCommand
+* @category InteractionCommand
 */
 export type CommandCallbackRatelimit = (
- context: SlashContext,
+ context: InteractionContext,
  ratelimits: Array<CommandRatelimitInfo>,
  metadata: CommandRatelimitMetadata,
 ) => Promise<any> | any;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackRun = (context: SlashContext, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackRun = (context: InteractionContext, args: ParsedArgs) => Promise<any> | any;
 
 /**
- * @category SlashCommand
+ * @category InteractionCommand
  */
-export type CommandCallbackRunError = (context: SlashContext, args: ParsedArgs, error: any) => Promise<any> | any;
+export type CommandCallbackRunError = (context: InteractionContext, args: ParsedArgs, error: any) => Promise<any> | any;
 
 
 const ON_FUNCTION_NAMES = Object.freeze([
@@ -116,13 +116,14 @@ const SET_VARIABLE_NAMES = Object.freeze([
  * Command Options
  * @category Command Options
  */
-export interface SlashCommandOptions {
+export interface InteractionCommandOptions {
   _file?: string,
   default_permission?: boolean,
   defaultPermission?: boolean,
   description?: string,
   name?: string,
-  options?: Array<SlashCommandOption | SlashCommandOptionOptions | typeof SlashCommandOption>,
+  options?: Array<InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption>,
+  type?: ApplicationCommandTypes,
 
   disableDm?: boolean,
   global?: boolean,
@@ -151,12 +152,12 @@ export interface SlashCommandOptions {
   onSuccess?: CommandCallbackSuccess,
 }
 
-export interface SlashCommandOptionOptions {
+export interface InteractionCommandOptionOptions {
   _file?: string,
-  choices?: Array<SlashCommandOptionChoice | SlashCommandOptionChoiceOptions>,
+  choices?: Array<InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions>,
   description?: string,
   name?: string,
-  options?: Array<SlashCommandOption | SlashCommandOptionOptions | typeof SlashCommandOption>,
+  options?: Array<InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption>,
   required?: boolean,
   type?: ApplicationCommandOptionTypes | StringConstructor | BooleanConstructor | NumberConstructor | string,
 
@@ -185,29 +186,30 @@ export interface SlashCommandOptionOptions {
   onSuccess?: CommandCallbackSuccess,
 }
 
-export interface SlashCommandOptionChoiceOptions {
+export interface InteractionCommandOptionChoiceOptions {
   name?: string,
   value?: number | string,
 }
 
-const keysSlashCommand = new BaseSet<string>([
+const keysInteractionCommand = new BaseSet<string>([
   DiscordKeys.DEFAULT_PERMISSION,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.IDS,
   DiscordKeys.NAME,
   DiscordKeys.OPTIONS,
+  DiscordKeys.TYPE,
 ]);
 
-const keysSkipDifferenceSlashCommand = new BaseSet<string>([
+const keysSkipDifferenceInteractionCommand = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.IDS,
 ]);
 
-export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
+export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   readonly _file?: string;
-  readonly _keys = keysSlashCommand;
-  readonly _keysSkipDifference = keysSkipDifferenceSlashCommand;
-  _options?: BaseCollection<string, SlashCommandOption>;
+  readonly _keys = keysInteractionCommand;
+  readonly _keysSkipDifference = keysSkipDifferenceInteractionCommand;
+  _options?: BaseCollection<string, InteractionCommandOption>;
 
   defaultPermission: boolean = true;
   description: string = '';
@@ -215,6 +217,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   global: boolean = true;
   guildIds?: BaseSet<string>;
   name: string = '';
+  type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
 
   disableDm?: boolean;
   metadata: Record<string, any> = {};
@@ -225,21 +228,21 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   triggerLoadingAfter?: number;
   triggerLoadingAsEphemeral?: boolean;
 
-  onDmBlocked?(context: SlashContext): Promise<any> | any;
-  onLoadingTrigger?(context: SlashContext, args: ParsedArgs): Promise<any> | any;
-  onBefore?(context: SlashContext): Promise<boolean> | boolean;
-  onBeforeRun?(context: SlashContext, args: ParsedArgs): Promise<boolean> | boolean;
-  onCancel?(context: SlashContext): Promise<any> | any;
-  onCancelRun?(context: SlashContext, args: ParsedArgs): Promise<any> | any;
-  onError?(context: SlashContext, args: ParsedArgs, error: any): Promise<any> | any;
-  onPermissionsFail?(context: SlashContext, permissions: FailedPermissions): Promise<any> | any;
-  onPermissionsFailClient?(context: SlashContext, permissions: FailedPermissions): Promise<any> | any;
-  onRatelimit?(context: SlashContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
-  run?(context: SlashContext, args: ParsedArgsFinished): Promise<any> | any;
-  onRunError?(context: SlashContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
-  onSuccess?(context: SlashContext, args: ParsedArgsFinished): Promise<any> | any;
+  onDmBlocked?(context: InteractionContext): Promise<any> | any;
+  onLoadingTrigger?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
+  onBefore?(context: InteractionContext): Promise<boolean> | boolean;
+  onBeforeRun?(context: InteractionContext, args: ParsedArgs): Promise<boolean> | boolean;
+  onCancel?(context: InteractionContext): Promise<any> | any;
+  onCancelRun?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
+  onError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
+  onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
+  onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
+  onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
+  run?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
+  onRunError?(context: InteractionContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
+  onSuccess?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
 
-  constructor(data: SlashCommandOptions = {}) {
+  constructor(data: InteractionCommandOptions = {}) {
     super();
     if (DetritusKeys[DiscordKeys.DEFAULT_PERMISSION] in data) {
       (data as any)[DiscordKeys.DEFAULT_PERMISSION] = (data as any)[DetritusKeys[DiscordKeys.DEFAULT_PERMISSION]];
@@ -323,8 +326,24 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     return false;
   }
 
+  get isContextCommand(): boolean {
+    return this.isContextCommandMessage || this.isContextCommandUser;
+  }
+
+  get isContextCommandMessage(): boolean {
+    return this.type === ApplicationCommandTypes.MESSAGE;
+  }
+
+  get isContextCommandUser(): boolean {
+    return this.type === ApplicationCommandTypes.USER;
+  }
+
+  get isSlashCommand(): boolean {
+    return this.type === ApplicationCommandTypes.CHAT_INPUT;
+  }
+
   get key(): string {
-    return `${this.name}-${this.description}-${this._optionsKey}`;
+    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}`;
   }
 
   get length(): number {
@@ -340,14 +359,14 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     return 0;
   }
 
-  get options(): Array<SlashCommandOption> | undefined {
+  get options(): Array<InteractionCommandOption> | undefined {
     return (this._options) ? this._options.toArray() : this._options;
   }
 
-  set options(value: Array<SlashCommandOption> | undefined) {
+  set options(value: Array<InteractionCommandOption> | undefined) {
     if (value) {
       if (!this._options) {
-        this._options = new BaseCollection<string, SlashCommandOption>();
+        this._options = new BaseCollection<string, InteractionCommandOption>();
       }
       this._options.clear();
       for (let option of value) {
@@ -358,7 +377,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
     }
   }
 
-  getInvoker(data: InteractionDataApplicationCommand): this | SlashCommandOption | null {
+  getInvoker(data: InteractionDataApplicationCommand): this | InteractionCommandOption | null {
     if (this.name === data.name) {
       if (data.options && data.options.some((option) => option.isSubCommand || option.isSubCommandGroup)) {
         return this.getInvokerOption(data.options);
@@ -370,7 +389,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
 
   getInvokerOption(
     options: BaseCollection<string, InteractionDataApplicationCommandOption>,
-  ): SlashCommandOption | null {
+  ): InteractionCommandOption | null {
     if (this._options) {
       for (let [name, option] of options) {
         if (!this._options.has(name)) {
@@ -401,17 +420,17 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
       case DiscordKeys.OPTIONS: {
         if (value) {
           if (!this._options) {
-            this._options = new BaseCollection<string, SlashCommandOption>();
+            this._options = new BaseCollection<string, InteractionCommandOption>();
           }
           this._options.clear();
           for (let raw of value) {
-            let option: SlashCommandOption;
+            let option: InteractionCommandOption;
             if (typeof(raw) === 'function') {
               option = new raw();
-            } else if (raw instanceof SlashCommandOption) {
+            } else if (raw instanceof InteractionCommandOption) {
               option = raw;
             } else {
-              option = new SlashCommandOption(raw)
+              option = new InteractionCommandOption(raw)
             }
             option._transferValuesToChildren(this);
             this._options.set(option.name, option);
@@ -426,7 +445,7 @@ export class SlashCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
 }
 
 
-const keysSlashCommandOption = new BaseSet<string>([
+const keysInteractionCommandOption = new BaseSet<string>([
   DiscordKeys.CHOICES,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.NAME,
@@ -435,14 +454,14 @@ const keysSlashCommandOption = new BaseSet<string>([
   DiscordKeys.TYPE,
 ]);
 
-export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structure {
-  readonly parent?: SlashCommand | SlashCommandOption;
+export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends Structure {
+  readonly parent?: InteractionCommand | InteractionCommandOption;
 
   readonly _file?: string;
-  readonly _keys = keysSlashCommandOption;
-  _options?: BaseCollection<string, SlashCommandOption>;
+  readonly _keys = keysInteractionCommandOption;
+  _options?: BaseCollection<string, InteractionCommandOption>;
 
-  choices?: Array<SlashCommandOptionChoice>;
+  choices?: Array<InteractionCommandOptionChoice>;
   description: string = '';
   name: string = '';
   required?: boolean;
@@ -457,21 +476,21 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
   triggerLoadingAfter?: number;
   triggerLoadingAsEphemeral?: boolean;
 
-  onDmBlocked?(context: SlashContext): Promise<any> | any;
-  onLoadingTrigger?(context: SlashContext, args: ParsedArgs): Promise<any> | any;
-  onBefore?(context: SlashContext): Promise<boolean> | boolean;
-  onBeforeRun?(context: SlashContext, args: ParsedArgs): Promise<boolean> | boolean;
-  onCancel?(context: SlashContext): Promise<any> | any;
-  onCancelRun?(context: SlashContext, args: ParsedArgs): Promise<any> | any;
-  onError?(context: SlashContext, args: ParsedArgs, error: any): Promise<any> | any;
-  onPermissionsFail?(context: SlashContext, permissions: FailedPermissions): Promise<any> | any;
-  onPermissionsFailClient?(context: SlashContext, permissions: FailedPermissions): Promise<any> | any;
-  onRatelimit?(context: SlashContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
-  run?(context: SlashContext, args: ParsedArgsFinished): Promise<any> | any;
-  onRunError?(context: SlashContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
-  onSuccess?(context: SlashContext, args: ParsedArgsFinished): Promise<any> | any;
+  onDmBlocked?(context: InteractionContext): Promise<any> | any;
+  onLoadingTrigger?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
+  onBefore?(context: InteractionContext): Promise<boolean> | boolean;
+  onBeforeRun?(context: InteractionContext, args: ParsedArgs): Promise<boolean> | boolean;
+  onCancel?(context: InteractionContext): Promise<any> | any;
+  onCancelRun?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
+  onError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
+  onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
+  onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
+  onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
+  run?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
+  onRunError?(context: InteractionContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
+  onSuccess?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
 
-  constructor(data: SlashCommandOptionOptions = {}) {
+  constructor(data: InteractionCommandOptionOptions = {}) {
     super();
 
     this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
@@ -596,14 +615,14 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     return 0;
   }
 
-  get options(): Array<SlashCommandOption> | undefined {
+  get options(): Array<InteractionCommandOption> | undefined {
     return (this._options) ? this._options.toArray() : this._options;
   }
 
-  set options(value: Array<SlashCommandOption> | undefined) {
+  set options(value: Array<InteractionCommandOption> | undefined) {
     if (value) {
       if (!this._options) {
-        this._options = new BaseCollection<string, SlashCommandOption>();
+        this._options = new BaseCollection<string, InteractionCommandOption>();
       }
       this._options.clear();
       for (let option of value) {
@@ -618,7 +637,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     }
   }
 
-  getInvoker(option: InteractionDataApplicationCommandOption): SlashCommandOption | null {
+  getInvoker(option: InteractionDataApplicationCommandOption): InteractionCommandOption | null {
     if (this.type === option.type && this.name === option.name) {
       if (this.isSubCommandGroup) {
         if (option.options && this._options) {
@@ -638,39 +657,39 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     return null;
   }
 
-  addChoice(name: SlashCommandOptionChoice | SlashCommandOptionChoiceOptions): SlashCommandOptionChoice
-  addChoice(name: string, value: number | string): SlashCommandOptionChoice
-  addChoice(name: SlashCommandOptionChoice | SlashCommandOptionChoiceOptions | string, value?: number | string): SlashCommandOptionChoice {
+  addChoice(name: InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions): InteractionCommandOptionChoice
+  addChoice(name: string, value: number | string): InteractionCommandOptionChoice
+  addChoice(name: InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions | string, value?: number | string): InteractionCommandOptionChoice {
     if (!this.choices) {
       this.choices = [];
     }
-    let choice: SlashCommandOptionChoice;
+    let choice: InteractionCommandOptionChoice;
     if (typeof(name) === 'object') {
-      choice = (name instanceof SlashCommandOptionChoice) ? name : new SlashCommandOptionChoice(name);
+      choice = (name instanceof InteractionCommandOptionChoice) ? name : new InteractionCommandOptionChoice(name);
     } else {
-      choice = new SlashCommandOptionChoice({name, value});
+      choice = new InteractionCommandOptionChoice({name, value});
     }
     this.choices.push(choice);
     return choice;
   }
 
-  addOption(value: SlashCommandOption | SlashCommandOptions | typeof SlashCommandOption): SlashCommandOption {
+  addOption(value: InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption): InteractionCommandOption {
     if (!this.options) {
       this.options = [];
     }
-    let option: SlashCommandOption;
+    let option: InteractionCommandOption;
     if (typeof(value) === 'function') {
       option = new value();
-    } else if (value instanceof SlashCommandOption) {
+    } else if (value instanceof InteractionCommandOption) {
       option = value;
     } else {
-      option = new SlashCommandOption(value)
+      option = new InteractionCommandOption(value);
     }
     this.options.push(option);
     return option;
   }
 
-  setChoices(value: Array<SlashCommandOptionChoice | SlashCommandOptionChoiceOptions> = []): this {
+  setChoices(value: Array<InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions> = []): this {
     this.mergeValue(DiscordKeys.CHOICES, value);
     return this;
   }
@@ -685,7 +704,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     return this;
   }
 
-  setOptions(value: Array<SlashCommandOption | SlashCommandOptionOptions> = []): this {
+  setOptions(value: Array<InteractionCommandOption | InteractionCommandOptionOptions> = []): this {
     this.mergeValue(DiscordKeys.OPTIONS, value);
     return this;
   }
@@ -700,7 +719,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
     return this;
   }
 
-  _transferValuesToChildren(parent: SlashCommand | SlashCommandOption): void {
+  _transferValuesToChildren(parent: InteractionCommand | InteractionCommandOption): void {
     Object.defineProperty(this, 'parent', {value: parent});
     if (this.isSubCommand || this.isSubCommandGroup) {
       for (let name of ON_FUNCTION_NAMES) {
@@ -743,7 +762,7 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
             this.choices = [];
           }
           for (let raw of value) {
-            const choice = new SlashCommandOptionChoice(raw);
+            const choice = new InteractionCommandOptionChoice(raw);
             this.choices.push(choice);
           }
         } else {
@@ -753,17 +772,17 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
       case DiscordKeys.OPTIONS: {
         if (value) {
           if (!this._options) {
-            this._options = new BaseCollection<string, SlashCommandOption>();
+            this._options = new BaseCollection<string, InteractionCommandOption>();
           }
           this._options.clear();
           for (let raw of value) {
-            let option: SlashCommandOption;
+            let option: InteractionCommandOption;
             if (typeof(raw) === 'function') {
               option = new raw();
-            } else if (raw instanceof SlashCommandOption) {
+            } else if (raw instanceof InteractionCommandOption) {
               option = raw;
             } else {
-              option = new SlashCommandOption(raw)
+              option = new InteractionCommandOption(raw)
             }
             option._transferValuesToChildren(this);
             this._options.set(option.name, option);
@@ -795,18 +814,18 @@ export class SlashCommandOption<ParsedArgsFinished = ParsedArgs> extends Structu
 }
 
 
-const keysSlashCommandOptionChoice = new BaseSet<string>([
+const keysInteractionCommandOptionChoice = new BaseSet<string>([
   DiscordKeys.NAME,
   DiscordKeys.VALUE,
 ]);
 
-export class SlashCommandOptionChoice extends Structure {
-  readonly _keys = keysSlashCommandOptionChoice;
+export class InteractionCommandOptionChoice extends Structure {
+  readonly _keys = keysInteractionCommandOptionChoice;
 
   name: string = '';
   value: number | string = '';
 
-  constructor(data: SlashCommandOptionChoiceOptions = {}) {
+  constructor(data: InteractionCommandOptionChoiceOptions = {}) {
     super();
     this.merge(data);
   }

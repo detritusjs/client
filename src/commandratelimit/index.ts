@@ -7,13 +7,13 @@ import {
 } from '../constants';
 
 import { Command, Context } from '../command';
-import { SlashCommand, SlashCommandOption, SlashContext } from '../slash';
+import { InteractionCommand, InteractionCommandOption, InteractionContext } from '../interaction';
 
 
 
 export const KEY_SPLITTER = ':';
 
-export type CommandRatelimitCustomType = (context: Context | SlashContext) => string;
+export type CommandRatelimitCustomType = (context: Context | InteractionContext) => string;
 
 /**
  * Command Ratelimit Options
@@ -43,7 +43,7 @@ export interface CommandRatelimitItem {
  * @category Command Ratelimit
  */
 export class CommandRatelimit {
-  command?: Command | SlashCommand | SlashCommandOption;
+  command?: Command | InteractionCommand | InteractionCommandOption;
   duration: number = 5000;
   key?: string;
   limit: number = 5;
@@ -51,7 +51,7 @@ export class CommandRatelimit {
 
   constructor(
     options: boolean | CommandRatelimitOptions | CommandRatelimit = {},
-    command?: Command | SlashCommand | SlashCommandOption,
+    command?: Command | InteractionCommand | InteractionCommandOption,
   ) {
     options = Object.assign({}, options) as CommandRatelimitOptions;
 
@@ -80,8 +80,8 @@ export class CommandRatelimit {
       return 'KEY' + KEY_SPLITTER + this.key;
     }
     if (this.command) {
-      if (this.command instanceof SlashCommand) {
-        return 'SLASH-COMMAND' + KEY_SPLITTER + this.command.fullName;
+      if (this.command instanceof InteractionCommand) {
+        return 'INTERACTION-COMMAND' + KEY_SPLITTER + this.command.fullName;
       } else {
         return 'COMMAND' + KEY_SPLITTER + this.command.fullName;
       }
@@ -89,7 +89,7 @@ export class CommandRatelimit {
     return '';
   }
 
-  createKey(context: Context | SlashContext): string {
+  createKey(context: Context | InteractionContext): string {
     let key: string;
     if (typeof(this.type) === 'function') {
       key = this.type(context);
@@ -126,7 +126,7 @@ export class CommandRatelimiter {
   readonly cache = new BaseCollection<string, CommandRatelimitItem>();
 
   getExceeded(
-    context: Context | SlashContext,
+    context: Context | InteractionContext,
     ratelimits: Array<CommandRatelimit>,
     now: number = Date.now(),
   ): Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}> {
@@ -145,7 +145,7 @@ export class CommandRatelimiter {
     return exceeded;
   }
 
-  getOrCreate(context: Context | SlashContext, ratelimit: CommandRatelimit): CommandRatelimitItem {
+  getOrCreate(context: Context | InteractionContext, ratelimit: CommandRatelimit): CommandRatelimitItem {
     const key = ratelimit.createKey(context);
 
     let item: CommandRatelimitItem;

@@ -32,7 +32,7 @@ export namespace ClusterIPCTypes {
     results?: Array<[any, boolean]>,
   }
 
-  export interface FillSlashCommands {
+  export interface FillInteractionCommands {
     data: Array<any>,
   }
 

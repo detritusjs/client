@@ -11,7 +11,7 @@ import {
 import { ClientEvents, Permissions, IS_TS_NODE } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
-import { SlashCommandClient } from './slashcommandclient';
+import { InteractionCommandClient } from './interactioncommandclient';
 import { PermissionTools, getFiles } from './utils';
 
 import {
@@ -104,13 +104,13 @@ export class CommandClient extends EventSpewer {
   onPrefixCheck?(context: Context): CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
   constructor(
-    token: ClusterClient | ShardClient | SlashCommandClient | string,
+    token: ClusterClient | ShardClient | InteractionCommandClient | string,
     options: CommandClientOptions = {},
   ) {
     super();
     options = Object.assign({useClusterClient: true}, options);
 
-    if (token instanceof SlashCommandClient) {
+    if (token instanceof InteractionCommandClient) {
       token = token.client;
     }
 
@@ -215,6 +215,7 @@ export class CommandClient extends EventSpewer {
       ran: {configurable: true, writable: false},
 
       onCommandCheck: {enumerable: false, writable: true},
+      onMessageCheck: {enumerable: false, writable: true},
       onPrefixCheck: {enumerable: false, writable: true},
     });
   }

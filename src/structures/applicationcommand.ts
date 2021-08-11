@@ -8,6 +8,7 @@ import { BaseSet } from '../collections/baseset';
 import {
   ApplicationCommandOptionTypes,
   ApplicationCommandPermissionTypes,
+  ApplicationCommandTypes,
   DiscordKeys,
 } from '../constants';
 
@@ -26,6 +27,7 @@ const keysApplicationCommand = new BaseSet<string>([
   DiscordKeys.ID,
   DiscordKeys.NAME,
   DiscordKeys.OPTIONS,
+  DiscordKeys.TYPE,
   DiscordKeys.VERSION,
 ]);
 
@@ -43,6 +45,7 @@ export class ApplicationCommand extends BaseStructure {
   id: string = '';
   name: string = '';
   options?: BaseCollection<string, ApplicationCommandOption>;
+  type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
   version: string = '';
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
@@ -59,7 +62,7 @@ export class ApplicationCommand extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this._optionsKey}`;
+    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}`;
   }
 
   edit(options: RequestTypes.EditApplicationCommand | RequestTypes.EditApplicationGuildCommand) {

@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.0-beta.4',
+  VERSION: '0.16.0-beta.5',
 });
 
 export type Snowflake = number | string;
@@ -65,6 +65,12 @@ export const SPOILER_ATTACHMENT_PREFIX = 'SPOILER_';
 export const INTERACTION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 export const TYPING_TIMEOUT = 10 * 1000; // 10 seconds
 
+
+export enum ApplicationCommandTypes {
+  CHAT_INPUT = 1,
+  USER = 2,
+  MESSAGE = 3,
+}
 
 export enum ApplicationCommandOptionTypes {
   SUB_COMMAND = 1,
@@ -420,7 +426,7 @@ export enum ClusterIPCOpCodes {
   EVAL = 4,
   IDENTIFY_REQUEST = 5,
   REST_REQUEST = 6,
-  FILL_SLASH_COMMANDS = 7,
+  FILL_INTERACTION_COMMANDS = 7,
 }
 
 export enum Colors {
@@ -1387,6 +1393,7 @@ export const DiscordKeys = Object.freeze({
   MENTION_EVERYONE: 'mention_everyone',
   MENTION_ROLES: 'mention_roles',
   MESSAGE: 'message',
+  MESSAGES: 'messages',
   MESSAGE_COUNT: 'message_count',
   MESSAGE_ID: 'message_id',
   MESSAGE_REFERENCE: 'message_reference',
@@ -1752,6 +1759,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MENTION_EVERYONE]: 'mentionEveryone',
   [DiscordKeys.MENTION_ROLES]: 'mentionRoles',
   [DiscordKeys.MESSAGE]: 'message',
+  [DiscordKeys.MESSAGES]: 'messages',
   [DiscordKeys.MESSAGE_COUNT]: 'messageCount',
   [DiscordKeys.MESSAGE_ID]: 'messageId',
   [DiscordKeys.MESSAGE_REFERENCE]: 'messageReference',
