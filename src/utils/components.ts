@@ -20,23 +20,37 @@ import { regex as discordRegex } from '../utils';
 import { ComponentContext } from './componentslistener';
 
 
+export type ComponentEmojiData = {animated?: boolean, id?: null | string, name: string} | string | Emoji;
 export type ComponentRun = (context: ComponentContext) => Promise<any> | any;
 
-export type ComponentEmojiData = {animated?: boolean, id?: null | string, name: string} | string | Emoji;
-
-export interface ComponentData extends Omit<Partial<GatewayRawEvents.RawMessageComponent>, 'emoji'> {
+export interface ComponentData {
+  components?: Array<ComponentDataAction>,
+  custom_id?: string,
   customId?: string,
+  disabled?: boolean,
   emoji?: ComponentEmojiData,
+  label?: string,
+  max_values?: number,
   maxValues?: number,
+  min_values?: number,
   minValues?: number,
+  options?: Array<ComponentSelectMenuOptionData>,
+  placeholder?: string,
+  style?: number,
+  type?: number,
+  url?: string,
 }
 
-export interface ComponentDataBase extends ComponentData {
+export interface ComponentDataAction extends ComponentData {
   run?: ComponentRun,
 }
 
-export interface ComponentSelectMenuOptionData extends Omit<Partial<GatewayRawEvents.RawMessageComponentSelectMenuOption>, 'emoji'> {
+export interface ComponentSelectMenuOptionData {
+  default?: boolean,
+  description?: string,
   emoji?: ComponentEmojiData,
+  label?: string,
+  value?: string,
 }
 
 
@@ -65,7 +79,7 @@ const keysComponentActionRow = new BaseSet<string>([
     return this.components.some((component) => typeof(component.run) === 'function');
   }
 
-  addButton(data: ComponentButton | ComponentData = {}): this {
+  addButton(data: ComponentButton | ComponentDataAction = {}): this {
     if (data instanceof ComponentButton) {
       return this.addComponent(data);
     }
@@ -77,20 +91,20 @@ const keysComponentActionRow = new BaseSet<string>([
     return this;
   }
 
-  addSelectMenu(data: ComponentSelectMenu | ComponentData = {}): this {
+  addSelectMenu(data: ComponentSelectMenu | ComponentDataAction = {}): this {
     if (data instanceof ComponentSelectMenu) {
       return this.addComponent(data);
     }
     return this.addComponent(new ComponentSelectMenu(data));
   }
 
-  createButton(data: ComponentData = {}): ComponentButton {
+  createButton(data: ComponentDataAction = {}): ComponentButton {
     const component = new ComponentButton(data);
     this.addComponent(component);
     return component;
   }
 
-  createSelectMenu(data: ComponentData = {}): ComponentSelectMenu {
+  createSelectMenu(data: ComponentDataAction = {}): ComponentSelectMenu {
     const component = new ComponentSelectMenu(data);
     this.addComponent(component);
     return component;
@@ -178,7 +192,7 @@ export class ComponentActionBase extends Structure {
 
   run?(context: ComponentContext): Promise<any> | any;
 
-  constructor(data: ComponentDataBase = {}) {
+  constructor(data: ComponentDataAction = {}) {
     super();
     if (DetritusKeys[DiscordKeys.CUSTOM_ID] in data) {
       (data as any)[DiscordKeys.CUSTOM_ID] = (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]];
@@ -232,7 +246,7 @@ const keysComponentButton = new BaseSet<string>([
   type = MessageComponentTypes.BUTTON;
   url?: null | string;
 
-  constructor(data: ComponentDataBase = {}) {
+  constructor(data: ComponentDataAction = {}) {
     super(data);
     this.merge(data);
     this.type = MessageComponentTypes.BUTTON;
@@ -314,7 +328,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
   placeholder?: null | string;
   type = MessageComponentTypes.SELECT_MENU;
 
-  constructor(data: ComponentData = {}) {
+  constructor(data: ComponentDataAction = {}) {
     super();
     Object.assign(data, {
       [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
