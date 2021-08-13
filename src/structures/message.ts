@@ -176,10 +176,23 @@ export class Message extends BaseStructure {
   }
 
   get canDelete(): boolean {
+    if (this.hasFlagEphemeral) {
+      return false;
+    }
     if (this.fromMe || this.canManage) {
       if (this.type in MessageTypesDeletable && MessageTypesDeletable[this.type]) {
         return true;
       }
+    }
+    return false;
+  }
+
+  get canEdit(): boolean {
+    if (this.hasFlagEphemeral) {
+      return false;
+    }
+    if (this.fromMe || this.canManage) {
+      return !this.deleted;
     }
     return false;
   }
@@ -670,6 +683,12 @@ export class Message extends BaseStructure {
               this._embeds.clear();
               this._embeds = undefined;
             }
+          }
+        }; return;
+        case DiscordKeys.FLAGS: {
+          this.flags = value;
+          if (this.hasFlagEphemeral) {
+            this.deleted = true;
           }
         }; return;
         case DiscordKeys.INTERACTION: {
