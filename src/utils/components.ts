@@ -1,4 +1,7 @@
+import * as Crypto from 'crypto';
+
 import { RequestTypes } from 'detritus-client-rest';
+import { Snowflake } from 'detritus-utils';
 
 import { BaseSet } from '../collections/baseset';
 import {
@@ -7,13 +10,17 @@ import {
   DiscordRegexNames,
   MessageComponentButtonStyles,
   MessageComponentTypes,
+  COMPONENT_CUSTOM_ID_SPLITTER,
 } from '../constants';
 import { GatewayRawEvents } from '../gateway/rawevents';
 import { Structure } from '../structures/basestructure';
 import { Emoji } from '../structures/emoji';
 import { regex as discordRegex } from '../utils';
 
+import { ComponentContext } from './componentslistener';
 
+
+export type ComponentRun = (context: ComponentContext) => Promise<any> | any;
 
 export type ComponentEmojiData = {animated?: boolean, id?: null | string, name: string} | string | Emoji;
 
@@ -22,6 +29,10 @@ export interface ComponentData extends Omit<Partial<GatewayRawEvents.RawMessageC
   emoji?: ComponentEmojiData,
   maxValues?: number,
   minValues?: number,
+}
+
+export interface ComponentDataBase extends ComponentData {
+  run?: ComponentRun,
 }
 
 export interface ComponentSelectMenuOptionData extends Omit<Partial<GatewayRawEvents.RawMessageComponentSelectMenuOption>, 'emoji'> {
@@ -48,6 +59,10 @@ const keysComponentActionRow = new BaseSet<string>([
     super();
     this.merge(data);
     this.type = MessageComponentTypes.ACTION_ROW;
+  }
+
+  get hasRun(): boolean {
+    return this.components.some((component) => typeof(component.run) === 'function');
   }
 
   addButton(data: ComponentButton | ComponentData = {}): this {
@@ -81,6 +96,13 @@ const keysComponentActionRow = new BaseSet<string>([
     return component;
   }
 
+  encodeCustomIds(id: string): this {
+    for (let component of this.components) {
+      component.encodeCustomId(id);
+    }
+    return this;
+  }
+
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.COMPONENTS: {
@@ -111,6 +133,80 @@ const keysComponentActionRow = new BaseSet<string>([
 }
 
 
+// add a `run` function and allow `Structures.Interaction` and `Structures.Message` to `.hook(component | Array<component>)` (this will overwrite any other components hooked on the object)
+// add a timeout to `.hook()`
+// generate custom ids if `run` exists, has custom id, and is hooked (generate as in encode `customId` with `interaction.id` or `message.id`)
+// on message update, check if components were removed
+// on message delete check
+/*
+const components = [];
+{
+  const actionRow = new ActionRow();
+  actionRow.createButton({
+    label: 'click me',
+    run: (context) => {
+      
+    },
+  });
+  components.push(actionRow);
+}
+{
+  const message = await createMessage(channelId, {content: 'lol', components});
+  message.hook(components);
+}
+{
+  interaction.editOrRespond({content: 'lol', components});
+  interaction.hook(components);
+}
+{
+  message.edit({components});
+  message.hook(components);
+}
+*/
+
+const keysComponentActionBase = new BaseSet<string>([
+  DiscordKeys.CUSTOM_ID,
+  DiscordKeys.TYPE,
+]);
+
+export class ComponentActionBase extends Structure {
+  readonly _keys = keysComponentActionBase;
+  _customIdEncoded?: null | string;
+
+  customId?: null | string;
+  type: MessageComponentTypes = MessageComponentTypes.BUTTON;
+
+  run?(context: ComponentContext): Promise<any> | any;
+
+  constructor(data: ComponentDataBase = {}) {
+    super();
+    if (DetritusKeys[DiscordKeys.CUSTOM_ID] in data) {
+      (data as any)[DiscordKeys.CUSTOM_ID] = (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]];
+    }
+    this.run = data.run || this.run;
+  }
+
+  encodeCustomId(id: string): this {
+    const customId: string = this.customId || (this.customId = Snowflake.generate().id);
+    const hmac = Crypto.createHmac('sha256', id);
+    hmac.update(customId);
+    this._customIdEncoded = id + COMPONENT_CUSTOM_ID_SPLITTER + hmac.digest('hex');
+    return this;
+  }
+
+  toJSON(): RequestTypes.RawChannelMessageComponent {
+    const data = super.toJSON() as any;
+    if (data.emoji instanceof Emoji) {
+      data.emoji = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};
+    }
+    if (this._customIdEncoded) {
+      data[DiscordKeys.CUSTOM_ID] = this._customIdEncoded;
+    }
+    return data;
+  }
+}
+
+
 const keysComponentButton = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
   DiscordKeys.DISABLED,
@@ -125,7 +221,7 @@ const keysComponentButton = new BaseSet<string>([
  * Utils Component Button Structure
  * @category Utils
  */
- export class ComponentButton extends Structure {
+ export class ComponentButton extends ComponentActionBase {
   readonly _keys = keysComponentButton;
 
   customId?: null | string;
@@ -136,17 +232,14 @@ const keysComponentButton = new BaseSet<string>([
   type = MessageComponentTypes.BUTTON;
   url?: null | string;
 
-  constructor(data: ComponentData = {}) {
-    super();
-    if (DetritusKeys[DiscordKeys.CUSTOM_ID] in data) {
-      (data as any)[DiscordKeys.CUSTOM_ID] = (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]];
-    }
+  constructor(data: ComponentDataBase = {}) {
+    super(data);
     this.merge(data);
     this.type = MessageComponentTypes.BUTTON;
   }
 
   setCustomId(customId: null | string): this {
-    this.merge({custom_id: customId});
+    this.merge({[DiscordKeys.CUSTOM_ID]: customId});
     return this;
   }
 
@@ -195,14 +288,6 @@ const keysComponentButton = new BaseSet<string>([
     }
     return super.mergeValue(key, value);
   }
-
-  toJSON(): RequestTypes.RawChannelMessageComponent {
-    const data = super.toJSON() as any;
-    if (data.emoji instanceof Emoji) {
-      data.emoji = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};
-    }
-    return data;
-  }
 }
 
 
@@ -219,7 +304,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
  * Utils Component Select Menu Structure
  * @category Utils
  */
- export class ComponentSelectMenu extends Structure {
+ export class ComponentSelectMenu extends ComponentActionBase {
   readonly _keys = keysComponentSelectMenu;
 
   customId: string = '';
@@ -282,10 +367,6 @@ const keysComponentSelectMenu = new BaseSet<string>([
       }; return;
     }
     return super.mergeValue(key, value);
-  }
-
-  toJSON(): RequestTypes.RawChannelMessageComponent {
-    return super.toJSON() as RequestTypes.RawChannelMessageComponent;
   }
 }
 

@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.1',
+  VERSION: '0.16.2-beta.0',
 });
 
 export type Snowflake = number | string;
@@ -43,6 +43,9 @@ export type Snowflake = number | string;
 
 export const IS_TS_NODE = Symbol.for('ts-node.register.instance') in process;
 
+
+export const COMPONENT_CUSTOM_ID_SPLITTER = '-';
+export const COMPONENT_LISTENER_TIMEOUT = 60 * (60 * 1000); // 10 minutes
 
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;

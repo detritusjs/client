@@ -5,10 +5,12 @@ import {
   RestClientEvents,
 } from 'detritus-client-rest';
 import { AuthTypes, RestEvents } from 'detritus-client-rest/lib/constants';
+import { Snowflake } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { ClientEvents } from '../constants';
+import { ComponentActionRow, createComponentListenerOrNone } from '../utils';
 
 import {
   Application,
@@ -490,13 +492,25 @@ export class RestClient {
     return new Template(this.client, data);
   }
 
-  createInteractionResponse(
+  async createInteractionResponse(
     interactionId: string,
     token: string,
     options: RequestTypes.CreateInteractionResponse | number,
     data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
   ) {
-    return this.raw.createInteractionResponse(interactionId, token, options, data);
+    const listener = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
+    const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
+
+    if (listener || listener === false) {
+      const listenerId = interactionId;
+      if (listener) {
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      } else {
+        this.client.gatewayHandler._componentHandler.delete(listenerId);
+      }
+    }
+
+    return rawData;
   }
 
   createLobby(
@@ -522,6 +536,8 @@ export class RestClient {
     channelId: string,
     options: RequestTypes.CreateMessage | string = {},
   ): Promise<Message> {
+    const listener = createComponentListenerOrNone(options);
+
     const data = await this.raw.createMessage(channelId, options);
     if (this.client.channels.has(data.channel_id)) {
       const channel = this.client.channels.get(data.channel_id)!;
@@ -529,8 +545,20 @@ export class RestClient {
         data.guild_id = channel.guildId;
       }
     }
+
     const message = new Message(this.client, data);
     this.client.messages.insert(message);
+
+    if (listener || listener === false) {
+      const listenerId = message.id;
+      if (listener) {
+        listener.id = listenerId;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      } else {
+        this.client.gatewayHandler._componentHandler.delete(listenerId);
+      }
+    }
+
     return message;
   }
 
@@ -644,6 +672,7 @@ export class RestClient {
     } else {
       channel = createChannelFromData(this.client, data);
     }
+    // go through each message and mark them as deleted or wait for the event?
     return channel;
   }
 
@@ -666,6 +695,7 @@ export class RestClient {
     guildId: string,
     options: RequestTypes.DeleteGuild = {},
   ) {
+    // go through each message and mark them as deleted or wait for the event?
     return this.raw.deleteGuild(guildId, options);
   }
 
@@ -751,6 +781,7 @@ export class RestClient {
       const message = this.client.messages.get(messageId)!;
       message.deleted = true;
     }
+    this.client.gatewayHandler._componentHandler.delete(messageId);
     return data;
   }
 
@@ -850,6 +881,7 @@ export class RestClient {
       const message = this.client.messages.get(messageId)!;
       message.deleted = true;
     }
+    this.client.gatewayHandler._componentHandler.delete(messageId);
     return data;
   }
 
@@ -1155,6 +1187,8 @@ export class RestClient {
     options: RequestTypes.EditMessage | string = {},
     updateCache: boolean = true,
   ): Promise<Message> {
+    const listener = createComponentListenerOrNone(options);
+
     const data = await this.raw.editMessage(channelId, messageId, options);
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
@@ -1165,6 +1199,17 @@ export class RestClient {
       message = new Message(this.client, data);
       this.client.messages.insert(message);
     }
+
+    if (listener || listener === false) {
+      const listenerId = message.id;
+      if (listener) {
+        listener.id = listenerId;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      } else {
+        this.client.gatewayHandler._componentHandler.delete(listenerId);
+      }
+    }
+
     return message;
   }
 
@@ -1237,6 +1282,12 @@ export class RestClient {
     options: RequestTypes.EditWebhookTokenMessage = {},
     updateCache: boolean = true,
   ): Promise<Message> {
+    const listener = createComponentListenerOrNone(options);
+    if (listener || listener === false) {
+      // it'll be from `interaction.respond()` then `interaction.editResponse()`
+      this.client.gatewayHandler._componentHandler.delete(webhookId);
+    }
+
     const data = await this.raw.editWebhookTokenMessage(webhookId, webhookToken, messageId, options);
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
@@ -1246,6 +1297,17 @@ export class RestClient {
       message = new Message(this.client, data);
       this.client.messages.insert(message);
     }
+
+    if (listener || listener === false) {
+      const listenerId = message.id;
+      if (listener) {
+        listener.id = listenerId;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      } else {
+        this.client.gatewayHandler._componentHandler.delete(listenerId);
+      }
+    }
+
     return message;
   }
 
@@ -1267,12 +1329,30 @@ export class RestClient {
     options: RequestTypes.ExecuteWebhook | string = {},
     compatibleType?: string,
   ): Promise<Message | null> {
+    const listener = createComponentListenerOrNone(options);
     const data = await this.raw.executeWebhook(webhookId, webhookToken, options, compatibleType);
     if (data) {
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
+
+      if (listener || listener === false) {
+        const listenerId = message.id;
+        if (listener) {
+          listener.id = listenerId;
+          this.client.gatewayHandler._componentHandler.insert(listener);
+        } else {
+          this.client.gatewayHandler._componentHandler.delete(listenerId);
+        }
+      }
+
       return message;
     }
+
+    if (listener) {
+      listener.id = Snowflake.generate().id;
+      this.client.gatewayHandler._componentHandler.insert(listener);
+    }
+
     return data;
   }
 

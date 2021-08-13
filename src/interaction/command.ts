@@ -273,6 +273,9 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     }
 
     if (data.guildIds) {
+      if (data.global === undefined) {
+        this.global = false;
+      }
       this.guildIds = new BaseSet<string>(data.guildIds);
     }
 

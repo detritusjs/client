@@ -286,6 +286,10 @@ export class Message extends BaseStructure {
     return this.hasFlag(MessageFlags.CROSSPOSTED);
   }
 
+  get hasFlagEphemeral(): boolean {
+    return this.hasFlag(MessageFlags.EPHEMERAL);
+  }
+
   get hasFlagIsCrossposted(): boolean {
     return this.hasFlag(MessageFlags.IS_CROSSPOST);
   }

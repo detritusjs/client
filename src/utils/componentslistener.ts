@@ -1,53 +1,74 @@
 import { RequestTypes } from 'detritus-client-rest';
-import { Timers } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
-import { InteractionCommandClient } from '../interactioncommandclient';
-
 import {
   Interaction,
-  InteractionDataApplicationCommand,
+  InteractionDataComponent,
   InteractionEditOrRespond,
+  Message,
 } from '../structures';
 
-import { InteractionCommand, InteractionCommandOption } from './command';
+import { ComponentActionRow, ComponentButton, ComponentSelectMenu } from './components';
 
 
+export interface ComponentListenerOptions {
+  components: Array<ComponentActionRow>,
+  id?: string,
+}
 
-/**
- * Interaction Command Context
- * @category Command
- */
-export class InteractionContext {
+export class ComponentListener {
+  components: Array<ComponentActionRow>;
+  id: string = '';
+
+  constructor(options: ComponentListenerOptions) {
+    this.components = options.components || [];
+    this.id = options.id || this.id;
+  }
+}
+
+
+export interface CreateComponentListenerOrNone {
+  components?: Array<RequestTypes.CreateChannelMessageComponent | RequestTypes.toJSON<RequestTypes.RawChannelMessageComponent>>,
+}
+
+// returns false when none of the components need to be hooked
+export function createComponentListenerOrNone(
+  options?: CreateComponentListenerOrNone | string,
+  id?: string,
+): ComponentListener | null | false {
+  if (!options || typeof(options) !== 'object' || !options.components) {
+    return null;
+  }
+  if (options.components.length) {
+    const actionRows = options.components.filter((component) => component instanceof ComponentActionRow) as Array<ComponentActionRow>;
+    if (actionRows.length && actionRows.some((row) => row.hasRun)) {
+      const listener = new ComponentListener({components: actionRows, id});
+      for (let row of actionRows) {
+        row.encodeCustomIds(listener.id);
+      }
+      return listener;
+    }
+  }
+  return false;
+}
+
+
+export class ComponentContext {
   readonly client: ShardClient;
-  readonly command: InteractionCommand;
+  readonly component: ComponentButton | ComponentSelectMenu;
   readonly interaction: Interaction;
-  readonly invoker: InteractionCommand | InteractionCommandOption;
-  readonly loadingTimeout?: Timers.Timeout;
-  readonly interactionCommandClient: InteractionCommandClient;
 
-  metadata?: Record<string, any>;
-
-  constructor(
-    interactionCommandClient: InteractionCommandClient,
-    interaction: Interaction,
-    command: InteractionCommand,
-    invoker: InteractionCommand | InteractionCommandOption,
-  ) {
-    this.command = command;
+  constructor(interaction: Interaction, component: ComponentButton | ComponentSelectMenu) {
+    this.component = component;
     this.interaction = interaction;
-    this.interactionCommandClient = interactionCommandClient;
-    this.invoker = invoker;
 
     this.client = interaction.client;
     Object.defineProperties(this, {
       client: {enumerable: false, writable: false},
-      command: {enumerable: false, writable: false},
+      component: {enumerable: false, writable: false},
       interaction: {enumerable: false, writable: false},
-      invoker: {enumerable: false, writable: false},
-      interactionCommandClient: {enumerable: false, writable: false},
     });
   }
 
@@ -70,6 +91,10 @@ export class InteractionContext {
 
   get gateway() {
     return this.client.gateway;
+  }
+
+  get interactionCommandClient() {
+    return this.client.interactionCommandClient;
   }
 
   get manager(): ClusterProcessChild | null {
@@ -169,17 +194,26 @@ export class InteractionContext {
     return this.client.voiceStates;
   }
 
+  /* Component Properties */
+  get customId(): string {
+    return this.component.customId as string;
+  }
+
+  get customIdEncoded(): string {
+    return this.component._customIdEncoded as string;
+  }
+
   /* Interaction Properties */
-  get data(): InteractionDataApplicationCommand {
-    return this.interaction.data as InteractionDataApplicationCommand;
+  get data(): InteractionDataComponent {
+    return this.interaction.data as InteractionDataComponent;
   }
 
   get channel() {
     return this.interaction.channel;
   }
 
-  get channelId() {
-    return this.interaction.channelId;
+  get channelId(): string {
+    return this.interaction.channelId!;
   }
 
   get guild() {
@@ -214,8 +248,8 @@ export class InteractionContext {
     return this.interaction.member;
   }
 
-  get name() {
-    return this.data.fullName;
+  get message(): Message {
+    return this.interaction.message!;
   }
 
   get responded() {
