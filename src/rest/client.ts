@@ -10,7 +10,7 @@ import { Snowflake } from 'detritus-utils';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { ClientEvents } from '../constants';
-import { ComponentActionRow, createComponentListenerOrNone } from '../utils';
+import { createComponentListenerOrNone } from '../utils';
 
 import {
   Application,
@@ -1814,7 +1814,7 @@ export class RestClient {
   ): Promise<BaseCollection<string, Emoji>> {
     const data = await this.raw.fetchGuildEmojis(guildId);
 
-    if (this.client.guilds.has(guildId)) {
+    if (this.client.emojis.enabled && this.client.guilds.has(guildId)) {
       const guild = this.client.guilds.get(guildId)!;
       guild.merge({emojis: data});
       return guild.emojis;

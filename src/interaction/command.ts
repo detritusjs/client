@@ -590,7 +590,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}-${this._choicesKey}`;
+    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${this._optionsKey}-${this._choicesKey}`;
   }
 
   get length(): number {

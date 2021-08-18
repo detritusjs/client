@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.2-beta.2',
+  VERSION: '0.16.2-beta.3',
 });
 
 export type Snowflake = number | string;
@@ -953,6 +953,27 @@ export const PERMISSIONS_LURKER = [
   Permissions.NONE,
 );
 
+export const PERMISSIONS_FOR_GUILD = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
+export const PERMISSIONS_FOR_CHANNEL_TEXT = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
+export const PERMISSIONS_FOR_CHANNEL_VOICE = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
 
 export enum PlatformTypes {
   BATTLENET = 'battlenet',
@@ -1544,6 +1565,7 @@ export const DiscordKeys = Object.freeze({
   THREAD_METADATA: 'thread_metadata',
   THREADS: 'threads',
   THUMBNAIL: 'thumbnail',
+  TIMEOUT: 'timeout',
   TIMESTAMP: 'timestamp',
   TIMESTAMPS: 'timestamps',
   TITLE: 'title',
@@ -1910,6 +1932,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.THREAD_METADATA]: 'threadMetadata',
   [DiscordKeys.THREADS]: 'threads',
   [DiscordKeys.THUMBNAIL]: 'thumbnail',
+  [DiscordKeys.TIMEOUT]: 'timeout',
   [DiscordKeys.TIMESTAMP]: 'timestamp',
   [DiscordKeys.TIMESTAMPS]: 'timestamps',
   [DiscordKeys.TITLE]: 'title',

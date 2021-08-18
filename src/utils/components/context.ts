@@ -1,67 +1,21 @@
 import { RequestTypes } from 'detritus-client-rest';
 
-import { ShardClient } from '../client';
-import { ClusterClient } from '../clusterclient';
-import { ClusterProcessChild } from '../cluster/processchild';
+import { ShardClient } from '../../client';
+import { ClusterClient } from '../../clusterclient';
+import { ClusterProcessChild } from '../../cluster/processchild';
 import {
   Interaction,
   InteractionDataComponent,
   InteractionEditOrRespond,
   Message,
-} from '../structures';
-
-import { ComponentActionRow, ComponentButton, ComponentSelectMenu } from './components';
-
-
-export interface ComponentListenerOptions {
-  components: Array<ComponentActionRow>,
-  id?: string,
-}
-
-export class ComponentListener {
-  components: Array<ComponentActionRow>;
-  id: string = '';
-
-  constructor(options: ComponentListenerOptions) {
-    this.components = options.components || [];
-    this.id = options.id || this.id;
-  }
-}
-
-
-export interface CreateComponentListenerOrNone {
-  components?: Array<RequestTypes.CreateChannelMessageComponent | RequestTypes.toJSON<RequestTypes.RawChannelMessageComponent>>,
-}
-
-// returns false when none of the components need to be hooked
-export function createComponentListenerOrNone(
-  options?: CreateComponentListenerOrNone | string,
-  id?: string,
-): ComponentListener | null | false {
-  if (!options || typeof(options) !== 'object' || !options.components) {
-    return null;
-  }
-  if (options.components.length) {
-    const actionRows = options.components.filter((component) => component instanceof ComponentActionRow) as Array<ComponentActionRow>;
-    if (actionRows.length && actionRows.some((row) => row.hasRun)) {
-      const listener = new ComponentListener({components: actionRows, id});
-      for (let row of actionRows) {
-        row.encodeCustomIds(listener.id);
-      }
-      return listener;
-    }
-  }
-  return false;
-}
+} from '../../structures';
 
 
 export class ComponentContext {
   readonly client: ShardClient;
-  readonly component: ComponentButton | ComponentSelectMenu;
   readonly interaction: Interaction;
 
-  constructor(interaction: Interaction, component: ComponentButton | ComponentSelectMenu) {
-    this.component = component;
+  constructor(interaction: Interaction) {
     this.interaction = interaction;
 
     this.client = interaction.client;
@@ -194,16 +148,11 @@ export class ComponentContext {
     return this.client.voiceStates;
   }
 
-  /* Component Properties */
-  get customId(): string {
-    return this.component.customId as string;
-  }
-
-  get customIdEncoded(): string {
-    return this.component._customIdEncoded as string;
-  }
-
   /* Interaction Properties */
+  get customId(): string {
+    return this.data.customId;
+  }
+
   get data(): InteractionDataComponent {
     return this.interaction.data as InteractionDataComponent;
   }

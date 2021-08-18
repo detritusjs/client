@@ -63,7 +63,7 @@ export interface ChunkWaiting {
 export class GatewayHandler {
   readonly client: ShardClient;
   readonly _chunksWaiting = new BaseCollection<string, ChunkWaiting>();
-  readonly _componentHandler= new ComponentHandler();
+  readonly _componentHandler = new ComponentHandler();
 
   disabledEvents: BaseSet<string>;
   dispatchHandler: GatewayDispatchHandler;
@@ -157,6 +157,12 @@ export class GatewayDispatchHandler {
   /* Dispatch Events */
   async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
     this.client.reset(false);
+
+    for (let [listenerId, listener] of this.handler._componentHandler.listeners) {
+      if (!listener.timeout) {
+        this.handler._componentHandler.listeners.delete(listenerId);
+      }
+    }
 
     for (let [nonce, cache] of this.handler._chunksWaiting) {
       cache.promise.reject(new Error('Gateway re-identified before a result came.'));

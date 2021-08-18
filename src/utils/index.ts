@@ -22,7 +22,6 @@ export {
   Snowflake,
 };
 export * from './components';
-export * from './componentslistener';
 export * from './embed';
 
 
