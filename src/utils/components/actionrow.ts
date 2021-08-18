@@ -68,9 +68,9 @@ const keysComponentActionRow = new BaseSet<string>([
 
   get isFull(): boolean {
     if (this.hasSelectMenu) {
-      return MAX_ACTION_ROW_BUTTONS <= this.components.length;
-    } else if (this.hasButton) {
       return MAX_ACTION_ROW_SELECT_MENUS <= this.components.length;
+    } else if (this.hasButton) {
+      return MAX_ACTION_ROW_BUTTONS <= this.components.length;
     }
     return false;
   }
