@@ -1,3 +1,4 @@
+import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import { BaseSet } from '../../collections/baseset';
@@ -123,7 +124,7 @@ export class Components extends Structure {
     return super.mergeValue(key, value);
   }
 
-  toJSON() {
-    return this.components;
+  toJSON(): Array<RequestTypes.RawChannelMessageComponent> {
+    return this.components.map((component) => component.toJSON());
   }
 }

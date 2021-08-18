@@ -1,7 +1,12 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { BaseSet } from '../../collections/baseset';
-import { DiscordKeys, MessageComponentTypes } from '../../constants';
+import {
+  DiscordKeys,
+  MessageComponentTypes,
+  MAX_ACTION_ROW_BUTTONS,
+  MAX_ACTION_ROW_SELECT_MENUS,
+} from '../../constants';
 import { Structure } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
@@ -63,9 +68,9 @@ const keysComponentActionRow = new BaseSet<string>([
 
   get isFull(): boolean {
     if (this.hasSelectMenu) {
-      return 1 <= this.components.length;
+      return MAX_ACTION_ROW_BUTTONS <= this.components.length;
     } else if (this.hasButton) {
-      return 5 <= this.components.length;
+      return MAX_ACTION_ROW_SELECT_MENUS <= this.components.length;
     }
     return false;
   }

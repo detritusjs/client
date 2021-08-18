@@ -12,7 +12,7 @@ export * from './selectmenu';
 
 
 export interface CreateComponentListenerOrNone {
-  components?: Components | Array<RequestTypes.CreateChannelMessageComponent | RequestTypes.toJSON<RequestTypes.RawChannelMessageComponent>>,
+  components?: Components | Array<RequestTypes.CreateChannelMessageComponent | RequestTypes.toJSON<RequestTypes.RawChannelMessageComponent>> | RequestTypes.toJSON<Array<RequestTypes.RawChannelMessageComponent>>,
 }
 
 // returns false when none of the components need to be hooked
@@ -30,7 +30,7 @@ export function createComponentListenerOrNone(
     options.components.id = id || options.components.id;
     return options.components;
   } else {
-    if (options.components.length) {
+    if (Array.isArray(options.components) && options.components.length) {
       const actionRows = options.components.filter((component) => component instanceof ComponentActionRow) as Array<ComponentActionRow>;
       if (actionRows.length && actionRows.some((row) => row.hasRun)) {
         return new Components({components: actionRows, id});
