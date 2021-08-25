@@ -354,13 +354,32 @@ export class Member extends UserMixin {
     return false;
   }
 
+  /* doesnt do any permission checks */
+  canEditRole(roleId: Role | string): boolean {
+    let role: Role;
+    if (roleId instanceof Role) {
+      role = roleId;
+    } else {
+      if (this.client.roles.has(this.guildId, roleId)) {
+        role = this.client.roles.get(this.guildId, roleId)!;
+      } else {
+        return false;
+      }
+    }
+    const us = this.highestRole;
+    if (us) {
+      return role.position < us.position;
+    }
+    return false;
+  }
+
   permissionsIn(channelId: Channel | string): bigint {
     let channel: Channel;
     if (channelId instanceof ChannelBase) {
       channel = channelId;
     } else {
       if (this.client.channels.has(channelId)) {
-        channel = this.client.channels.get(channelId) as Channel;
+        channel = this.client.channels.get(channelId)!;
       } else {
         return Permissions.NONE;
       }

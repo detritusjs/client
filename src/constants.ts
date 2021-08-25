@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.1',
+  VERSION: '0.16.2',
 });
 
 export type Snowflake = number | string;
@@ -43,13 +43,14 @@ export type Snowflake = number | string;
 
 export const IS_TS_NODE = Symbol.for('ts-node.register.instance') in process;
 
-
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;
 export const DEFAULT_MAX_VIDEO_CHANNEL_USERS = 25;
 
 export const LOCAL_GUILD_ID = '@me';
 
+export const MAX_ACTION_ROW_BUTTONS = 5;
+export const MAX_ACTION_ROW_SELECT_MENUS = 1;
 export const MAX_ATTACHMENT_SIZE = 8 * 1024 * 1024;
 export const MAX_ATTACHMENT_SIZE_PREMIUM = 50 * 1024 * 1024;
 export const MAX_BITRATE = 96000;
@@ -950,6 +951,27 @@ export const PERMISSIONS_LURKER = [
   Permissions.NONE,
 );
 
+export const PERMISSIONS_FOR_GUILD = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
+export const PERMISSIONS_FOR_CHANNEL_TEXT = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
+export const PERMISSIONS_FOR_CHANNEL_VOICE = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
 
 export enum PlatformTypes {
   BATTLENET = 'battlenet',
@@ -1541,6 +1563,7 @@ export const DiscordKeys = Object.freeze({
   THREAD_METADATA: 'thread_metadata',
   THREADS: 'threads',
   THUMBNAIL: 'thumbnail',
+  TIMEOUT: 'timeout',
   TIMESTAMP: 'timestamp',
   TIMESTAMPS: 'timestamps',
   TITLE: 'title',
@@ -1907,6 +1930,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.THREAD_METADATA]: 'threadMetadata',
   [DiscordKeys.THREADS]: 'threads',
   [DiscordKeys.THUMBNAIL]: 'thumbnail',
+  [DiscordKeys.TIMEOUT]: 'timeout',
   [DiscordKeys.TIMESTAMP]: 'timestamp',
   [DiscordKeys.TIMESTAMPS]: 'timestamps',
   [DiscordKeys.TITLE]: 'title',

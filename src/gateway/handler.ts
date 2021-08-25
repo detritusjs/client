@@ -38,6 +38,7 @@ import {
 } from '../structures';
 
 import { GatewayClientEvents } from './clientevents';
+import { ComponentHandler } from './componenthandler';
 import { GatewayRawEvents } from './rawevents';
 
 
@@ -62,6 +63,7 @@ export interface ChunkWaiting {
 export class GatewayHandler {
   readonly client: ShardClient;
   readonly _chunksWaiting = new BaseCollection<string, ChunkWaiting>();
+  readonly _componentHandler = new ComponentHandler();
 
   disabledEvents: BaseSet<string>;
   dispatchHandler: GatewayDispatchHandler;
@@ -155,6 +157,12 @@ export class GatewayDispatchHandler {
   /* Dispatch Events */
   async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
     this.client.reset(false);
+
+    for (let [listenerId, listener] of this.handler._componentHandler.listeners) {
+      if (!listener.timeout) {
+        this.handler._componentHandler.listeners.delete(listenerId);
+      }
+    }
 
     for (let [nonce, cache] of this.handler._chunksWaiting) {
       cache.promise.reject(new Error('Gateway re-identified before a result came.'));
@@ -398,8 +406,10 @@ export class GatewayDispatchHandler {
     if (channel.isText) {
       for (let [messageId, message] of this.client.messages) {
         if (message.channelId === channel.id) {
+          message.deleted = true;
           this.client.messages.delete(messageId);
         }
+        this.handler._componentHandler.delete(messageId);
       }
     }
 
@@ -678,7 +688,9 @@ export class GatewayDispatchHandler {
 
       for (let [messageId, message] of this.client.messages) {
         if (message.guildId === guildId) {
+          message.deleted = true;
           this.client.messages.delete(messageId);
+          this.handler._componentHandler.delete(messageId);
         }
       }
 
@@ -1219,6 +1231,10 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.InteractionCreate = {_raw: data, interaction};
     this.client.emit(ClientEvents.INTERACTION_CREATE, payload);
+
+    if (interaction.isFromMessageComponent) {
+      this.handler._componentHandler.execute(interaction);
+    }
   }
 
   [GatewayDispatchEvents.INVITE_CREATE](data: GatewayRawEvents.InviteCreate) {
@@ -1342,6 +1358,8 @@ export class GatewayDispatchHandler {
       }
     }
 
+    this.handler._componentHandler.delete(messageId);
+
     const payload: GatewayClientEvents.MessageDelete = {channelId, guildId, message, messageId, raw: data};
     this.client.emit(ClientEvents.MESSAGE_DELETE, payload);
   }
@@ -1361,6 +1379,7 @@ export class GatewayDispatchHandler {
       } else {
         messages.set(messageId, null);
       }
+      this.handler._componentHandler.delete(messageId);
     }
 
     const payload: GatewayClientEvents.MessageDeleteBulk = {amount, channelId, guildId, messages, raw: data};

@@ -273,6 +273,9 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     }
 
     if (data.guildIds) {
+      if (data.global === undefined) {
+        this.global = false;
+      }
       this.guildIds = new BaseSet<string>(data.guildIds);
     }
 
@@ -587,7 +590,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}-${this._choicesKey}`;
+    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${this._optionsKey}-${this._choicesKey}`;
   }
 
   get length(): number {

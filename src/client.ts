@@ -77,6 +77,8 @@ import {
   UserMe,
 } from './structures';
 
+import { Components, ComponentActionRow, ComponentActionRowData } from './utils';
+
 
 interface GatewayOptions extends Gateway.SocketOptions, GatewayHandlerOptions {
 
@@ -377,6 +379,20 @@ export class ShardClient extends EventSpewer {
       }
     }
     return oauth2Application;
+  }
+
+  hookComponents(
+    listenerId: string,
+    components: Components | Array<ComponentActionRowData | ComponentActionRow>,
+    timeout?: number,
+  ): Components {
+    if (components instanceof Components) {
+      components.id = listenerId;
+    } else {
+      components = new Components({components, id: listenerId, timeout: timeout || 0});
+    }
+    this.gatewayHandler._componentHandler.insert(components);
+    return components;
   }
 
   isOwner(userId: string): boolean {

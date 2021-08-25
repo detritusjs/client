@@ -1,53 +1,28 @@
 import { RequestTypes } from 'detritus-client-rest';
-import { Timers } from 'detritus-utils';
 
-import { ShardClient } from '../client';
-import { ClusterClient } from '../clusterclient';
-import { ClusterProcessChild } from '../cluster/processchild';
-import { InteractionCommandClient } from '../interactioncommandclient';
-
+import { ShardClient } from '../../client';
+import { ClusterClient } from '../../clusterclient';
+import { ClusterProcessChild } from '../../cluster/processchild';
 import {
   Interaction,
-  InteractionDataApplicationCommand,
+  InteractionDataComponent,
   InteractionEditOrRespond,
-} from '../structures';
-
-import { InteractionCommand, InteractionCommandOption } from './command';
-
+  Message,
+} from '../../structures';
 
 
-/**
- * Interaction Command Context
- * @category Command
- */
-export class InteractionContext {
+export class ComponentContext {
   readonly client: ShardClient;
-  readonly command: InteractionCommand;
   readonly interaction: Interaction;
-  readonly invoker: InteractionCommand | InteractionCommandOption;
-  readonly loadingTimeout?: Timers.Timeout;
-  readonly interactionCommandClient: InteractionCommandClient;
 
-  metadata?: Record<string, any>;
-
-  constructor(
-    interactionCommandClient: InteractionCommandClient,
-    interaction: Interaction,
-    command: InteractionCommand,
-    invoker: InteractionCommand | InteractionCommandOption,
-  ) {
-    this.command = command;
+  constructor(interaction: Interaction) {
     this.interaction = interaction;
-    this.interactionCommandClient = interactionCommandClient;
-    this.invoker = invoker;
 
     this.client = interaction.client;
     Object.defineProperties(this, {
       client: {enumerable: false, writable: false},
-      command: {enumerable: false, writable: false},
+      component: {enumerable: false, writable: false},
       interaction: {enumerable: false, writable: false},
-      invoker: {enumerable: false, writable: false},
-      interactionCommandClient: {enumerable: false, writable: false},
     });
   }
 
@@ -70,6 +45,10 @@ export class InteractionContext {
 
   get gateway() {
     return this.client.gateway;
+  }
+
+  get interactionCommandClient() {
+    return this.client.interactionCommandClient;
   }
 
   get manager(): ClusterProcessChild | null {
@@ -170,16 +149,20 @@ export class InteractionContext {
   }
 
   /* Interaction Properties */
-  get data(): InteractionDataApplicationCommand {
-    return this.interaction.data as InteractionDataApplicationCommand;
+  get customId(): string {
+    return this.data.customId;
+  }
+
+  get data(): InteractionDataComponent {
+    return this.interaction.data as InteractionDataComponent;
   }
 
   get channel() {
     return this.interaction.channel;
   }
 
-  get channelId() {
-    return this.interaction.channelId;
+  get channelId(): string {
+    return this.interaction.channelId!;
   }
 
   get guild() {
@@ -214,8 +197,8 @@ export class InteractionContext {
     return this.interaction.member;
   }
 
-  get name() {
-    return this.data.fullName;
+  get message(): Message {
+    return this.interaction.message!;
   }
 
   get responded() {

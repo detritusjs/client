@@ -141,7 +141,7 @@ export class ApplicationCommandOption extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}-${this._choicesKey}`;
+    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${this._optionsKey}-${this._choicesKey}`;
   }
 
   mergeValue(key: string, value: any): void {
