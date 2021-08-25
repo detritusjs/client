@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.2-beta.6',
+  VERSION: '0.16.2',
 });
 
 export type Snowflake = number | string;
