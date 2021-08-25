@@ -21,6 +21,7 @@ import {
   Channel,
   ChannelDM,
   ChannelDMGroup,
+  ChannelGuildThread,
   ConnectedAccount,
   Emoji,
   Gift,
@@ -356,12 +357,22 @@ export class RestClient {
     return new Invite(this.client, data);
   }
 
-  createChannelMessageThread(
+  async createChannelMessageThread(
     channelId: string,
     messageId: string,
     options: RequestTypes.CreateChannelMessageThread,
-  ) {
-    return this.raw.createChannelMessageThread(channelId, messageId, options);
+  ): Promise<ChannelGuildThread> {
+    const data = await this.raw.createChannelMessageThread(channelId, messageId, options);
+    let channel: ChannelGuildThread;
+    if (this.client.channels.has(data.id)) {
+      channel = this.client.channels.get(data.id) as ChannelGuildThread;
+      channel.merge(data);
+      // this should never happen lmao
+    } else {
+      channel = createChannelFromData(this.client, data) as ChannelGuildThread;
+      this.client.channels.insert(channel);
+    }
+    return channel;
   }
 
   createChannelStoreListingGrantEntitlement(
@@ -370,11 +381,21 @@ export class RestClient {
     return this.raw.createChannelStoreListingGrantEntitlement(channelId);
   }
 
-  createChannelThread(
+  async createChannelThread(
     channelId: string,
     options: RequestTypes.CreateChannelThread,
-  ) {
-    return this.raw.createChannelThread(channelId, options);
+  ): Promise<ChannelGuildThread> {
+    const data = await this.raw.createChannelThread(channelId, options);
+    let channel: ChannelGuildThread;
+    if (this.client.channels.has(data.id)) {
+      channel = this.client.channels.get(data.id) as ChannelGuildThread;
+      channel.merge(data);
+      // this should never happen lmao
+    } else {
+      channel = createChannelFromData(this.client, data) as ChannelGuildThread;
+      this.client.channels.insert(channel);
+    }
+    return channel;
   }
 
   async createDm(
@@ -1520,7 +1541,7 @@ export class RestClient {
     const data = await this.raw.fetchChannelThreadsActive(channelId);
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
-    const threads = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
 
     for (let raw of data.members) {
       const threadMember = new ThreadMember(this.client, raw);
@@ -1535,7 +1556,7 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw);
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
       threads.set(thread.id, thread);
     }
 
@@ -1549,7 +1570,7 @@ export class RestClient {
     const data = await this.raw.fetchChannelThreadsArchivedPrivate(channelId, options);
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
-    const threads = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
 
     for (let raw of data.members) {
       const threadMember = new ThreadMember(this.client, raw);
@@ -1564,7 +1585,7 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw);
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
       threads.set(thread.id, thread);
     }
 
@@ -1578,7 +1599,7 @@ export class RestClient {
     const data = await this.raw.fetchChannelThreadsArchivedPrivateJoined(channelId, options);
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
-    const threads = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
 
     for (let raw of data.members) {
       const threadMember = new ThreadMember(this.client, raw);
@@ -1593,7 +1614,7 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw);
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
       threads.set(thread.id, thread);
     }
 
@@ -1607,7 +1628,7 @@ export class RestClient {
     const data = await this.raw.fetchChannelThreadsArchivedPublic(channelId, options);
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
-    const threads = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
 
     for (let raw of data.members) {
       const threadMember = new ThreadMember(this.client, raw);
@@ -1622,7 +1643,7 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw);
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
       threads.set(thread.id, thread);
     }
 
