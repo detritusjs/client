@@ -44,7 +44,7 @@ export type CommandCallbackDmBlocked = (context: InteractionContext) => Promise<
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackLoadingTrigger = (context: InteractionContext, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackLoadingTrigger = (context: InteractionContext) => Promise<any> | any;
 
 /**
  * @category InteractionCommand
@@ -254,7 +254,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   triggerLoadingAsEphemeral?: boolean;
 
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
-  onLoadingTrigger?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
+  onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
   onBeforeRun?(context: InteractionContext, args: ParsedArgs): Promise<boolean> | boolean;
   onCancel?(context: InteractionContext): Promise<any> | any;
@@ -509,7 +509,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   value?: ArgumentConverter;
 
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
-  onLoadingTrigger?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
+  onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
   onBeforeRun?(context: InteractionContext, args: ParsedArgs): Promise<boolean> | boolean;
   onCancel?(context: InteractionContext): Promise<any> | any;
