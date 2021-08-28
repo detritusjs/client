@@ -1,5 +1,7 @@
 import { RequestTypes } from 'detritus-client-rest';
 
+import { MessageComponentTypes } from '../../constants';
+
 import { ComponentActionRow } from './actionrow';
 import { Components } from './components';
 
@@ -31,7 +33,14 @@ export function createComponentListenerOrNone(
     return options.components;
   } else {
     if (Array.isArray(options.components) && options.components.length) {
-      const actionRows = options.components.filter((component) => component instanceof ComponentActionRow) as Array<ComponentActionRow>;
+      const actionRows = options.components.map((component: any) => {
+        if (component instanceof ComponentActionRow) {
+          return component;
+        } else if (component.type === MessageComponentTypes.ACTION_ROW) {
+          return new ComponentActionRow(component);
+        }
+        return null;
+      }).filter((x) => x) as Array<ComponentActionRow>;
       if (actionRows.length && actionRows.some((row) => row.hasRun)) {
         return new Components({components: actionRows, id});
       }

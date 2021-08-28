@@ -864,22 +864,62 @@ export class InteractionCommandClient extends EventSpewer {
   }
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;
+  on(event: ClientEvents.COMMAND_ERROR, listener: (payload: InteractionCommandEvents.CommandError) => any): this;
+  on(event: 'commandError', listener: (payload: InteractionCommandEvents.CommandError) => any): this;
+  on(event: ClientEvents.COMMAND_FAIL, listener: (payload: InteractionCommandEvents.CommandFail) => any): this;
+  on(event: 'commandFail', listener: (payload: InteractionCommandEvents.CommandFail) => any): this;
+  on(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): this;
+  on(event: 'commandPermissionsFailClient', listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): this;
+  on(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): this;
+  on(event: 'commandPermissionsFail', listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): this;
+  on(event: ClientEvents.COMMAND_RAN, listener: (payload: InteractionCommandEvents.CommandRan) => any): this;
+  on(event: 'commandRan', listener: (payload: InteractionCommandEvents.CommandRan) => any): this;
+  on(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): this;
+  on(event: 'commandRatelimit', listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): this;
+  on(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: InteractionCommandEvents.CommandRunError) => any): this;
+  on(event: 'commandRunError', listener: (payload: InteractionCommandEvents.CommandRunError) => any): this;
   on(event: ClientEvents.KILLED, listener: () => any): this;
-  on(event: 'killed', listener: () => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
   }
 
   once(event: string | symbol, listener: (...args: any[]) => void): this;
+  once(event: ClientEvents.COMMAND_ERROR, listener: (payload: InteractionCommandEvents.CommandError) => any): this;
+  once(event: 'commandError', listener: (payload: InteractionCommandEvents.CommandError) => any): this;
+  once(event: ClientEvents.COMMAND_FAIL, listener: (payload: InteractionCommandEvents.CommandFail) => any): this;
+  once(event: 'commandFail', listener: (payload: InteractionCommandEvents.CommandFail) => any): this;
+  once(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): this;
+  once(event: 'commandPermissionsFailClient', listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): this;
+  once(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): this;
+  once(event: 'commandPermissionsFail', listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): this;
+  once(event: ClientEvents.COMMAND_RAN, listener: (payload: InteractionCommandEvents.CommandRan) => any): this;
+  once(event: 'commandRan', listener: (payload: InteractionCommandEvents.CommandRan) => any): this;
+  once(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): this;
+  once(event: 'commandRatelimit', listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): this;
+  once(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: InteractionCommandEvents.CommandRunError) => any): this;
+  once(event: 'commandRunError', listener: (payload: InteractionCommandEvents.CommandRunError) => any): this;
   once(event: ClientEvents.KILLED, listener: () => any): this;
-  once(event: 'killed', listener: () => any): this;
   once(event: string | symbol, listener: (...args: any[]) => void): this {
     super.once(event, listener);
     return this;
   }
 
   subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_ERROR, listener: (payload: InteractionCommandEvents.CommandError) => any): EventSubscription;
+  subscribe(event: 'commandError', listener: (payload: InteractionCommandEvents.CommandError) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_FAIL, listener: (payload: InteractionCommandEvents.CommandFail) => any): EventSubscription;
+  subscribe(event: 'commandFail', listener: (payload: InteractionCommandEvents.CommandFail) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): EventSubscription;
+  subscribe(event: 'commandPermissionsFailClient', listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): EventSubscription;
+  subscribe(event: 'commandPermissionsFail', listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RAN, listener: (payload: InteractionCommandEvents.CommandRan) => any): EventSubscription;
+  subscribe(event: 'commandRan', listener: (payload: InteractionCommandEvents.CommandRan) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): EventSubscription;
+  subscribe(event: 'commandRatelimit', listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: InteractionCommandEvents.CommandRunError) => any): EventSubscription;
+  subscribe(event: 'commandRunError', listener: (payload: InteractionCommandEvents.CommandRunError) => any): EventSubscription;
   subscribe(event: ClientEvents.KILLED, listener: () => any): EventSubscription;
   subscribe(event: 'killed', listener: () => any): EventSubscription;
   subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription {

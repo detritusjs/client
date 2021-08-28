@@ -15,7 +15,7 @@ import { ComponentSelectMenu } from './selectmenu';
 
 
 export interface ComponentActionRowData {
-  components?: Array<ComponentActionData>,
+  components?: Array<ComponentActionData | ComponentButton | ComponentSelectMenu>,
   type?: number,
 }
 
@@ -111,18 +111,22 @@ const keysComponentActionRow = new BaseSet<string>([
       case DiscordKeys.COMPONENTS: {
         this.components.length = 0;
         for (let raw of value) {
-          switch (raw.type) {
-            case MessageComponentTypes.BUTTON: {
-              const component = new ComponentButton(raw);
-              this.components.push(component);
-            }; break;
-            case MessageComponentTypes.SELECT_MENU: {
-              const component = new ComponentSelectMenu(raw);
-              this.components.push(component);
-            }; break;
-            default: {
-              throw new Error(`Unknown component type ${raw.type}`);
-            };
+          if (raw instanceof ComponentButton || raw instanceof ComponentSelectMenu) {
+            this.components.push(raw);
+          } else {
+            switch (raw.type) {
+              case MessageComponentTypes.BUTTON: {
+                const component = new ComponentButton(raw);
+                this.components.push(component);
+              }; break;
+              case MessageComponentTypes.SELECT_MENU: {
+                const component = new ComponentSelectMenu(raw);
+                this.components.push(component);
+              }; break;
+              default: {
+                throw new Error(`Unknown component type ${raw.type}`);
+              };
+            }
           }
         }
       }; return;
