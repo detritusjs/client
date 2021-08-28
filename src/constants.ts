@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.3-beta.1',
+  VERSION: '0.16.3-beta.2',
 });
 
 export type Snowflake = number | string;
@@ -770,9 +770,10 @@ export enum MessageTypes {
   GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17,
   THREAD_CREATED = 18,
   REPLY = 19,
-  APPLICATION_COMMAND = 20,
+  CHAT_INPUT_COMMAND = 20,
   THREAD_STARTER_MESSAGE = 21,
   GUILD_INVITE_REMINDER = 22,
+  CONTEXT_MENU_COMMAND = 23,
 }
 
 export const MessageTypesDeletable = Object.freeze({
