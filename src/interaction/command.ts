@@ -186,6 +186,7 @@ export interface InteractionCommandOptionOptions {
   value?: ArgumentConverter,
 
   disableDm?: boolean,
+  label?: string,
   metadata?: Record<string, any>,
   permissions?: Array<bigint | number>,
   permissionsClient?: Array<bigint | number>,
@@ -499,6 +500,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
   default?: ArgumentDefault;
   disableDm?: boolean;
+  label?: string;
   metadata: Record<string, any> = {};
   permissions?: Array<bigint>;
   permissionsClient?: Array<bigint>;
@@ -527,6 +529,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     super();
 
     this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
+    this.label = data.label || this.label;
     this.metadata = Object.assign(this.metadata, data.metadata);
     this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
     this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;

@@ -548,19 +548,20 @@ export class InteractionCommandClient extends EventSpewer {
             }
           }
 
+          const label = (commandOption) ? commandOption.label || name : name;
           if (commandOption) {
             if (commandOption.value && typeof(commandOption.value) === 'function') {
               try {
-                args[name] = await Promise.resolve(commandOption.value(value, context));
+                args[label] = await Promise.resolve(commandOption.value(value, context));
               } catch(error) {
                 hasError = true;
-                errors[name] = error;
+                errors[label] = error;
               }
             } else {
-              args[name] = value;
+              args[label] = value;
             }
           } else {
-            args[name] = value;
+            args[label] = value;
           }
         }
       }
@@ -569,15 +570,16 @@ export class InteractionCommandClient extends EventSpewer {
     if (commandOptions) {
       for (let [name, commandOption] of commandOptions) {
         if (commandOption.default !== undefined && !(name in args) && !(name in errors)) {
+          const label = commandOption.label || name;
           if (typeof(commandOption.default) === 'function') {
             try {
-              args[name] = await Promise.resolve(commandOption.default(context));
+              args[label] = await Promise.resolve(commandOption.default(context));
             } catch(error) {
               hasError = true;
-              errors[name] = error;
+              errors[label] = error;
             }
           } else {
-            args[name] = commandOption.default;
+            args[label] = commandOption.default;
           }
         }
       }

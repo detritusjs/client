@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.3-beta.2',
+  VERSION: '0.16.3-beta.3',
 });
 
 export type Snowflake = number | string;
@@ -877,10 +877,12 @@ export const Permissions = Object.freeze({
   MANAGE_EMOJIS: 1n << 30n,
   USE_APPLICATION_COMMANDS: 1n << 31n,
   REQUEST_TO_SPEAK: 1n << 32n,
-
+  MANAGE_EVENTS: 1n << 33n,
   MANAGE_THREADS: 1n << 34n,
   USE_PUBLIC_THREADS: 1n << 35n,
   USE_PRIVATE_THREADS: 1n << 36n,
+  USE_EXTERNAL_STICKERS: 1n << 37n,
+  SEND_MESSAGES_IN_THREADS: 1n << 38n,
 });
 
 export const PERMISSIONS_ALL = Object.values(Permissions).reduce(
