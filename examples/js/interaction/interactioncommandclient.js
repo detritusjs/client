@@ -38,6 +38,22 @@ interactionClient.add({
   ],
 });
 
+
+// default values and custom values
+interactionClient.add({
+  name: 'search',
+  description: 'Search Something',
+  options: [
+    // options will default as a string
+    {name: 'query', description: 'Search Query', required: true, value: (value, context) => value.slice(0, 2000)}, // `value: (value, context) => any` errors will be given in the invoker's function `onValueError: (context, args, errors) => any`
+    {name: 'randomize', description: 'Randomize the results', default: true, type: ApplicationCommandOptionTypes.BOOLEAN}, // or `default: (context) => true`
+  ],
+  run: (context, args) => {
+    // args.randomize should default as true if the user doesn't input anything
+    // args.query should be limited to 2000 characters, can return anything though
+  },
+});
+
 // Context Menu User Command
 interactionClient.add({
   name: 'Poke',
