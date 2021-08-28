@@ -798,9 +798,10 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING]: false,
   [MessageTypes.THREAD_CREATED]: false,
   [MessageTypes.REPLY]: true,
-  [MessageTypes.APPLICATION_COMMAND]: true,
+  [MessageTypes.CHAT_INPUT_COMMAND]: true,
   [MessageTypes.THREAD_STARTER_MESSAGE]: false,
   [MessageTypes.GUILD_INVITE_REMINDER]: true,
+  [MessageTypes.CONTEXT_MENU_COMMAND]: true,
 });
 
 export enum MfaLevels {
@@ -1122,7 +1123,6 @@ export enum SystemChannelFlags {
 }
 
 export const SystemMessages = Object.freeze({
-  ApplicationCommandUsed: ':user: used :command: with :application:.',
   CallMissed: 'You missed a call from :user:.',
   CallMissedWithDuration: 'You missed a call from :user: that lasted :duration:.',
   CallStarted: ':user: started a call.',
@@ -1130,6 +1130,8 @@ export const SystemMessages = Object.freeze({
   ChannelFollowAdd: ':user: has added **:webhookName:** to this channel.',
   ChannelIconChange: ':user: changed the channel name: **:name:**',
   ChannelNameChange: ':user: changed the channel icon.',
+  ChatInputCommandUsed: ':user: used /:command:.',
+  ContextMenuCommandUsed: ':user: used /:command:.',
   GuildDiscoveryDisqualified: 'This server has been removed from Server Discovery because it no longer passes all the requirements. Check Server Settings for more details.',
   GuildDiscoveryGracePeriodFinalWarning: 'This server has failed Discovery activity requirements for 3 weeks in a row. If this server fails for 1 more week, it will be removed from Discovery.',
   GuildDiscoveryGracePeriodInitialWarning: 'This server has failed Discovery activity requirements for 1 week. If this server fails for 4 weeks in a row, it will be automatically removed from Discovery.',
