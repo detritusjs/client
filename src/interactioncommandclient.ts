@@ -45,8 +45,10 @@ import {
 import {
   CommandCallbackRun,
   ParsedArgs,
+  ParsedErrors,
   InteractionCommand,
   InteractionCommandEvents,
+  InteractionCommandOption,
   InteractionCommandOptions,
   InteractionContext,
 } from './interaction';
@@ -456,18 +458,18 @@ export class InteractionCommandClient extends EventSpewer {
   }
   /* end */
 
-  parseArgs(data: InteractionDataApplicationCommand): ParsedArgs {
+  async parseArgs(context: InteractionContext, data: InteractionDataApplicationCommand): Promise<[ParsedArgs, ParsedErrors | null]> {
     if (data.isSlashCommand) {
       if (data.options) {
-        return this.parseArgsFromOptions(data.options, data.resolved);
+        return this.parseArgsFromOptions(context, context.command._options, data.options, data.resolved);
       }
     } else if (data.isContextCommand) {
       return this.parseArgsFromContextMenu(data);
     }
-    return {};
+    return [{}, null];
   }
 
-  parseArgsFromContextMenu(data: InteractionDataApplicationCommand): ParsedArgs {
+  async parseArgsFromContextMenu(data: InteractionDataApplicationCommand): Promise<[ParsedArgs, null]> {
     const args: ParsedArgs = {};
     if (data.targetId && data.resolved) {
       switch (data.type) {
@@ -486,17 +488,32 @@ export class InteractionCommandClient extends EventSpewer {
         }; break;
       }
     }
-    return args;
+    return [args, null];
   }
 
-  parseArgsFromOptions(
+  async parseArgsFromOptions(
+    context: InteractionContext,
+    commandOptions: BaseCollection<string, InteractionCommandOption> | undefined,
     options: BaseCollection<string, InteractionDataApplicationCommandOption>,
     resolved?: InteractionDataApplicationCommandResolved,
-  ): ParsedArgs {
+  ): Promise<[ParsedArgs, ParsedErrors | null]> {
     const args: ParsedArgs = {};
+    const errors: ParsedErrors = {};
+
+    let hasError = false;
     for (let [name, option] of options) {
+      let commandOption: InteractionCommandOption | undefined;
+      if (commandOptions && commandOptions.has(name)) {
+        commandOption = commandOptions.get(name)!;
+      }
+
       if (option.options) {
-        Object.assign(args, this.parseArgsFromOptions(option.options, resolved));
+        const [ childArgs, childErrors ] = await this.parseArgsFromOptions(context, commandOption && commandOption._options, option.options, resolved);
+        Object.assign(args, childArgs);
+        if (childErrors) {
+          hasError = true;
+          Object.assign(errors, childErrors);
+        }
       } else if (option.value !== undefined) {
         let value: any = option.value;
         if (resolved) {
@@ -531,10 +548,42 @@ export class InteractionCommandClient extends EventSpewer {
             }; break;
           }
         }
-        args[name] = value;
+
+        if (commandOption) {
+          if (commandOption.value && typeof(commandOption.value) === 'function') {
+            try {
+              args[name] = await Promise.resolve(commandOption.value(value, context));
+            } catch(error) {
+              hasError = true;
+              errors[name] = error;
+            }
+          } else {
+            args[name] = value;
+          }
+        } else {
+          args[name] = value;
+        }
       }
     }
-    return args;
+
+    if (commandOptions) {
+      for (let [name, commandOption] of commandOptions) {
+        if (commandOption.default !== undefined && !(name in args) && !(name in errors)) {
+          if (typeof(commandOption.default) === 'function') {
+            try {
+              args[name] = await Promise.resolve(commandOption.default(context));
+            } catch(error) {
+              hasError = true;
+              errors[name] = error;
+            }
+          } else {
+            args[name] = commandOption.default;
+          }
+        }
+      }
+    }
+
+    return [args, (hasError) ? errors : null];
   }
 
   setSubscriptions(): void {
@@ -600,9 +649,11 @@ export class InteractionCommandClient extends EventSpewer {
         }
       }
     }
+
     if (!command) {
       return;
     }
+
     const invoker = command.getInvoker(data);
     if (!invoker) {
       return;
@@ -786,8 +837,19 @@ export class InteractionCommandClient extends EventSpewer {
       }
     }
 
-    const args = this.parseArgs(data);
+    const [args, errors] = await this.parseArgs(context, data);
     try {
+      if (errors) {
+        if (typeof(invoker.onValueError) === 'function') {
+          await Promise.resolve(invoker.onValueError(context, args, errors));
+        }
+
+        const error = new Error('Command errored out while converting args');
+        const payload: InteractionCommandEvents.CommandError = {command, context, error, extra: errors};
+        this.emit(ClientEvents.COMMAND_ERROR, payload);
+        return;
+      }
+
       if (typeof(invoker.onBeforeRun) === 'function') {
         const shouldRun = await Promise.resolve(invoker.onBeforeRun(context, args));
         if (!shouldRun) {

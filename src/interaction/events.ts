@@ -9,7 +9,7 @@ export namespace InteractionCommandEvents {
     command: InteractionCommand,
     context: InteractionContext,
     error: Error,
-    extra?: Error,
+    extra?: Record<string, Error>,
   }
 
   export interface CommandFail {

@@ -15,11 +15,26 @@ import { InteractionContext } from './context';
 
 
 export type ParsedArgs = Record<string, any>;
+export type ParsedErrors = Record<string, Error>;
 
 export type CommandRatelimitInfo = {item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number};
 export type CommandRatelimitMetadata = {global: boolean, now: number};
 
 export type FailedPermissions = Array<bigint>;
+
+export type InteractionCommandInvoker = InteractionCommand | InteractionCommandOption;
+
+
+/**
+ * @category InteractionCommand
+ */
+export type ArgumentConverter = (value: any, context: InteractionContext) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type ArgumentDefault = ((context: InteractionContext) => Promise<any> | any) | any;
+
 
 /**
  * @category InteractionCommand
@@ -62,11 +77,6 @@ export type CommandCallbackError = (context: InteractionContext, error: any) => 
 export type CommandCallbackPermissionsFail = (context: InteractionContext, permissions: FailedPermissions) => Promise<any> | any;
 
 /**
- * @category InteractionCommand
- */
-export type CommandCallbackSuccess = (context: InteractionContext) => Promise<any> | any;
-
-/**
 * @category InteractionCommand
 */
 export type CommandCallbackRatelimit = (
@@ -85,6 +95,16 @@ export type CommandCallbackRun = (context: InteractionContext, args: ParsedArgs)
  */
 export type CommandCallbackRunError = (context: InteractionContext, args: ParsedArgs, error: any) => Promise<any> | any;
 
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackSuccess = (context: InteractionContext) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackValueError = (context: InteractionContext, args: ParsedArgs, errors: ParsedErrors) => Promise<any> | any;
+
 
 const ON_FUNCTION_NAMES = Object.freeze([
   'onDmBlocked',
@@ -100,6 +120,7 @@ const ON_FUNCTION_NAMES = Object.freeze([
   'run',
   'onRunError',
   'onSuccess',
+  'onValueError',
 ]);
 
 const SET_VARIABLE_NAMES = Object.freeze([
@@ -150,16 +171,19 @@ export interface InteractionCommandOptions {
   run?: CommandCallbackRun,
   onRunError?: CommandCallbackRunError,
   onSuccess?: CommandCallbackSuccess,
+  onValueError?: CommandCallbackValueError,
 }
 
 export interface InteractionCommandOptionOptions {
   _file?: string,
   choices?: Array<InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions>,
+  default?: ArgumentDefault,
   description?: string,
   name?: string,
   options?: Array<InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption>,
   required?: boolean,
   type?: ApplicationCommandOptionTypes | StringConstructor | BooleanConstructor | NumberConstructor | string,
+  value?: ArgumentConverter,
 
   disableDm?: boolean,
   metadata?: Record<string, any>,
@@ -184,6 +208,7 @@ export interface InteractionCommandOptionOptions {
   run?: CommandCallbackRun,
   onRunError?: CommandCallbackRunError,
   onSuccess?: CommandCallbackSuccess,
+  onValueError?: CommandCallbackValueError,
 }
 
 export interface InteractionCommandOptionChoiceOptions {
@@ -241,6 +266,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   run?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
   onRunError?(context: InteractionContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
   onSuccess?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
+  onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): Promise<any> | any;
 
   constructor(data: InteractionCommandOptions = {}) {
     super();
@@ -299,6 +325,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     this.run = data.run || this.run;
     this.onRunError = data.onRunError || this.onRunError;
     this.onSuccess = data.onSuccess || this.onSuccess;
+    this.onValueError = data.onValueError || this.onValueError;
 
     this.merge(data);
   }
@@ -380,7 +407,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     }
   }
 
-  getInvoker(data: InteractionDataApplicationCommand): this | InteractionCommandOption | null {
+  getInvoker(data: InteractionDataApplicationCommand): InteractionCommandInvoker | null {
     if (this.name === data.name) {
       if (data.options && data.options.some((option) => option.isSubCommand || option.isSubCommandGroup)) {
         return this.getInvokerOption(data.options);
@@ -470,6 +497,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   required?: boolean;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.STRING;
 
+  default?: ArgumentDefault;
   disableDm?: boolean;
   metadata: Record<string, any> = {};
   permissions?: Array<bigint>;
@@ -478,6 +506,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   ratelimits?: Array<CommandRatelimit>;
   triggerLoadingAfter?: number;
   triggerLoadingAsEphemeral?: boolean;
+  value?: ArgumentConverter;
 
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
   onLoadingTrigger?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
@@ -492,6 +521,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   run?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
   onRunError?(context: InteractionContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
   onSuccess?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
+  onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): Promise<any> | any;
 
   constructor(data: InteractionCommandOptionOptions = {}) {
     super();
@@ -524,6 +554,14 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
       }
     }
 
+    if (data.default !== undefined) {
+      this.default = data.default;
+    }
+
+    if (typeof(data.value) === 'function') {
+      this.value = data.value;
+    }
+
     if (data._file) {
       this._file = data._file;
     }
@@ -546,6 +584,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     this.run = data.run || this.run;
     this.onRunError = data.onRunError || this.onRunError;
     this.onSuccess = data.onSuccess || this.onSuccess;
+    this.onValueError = data.onValueError || this.onValueError;
 
     if (typeof(this.run) === 'function') {
       this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
