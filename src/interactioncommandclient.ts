@@ -460,9 +460,7 @@ export class InteractionCommandClient extends EventSpewer {
 
   async parseArgs(context: InteractionContext, data: InteractionDataApplicationCommand): Promise<[ParsedArgs, ParsedErrors | null]> {
     if (data.isSlashCommand) {
-      if (data.options) {
-        return this.parseArgsFromOptions(context, context.command._options, data.options, data.resolved);
-      }
+      return this.parseArgsFromOptions(context, context.command._options, data.options, data.resolved);
     } else if (data.isContextCommand) {
       return this.parseArgsFromContextMenu(data);
     }
@@ -493,75 +491,77 @@ export class InteractionCommandClient extends EventSpewer {
 
   async parseArgsFromOptions(
     context: InteractionContext,
-    commandOptions: BaseCollection<string, InteractionCommandOption> | undefined,
-    options: BaseCollection<string, InteractionDataApplicationCommandOption>,
+    commandOptions?: BaseCollection<string, InteractionCommandOption>,
+    options?: BaseCollection<string, InteractionDataApplicationCommandOption>,
     resolved?: InteractionDataApplicationCommandResolved,
   ): Promise<[ParsedArgs, ParsedErrors | null]> {
     const args: ParsedArgs = {};
     const errors: ParsedErrors = {};
 
     let hasError = false;
-    for (let [name, option] of options) {
-      let commandOption: InteractionCommandOption | undefined;
-      if (commandOptions && commandOptions.has(name)) {
-        commandOption = commandOptions.get(name)!;
-      }
-
-      if (option.options) {
-        const [ childArgs, childErrors ] = await this.parseArgsFromOptions(context, commandOption && commandOption._options, option.options, resolved);
-        Object.assign(args, childArgs);
-        if (childErrors) {
-          hasError = true;
-          Object.assign(errors, childErrors);
+    if (options) {
+      for (let [name, option] of options) {
+        let commandOption: InteractionCommandOption | undefined;
+        if (commandOptions && commandOptions.has(name)) {
+          commandOption = commandOptions.get(name)!;
         }
-      } else if (option.value !== undefined) {
-        let value: any = option.value;
-        if (resolved) {
-          switch (option.type) {
-            case ApplicationCommandOptionTypes.CHANNEL: {
-              if (resolved.channels) {
-                value = resolved.channels.get(value) || value;
-              }
-            }; break;
-            case ApplicationCommandOptionTypes.BOOLEAN: value = Boolean(value); break;
-            case ApplicationCommandOptionTypes.INTEGER: value = parseInt(value); break;
-            case ApplicationCommandOptionTypes.MENTIONABLE: {
-              if (resolved.roles && resolved.roles.has(value)) {
-                value = resolved.roles.get(value);
-              } else if (resolved.members && resolved.members.has(value)) {
-                value = resolved.members.get(value);
-              } else if (resolved.users && resolved.users.has(value)) {
-                value = resolved.users.get(value);
-              }
-            }; break;
-            case ApplicationCommandOptionTypes.ROLE: {
-              if (resolved.roles) {
-                value = resolved.roles.get(value) || value;
-              }
-            }; break;
-            case ApplicationCommandOptionTypes.USER: {
-              if (resolved.members) {
-                value = resolved.members.get(value) || value;
-              } else if (resolved.users) {
-                value = resolved.users.get(value) || value;
-              }
-            }; break;
+
+        if (option.options) {
+          const [ childArgs, childErrors ] = await this.parseArgsFromOptions(context, commandOption && commandOption._options, option.options, resolved);
+          Object.assign(args, childArgs);
+          if (childErrors) {
+            hasError = true;
+            Object.assign(errors, childErrors);
           }
-        }
+        } else if (option.value !== undefined) {
+          let value: any = option.value;
+          if (resolved) {
+            switch (option.type) {
+              case ApplicationCommandOptionTypes.CHANNEL: {
+                if (resolved.channels) {
+                  value = resolved.channels.get(value) || value;
+                }
+              }; break;
+              case ApplicationCommandOptionTypes.BOOLEAN: value = Boolean(value); break;
+              case ApplicationCommandOptionTypes.INTEGER: value = parseInt(value); break;
+              case ApplicationCommandOptionTypes.MENTIONABLE: {
+                if (resolved.roles && resolved.roles.has(value)) {
+                  value = resolved.roles.get(value);
+                } else if (resolved.members && resolved.members.has(value)) {
+                  value = resolved.members.get(value);
+                } else if (resolved.users && resolved.users.has(value)) {
+                  value = resolved.users.get(value);
+                }
+              }; break;
+              case ApplicationCommandOptionTypes.ROLE: {
+                if (resolved.roles) {
+                  value = resolved.roles.get(value) || value;
+                }
+              }; break;
+              case ApplicationCommandOptionTypes.USER: {
+                if (resolved.members) {
+                  value = resolved.members.get(value) || value;
+                } else if (resolved.users) {
+                  value = resolved.users.get(value) || value;
+                }
+              }; break;
+            }
+          }
 
-        if (commandOption) {
-          if (commandOption.value && typeof(commandOption.value) === 'function') {
-            try {
-              args[name] = await Promise.resolve(commandOption.value(value, context));
-            } catch(error) {
-              hasError = true;
-              errors[name] = error;
+          if (commandOption) {
+            if (commandOption.value && typeof(commandOption.value) === 'function') {
+              try {
+                args[name] = await Promise.resolve(commandOption.value(value, context));
+              } catch(error) {
+                hasError = true;
+                errors[name] = error;
+              }
+            } else {
+              args[name] = value;
             }
           } else {
             args[name] = value;
           }
-        } else {
-          args[name] = value;
         }
       }
     }
