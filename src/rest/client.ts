@@ -1304,12 +1304,8 @@ export class RestClient {
     updateCache: boolean = true,
   ): Promise<Message> {
     const listener = createComponentListenerOrNone(options);
-    if (listener || listener === false) {
-      // it'll be from `interaction.respond()` then `interaction.editResponse()`
-      this.client.gatewayHandler._componentHandler.delete(webhookId);
-    }
-
     const data = await this.raw.editWebhookTokenMessage(webhookId, webhookToken, messageId, options);
+
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
       message = this.client.messages.get(data.id)!;
@@ -1317,6 +1313,10 @@ export class RestClient {
     } else {
       message = new Message(this.client, data);
       this.client.messages.insert(message);
+    }
+
+    if (message.interaction) {
+      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, message.id);
     }
 
     if (listener || listener === false) {
@@ -2618,6 +2618,11 @@ export class RestClient {
       data.guild_id = guildId;
       message = new Message(this.client, data);
     }
+
+    if (message.interaction && message.components.length) {
+      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, messageId);
+    }
+
     return message;
   }
 

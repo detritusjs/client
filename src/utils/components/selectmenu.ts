@@ -46,7 +46,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
   type = MessageComponentTypes.SELECT_MENU;
 
   constructor(data: ComponentActionData = {}) {
-    super();
+    super(data);
     Object.assign(data, {
       [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
       [DiscordKeys.MAX_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MAX_VALUES]] || (data as any)[DiscordKeys.MAX_VALUES],

@@ -1324,9 +1324,12 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (message.interaction && this.client.interactions.has(message.interaction.id)) {
-      const interaction = this.client.interactions.get(message.interaction.id)!;
-      interaction.responseId = message.id;
+    if (message.interaction) {
+      if (this.client.interactions.has(message.interaction.id)) {
+        const interaction = this.client.interactions.get(message.interaction.id)!;
+        interaction.responseId = message.id;
+      }
+      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, message.id);
     }
 
     const payload: GatewayClientEvents.MessageCreate = {message, typing};

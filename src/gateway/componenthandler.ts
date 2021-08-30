@@ -13,6 +13,7 @@ export class ComponentHandler {
       const listener = this.listeners.get(listenerId)!;
       if (listener._timeout) {
         listener._timeout.stop();
+        listener._timeout = undefined;
       }
       return this.listeners.delete(listenerId);
     }
@@ -57,14 +58,7 @@ export class ComponentHandler {
   insert(listener: Components) {
     const listenerId = listener.id;
     if (listenerId) {
-      if (this.listeners.has(listenerId)) {
-        const oldListener = this.listeners.get(listenerId)!;
-        if (oldListener._timeout) {
-          oldListener._timeout.stop();
-        }
-        this.delete(listenerId);
-      }
-
+      this.delete(listenerId);
       if (listener.timeout) {
         const timeout = listener._timeout = new Timers.Timeout();
         timeout.start(listener.timeout, async () => {
@@ -83,6 +77,28 @@ export class ComponentHandler {
       }
 
       this.listeners.set(listenerId, listener);
+    }
+  }
+
+  // replace interactionId's listener with a messageId listener
+  replaceId(oldListenerId: string, newListenerId: string): void {
+    if (oldListenerId === newListenerId) {
+      return;
+    }
+
+    if (this.listeners.has(oldListenerId)) {
+      const listener = this.listeners.get(oldListenerId)!;
+      this.listeners.delete(oldListenerId);
+      if (this.listeners.has(newListenerId)) {
+        if (this.listeners.get(newListenerId) !== listener) {
+          if (listener._timeout) {
+            listener._timeout.stop();
+            listener._timeout = undefined;
+          }
+        }
+      } else {
+        this.listeners.set(newListenerId, listener);
+      }
     }
   }
 }

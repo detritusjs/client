@@ -39,7 +39,6 @@ const keysComponentActionBase = new BaseSet<string>([
 
 export class ComponentActionBase extends Structure {
   readonly _keys = keysComponentActionBase;
-  _customIdEncoded?: null | string;
 
   customId?: null | string;
   type: MessageComponentTypes = MessageComponentTypes.BUTTON;
@@ -52,7 +51,7 @@ export class ComponentActionBase extends Structure {
       (data as any)[DiscordKeys.CUSTOM_ID] = (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]];
     }
     this.run = data.run || this.run;
-    if (typeof(this.run) === 'function' && !(data as any)[DiscordKeys.CUSTOM_ID]) {
+    if (typeof(this.run) === 'function' && !((data as any)[DiscordKeys.CUSTOM_ID] || this.customId)) {
       (data as any)[DiscordKeys.CUSTOM_ID] = Snowflake.generate().id;
     }
     this.merge(data);
