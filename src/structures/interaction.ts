@@ -152,6 +152,13 @@ export class Interaction extends BaseStructure {
   ) {
     this.responded = true;
     try {
+      if (this.isFromMessageComponent) {
+        const toAssignData = (typeof(options) === 'object') ? options.data || data : data;
+        if (typeof(toAssignData) === 'object' && toAssignData.components) {
+          const listenerId = (this.message) ? this.message.id : '';
+          Object.assign(toAssignData, {listenerId});
+        }
+      }
       return await this.client.rest.createInteractionResponse(this.id, this.token, options, data);
     } catch(error) {
       this.responded = false;

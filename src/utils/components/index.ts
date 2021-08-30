@@ -15,22 +15,28 @@ export * from './selectmenu';
 
 export interface CreateComponentListenerOrNone {
   components?: Components | Array<RequestTypes.CreateChannelMessageComponent | RequestTypes.toJSON<RequestTypes.RawChannelMessageComponent>> | RequestTypes.toJSON<Array<RequestTypes.RawChannelMessageComponent>>,
+  listenerId?: string,
 }
 
 // returns false when none of the components need to be hooked
 export function createComponentListenerOrNone(
   options?: CreateComponentListenerOrNone | string,
   id?: string,
-): Components | null | false {
+): null | [string, Components | null] {
   if (!options || typeof(options) !== 'object' || !options.components) {
     return null;
   }
+  id = options.listenerId || id;
+  console.log('listenerId', id);
+
   if (options.components instanceof Components) {
+    id = options.components.id || id;
     if (!options.components.components.length) {
-      return false;
+      return [id || '', null];
     }
-    options.components.id = id || options.components.id;
-    return options.components;
+
+    options.components.id = id;
+    return [id || '', options.components];
   } else {
     if (Array.isArray(options.components) && options.components.length) {
       const actionRows = options.components.map((component: any) => {
@@ -42,9 +48,9 @@ export function createComponentListenerOrNone(
         return null;
       }).filter((x) => x) as Array<ComponentActionRow>;
       if (actionRows.length && actionRows.some((row) => row.hasRun)) {
-        return new Components({components: actionRows, id});
+        return [id || '', new Components({components: actionRows, id})];
       }
     }
   }
-  return false;
+  return ['', null];
 }

@@ -1229,6 +1229,10 @@ export class GatewayDispatchHandler {
     const interaction = new Interaction(this.client, data);
     this.client.interactions.insert(interaction);
 
+    if (interaction.message && interaction.message.interaction) {
+      this.handler._componentHandler.replaceId(interaction.message.interaction.id, interaction.message.id);
+    }
+
     const payload: GatewayClientEvents.InteractionCreate = {_raw: data, interaction};
     this.client.emit(ClientEvents.INTERACTION_CREATE, payload);
 
@@ -1329,7 +1333,7 @@ export class GatewayDispatchHandler {
         const interaction = this.client.interactions.get(message.interaction.id)!;
         interaction.responseId = message.id;
       }
-      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, message.id);
+      this.handler._componentHandler.replaceId(message.interaction.id, message.id);
     }
 
     const payload: GatewayClientEvents.MessageCreate = {message, typing};

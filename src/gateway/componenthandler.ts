@@ -62,8 +62,12 @@ export class ComponentHandler {
       if (listener.timeout) {
         const timeout = listener._timeout = new Timers.Timeout();
         timeout.start(listener.timeout, async () => {
-          if (this.listeners.get(listenerId) === listener) {
-            this.delete(listenerId);
+          if (!listener.id) {
+            return;
+          }
+
+          if (this.listeners.get(listener.id) === listener) {
+            this.delete(listener.id);
 
             try {
               if (typeof(listener.onTimeout) === 'function') {
@@ -88,6 +92,8 @@ export class ComponentHandler {
 
     if (this.listeners.has(oldListenerId)) {
       const listener = this.listeners.get(oldListenerId)!;
+      listener.id = newListenerId;
+
       this.listeners.delete(oldListenerId);
       if (this.listeners.has(newListenerId)) {
         if (this.listeners.get(newListenerId) !== listener) {
