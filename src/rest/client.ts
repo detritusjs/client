@@ -1331,6 +1331,7 @@ export class RestClient {
 
       const listenerId = lId || message.id;
       if (listener) {
+        listener.id = listenerId;
         this.client.gatewayHandler._componentHandler.insert(listener);
       } else {
         this.client.gatewayHandler._componentHandler.delete(listenerId);

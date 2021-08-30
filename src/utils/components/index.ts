@@ -27,7 +27,6 @@ export function createComponentListenerOrNone(
     return null;
   }
   id = options.listenerId || id;
-  console.log('listenerId', id);
 
   if (options.components instanceof Components) {
     id = options.components.id || id;
