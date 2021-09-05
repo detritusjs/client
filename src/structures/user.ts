@@ -307,26 +307,24 @@ export class UserWithToken extends User {
 }
 
 
-const keysUserWithFlags = new BaseSet<string>([
-  ...keysUser,
-  DiscordKeys.BANNER,
-  DiscordKeys.BANNER_COLOR,
-  DiscordKeys.BIO,
-  DiscordKeys.FLAGS,
-]);
-
 /**
- * User with Flags Structure
- * used to describe someone's badges, you get them from me/profile/team owner
+ * User with Banner Structure
+ * Gotten from fetching `/users/:userId`
  * @category Structure
  */
-export class UserWithFlags extends User {
-  readonly _keys = keysUserWithFlags;
+const keysUserWithBanner = new BaseSet<string>([
+  ...keysUser,
+  DiscordKeys.ACCENT_COLOR,
+  DiscordKeys.BANNER,
+  DiscordKeys.BANNER_COLOR,
+]);
 
+export class UserWithBanner extends User {
+  readonly _keys = keysUserWithBanner;
+
+  accentColor: number | null = null;
   banner: null | string = null;
   bannerColor: null | string = null;
-  bio: null | string = null;
-  flags: number = 0;
 
   constructor(
     client: ShardClient,
@@ -348,6 +346,34 @@ export class UserWithFlags extends User {
     const hash = this.banner;
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.BANNER(this.id, hash, format), query);
+  }
+}
+
+
+const keysUserWithFlags = new BaseSet<string>([
+  ...keysUserWithBanner,
+  DiscordKeys.BIO,
+  DiscordKeys.FLAGS,
+]);
+
+/**
+ * User with Flags Structure
+ * used to describe someone's badges, you get them from me/profile/team owner
+ * @category Structure
+ */
+export class UserWithFlags extends UserWithBanner {
+  readonly _keys = keysUserWithFlags;
+
+  bio: null | string = null;
+  flags: number = 0;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 
   hasFlag(flag: number): boolean {

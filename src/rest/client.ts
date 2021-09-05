@@ -46,6 +46,7 @@ import {
   ThreadMember,
   User,
   UserMe,
+  UserWithBanner,
   VoiceRegion,
   Webhook,
   createChannelFromData,
@@ -2535,16 +2536,12 @@ export class RestClient {
 
   async fetchUser(
     userId: string,
-  ): Promise<User> {
+  ): Promise<UserWithBanner> {
     const data = await this.raw.fetchUser(userId);
-    let user: User;
     if (this.client.users.has(data.id)) {
-      user = this.client.users.get(data.id)!;
-      user.merge(data);
-    } else {
-      user = new User(this.client, data);
+      this.client.users.get(data.id)!.merge(data);
     }
-    return user;
+    return new UserWithBanner(this.client, data);
   }
 
   fetchUserActivityMetadata(

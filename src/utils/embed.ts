@@ -136,7 +136,7 @@ export class Embed extends Structure {
 
   setTimestamp(timestamp: Date | number | string = Date.now()): Embed {
     if (typeof(timestamp) === 'number') {
-      timestamp = new Date(timestamp)
+      timestamp = new Date(timestamp);
     }
     if (timestamp instanceof Date) {
       timestamp = String(timestamp);
