@@ -573,11 +573,11 @@ export class InteractionCommandClient extends EventSpewer {
           } else {
             args[label] = value;
           }
+        } else if (commandOption && commandOption._options) {
+          hasError = (await this.parseDefaultArgsFromOptions(context, commandOption._options, args, errors)) || hasError;
         }
       }
-    }
-
-    if (commandOptions) {
+    } else if (commandOptions) {
       hasError = (await this.parseDefaultArgsFromOptions(context, commandOptions, args, errors)) || hasError;
     }
 
