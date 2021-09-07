@@ -80,6 +80,11 @@ import {
 import { Components, ComponentActionRow, ComponentActionRowData } from './utils';
 
 
+export interface VoiceConnectObject {
+  connection: VoiceConnection,
+  isNew: boolean,
+}
+
 interface GatewayOptions extends Gateway.SocketOptions, GatewayHandlerOptions {
 
 }
@@ -570,10 +575,7 @@ export class ShardClient extends EventSpewer {
     guildId?: null | string,
     channelId?: null | string,
     options: VoiceConnectOptions = {},
-  ): Promise<{
-    connection: VoiceConnection,
-    isNew: boolean,
-  } | null> {
+  ): Promise<VoiceConnectObject | null> {
     options.selfDeaf = options.selfDeaf || options.deaf;
     options.selfMute = options.selfMute || options.mute;
     const gateway = await this.gateway.voiceConnect(guildId, channelId, options);
