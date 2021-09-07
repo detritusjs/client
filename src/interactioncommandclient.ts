@@ -568,7 +568,23 @@ export class InteractionCommandClient extends EventSpewer {
     }
 
     if (commandOptions) {
-      for (let [name, commandOption] of commandOptions) {
+      hasError = (await this.parseDefaultArgsFromOptions(context, commandOptions, args, errors)) || hasError;
+    }
+
+    return [args, (hasError) ? errors : null];
+  }
+
+  async parseDefaultArgsFromOptions(
+    context: InteractionContext,
+    commandOptions: BaseCollection<string, InteractionCommandOption>,
+    args: ParsedArgs = {},
+    errors: ParsedErrors = {},
+  ): Promise<boolean> {
+    let hasError = false;
+    for (let [name, commandOption] of commandOptions) {
+      if (commandOption._options) {
+        hasError = (await this.parseDefaultArgsFromOptions(context, commandOption._options, args, errors)) || hasError;
+      } else {
         if (commandOption.default !== undefined && !(name in args) && !(name in errors)) {
           const label = commandOption.label || name;
           if (typeof(commandOption.default) === 'function') {
@@ -584,8 +600,7 @@ export class InteractionCommandClient extends EventSpewer {
         }
       }
     }
-
-    return [args, (hasError) ? errors : null];
+    return hasError;
   }
 
   setSubscriptions(): void {
