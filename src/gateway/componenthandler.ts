@@ -29,13 +29,18 @@ export class ComponentHandler {
 
     const listener = this.listeners.get(message.interaction?.id || message.id) || this.listeners.get(message.id);
     if (listener) {
+      const context = new ComponentContext(interaction);
       try {
         if (typeof(listener.run) === 'function') {
           const context = new ComponentContext(interaction);
           await Promise.resolve(listener.run(context));
         }
       } catch(error) {
-
+        try {
+          if (typeof(listener.onError) === 'function') {
+            await Promise.resolve(listener.onError(context, error));
+          }
+        } catch(e) {}
       }
 
       for (let actionRow of listener.components) {
@@ -43,11 +48,19 @@ export class ComponentHandler {
         if (component) {
           try {
             if (typeof(component.run) === 'function') {
-              const context = new ComponentContext(interaction);
               await Promise.resolve(component.run(context));
             }
           } catch(error) {
-
+            try {
+              if (typeof(component.onError) === 'function') {
+                await Promise.resolve(component.onError(context, error));
+              }
+            } catch(e) {}
+            try {
+              if (typeof(listener.onError) === 'function') {
+                await Promise.resolve(listener.onError(context, error));
+              }
+            } catch(e) {}
           }
           break;
         }

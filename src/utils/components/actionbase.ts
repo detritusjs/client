@@ -6,7 +6,7 @@ import { DetritusKeys, DiscordKeys, MessageComponentTypes } from '../../constant
 import { Structure } from '../../structures/basestructure';
 import { Emoji } from '../../structures/emoji';
 
-import { ComponentRun } from './components';
+import { ComponentOnError, ComponentRun } from './components';
 import { ComponentContext } from './context';
 import { ComponentSelectMenuOptionData } from './selectmenu';
 
@@ -30,6 +30,7 @@ export interface ComponentActionData {
   url?: string,
 
   run?: ComponentRun,
+  onError?: ComponentOnError,
 }
 
 const keysComponentActionBase = new BaseSet<string>([
@@ -44,6 +45,7 @@ export class ComponentActionBase extends Structure {
   type: MessageComponentTypes = MessageComponentTypes.BUTTON;
 
   run?(context: ComponentContext): Promise<any> | any;
+  onError?(context: ComponentContext, error: Error): Promise<any> | any;
 
   constructor(data: ComponentActionData = {}) {
     super();
@@ -51,6 +53,7 @@ export class ComponentActionBase extends Structure {
       (data as any)[DiscordKeys.CUSTOM_ID] = (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]];
     }
     this.run = data.run || this.run;
+    this.onError = data.onError || this.onError;
     if (!(data as any)[DiscordKeys.CUSTOM_ID] && !this.customId) {
       (data as any)[DiscordKeys.CUSTOM_ID] = Snowflake.generate().id;
     }
