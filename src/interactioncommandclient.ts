@@ -508,6 +508,53 @@ export class InteractionCommandClient extends EventSpewer {
     const args: ParsedArgs = {};
     const errors: ParsedErrors = {};
 
+    /*
+      We will get data like this
+      {
+        id: '',
+        name: '',
+        options: [
+          {
+            name: '',
+            options: [
+              {
+                name: '',
+                options: [
+                  {name: '', type: int, value: any},
+                ],
+                type: 1,
+              }
+            ],
+            type: 2,
+          },
+        ],
+        type: 1,
+      }
+      {
+        id: '',
+        name: '',
+        options: [
+          {
+            name: '',
+            options: [
+              {
+                name: '',
+                type: 1,
+              }
+            ],
+            type: 2,
+          },
+        ],
+        type: 1,
+      }
+      {
+        id: '',
+        name: '',
+        type: 1,
+      }
+      Non-required options wont be there so we must look through our command and fill out the defaults
+    */
+
     let hasError = false;
     if (options) {
       for (let [name, option] of options) {
@@ -577,7 +624,9 @@ export class InteractionCommandClient extends EventSpewer {
           hasError = (await this.parseDefaultArgsFromOptions(context, commandOption._options, args, errors)) || hasError;
         }
       }
-    } else if (commandOptions) {
+    }
+
+    if (commandOptions) {
       hasError = (await this.parseDefaultArgsFromOptions(context, commandOptions, args, errors)) || hasError;
     }
 
@@ -592,21 +641,21 @@ export class InteractionCommandClient extends EventSpewer {
   ): Promise<boolean> {
     let hasError = false;
     for (let [name, commandOption] of commandOptions) {
-      if (commandOption._options) {
-        hasError = (await this.parseDefaultArgsFromOptions(context, commandOption._options, args, errors)) || hasError;
-      } else {
-        if (commandOption.default !== undefined && !(name in args) && !(name in errors)) {
-          const label = commandOption.label || name;
-          if (typeof(commandOption.default) === 'function') {
-            try {
-              args[label] = await Promise.resolve(commandOption.default(context));
-            } catch(error) {
-              hasError = true;
-              errors[label] = error;
-            }
-          } else {
-            args[label] = commandOption.default;
+      if (commandOption.isSubCommand || commandOption.isSubCommandGroup) {
+        continue;
+      }
+
+      if (commandOption.default !== undefined && !(name in args) && !(name in errors)) {
+        const label = commandOption.label || name;
+        if (typeof(commandOption.default) === 'function') {
+          try {
+            args[label] = await Promise.resolve(commandOption.default(context));
+          } catch(error) {
+            hasError = true;
+            errors[label] = error;
           }
+        } else {
+          args[label] = commandOption.default;
         }
       }
     }
