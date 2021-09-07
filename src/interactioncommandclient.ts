@@ -64,11 +64,15 @@ export interface InteractionCommandClientOptions extends ClusterClientOptions {
   useClusterClient?: boolean,
 
   onCommandCheck?: InteractionCommandClientCommandCheck,
+  onCommandCancel?: InteractionCommandClientCommandCancel,
   onInteractionCheck?: InteractionCommandClientInteractionCheck,
+  onInteractionCancel?: InteractionCommandClientInteractionCancel,
 }
 
-export type InteractionCommandClientCommandCheck = (context: InteractionContext, command: InteractionCommand) => boolean | Promise<boolean>;
-export type InteractionCommandClientInteractionCheck = (context: InteractionContext) => boolean | Promise<boolean>;
+export type InteractionCommandClientCommandCheck = (context: InteractionContext, command: InteractionCommand) => Promise<boolean> | boolean;
+export type InteractionCommandClientCommandCancel = (context: InteractionContext, command: InteractionCommand) => Promise<any> | any;
+export type InteractionCommandClientInteractionCheck = (context: InteractionContext) => Promise<boolean> | boolean;
+export type InteractionCommandClientInteractionCancel = (context: InteractionContext) => Promise<any> | any;
 
 export interface InteractionCommandClientAddOptions extends InteractionCommandOptions {
   _class?: any,
@@ -97,8 +101,10 @@ export class InteractionCommandClient extends EventSpewer {
   ratelimiter: CommandRatelimiter;
   strictCommandCheck: boolean = true;
 
-  onCommandCheck?(context: InteractionContext, command: InteractionCommand): boolean | Promise<boolean>;
-  onInteractionCheck?(context: InteractionContext): boolean | Promise<boolean>;
+  onCommandCheck?(context: InteractionContext, command: InteractionCommand): Promise<boolean> | boolean;
+  onCommandCancel?(context: InteractionContext, command: InteractionCommand): Promise<any> | any;
+  onInteractionCheck?(context: InteractionContext): Promise<boolean> | boolean;
+  onInteractionCancel?(context: InteractionContext): Promise<any> | any;
 
   constructor(
     token: ClusterClient | CommandClient | ShardClient | string,
@@ -112,7 +118,9 @@ export class InteractionCommandClient extends EventSpewer {
     this.strictCommandCheck = (options.strictCommandCheck || options.strictCommandCheck === undefined);
   
     this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
+    this.onCommandCancel = options.onCommandCancel || this.onCommandCancel;
     this.onInteractionCheck = options.onInteractionCheck || this.onInteractionCheck;
+    this.onInteractionCancel = options.onInteractionCancel || this.onInteractionCancel;
 
     if (token instanceof CommandClient) {
       token = token.client;
@@ -171,7 +179,9 @@ export class InteractionCommandClient extends EventSpewer {
       ran: {configurable: true, writable: false},
 
       onCommandCheck: {enumerable: false, writable: true},
+      onCommandCancel: {enumerable: false, writable: true},
       onInteractionCheck: {enumerable: false, writable: true},
+      onInteractionCancel: {enumerable: false, writable: true},
     });
   }
 
@@ -681,7 +691,10 @@ export class InteractionCommandClient extends EventSpewer {
       try {
         const shouldContinue = await Promise.resolve(this.onInteractionCheck(context));
         if (!shouldContinue) {
-          return;
+          if (typeof(this.onInteractionCancel) === 'function') {
+            return await Promise.resolve(this.onInteractionCancel(context));
+          }
+          return
         }
       } catch(error) {
         const payload: InteractionCommandEvents.CommandError = {command, context, error};
@@ -694,6 +707,9 @@ export class InteractionCommandClient extends EventSpewer {
       try {
         const shouldContinue = await Promise.resolve(this.onCommandCheck(context, command));
         if (!shouldContinue) {
+          if (typeof(this.onCommandCancel) === 'function') {
+            return await Promise.resolve(this.onCommandCancel(context, command));
+          }
           return;
         }
       } catch(error) {
