@@ -150,9 +150,20 @@ export class Interaction extends BaseStructure {
     options: RequestTypes.CreateInteractionResponse | number,
     data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
   ) {
-    const response = await this.client.rest.createInteractionResponse(this.id, this.token, options, data);
     this.responded = true;
-    return response;
+    try {
+      if (this.isFromMessageComponent) {
+        const toAssignData = (typeof(options) === 'object') ? options.data || data : data;
+        if (typeof(toAssignData) === 'object' && toAssignData.components) {
+          const listenerId = (this.message) ? this.message.id : '';
+          Object.assign(toAssignData, {listenerId});
+        }
+      }
+      return await this.client.rest.createInteractionResponse(this.id, this.token, options, data);
+    } catch(error) {
+      this.responded = false;
+      throw error;
+    }
   }
 
   deleteMessage(messageId: string) {

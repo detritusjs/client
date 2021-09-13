@@ -14,6 +14,7 @@ import { ComponentSelectMenu } from './selectmenu';
 
 export type ComponentOnTimeout = () => Promise<any> | any;
 export type ComponentRun = (context: ComponentContext) => Promise<any> | any;
+export type ComponentOnError = (context: ComponentContext, error: Error) => Promise<any> | any;
 
 
 export interface ComponentsOptions {
@@ -23,6 +24,7 @@ export interface ComponentsOptions {
 
   onTimeout?: ComponentOnTimeout,
   run?: ComponentRun,
+  onError?: ComponentOnError,
 }
 
 const keysComponents = new BaseSet<string>([
@@ -45,11 +47,13 @@ export class Components extends Structure {
 
   onTimeout?(): Promise<any> | any;
   run?(context: ComponentContext): Promise<any> | any;
+  onError?(context: ComponentContext, error: Error): Promise<any> | any;
 
   constructor(data: ComponentsOptions = {}) {
     super();
     this.merge(data);
     this.run = data.run || this.run;
+    this.onError = data.onError || this.onError;
     this.onTimeout = data.onTimeout || this.onTimeout;
   }
 

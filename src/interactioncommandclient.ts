@@ -45,8 +45,10 @@ import {
 import {
   CommandCallbackRun,
   ParsedArgs,
+  ParsedErrors,
   InteractionCommand,
   InteractionCommandEvents,
+  InteractionCommandOption,
   InteractionCommandOptions,
   InteractionContext,
 } from './interaction';
@@ -62,11 +64,15 @@ export interface InteractionCommandClientOptions extends ClusterClientOptions {
   useClusterClient?: boolean,
 
   onCommandCheck?: InteractionCommandClientCommandCheck,
+  onCommandCancel?: InteractionCommandClientCommandCancel,
   onInteractionCheck?: InteractionCommandClientInteractionCheck,
+  onInteractionCancel?: InteractionCommandClientInteractionCancel,
 }
 
-export type InteractionCommandClientCommandCheck = (context: InteractionContext, command: InteractionCommand) => boolean | Promise<boolean>;
-export type InteractionCommandClientInteractionCheck = (context: InteractionContext) => boolean | Promise<boolean>;
+export type InteractionCommandClientCommandCheck = (context: InteractionContext, command: InteractionCommand) => Promise<boolean> | boolean;
+export type InteractionCommandClientCommandCancel = (context: InteractionContext, command: InteractionCommand) => Promise<any> | any;
+export type InteractionCommandClientInteractionCheck = (context: InteractionContext) => Promise<boolean> | boolean;
+export type InteractionCommandClientInteractionCancel = (context: InteractionContext) => Promise<any> | any;
 
 export interface InteractionCommandClientAddOptions extends InteractionCommandOptions {
   _class?: any,
@@ -95,8 +101,10 @@ export class InteractionCommandClient extends EventSpewer {
   ratelimiter: CommandRatelimiter;
   strictCommandCheck: boolean = true;
 
-  onCommandCheck?(context: InteractionContext, command: InteractionCommand): boolean | Promise<boolean>;
-  onInteractionCheck?(context: InteractionContext): boolean | Promise<boolean>;
+  onCommandCheck?(context: InteractionContext, command: InteractionCommand): Promise<boolean> | boolean;
+  onCommandCancel?(context: InteractionContext, command: InteractionCommand): Promise<any> | any;
+  onInteractionCheck?(context: InteractionContext): Promise<boolean> | boolean;
+  onInteractionCancel?(context: InteractionContext): Promise<any> | any;
 
   constructor(
     token: ClusterClient | CommandClient | ShardClient | string,
@@ -110,7 +118,9 @@ export class InteractionCommandClient extends EventSpewer {
     this.strictCommandCheck = (options.strictCommandCheck || options.strictCommandCheck === undefined);
   
     this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
+    this.onCommandCancel = options.onCommandCancel || this.onCommandCancel;
     this.onInteractionCheck = options.onInteractionCheck || this.onInteractionCheck;
+    this.onInteractionCancel = options.onInteractionCancel || this.onInteractionCancel;
 
     if (token instanceof CommandClient) {
       token = token.client;
@@ -169,7 +179,9 @@ export class InteractionCommandClient extends EventSpewer {
       ran: {configurable: true, writable: false},
 
       onCommandCheck: {enumerable: false, writable: true},
+      onCommandCancel: {enumerable: false, writable: true},
       onInteractionCheck: {enumerable: false, writable: true},
+      onInteractionCancel: {enumerable: false, writable: true},
     });
   }
 
@@ -456,18 +468,16 @@ export class InteractionCommandClient extends EventSpewer {
   }
   /* end */
 
-  parseArgs(data: InteractionDataApplicationCommand): ParsedArgs {
+  async parseArgs(context: InteractionContext, data: InteractionDataApplicationCommand): Promise<[ParsedArgs, ParsedErrors | null]> {
     if (data.isSlashCommand) {
-      if (data.options) {
-        return this.parseArgsFromOptions(data.options, data.resolved);
-      }
+      return this.parseArgsFromOptions(context, context.command._options, data.options, data.resolved);
     } else if (data.isContextCommand) {
       return this.parseArgsFromContextMenu(data);
     }
-    return {};
+    return [{}, null];
   }
 
-  parseArgsFromContextMenu(data: InteractionDataApplicationCommand): ParsedArgs {
+  async parseArgsFromContextMenu(data: InteractionDataApplicationCommand): Promise<[ParsedArgs, null]> {
     const args: ParsedArgs = {};
     if (data.targetId && data.resolved) {
       switch (data.type) {
@@ -486,55 +496,170 @@ export class InteractionCommandClient extends EventSpewer {
         }; break;
       }
     }
-    return args;
+    return [args, null];
   }
 
-  parseArgsFromOptions(
-    options: BaseCollection<string, InteractionDataApplicationCommandOption>,
+  async parseArgsFromOptions(
+    context: InteractionContext,
+    commandOptions?: BaseCollection<string, InteractionCommandOption>,
+    options?: BaseCollection<string, InteractionDataApplicationCommandOption>,
     resolved?: InteractionDataApplicationCommandResolved,
-  ): ParsedArgs {
+  ): Promise<[ParsedArgs, ParsedErrors | null]> {
     const args: ParsedArgs = {};
-    for (let [name, option] of options) {
-      if (option.options) {
-        Object.assign(args, this.parseArgsFromOptions(option.options, resolved));
-      } else if (option.value !== undefined) {
-        let value: any = option.value;
-        if (resolved) {
-          switch (option.type) {
-            case ApplicationCommandOptionTypes.CHANNEL: {
-              if (resolved.channels) {
-                value = resolved.channels.get(value) || value;
+    const errors: ParsedErrors = {};
+
+    /*
+      We will get data like this
+      {
+        id: '',
+        name: '',
+        options: [
+          {
+            name: '',
+            options: [
+              {
+                name: '',
+                options: [
+                  {name: '', type: int, value: any},
+                ],
+                type: 1,
               }
-            }; break;
-            case ApplicationCommandOptionTypes.BOOLEAN: value = Boolean(value); break;
-            case ApplicationCommandOptionTypes.INTEGER: value = parseInt(value); break;
-            case ApplicationCommandOptionTypes.MENTIONABLE: {
-              if (resolved.roles && resolved.roles.has(value)) {
-                value = resolved.roles.get(value);
-              } else if (resolved.members && resolved.members.has(value)) {
-                value = resolved.members.get(value);
-              } else if (resolved.users && resolved.users.has(value)) {
-                value = resolved.users.get(value);
+            ],
+            type: 2,
+          },
+        ],
+        type: 1,
+      }
+      {
+        id: '',
+        name: '',
+        options: [
+          {
+            name: '',
+            options: [
+              {
+                name: '',
+                type: 1,
               }
-            }; break;
-            case ApplicationCommandOptionTypes.ROLE: {
-              if (resolved.roles) {
-                value = resolved.roles.get(value) || value;
-              }
-            }; break;
-            case ApplicationCommandOptionTypes.USER: {
-              if (resolved.members) {
-                value = resolved.members.get(value) || value;
-              } else if (resolved.users) {
-                value = resolved.users.get(value) || value;
-              }
-            }; break;
-          }
+            ],
+            type: 2,
+          },
+        ],
+        type: 1,
+      }
+      {
+        id: '',
+        name: '',
+        type: 1,
+      }
+      Non-required options wont be there so we must look through our command and fill out the defaults
+    */
+
+    let hasError = false;
+    if (options) {
+      for (let [name, option] of options) {
+        let commandOption: InteractionCommandOption | undefined;
+        if (commandOptions && commandOptions.has(name)) {
+          commandOption = commandOptions.get(name)!;
         }
-        args[name] = value;
+
+        if (option.options) {
+          const [ childArgs, childErrors ] = await this.parseArgsFromOptions(context, commandOption && commandOption._options, option.options, resolved);
+          Object.assign(args, childArgs);
+          if (childErrors) {
+            hasError = true;
+            Object.assign(errors, childErrors);
+          }
+        } else if (option.value !== undefined) {
+          let value: any = option.value;
+          if (resolved) {
+            switch (option.type) {
+              case ApplicationCommandOptionTypes.CHANNEL: {
+                if (resolved.channels) {
+                  value = resolved.channels.get(value) || value;
+                }
+              }; break;
+              case ApplicationCommandOptionTypes.BOOLEAN: value = Boolean(value); break;
+              case ApplicationCommandOptionTypes.INTEGER: value = parseInt(value); break;
+              case ApplicationCommandOptionTypes.MENTIONABLE: {
+                if (resolved.roles && resolved.roles.has(value)) {
+                  value = resolved.roles.get(value);
+                } else if (resolved.members && resolved.members.has(value)) {
+                  value = resolved.members.get(value);
+                } else if (resolved.users && resolved.users.has(value)) {
+                  value = resolved.users.get(value);
+                }
+              }; break;
+              case ApplicationCommandOptionTypes.ROLE: {
+                if (resolved.roles) {
+                  value = resolved.roles.get(value) || value;
+                }
+              }; break;
+              case ApplicationCommandOptionTypes.USER: {
+                if (resolved.members) {
+                  value = resolved.members.get(value) || value;
+                } else if (resolved.users) {
+                  value = resolved.users.get(value) || value;
+                }
+              }; break;
+            }
+          }
+
+          const label = (commandOption) ? commandOption.label || name : name;
+          if (commandOption) {
+            if (commandOption.value && typeof(commandOption.value) === 'function') {
+              try {
+                args[label] = await Promise.resolve(commandOption.value(value, context));
+              } catch(error) {
+                hasError = true;
+                errors[label] = error;
+              }
+            } else {
+              args[label] = value;
+            }
+          } else {
+            args[label] = value;
+          }
+        } else if (commandOption && commandOption._options) {
+          hasError = (await this.parseDefaultArgsFromOptions(context, commandOption._options, args, errors)) || hasError;
+        }
       }
     }
-    return args;
+
+    if (commandOptions) {
+      hasError = (await this.parseDefaultArgsFromOptions(context, commandOptions, args, errors)) || hasError;
+    }
+
+    return [args, (hasError) ? errors : null];
+  }
+
+  async parseDefaultArgsFromOptions(
+    context: InteractionContext,
+    commandOptions: BaseCollection<string, InteractionCommandOption>,
+    args: ParsedArgs = {},
+    errors: ParsedErrors = {},
+  ): Promise<boolean> {
+    let hasError = false;
+    for (let [name, commandOption] of commandOptions) {
+      if (commandOption.isSubCommand || commandOption.isSubCommandGroup) {
+        continue;
+      }
+
+      const label = commandOption.label || name;
+      if (commandOption.default !== undefined && !(label in args) && !(label in errors)) {
+        if (typeof(commandOption.default) === 'function') {
+          try {
+            args[label] = await Promise.resolve(commandOption.default(context));
+          } catch(error) {
+            hasError = true;
+            errors[label] = error;
+          }
+        } else {
+          args[label] = commandOption.default;
+        }
+      }
+    }
+    return hasError;
   }
 
   setSubscriptions(): void {
@@ -600,9 +725,11 @@ export class InteractionCommandClient extends EventSpewer {
         }
       }
     }
+
     if (!command) {
       return;
     }
+
     const invoker = command.getInvoker(data);
     if (!invoker) {
       return;
@@ -613,7 +740,10 @@ export class InteractionCommandClient extends EventSpewer {
       try {
         const shouldContinue = await Promise.resolve(this.onInteractionCheck(context));
         if (!shouldContinue) {
-          return;
+          if (typeof(this.onInteractionCancel) === 'function') {
+            return await Promise.resolve(this.onInteractionCancel(context));
+          }
+          return
         }
       } catch(error) {
         const payload: InteractionCommandEvents.CommandError = {command, context, error};
@@ -626,6 +756,9 @@ export class InteractionCommandClient extends EventSpewer {
       try {
         const shouldContinue = await Promise.resolve(this.onCommandCheck(context, command));
         if (!shouldContinue) {
+          if (typeof(this.onCommandCancel) === 'function') {
+            return await Promise.resolve(this.onCommandCancel(context, command));
+          }
           return;
         }
       } catch(error) {
@@ -785,20 +918,9 @@ export class InteractionCommandClient extends EventSpewer {
         return;
       }
     }
-
-    const args = this.parseArgs(data);
+  
+    let timeout: Timers.Timeout | null = null;
     try {
-      if (typeof(invoker.onBeforeRun) === 'function') {
-        const shouldRun = await Promise.resolve(invoker.onBeforeRun(context, args));
-        if (!shouldRun) {
-          if (typeof(invoker.onCancelRun) === 'function') {
-            await Promise.resolve(invoker.onCancelRun(context, args));
-          }
-          return;
-        }
-      }
-
-      let timeout: Timers.Timeout | null = null;
       if (invoker.triggerLoadingAfter !== undefined && 0 <= invoker.triggerLoadingAfter && !context.responded) {
         let data: RequestTypes.CreateInteractionResponseInnerPayload | undefined;
         if (invoker.triggerLoadingAsEphemeral) {
@@ -811,7 +933,7 @@ export class InteractionCommandClient extends EventSpewer {
             if (!context.responded) {
               try {
                 if (typeof(invoker.onLoadingTrigger) === 'function') {
-                  await Promise.resolve(invoker.onLoadingTrigger(context, args));
+                  await Promise.resolve(invoker.onLoadingTrigger(context));
                 } else {
                   await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
                 }
@@ -822,10 +944,36 @@ export class InteractionCommandClient extends EventSpewer {
           });
         } else {
           if (typeof(invoker.onLoadingTrigger) === 'function') {
-            await Promise.resolve(invoker.onLoadingTrigger(context, args));
+            await Promise.resolve(invoker.onLoadingTrigger(context));
           } else {
             await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
           }
+        }
+      }
+    } catch(error) {
+      // 404 interaction unknown most likely, do nothing
+    }
+
+    const [args, errors] = await this.parseArgs(context, data);
+    try {
+      if (errors) {
+        if (typeof(invoker.onValueError) === 'function') {
+          await Promise.resolve(invoker.onValueError(context, args, errors));
+        }
+
+        const error = new Error('Command errored out while converting args');
+        const payload: InteractionCommandEvents.CommandError = {command, context, error, extra: errors};
+        this.emit(ClientEvents.COMMAND_ERROR, payload);
+        return;
+      }
+
+      if (typeof(invoker.onBeforeRun) === 'function') {
+        const shouldRun = await Promise.resolve(invoker.onBeforeRun(context, args));
+        if (!shouldRun) {
+          if (typeof(invoker.onCancelRun) === 'function') {
+            await Promise.resolve(invoker.onCancelRun(context, args));
+          }
+          return;
         }
       }
 
@@ -864,22 +1012,62 @@ export class InteractionCommandClient extends EventSpewer {
   }
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;
+  on(event: ClientEvents.COMMAND_ERROR, listener: (payload: InteractionCommandEvents.CommandError) => any): this;
+  on(event: 'commandError', listener: (payload: InteractionCommandEvents.CommandError) => any): this;
+  on(event: ClientEvents.COMMAND_FAIL, listener: (payload: InteractionCommandEvents.CommandFail) => any): this;
+  on(event: 'commandFail', listener: (payload: InteractionCommandEvents.CommandFail) => any): this;
+  on(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): this;
+  on(event: 'commandPermissionsFailClient', listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): this;
+  on(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): this;
+  on(event: 'commandPermissionsFail', listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): this;
+  on(event: ClientEvents.COMMAND_RAN, listener: (payload: InteractionCommandEvents.CommandRan) => any): this;
+  on(event: 'commandRan', listener: (payload: InteractionCommandEvents.CommandRan) => any): this;
+  on(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): this;
+  on(event: 'commandRatelimit', listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): this;
+  on(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: InteractionCommandEvents.CommandRunError) => any): this;
+  on(event: 'commandRunError', listener: (payload: InteractionCommandEvents.CommandRunError) => any): this;
   on(event: ClientEvents.KILLED, listener: () => any): this;
-  on(event: 'killed', listener: () => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
   }
 
   once(event: string | symbol, listener: (...args: any[]) => void): this;
+  once(event: ClientEvents.COMMAND_ERROR, listener: (payload: InteractionCommandEvents.CommandError) => any): this;
+  once(event: 'commandError', listener: (payload: InteractionCommandEvents.CommandError) => any): this;
+  once(event: ClientEvents.COMMAND_FAIL, listener: (payload: InteractionCommandEvents.CommandFail) => any): this;
+  once(event: 'commandFail', listener: (payload: InteractionCommandEvents.CommandFail) => any): this;
+  once(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): this;
+  once(event: 'commandPermissionsFailClient', listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): this;
+  once(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): this;
+  once(event: 'commandPermissionsFail', listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): this;
+  once(event: ClientEvents.COMMAND_RAN, listener: (payload: InteractionCommandEvents.CommandRan) => any): this;
+  once(event: 'commandRan', listener: (payload: InteractionCommandEvents.CommandRan) => any): this;
+  once(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): this;
+  once(event: 'commandRatelimit', listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): this;
+  once(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: InteractionCommandEvents.CommandRunError) => any): this;
+  once(event: 'commandRunError', listener: (payload: InteractionCommandEvents.CommandRunError) => any): this;
   once(event: ClientEvents.KILLED, listener: () => any): this;
-  once(event: 'killed', listener: () => any): this;
   once(event: string | symbol, listener: (...args: any[]) => void): this {
     super.once(event, listener);
     return this;
   }
 
   subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_ERROR, listener: (payload: InteractionCommandEvents.CommandError) => any): EventSubscription;
+  subscribe(event: 'commandError', listener: (payload: InteractionCommandEvents.CommandError) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_FAIL, listener: (payload: InteractionCommandEvents.CommandFail) => any): EventSubscription;
+  subscribe(event: 'commandFail', listener: (payload: InteractionCommandEvents.CommandFail) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_PERMISSIONS_FAIL_CLIENT, listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): EventSubscription;
+  subscribe(event: 'commandPermissionsFailClient', listener: (payload: InteractionCommandEvents.CommandPermissionsFailClient) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_PERMISSIONS_FAIL, listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): EventSubscription;
+  subscribe(event: 'commandPermissionsFail', listener: (payload: InteractionCommandEvents.CommandPermissionsFail) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RAN, listener: (payload: InteractionCommandEvents.CommandRan) => any): EventSubscription;
+  subscribe(event: 'commandRan', listener: (payload: InteractionCommandEvents.CommandRan) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RATELIMIT, listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): EventSubscription;
+  subscribe(event: 'commandRatelimit', listener: (payload: InteractionCommandEvents.CommandRatelimit) => any): EventSubscription;
+  subscribe(event: ClientEvents.COMMAND_RUN_ERROR, listener: (payload: InteractionCommandEvents.CommandRunError) => any): EventSubscription;
+  subscribe(event: 'commandRunError', listener: (payload: InteractionCommandEvents.CommandRunError) => any): EventSubscription;
   subscribe(event: ClientEvents.KILLED, listener: () => any): EventSubscription;
   subscribe(event: 'killed', listener: () => any): EventSubscription;
   subscribe(event: string | symbol, listener: (...args: any[]) => void): EventSubscription {

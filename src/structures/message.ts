@@ -1450,10 +1450,16 @@ export function messageSystemContent(
     case MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING: {
       content = SystemMessages.GuildDiscoveryGracePeriodFinalWarning;
     }; break;
-    case MessageTypes.APPLICATION_COMMAND: {
-      content = SystemMessages.ApplicationCommandUsed.replace(/:user:/g, message.author.mention);
-      if (message.application) {
-        content = content.replace(/:application:/g, message.application.name);
+    case MessageTypes.CHAT_INPUT_COMMAND: {
+      content = SystemMessages.ChatInputCommandUsed.replace(/:user:/g, message.author.mention);
+      if (message.interaction) {
+        content = content.replace(/:command:/g, message.interaction.name);
+      }
+    }; break;
+    case MessageTypes.CONTEXT_MENU_COMMAND: {
+      content = SystemMessages.ContextMenuCommandUsed.replace(/:user:/g, message.author.mention);
+      if (message.interaction) {
+        content = content.replace(/:command:/g, message.interaction.name);
       }
     }; break;
   }

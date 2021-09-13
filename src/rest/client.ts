@@ -46,6 +46,7 @@ import {
   ThreadMember,
   User,
   UserMe,
+  UserWithBanner,
   VoiceRegion,
   Webhook,
   createChannelFromData,
@@ -516,15 +517,18 @@ export class RestClient {
   async createInteractionResponse(
     interactionId: string,
     token: string,
-    options: RequestTypes.CreateInteractionResponse | number,
-    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+    options: (RequestTypes.CreateInteractionResponse &  {data?: {listenerId?: string}}) | number,
+    data?: (RequestTypes.CreateInteractionResponseInnerPayload & {listenerId?: string}) | string,
   ) {
-    const listener = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
+    const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
     const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
 
-    if (listener || listener === false) {
-      const listenerId = interactionId;
+    if (listenerData) {
+      const [lId, listener] = listenerData;
+
+      const listenerId = lId || interactionId;
       if (listener) {
+        listener.id = listenerId;
         this.client.gatewayHandler._componentHandler.insert(listener);
       } else {
         this.client.gatewayHandler._componentHandler.delete(listenerId);
@@ -557,7 +561,7 @@ export class RestClient {
     channelId: string,
     options: RequestTypes.CreateMessage | string = {},
   ): Promise<Message> {
-    const listener = createComponentListenerOrNone(options);
+    const listenerData = createComponentListenerOrNone(options);
 
     const data = await this.raw.createMessage(channelId, options);
     if (this.client.channels.has(data.channel_id)) {
@@ -570,8 +574,10 @@ export class RestClient {
     const message = new Message(this.client, data);
     this.client.messages.insert(message);
 
-    if (listener || listener === false) {
-      const listenerId = message.id;
+    if (listenerData) {
+      const [lId, listener] = listenerData;
+
+      const listenerId = lId || message.id;
       if (listener) {
         listener.id = listenerId;
         this.client.gatewayHandler._componentHandler.insert(listener);
@@ -1208,7 +1214,7 @@ export class RestClient {
     options: RequestTypes.EditMessage | string = {},
     updateCache: boolean = true,
   ): Promise<Message> {
-    const listener = createComponentListenerOrNone(options);
+    const listenerData = createComponentListenerOrNone(options);
 
     const data = await this.raw.editMessage(channelId, messageId, options);
     let message: Message;
@@ -1221,8 +1227,10 @@ export class RestClient {
       this.client.messages.insert(message);
     }
 
-    if (listener || listener === false) {
-      const listenerId = message.id;
+    if (listenerData) {
+      const [lId, listener] = listenerData;
+
+      const listenerId = lId || message.id;
       if (listener) {
         listener.id = listenerId;
         this.client.gatewayHandler._componentHandler.insert(listener);
@@ -1303,13 +1311,9 @@ export class RestClient {
     options: RequestTypes.EditWebhookTokenMessage = {},
     updateCache: boolean = true,
   ): Promise<Message> {
-    const listener = createComponentListenerOrNone(options);
-    if (listener || listener === false) {
-      // it'll be from `interaction.respond()` then `interaction.editResponse()`
-      this.client.gatewayHandler._componentHandler.delete(webhookId);
-    }
-
+    const listenerData = createComponentListenerOrNone(options);
     const data = await this.raw.editWebhookTokenMessage(webhookId, webhookToken, messageId, options);
+
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
       message = this.client.messages.get(data.id)!;
@@ -1319,8 +1323,14 @@ export class RestClient {
       this.client.messages.insert(message);
     }
 
-    if (listener || listener === false) {
-      const listenerId = message.id;
+    if (message.interaction) {
+      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, message.id);
+    }
+
+    if (listenerData) {
+      const [lId, listener] = listenerData;
+
+      const listenerId = lId || message.id;
       if (listener) {
         listener.id = listenerId;
         this.client.gatewayHandler._componentHandler.insert(listener);
@@ -1350,14 +1360,16 @@ export class RestClient {
     options: RequestTypes.ExecuteWebhook | string = {},
     compatibleType?: string,
   ): Promise<Message | null> {
-    const listener = createComponentListenerOrNone(options);
+    const listenerData = createComponentListenerOrNone(options);
     const data = await this.raw.executeWebhook(webhookId, webhookToken, options, compatibleType);
     if (data) {
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
 
-      if (listener || listener === false) {
-        const listenerId = message.id;
+      if (listenerData) {
+        const [lId, listener] = listenerData;
+  
+        const listenerId = lId || message.id;
         if (listener) {
           listener.id = listenerId;
           this.client.gatewayHandler._componentHandler.insert(listener);
@@ -1369,9 +1381,13 @@ export class RestClient {
       return message;
     }
 
-    if (listener) {
-      listener.id = Snowflake.generate().id;
-      this.client.gatewayHandler._componentHandler.insert(listener);
+    if (listenerData) {
+      const [ lId, listener ] = listenerData;
+
+      if (listener) {
+        listener.id = lId || Snowflake.generate().id;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      }
     }
 
     return data;
@@ -2520,16 +2536,12 @@ export class RestClient {
 
   async fetchUser(
     userId: string,
-  ): Promise<User> {
+  ): Promise<UserWithBanner> {
     const data = await this.raw.fetchUser(userId);
-    let user: User;
     if (this.client.users.has(data.id)) {
-      user = this.client.users.get(data.id)!;
-      user.merge(data);
-    } else {
-      user = new User(this.client, data);
+      this.client.users.get(data.id)!.merge(data);
     }
-    return user;
+    return new UserWithBanner(this.client, data);
   }
 
   fetchUserActivityMetadata(
@@ -2618,6 +2630,11 @@ export class RestClient {
       data.guild_id = guildId;
       message = new Message(this.client, data);
     }
+
+    if (message.interaction && message.components.length) {
+      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, messageId);
+    }
+
     return message;
   }
 
