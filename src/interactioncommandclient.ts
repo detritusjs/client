@@ -645,8 +645,8 @@ export class InteractionCommandClient extends EventSpewer {
         continue;
       }
 
-      if (commandOption.default !== undefined && !(name in args) && !(name in errors)) {
-        const label = commandOption.label || name;
+      const label = commandOption.label || name;
+      if (commandOption.default !== undefined && !(label in args) && !(label in errors)) {
         if (typeof(commandOption.default) === 'function') {
           try {
             args[label] = await Promise.resolve(commandOption.default(context));
