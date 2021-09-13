@@ -79,6 +79,7 @@
 								<li class="tsd-kind-reference tsd-parent-kind-module"><a href="utils_components.html#componentbutton" class="tsd-kind-icon">Component<wbr>Button</a></li>
 								<li class="tsd-kind-reference tsd-parent-kind-module"><a href="utils_components.html#componentcontext" class="tsd-kind-icon">Component<wbr>Context</a></li>
 								<li class="tsd-kind-reference tsd-parent-kind-module"><a href="utils_components.html#componentemojidata" class="tsd-kind-icon">Component<wbr>Emoji<wbr>Data</a></li>
+								<li class="tsd-kind-reference tsd-parent-kind-module"><a href="utils_components.html#componentonerror" class="tsd-kind-icon">Component<wbr>OnError</a></li>
 								<li class="tsd-kind-reference tsd-parent-kind-module"><a href="utils_components.html#componentontimeout" class="tsd-kind-icon">Component<wbr>OnTimeout</a></li>
 								<li class="tsd-kind-reference tsd-parent-kind-module"><a href="utils_components.html#componentrun" class="tsd-kind-icon">Component<wbr>Run</a></li>
 								<li class="tsd-kind-reference tsd-parent-kind-module"><a href="utils_components.html#componentselectmenu" class="tsd-kind-icon">Component<wbr>Select<wbr>Menu</a></li>
@@ -141,6 +142,11 @@
 					Re-exports <a href="utils_components_actionbase.html#componentemojidata">ComponentEmojiData</a>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module">
+					<a name="componentonerror" class="tsd-anchor"></a>
+					<h3>Component<wbr>OnError</h3>
+					Re-exports <a href="utils_components_components.html#componentonerror">ComponentOnError</a>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-reference tsd-parent-kind-module">
 					<a name="componentontimeout" class="tsd-anchor"></a>
 					<h3>Component<wbr>OnTimeout</h3>
 					Re-exports <a href="utils_components_components.html#componentontimeout">ComponentOnTimeout</a>
@@ -182,13 +188,13 @@
 					<a name="createcomponentlistenerornone-1" class="tsd-anchor"></a>
 					<h3>create<wbr>Component<wbr>Listener<wbr>OrNone</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">create<wbr>Component<wbr>Listener<wbr>OrNone<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/utils_components.createcomponentlistenerornone.html" class="tsd-signature-type" data-tsd-kind="Interface">CreateComponentListenerOrNone</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span>, id<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../classes/utils_components_components.components.html" class="tsd-signature-type" data-tsd-kind="Class">Components</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span></li>
+						<li class="tsd-signature tsd-kind-icon">create<wbr>Component<wbr>Listener<wbr>OrNone<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/utils_components.createcomponentlistenerornone.html" class="tsd-signature-type" data-tsd-kind="Interface">CreateComponentListenerOrNone</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span>, id<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../classes/utils_components_components.components.html" class="tsd-signature-type" data-tsd-kind="Class">Components</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">]</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/detritusjs/client/blob/211252f/src/utils/components/index.ts#L19">src/utils/components/index.ts:19</a></li>
+									<li>Defined in <a href="https://github.com/detritusjs/client/blob/b27cbaa/src/utils/components/index.ts#L22">src/utils/components/index.ts:22</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -200,7 +206,7 @@
 									<h5><span class="tsd-flag ts-flagOptional">Optional</span> id: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../classes/utils_components_components.components.html" class="tsd-signature-type" data-tsd-kind="Class">Components</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">false</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../classes/utils_components_components.components.html" class="tsd-signature-type" data-tsd-kind="Class">Components</a><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">]</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -239,6 +245,9 @@
 					</li>
 					<li class=" tsd-kind-reference tsd-parent-kind-module">
 						<a href="utils_components.html#componentemojidata" class="tsd-kind-icon">Component<wbr>Emoji<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-reference tsd-parent-kind-module">
+						<a href="utils_components.html#componentonerror" class="tsd-kind-icon">Component<wbr>OnError</a>
 					</li>
 					<li class=" tsd-kind-reference tsd-parent-kind-module">
 						<a href="utils_components.html#componentontimeout" class="tsd-kind-icon">Component<wbr>OnTimeout</a>
