@@ -103,15 +103,15 @@ export class ClusterProcess extends EventSpewer {
             const ratelimitKey = this.manager.getRatelimitKey(shardId);
             const bucket = this.manager.buckets.get(ratelimitKey);
             if (bucket) {
+              const waiting = this._shardsWaiting.get(shardId);
+              if (waiting) {
+                const error = new Error('Received new Identify Request with same shard id, unknown why');
+                waiting.reject(error);
+                this.emit('warn', {error});
+              }
               bucket.add(() => {
                 return new Promise(async (resolve, reject) => {
                   await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
-                  const waiting = this._shardsWaiting.get(shardId);
-                  if (waiting) {
-                    const error = new Error('Received new Identify Request with same shard id, unknown why');
-                    waiting.reject(error);
-                    this.emit('warn', {error});
-                  }
                   this._shardsWaiting.set(shardId, {resolve, reject});
                 });
               });
