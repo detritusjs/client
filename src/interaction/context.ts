@@ -4,6 +4,7 @@ import { Timers } from 'detritus-utils';
 import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
+import { InteractionCallbackTypes } from '../constants';
 import { InteractionCommandClient } from '../interactioncommandclient';
 
 import {
@@ -15,12 +16,7 @@ import {
 import { InteractionCommand, InteractionCommandOption } from './command';
 
 
-
-/**
- * Interaction Command Context
- * @category Command
- */
-export class InteractionContext {
+export class InteractionContextBase {
   readonly client: ShardClient;
   readonly command: InteractionCommand;
   readonly interaction: Interaction;
@@ -170,7 +166,7 @@ export class InteractionContext {
   }
 
   /* Interaction Properties */
-  get data(): InteractionDataApplicationCommand {
+  get data() {
     return this.interaction.data as InteractionDataApplicationCommand;
   }
 
@@ -266,6 +262,26 @@ export class InteractionContext {
     return null;
   }
 
+  toJSON() {
+    return this.interaction.toJSON();
+  }
+
+  toString() {
+    return `Interaction Context (${this.interaction.id})`;
+  }
+}
+
+
+/**
+ * Interaction Command Context
+ * @category InteractionCommand
+ */
+export class InteractionContext extends InteractionContextBase {
+  /* Interaction Data Properties */
+  get options() {
+    return this.data.options;
+  }
+
   /* Functions */
   createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
     return this.interaction.createMessage(options);
@@ -312,12 +328,51 @@ export class InteractionContext {
   ) {
     return this.createResponse(options, data);
   }
+}
 
-  toJSON() {
-    return this.interaction.toJSON();
+
+/**
+ * Interaction Auto Complete Context
+ * @category InteractionCommand
+ */
+export class InteractionAutoCompleteContext extends InteractionContextBase {
+  get option() {
+    for (let [name, option] of this.options) {
+      if (option.options) {
+        for (let [x, opt] of option.options) {
+          if (opt.focused) {
+            return opt;
+          }
+        }
+      }
+      if (option.focused) {
+        return option;
+      }
+    }
+    return null;
   }
 
-  toString() {
-    return `Interaction Context (${this.interaction.id})`;
+  get options() {
+    return this.data.options!;
+  }
+
+  get value(): string {
+    const option = this.option;
+    return (option) ? ((option.value || '') as string) : '';
+  }
+
+  createResponse(
+    data: RequestTypes.CreateInteractionResponseInnerPayload,
+  ) {
+    return this.interaction.createResponse(
+      InteractionCallbackTypes.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+      data,
+    );
+  }
+
+  respond(
+    data: RequestTypes.CreateInteractionResponseInnerPayload,
+  ) {
+    return this.createResponse(data);
   }
 }

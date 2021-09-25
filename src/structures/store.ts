@@ -7,6 +7,7 @@ import { DiscordKeys, SkuTypes } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
+  getQueryForImage,
   UrlQuery,
 } from '../utils';
 
@@ -268,17 +269,19 @@ export class StoreApplicationAsset extends BaseStructure {
     return this.urlFormat();
   }
 
-  urlFormat(format?: null | string, query?: UrlQuery): string {
-    format = getFormatFromHash(
-      this.id,
-      format,
-      this.client.imageFormat,
-    );
+  urlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): string {
+    const hash = this.id;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
     if (this.mimeType.startsWith('video/')) {
       format = 'mp4';
     }
     return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET_STORE(this.applicationId, this.id, format),
+      Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET_STORE(this.applicationId, hash, format),
       query,
     );
   }

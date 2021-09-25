@@ -46,6 +46,7 @@ import {
   CommandCallbackRun,
   ParsedArgs,
   ParsedErrors,
+  InteractionAutoCompleteContext,
   InteractionCommand,
   InteractionCommandEvents,
   InteractionCommandOption,
@@ -697,14 +698,19 @@ export class InteractionCommandClient extends EventSpewer {
   }
 
   async handleInteractionCreate(event: GatewayClientEvents.InteractionCreate) {
-    return this.handle(ClientEvents.INTERACTION_CREATE, event);
+    const { interaction } = event;
+    switch (interaction.type) {
+      case InteractionTypes.APPLICATION_COMMAND: {
+        return this.handleApplicationCommand(event);
+      };
+      case InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE: {
+        return this.handleApplicationCommandAutoComplete(event);
+      };
+    }
   }
 
-  async handle(name: ClientEvents.INTERACTION_CREATE, event: GatewayClientEvents.InteractionCreate): Promise<void> {
+  async handleApplicationCommand(event: GatewayClientEvents.InteractionCreate): Promise<void> {
     const { interaction } = event;
-    if (interaction.type !== InteractionTypes.APPLICATION_COMMAND) {
-      return;
-    }
 
     // assume the interaction is global for now
     const data = interaction.data as InteractionDataApplicationCommand;
@@ -1008,6 +1014,46 @@ export class InteractionCommandClient extends EventSpewer {
       }
       const payload: InteractionCommandEvents.CommandFail = {args, command, context, error};
       this.emit(ClientEvents.COMMAND_FAIL, payload);
+    }
+  }
+
+  async handleApplicationCommandAutoComplete(event: GatewayClientEvents.InteractionCreate): Promise<void> {
+    const { interaction } = event;
+    const data = interaction.data as InteractionDataApplicationCommand;
+
+    let command: InteractionCommand | undefined;
+
+    const guildIds = (interaction.guildId) ? [interaction.guildId, LOCAL_GUILD_ID] : [LOCAL_GUILD_ID];
+    for (let guildId of guildIds) {
+      if (this.commandsById.has(guildId)) {
+        const localCommands = this.commandsById.get(guildId)!;
+        if (this.strictCommandCheck) {
+          command = localCommands.find((cmd) => cmd.ids.get(guildId) === data.id);
+        } else {
+          command = localCommands.find((cmd) => cmd.name === data.name && cmd.type === data.type);
+        }
+        if (command) {
+          break;
+        }
+      }
+    }
+
+    if (!command) {
+      return;
+    }
+
+    const invoker = command.getInvokerForAutoComplete(data);
+    if (!invoker) {
+      return;
+    }
+
+    const context = new InteractionAutoCompleteContext(this, interaction, command, invoker);
+    if (typeof(invoker.onAutoComplete) === 'function') {
+      try {
+        await invoker.onAutoComplete(context);
+      } catch(error) {
+        // do something with the error?
+      }
     }
   }
 

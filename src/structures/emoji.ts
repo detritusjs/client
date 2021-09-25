@@ -7,7 +7,7 @@ import { BaseCollection, emptyBaseCollection } from '../collections/basecollecti
 import { BaseSet } from '../collections/baseset';
 import { ShardClient } from '../client';
 import { DiscordKeys, ImageFormats } from '../constants';
-import { addQuery, Snowflake, UrlQuery } from '../utils';
+import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 
 import {
   BaseStructure,
@@ -120,10 +120,17 @@ export class Emoji extends BaseStructure {
     return this.urlFormat();
   }
 
-  urlFormat(format?: ImageFormats | null, query?: UrlQuery): string {
+  urlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): string {
     if (!this.id) {
       throw new Error('Cannot get a URL of a standard Emoji.');
     }
+
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+
     if (!format) {
       if (this.animated) {
         format = ImageFormats.GIF;
@@ -133,7 +140,7 @@ export class Emoji extends BaseStructure {
     }
 
     const valid = [ImageFormats.PNG, ImageFormats.GIF];
-    if (!valid.includes(format)) {
+    if (!valid.includes(format as ImageFormats)) {
       throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(valid)}`);
     }
     return addQuery(

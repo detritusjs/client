@@ -28,7 +28,7 @@ export * from './embed';
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-export type UrlQuery = {[key: string]: any};
+export type UrlQuery = Record<string, any>;
 
 export function addQuery(url: string, query?: UrlQuery): string {
   if (query) {
@@ -141,6 +141,14 @@ export function getFormatFromHash(
     throw new Error(`Invalid format: '${format}', valid: ${IMAGE_FORMATS}`);
   }
   return format;
+}
+
+
+export function getQueryForImage(query?: number | UrlQuery): undefined | UrlQuery {
+  if (typeof(query) === 'number') {
+    return {size: query};
+  }
+  return query;
 }
 
 

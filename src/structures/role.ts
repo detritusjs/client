@@ -1,10 +1,17 @@
-import { RequestTypes } from 'detritus-client-rest';
+import { Endpoints, RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, Permissions } from '../constants';
-import { PermissionTools, Snowflake } from '../utils';
+import {
+  addQuery,
+  getFormatFromHash,
+  getQueryForImage,
+  PermissionTools,
+  Snowflake,
+  UrlQuery,
+} from '../utils';
 
 import {
   BaseStructure,
@@ -20,6 +27,7 @@ const keysRole = new BaseSet<string>([
   DiscordKeys.COLOR,
   DiscordKeys.GUILD_ID,
   DiscordKeys.HOIST,
+  DiscordKeys.ICON,
   DiscordKeys.ID,
   DiscordKeys.MANAGED,
   DiscordKeys.MENTIONABLE,
@@ -27,6 +35,7 @@ const keysRole = new BaseSet<string>([
   DiscordKeys.PERMISSIONS,
   DiscordKeys.POSITION,
   DiscordKeys.TAGS,
+  DiscordKeys.UNICODE_EMOJI,
 ]);
 
 const keysMergeRole = new BaseSet<string>([
@@ -46,6 +55,7 @@ export class Role extends BaseStructure {
   guildId: string = '';
   hoist: boolean = false;
   id: string = '';
+  icon: null | string = null;
   managed: boolean = false;
   mentionable: boolean = false;
   name: string = '';
@@ -56,6 +66,7 @@ export class Role extends BaseStructure {
     integration_id?: string,
     premium_subscriber?: null,
   } | null = null;
+  unicodeEmoji: null | string = null;
 
   constructor(
     client: ShardClient,
@@ -83,6 +94,10 @@ export class Role extends BaseStructure {
 
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
+  }
+
+  get iconUrl(): null | string {
+    return this.iconUrlFormat();
   }
 
   get integrationId(): null | string {
@@ -133,6 +148,20 @@ export class Role extends BaseStructure {
       return true;
     }
     return PermissionTools.checkPermissions(this.permissions, permissions);
+  }
+
+  iconUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
+    if (!this.icon) {
+      return null;
+    }
+    const hash = this.icon;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.ROLE_ICON(this.id, hash, format), query);
   }
 
   permissionsIn(channelId: ChannelGuildBase | string): bigint {

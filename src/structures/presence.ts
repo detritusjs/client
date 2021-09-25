@@ -14,7 +14,7 @@ import {
   SpecialUrls,
   LOCAL_GUILD_ID,
 } from '../constants';
-import { addQuery, getFormatFromHash, UrlQuery } from '../utils';
+import { addQuery, getFormatFromHash, getQueryForImage, UrlQuery } from '../utils';
 
 import {
   BaseStructure,
@@ -786,8 +786,8 @@ export class PresenceActivityAssets extends BaseStructure {
   }
 
   imageUrlFormat(
-    format?: null | string,
-    query?: UrlQuery,
+    format?: number | null | string | UrlQuery,
+    query?: number | UrlQuery,
     hash?: null | string,
   ): null | string {
     if (hash === undefined) {
@@ -796,6 +796,12 @@ export class PresenceActivityAssets extends BaseStructure {
     if (!hash) {
       return null;
     }
+
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
     format = getFormatFromHash(
       hash,
       format,

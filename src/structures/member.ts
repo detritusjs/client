@@ -7,7 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, Permissions, PERMISSIONS_ALL } from '../constants';
-import { PermissionTools, UrlQuery, addQuery, getFormatFromHash } from '../utils';
+import { PermissionTools, UrlQuery, addQuery, getFormatFromHash, getQueryForImage } from '../utils';
 
 import { BaseStructureData } from './basestructure';
 
@@ -315,11 +315,16 @@ export class Member extends UserMixin {
     return this.client.voiceStates.get(this.guildId, this.id) || null;
   }
 
-  avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
+  avatarUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): string {
     if (!this.avatar) {
       return this.user.avatarUrlFormat(format, query);
     }
     const hash = this.avatar;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_USER_AVATAR(this.guildId, this.id, hash, format), query);
   }

@@ -14,6 +14,7 @@ import { DiscordKeys, ChannelTypes, ChannelVideoQualityModes, Permissions, DEFAU
 import {
   addQuery,
   getFormatFromHash,
+  getQueryForImage,
   PartialBy,
   PermissionTools,
   Snowflake,
@@ -1043,16 +1044,17 @@ export class ChannelDMGroup extends ChannelDM {
     return super.owner;
   }
 
-  iconUrlFormat(format?: null | string, query?: UrlQuery): string {
+  iconUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): string {
     if (!this.icon) {
       return this.defaultIconUrl;
     }
     const hash = this.icon;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(
       Endpoints.CDN.URL + Endpoints.CDN.DM_ICON(this.id, hash, format),
       query,

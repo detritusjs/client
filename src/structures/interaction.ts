@@ -232,6 +232,9 @@ export class Interaction extends BaseStructure {
             case InteractionTypes.MESSAGE_COMPONENT: {
               value = new InteractionDataComponent(this, value);
             }; break;
+            case InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE: {
+              value = new InteractionDataApplicationCommand(this, value);
+            }; break;
           }
         }; break;
         case DiscordKeys.MEMBER: {
@@ -341,6 +344,7 @@ export class InteractionDataApplicationCommand extends BaseStructure {
 
 
 const keysInteractionDataApplicationCommandOption = new BaseSet<string>([
+  DiscordKeys.FOCUSED,
   DiscordKeys.NAME,
   DiscordKeys.OPTIONS,
   DiscordKeys.TYPE,
@@ -355,6 +359,7 @@ export class InteractionDataApplicationCommandOption extends BaseStructure {
   readonly _keys = keysInteractionDataApplicationCommandOption;
   readonly interactionData: InteractionDataApplicationCommand;
 
+  focused?: boolean;
   name: string = '';
   options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.SUB_COMMAND;

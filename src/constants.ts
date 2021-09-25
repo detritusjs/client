@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.4-beta.0',
+  VERSION: '0.16.4-beta.1',
 });
 
 export type Snowflake = number | string;
@@ -666,6 +666,7 @@ export enum InteractionCallbackTypes {
   DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5,
   DEFERRED_UPDATE_MESSAGE = 6,
   UPDATE_MESSAGE = 7,
+  APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8,
 }
 
 
@@ -673,6 +674,7 @@ export enum InteractionTypes {
   PING = 1,
   APPLICATION_COMMAND = 2,
   MESSAGE_COMPONENT = 3,
+  APPLICATION_COMMAND_AUTOCOMPLETE = 4,
 }
 
 
@@ -1365,6 +1367,7 @@ export const DiscordKeys = Object.freeze({
   ATTACHMENTS: 'attachments',
   AUTHOR: 'author',
   AUTO_ARCHIVE_DURATION: 'auto_archive_duration',
+  AUTOCOMPLETE: 'autocomplete',
   AVAILABLE: 'available',
   AVATAR: 'avatar',
   BANNER: 'banner',
@@ -1436,6 +1439,7 @@ export const DiscordKeys = Object.freeze({
   ENDED: 'ended',
   ENDED_TIMESTAMP: 'ended_timestamp',
   ENTITLEMENT_BRANCH_ID: 'entitlement_branch_id',
+  EPHEMERAL: 'ephemeral',
   EULA_ID: 'eula_id',
   EXECUTABLES: 'executables',
   EXPIRES_AT: 'expires_at',
@@ -1446,6 +1450,7 @@ export const DiscordKeys = Object.freeze({
   FIELDS: 'fields',
   FILENAME: 'filename',
   FLAGS: 'flags',
+  FOCUSED: 'focused',
   FOOTER: 'footer',
   FORMAT_TYPE: 'format_type',
   FRIEND_SYNC: 'friend_sync',
@@ -1674,6 +1679,7 @@ export const DiscordKeys = Object.freeze({
   TTS: 'tts',
   TYPE: 'type',
   UNAVAILABLE: 'unavailable',
+  UNICODE_EMOJI: 'unicode_emoji',
   UPDATED_AT: 'updated_at',
   URL: 'url',
   USAGE_COUNT: 'usage_count',
@@ -1733,6 +1739,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ATTACHMENTS]: 'attachments',
   [DiscordKeys.AUTHOR]: 'author',
   [DiscordKeys.AUTO_ARCHIVE_DURATION]: 'autoArchiveDuration',
+  [DiscordKeys.AUTOCOMPLETE]: 'autocomplete',
   [DiscordKeys.AVAILABLE]: 'available',
   [DiscordKeys.AVATAR]: 'avatar',
   [DiscordKeys.BANNER]: 'banner',
@@ -1804,6 +1811,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ENDED]: 'ended',
   [DiscordKeys.ENDED_TIMESTAMP]: 'endedTimestamp',
   [DiscordKeys.ENTITLEMENT_BRANCH_ID]: 'entitlementBranchId',
+  [DiscordKeys.EPHEMERAL]: 'ephemeral',
   [DiscordKeys.EULA_ID]: 'eulaId',
   [DiscordKeys.EXECUTABLES]: 'executables',
   [DiscordKeys.EXPIRES_AT]: 'expiresAt',
@@ -1814,6 +1822,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.FIELDS]: 'fields',
   [DiscordKeys.FILENAME]: 'filename',
   [DiscordKeys.FLAGS]: 'flags',
+  [DiscordKeys.FOCUSED]: 'focused',
   [DiscordKeys.FOOTER]: 'footer',
   [DiscordKeys.FORMAT_TYPE]: 'formatType',
   [DiscordKeys.FRIEND_SYNC]: 'friendSync',
@@ -2042,6 +2051,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.TTS]: 'tts',
   [DiscordKeys.TYPE]: 'type',
   [DiscordKeys.UNAVAILABLE]: 'unavailable',
+  [DiscordKeys.UNICODE_EMOJI]: 'unicodeEmoji',
   [DiscordKeys.UPDATED_AT]: 'updatedAt',
   [DiscordKeys.URL]: 'url',
   [DiscordKeys.USAGE_COUNT]: 'usageCount',

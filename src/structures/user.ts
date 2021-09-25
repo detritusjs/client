@@ -12,7 +12,13 @@ import {
   RelationshipTypes,
   UserFlags,
 } from '../constants';
-import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
+import {
+  addQuery,
+  getFormatFromHash,
+  getQueryForImage,
+  Snowflake,
+  UrlQuery,
+} from '../utils';
 
 import {
   BaseStructure,
@@ -209,7 +215,13 @@ export class User extends BaseStructure {
     return `${this.username}#${this.discriminator}`;
   }
 
-  avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
+  avatarUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): string {
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+
     if (!this.avatar) {
       return addQuery(this.defaultAvatarUrl, query);
     }
@@ -339,11 +351,16 @@ export class UserWithBanner extends User {
     return this.bannerUrlFormat();
   }
 
-  bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+  bannerUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
     if (!this.banner) {
       return null;
     }
     const hash = this.banner;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.BANNER(this.id, hash, format), query);
   }
@@ -634,7 +651,7 @@ export class UserMixin extends BaseStructure {
     return this.user.username;
   }
 
-  avatarUrlFormat(format?: null | string, query?: UrlQuery): string {
+  avatarUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): string {
     return this.user.avatarUrlFormat(format, query);
   }
 

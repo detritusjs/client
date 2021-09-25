@@ -11,7 +11,7 @@ import {
   InteractionDataApplicationCommandOption,
 } from '../structures/interaction';
 
-import { InteractionContext } from './context';
+import { InteractionAutoCompleteContext, InteractionContext } from './context';
 
 
 export type ParsedArgs = Record<string, any>;
@@ -35,6 +35,11 @@ export type ArgumentConverter = (value: any, context: InteractionContext) => Pro
  */
 export type ArgumentDefault = ((context: InteractionContext) => Promise<any> | any) | any;
 
+
+/**
+ * @category InteractionCommand
+ */
+ export type CommandCallbackAutoComplete = (context: InteractionAutoCompleteContext) => Promise<any> | any;
 
 /**
  * @category InteractionCommand
@@ -107,6 +112,7 @@ export type CommandCallbackValueError = (context: InteractionContext, args: Pars
 
 
 const ON_FUNCTION_NAMES = Object.freeze([
+  'onAutoComplete',
   'onDmBlocked',
   'onLoadingTrigger',
   'onBefore',
@@ -121,6 +127,10 @@ const ON_FUNCTION_NAMES = Object.freeze([
   'onRunError',
   'onSuccess',
   'onValueError',
+]);
+
+const ON_FUNCTION_NAMES_FOR_OPTION = Object.freeze([
+  'onAutoComplete',
 ]);
 
 const SET_VARIABLE_NAMES = Object.freeze([
@@ -158,6 +168,7 @@ export interface InteractionCommandOptions {
   triggerLoadingAfter?: number,
   triggerLoadingAsEphemeral?: boolean,
 
+  onAutoComplete?: CommandCallbackAutoComplete,
   onDmBlocked?: CommandCallbackDmBlocked,
   onLoadingTrigger?: CommandCallbackLoadingTrigger,
   onBefore?: CommandCallbackBefore,
@@ -176,6 +187,7 @@ export interface InteractionCommandOptions {
 
 export interface InteractionCommandOptionOptions {
   _file?: string,
+  autocomplete?: boolean,
   choices?: Array<InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions>,
   default?: ArgumentDefault,
   description?: string,
@@ -196,6 +208,7 @@ export interface InteractionCommandOptionOptions {
   triggerLoadingAfter?: number,
   triggerLoadingAsEphemeral?: boolean,
 
+  onAutoComplete?: CommandCallbackAutoComplete,
   onDmBlocked?: CommandCallbackDmBlocked,
   onLoadingTrigger?: CommandCallbackLoadingTrigger,
   onBefore?: CommandCallbackBefore,
@@ -254,6 +267,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   triggerLoadingAfter?: number;
   triggerLoadingAsEphemeral?: boolean;
 
+  onAutoComplete?(context: InteractionAutoCompleteContext): Promise<any> | any;
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
   onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
@@ -313,6 +327,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
       _file: {configurable: true, writable: false},
     });
 
+    this.onAutoComplete = data.onAutoComplete || this.onAutoComplete;
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
     this.onLoadingTrigger = data.onLoadingTrigger || this.onLoadingTrigger;
     this.onBefore = data.onBefore || this.onBefore;
@@ -418,6 +433,15 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     return null;
   }
 
+  getInvokerForAutoComplete(data: InteractionDataApplicationCommand): InteractionCommandInvoker | null {
+    if (this.name === data.name) {
+      if (data.options) {
+        return this.getInvokerOptionForAutoComplete(data.options);
+      }
+    }
+    return null;
+  }
+
   getInvokerOption(
     options: BaseCollection<string, InteractionDataApplicationCommandOption>,
   ): InteractionCommandOption | null {
@@ -429,6 +453,28 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
         const x = this._options.get(name)!;
         if (x.isSubCommand || x.isSubCommandGroup) {
           return x.getInvoker(option);
+        }
+      }
+    }
+    return null;
+  }
+
+  getInvokerOptionForAutoComplete(
+    options: BaseCollection<string, InteractionDataApplicationCommandOption>,
+  ): InteractionCommandOption | null {
+    if (this._options) {
+      const focused = options.find((option) => !!option.focused);
+      if (focused) {
+        return this._options.get(focused.name) || null;
+      }
+
+      for (let [name, option] of options) {
+        if (!this._options.has(name)) {
+          return null;
+        }
+        const x = this._options.get(name)!;
+        if (x.isSubCommand || x.isSubCommandGroup) {
+          return x.getInvokerForAutoComplete(option);
         }
       }
     }
@@ -477,6 +523,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
 
 
 const keysInteractionCommandOption = new BaseSet<string>([
+  DiscordKeys.AUTOCOMPLETE,
   DiscordKeys.CHOICES,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.NAME,
@@ -492,6 +539,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   readonly _keys = keysInteractionCommandOption;
   _options?: BaseCollection<string, InteractionCommandOption>;
 
+  autocomplete?: boolean;
   choices?: Array<InteractionCommandOptionChoice>;
   description: string = '';
   name: string = '';
@@ -510,6 +558,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   triggerLoadingAsEphemeral?: boolean;
   value?: ArgumentConverter;
 
+  onAutoComplete?(context: InteractionAutoCompleteContext): Promise<any> | any;
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
   onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
@@ -574,6 +623,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
       parent: {configurable: true, writable: false},
     });
 
+    this.onAutoComplete = data.onAutoComplete || this.onAutoComplete;
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
     this.onLoadingTrigger = data.onLoadingTrigger || this.onLoadingTrigger;
     this.onBefore = data.onBefore || this.onBefore;
@@ -591,6 +641,10 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
     if (typeof(this.run) === 'function') {
       this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
+    }
+
+    if (this.autocomplete === undefined && typeof(this.onAutoComplete) === 'function') {
+      this.autocomplete = true;
     }
 
     this.merge(data);
@@ -632,7 +686,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${this._optionsKey}-${this._choicesKey}`;
+    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${!!this.autocomplete}-${this._optionsKey}-${this._choicesKey}`;
   }
 
   get length(): number {
@@ -698,6 +752,20 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
         }
       }
       return this;
+    }
+    return null;
+  }
+
+  getInvokerForAutoComplete(option: InteractionDataApplicationCommandOption): InteractionCommandOption | null {
+    if (this.type === option.type && this.name === option.name) {
+      if (this.isSubCommand || this.isSubCommandGroup) {
+        if (option.options && this._options) {
+          const focused = option.options.find((option) => !!option.focused);
+          if (focused) {
+            return this._options.get(focused.name) || null;
+          }
+        }
+      }
     }
     return null;
   }
@@ -792,6 +860,12 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
       if (this.isSubCommandGroup && this._options) {
         for (let [name, option] of this._options) {
           option._transferValuesToChildren(this);
+        }
+      }
+    } else {
+      for (let name of ON_FUNCTION_NAMES_FOR_OPTION) {
+        if (typeof((this as any)[name]) !== 'function') {
+          (this as any)[name] = (parent as any)[name];
         }
       }
     }

@@ -102,6 +102,7 @@ export class ApplicationCommand extends BaseStructure {
 
 
 const keysApplicationCommandOption = new BaseSet<string>([
+  DiscordKeys.AUTOCOMPLETE,
   DiscordKeys.CHOICES,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.NAME,
@@ -118,6 +119,7 @@ export class ApplicationCommandOption extends BaseStructure {
   readonly _keys = keysApplicationCommandOption;
   readonly command: ApplicationCommand;
 
+  autocomplete?: boolean;
   choices?: BaseCollection<string, ApplicationCommandOptionChoice>;
   description: string = '';
   name: string = '';
@@ -141,7 +143,7 @@ export class ApplicationCommandOption extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${this._optionsKey}-${this._choicesKey}`;
+    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${!!this.autocomplete}-${this._optionsKey}-${this._choicesKey}`;
   }
 
   mergeValue(key: string, value: any): void {

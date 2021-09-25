@@ -6,7 +6,7 @@ import {
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
 import { ChannelTypes, DiscordKeys, WebhookTypes } from '../constants';
-import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
+import { addQuery, getFormatFromHash, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 
 import {
   BaseStructure,
@@ -92,19 +92,18 @@ export class Webhook extends BaseStructure {
     return `<@${this.id}>`;
   }
 
-  avatarUrlFormat(format?: string, query?: UrlQuery): string {
+  avatarUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): string {
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+
     if (!this.avatar) {
-      return addQuery(
-        this.defaultAvatarUrl,
-        query,
-      );
+      return addQuery(this.defaultAvatarUrl, query);
     }
     const hash = this.avatar;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(
       Endpoints.CDN.URL + Endpoints.CDN.AVATAR(this.id, hash, format),
       query,

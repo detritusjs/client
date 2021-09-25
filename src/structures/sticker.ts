@@ -3,7 +3,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, StickerExtensions, StickerFormats } from '../constants';
-import { addQuery, getFormatFromHash, Snowflake, UrlQuery } from '../utils';
+import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 
 import {
   BaseStructure,
@@ -64,7 +64,12 @@ export class StickerItem extends BaseStructure {
     }
   }
 
-  assetUrlFormat(format?: null | string, query?: UrlQuery): string {
+  assetUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): string {
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
     if (!format) {
       format = this.format;
     }

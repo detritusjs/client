@@ -16,6 +16,7 @@ import {
 import {
   addQuery,
   getFormatFromHash,
+  getQueryForImage,
   Snowflake,
   UrlQuery,
 } from '../utils';
@@ -160,22 +161,32 @@ export class Application extends BaseStructure {
     return null;
   }
 
-  coverImageUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (this.coverImage) {
-      const hash = this.coverImage;
-      format = getFormatFromHash(hash, format, this.client.imageFormat);
-      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
+  coverImageUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
+    if (!this.coverImage) {
+      return null;
     }
-    return null;
+    const hash = this.coverImage;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
   }
 
-  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (this.icon) {
-      const hash = this.icon;
-      format = getFormatFromHash(hash, format, this.client.imageFormat);
-      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
+  iconUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
+    if (!this.icon) {
+      return null;
     }
-    return null;
+    const hash = this.icon;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
   }
 
   matches(name: string): boolean {
@@ -188,13 +199,18 @@ export class Application extends BaseStructure {
     return false;
   }
 
-  splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
-    if (this.splash) {
-      const hash = this.splash;
-      format = getFormatFromHash(hash, format, this.client.imageFormat);
-      return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
+  splashUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
+    if (!this.splash) {
+      return null;
     }
-    return null;
+    const hash = this.splash;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
   }
 
   async createAsset(options: RequestTypes.CreateOauth2ApplicationAsset) {

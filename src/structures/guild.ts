@@ -30,6 +30,7 @@ import {
   addQuery,
   getAcronym,
   getFormatFromHash,
+  getQueryForImage,
   PermissionTools,
   Snowflake,
   UrlQuery,
@@ -172,16 +173,22 @@ export class BaseGuild extends BaseStructure {
     return this.features.has(feature);
   }
 
-  iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+  iconUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
     if (!this.icon) {
       return null;
     }
     const hash = this.icon;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_ICON(this.id, hash, format), query);
   }
 
-  widgetImageUrlFormat(query?: UrlQuery): string {
+  widgetImageUrlFormat(query?: number | UrlQuery): string {
+    query = getQueryForImage(query);
     return addQuery(this.widgetImageUrl, query);
   }
 
@@ -537,27 +544,33 @@ export class GuildPartial extends BaseGuild {
     return this.splashUrlFormat();
   }
 
-  bannerUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+  bannerUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
     if (!this.banner) {
       return null;
     }
     const hash = this.banner;
-    format = getFormatFromHash(
-      hash,
-      format,
-      this.client.imageFormat,
-    );
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(
       Endpoints.CDN.URL + Endpoints.CDN.BANNER(this.id, hash, format),
       query,
     );
   }
 
-  splashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+  splashUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
     if (!this.splash) {
       return null;
     }
     const hash = this.splash;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
   }
@@ -1005,11 +1018,16 @@ export class Guild extends GuildPartial {
     return false;
   }
 
-  discoverySplashUrlFormat(format?: null | string, query?: UrlQuery): null | string {
+  discoverySplashUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
     if (!this.discoverySplash) {
       return null;
     }
     const hash = this.discoverySplash;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
   }
