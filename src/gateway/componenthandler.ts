@@ -27,7 +27,13 @@ export class ComponentHandler {
     const message = interaction.message;
     const data = interaction.data as InteractionDataComponent;
 
-    const listener = this.listeners.get(message.interaction?.id || message.id) || this.listeners.get(message.id);
+    let listener: Components | undefined;
+    if (message.interaction) {
+      listener = this.listeners.get(message.interaction.id);
+    }
+    if (!listener) {
+      listener = this.listeners.get(message.id);
+    }
     if (listener) {
       const context = new ComponentContext(interaction);
       try {

@@ -375,7 +375,7 @@ export class InteractionCommandClient extends EventSpewer {
     }
     for (let [guildId, localCommands] of this.commandsById) {
       const guildIdOrUndefined = (guildId === LOCAL_GUILD_ID) ? undefined : guildId;
-      if (!await this.checkApplicationCommands(guildIdOrUndefined) && (force || this.canUpload)) {
+      if (force || (!(await this.checkApplicationCommands(guildIdOrUndefined)) && this.canUpload)) {
         const commands = await this.uploadApplicationCommands(guildIdOrUndefined);
         this.validateCommands(commands);
         if (this.manager && this.manager.hasMultipleClusters) {
@@ -438,9 +438,10 @@ export class InteractionCommandClient extends EventSpewer {
     }
   }
 
+  // returns if the commands from discord matches our local state
   validateCommands(commands: BaseCollection<string, ApplicationCommand>): boolean {
     if (!commands.length) {
-      return true;
+      return false;
     }
     const guildId = commands.first()!.guildId || LOCAL_GUILD_ID;
 
