@@ -343,6 +343,13 @@ export class InteractionAutoCompleteContext extends InteractionContextBase {
           if (opt.focused) {
             return opt;
           }
+          if (opt.options) {
+            for (let [_, o] of opt.options) {
+              if (o.focused) {
+                return o;
+              }
+            }
+          }
         }
       }
       if (option.focused) {

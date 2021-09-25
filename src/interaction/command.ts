@@ -445,6 +445,39 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   }
 
   getInvokerForAutoComplete(data: InteractionDataApplicationCommand): InteractionCommandInvoker | null {
+    /*
+    we get data like this
+    {
+      "id": "884700347120107542",
+      "name": "command",
+      "options": [
+        {
+          "name": "sub-group",
+          "options": [
+            {
+              "name": "sub-command",
+              "options": [
+                {
+                  "focused": true,
+                  "name": "parameter",
+                  "type": 3,
+                  "value": "te"
+                },
+                {
+                  "name": "parameter2",
+                  "type": 3,
+                  "value": "test"
+                }
+              ],
+              "type": 1
+            }
+          ],
+          "type": 2
+        }
+      ],
+      "type": 1
+    }
+    */
     if (this.name === data.name) {
       if (data.options) {
         return this.getInvokerOptionForAutoComplete(data.options);
@@ -771,9 +804,19 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
   getInvokerForAutoComplete(option: InteractionDataApplicationCommandOption): InteractionCommandOption | null {
     if (this.type === option.type && this.name === option.name) {
-      if (this.isSubCommand || this.isSubCommandGroup) {
-        if (option.options && this._options) {
-          const focused = option.options.find((option) => !!option.focused);
+      if (option.options && this._options) {
+        if (this.isSubCommandGroup) {
+          for (let [name, x] of option.options) {
+            if (!this._options.has(name)) {
+              return null;
+            }
+            const localCommand = this._options.get(name)!;
+            if (localCommand.isSubCommand || localCommand.isSubCommandGroup) {
+              return localCommand.getInvokerForAutoComplete(x);
+            }
+          }
+        } else if (this.isSubCommand) {
+          const focused = option.options.find((opt) => !!opt.focused);
           if (focused) {
             return this._options.get(focused.name) || null;
           }
