@@ -44,6 +44,11 @@ export type ArgumentDefault = ((context: InteractionContext) => Promise<any> | a
 /**
  * @category InteractionCommand
  */
+export type CommandCallbackAutoCompleteError = (context: InteractionAutoCompleteContext, error: any) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
 export type CommandCallbackDmBlocked = (context: InteractionContext) => Promise<any> | any;
 
 /**
@@ -113,6 +118,7 @@ export type CommandCallbackValueError = (context: InteractionContext, args: Pars
 
 const ON_FUNCTION_NAMES = Object.freeze([
   'onAutoComplete',
+  'onAutoCompleteError',
   'onDmBlocked',
   'onLoadingTrigger',
   'onBefore',
@@ -131,6 +137,7 @@ const ON_FUNCTION_NAMES = Object.freeze([
 
 const ON_FUNCTION_NAMES_FOR_OPTION = Object.freeze([
   'onAutoComplete',
+  'onAutoCompleteError',
 ]);
 
 const SET_VARIABLE_NAMES = Object.freeze([
@@ -169,6 +176,7 @@ export interface InteractionCommandOptions {
   triggerLoadingAsEphemeral?: boolean,
 
   onAutoComplete?: CommandCallbackAutoComplete,
+  onAutoCompleteError?: CommandCallbackAutoCompleteError,
   onDmBlocked?: CommandCallbackDmBlocked,
   onLoadingTrigger?: CommandCallbackLoadingTrigger,
   onBefore?: CommandCallbackBefore,
@@ -209,6 +217,7 @@ export interface InteractionCommandOptionOptions {
   triggerLoadingAsEphemeral?: boolean,
 
   onAutoComplete?: CommandCallbackAutoComplete,
+  onAutoCompleteError?: CommandCallbackAutoCompleteError,
   onDmBlocked?: CommandCallbackDmBlocked,
   onLoadingTrigger?: CommandCallbackLoadingTrigger,
   onBefore?: CommandCallbackBefore,
@@ -268,6 +277,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   triggerLoadingAsEphemeral?: boolean;
 
   onAutoComplete?(context: InteractionAutoCompleteContext): Promise<any> | any;
+  onAutoCompleteError?(context: InteractionAutoCompleteContext, error: any): Promise<any> | any;
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
   onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
@@ -328,6 +338,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     });
 
     this.onAutoComplete = data.onAutoComplete || this.onAutoComplete;
+    this.onAutoCompleteError = data.onAutoCompleteError || this.onAutoCompleteError;
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
     this.onLoadingTrigger = data.onLoadingTrigger || this.onLoadingTrigger;
     this.onBefore = data.onBefore || this.onBefore;
@@ -559,6 +570,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   value?: ArgumentConverter;
 
   onAutoComplete?(context: InteractionAutoCompleteContext): Promise<any> | any;
+  onAutoCompleteError?(context: InteractionAutoCompleteContext, error: any): Promise<any> | any;
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
   onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
@@ -624,6 +636,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     });
 
     this.onAutoComplete = data.onAutoComplete || this.onAutoComplete;
+    this.onAutoCompleteError = data.onAutoCompleteError || this.onAutoCompleteError;
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
     this.onLoadingTrigger = data.onLoadingTrigger || this.onLoadingTrigger;
     this.onBefore = data.onBefore || this.onBefore;

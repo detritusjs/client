@@ -1050,9 +1050,12 @@ export class InteractionCommandClient extends EventSpewer {
     const context = new InteractionAutoCompleteContext(this, interaction, command, invoker);
     if (typeof(invoker.onAutoComplete) === 'function') {
       try {
-        await invoker.onAutoComplete(context);
+        await Promise.resolve(invoker.onAutoComplete(context));
       } catch(error) {
-        // do something with the error?
+        if (typeof(invoker.onAutoCompleteError) === 'function') {
+          await Promise.resolve(invoker.onAutoCompleteError(context, error));
+        }
+        // emit the error?
       }
     }
   }
