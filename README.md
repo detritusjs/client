@@ -17,6 +17,7 @@ are provided through [`detritus-client-rest`](https://github.com/detritusjs/clie
 
 - `$ npm i detritus-client`
 - `$ yarn add detritus-client`
+- `$ pnpm add detritus-client`
 
 ## Usage
 
