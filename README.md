@@ -5,6 +5,7 @@ A wheels-attached, pure-TypeScript library for the Discord API.
 
 - [API Documentation](https://detritusjs.com)
 - [Discord Help Server](https://discord.gg/NEq6wws)
+- [Github](https://github.com/detritusjs/client)
 - [npm](https://www.npmjs.com/package/detritus-client)
 
 ## Installation
@@ -16,6 +17,7 @@ are provided through [`detritus-client-rest`](https://github.com/detritusjs/clie
 
 - `$ npm i detritus-client`
 - `$ yarn add detritus-client`
+- `$ pnpm add detritus-client`
 
 ## Usage
 
