@@ -113,7 +113,7 @@ interactionClient.add({
   // we want the error to only show to the user to not clunk up the chat
   onCancel: (context) => {
     return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-      content: 'This command is only available to the bot owner.'),
+      content: 'This command is only available to the bot owner.',
       flags: MessageFlags.EPHEMERAL,
     });
   },
