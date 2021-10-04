@@ -35,7 +35,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.15.3',
+  VERSION: '0.16.3',
 });
 
 export type Snowflake = number | string;
@@ -43,13 +43,14 @@ export type Snowflake = number | string;
 
 export const IS_TS_NODE = Symbol.for('ts-node.register.instance') in process;
 
-
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;
 export const DEFAULT_MAX_VIDEO_CHANNEL_USERS = 25;
 
 export const LOCAL_GUILD_ID = '@me';
 
+export const MAX_ACTION_ROW_BUTTONS = 5;
+export const MAX_ACTION_ROW_SELECT_MENUS = 1;
 export const MAX_ATTACHMENT_SIZE = 8 * 1024 * 1024;
 export const MAX_ATTACHMENT_SIZE_PREMIUM = 50 * 1024 * 1024;
 export const MAX_BITRATE = 96000;
@@ -66,6 +67,13 @@ export const INTERACTION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 export const TYPING_TIMEOUT = 10 * 1000; // 10 seconds
 
 
+export enum ApplicationCommandTypes {
+  CHAT_INPUT = 1,
+  USER = 2,
+  MESSAGE = 3,
+}
+
+
 export enum ApplicationCommandOptionTypes {
   SUB_COMMAND = 1,
   SUB_COMMAND_GROUP = 2,
@@ -78,10 +86,12 @@ export enum ApplicationCommandOptionTypes {
   MENTIONABLE = 9,
 }
 
+
 export enum ApplicationCommandPermissionTypes {
   ROLE = 1,
   USER = 2,
 }
+
 
 export enum ApplicationFlags {
   MANAGED_EMOJI = 1 << 2,
@@ -97,20 +107,24 @@ export enum ApplicationFlags {
   EMBEDDED = 1 << 17,
 }
 
+
 export enum ApplicationNewsFlags {
   PATCH_NOTES = 1 << 1,
   PROMOTION = 1 << 2,
 }
+
 
 export enum ApplicationTypes {
   GAME = 1,
   MUSIC = 2,
 }
 
+
 export enum ActivityPartyPrivacy {
   PRIVATE = 0,
   PUBLIC = 1,
 }
+
 
 export enum ActivityPlatformTypes {
   ANDROID = 'android',
@@ -121,14 +135,17 @@ export enum ActivityPlatformTypes {
   XBOX = 'xbox',
 }
 
+
 export enum AuditLogActions {
   GUILD_UPDATE = 1,
+
   CHANNEL_CREATE = 10,
   CHANNEL_UPDATE = 11,
   CHANNEL_DELETE = 12,
   CHANNEL_OVERWRITE_CREATE = 13,
   CHANNEL_OVERWRITE_UPDATE = 14,
   CHANNEL_OVERWRITE_DELETE = 15,
+
   MEMBER_KICK = 20,
   MEMBER_PRUNE = 21,
   MEMBER_BAN_ADD = 22,
@@ -138,26 +155,40 @@ export enum AuditLogActions {
   MEMBER_MOVE = 26,
   MEMBER_DISCONNECT = 27,
   BOT_ADD = 28,
+
   ROLE_CREATE = 30,
   ROLE_UPDATE = 31,
   ROLE_DELETE = 32,
+
   INVITE_CREATE = 40,
   INVITE_UPDATE = 41,
   INVITE_DELETE = 42,
+
   WEBHOOK_CREATE = 50,
   WEBHOOK_UPDATE = 51,
   WEBHOOK_DELETE = 52,
+
   EMOJI_CREATE = 60,
   EMOJI_UPDATE = 61,
   EMOJI_DELETE = 62,
+
   MESSAGE_DELETE = 72,
   MESSAGE_BULK_DELETE = 73,
   MESSAGE_PIN = 74,
   MESSAGE_UNPIN = 75,
+
   INTEGRATION_CREATE = 80,
   INTEGRATION_UPDATE = 81,
   INTEGRATION_DELETE = 82,
+  STAGE_INSTANCE_CREATE = 83,
+  STAGE_INSTANCE_UPDATE = 84,
+  STAGE_INSTANCE_DELETE = 85,
+
+  STICKER_CREATE = 90,
+  STICKER_UPDATE = 91,
+  STICKER_DELETE = 92,
 }
+
 
 export const AuditLogActionTypes = Tools.normalize({
   ALL: null,
@@ -166,10 +197,12 @@ export const AuditLogActionTypes = Tools.normalize({
   DELETE: null,
 });
 
+
 export const AuditLogSubtargetTypes = Object.freeze({
   USER: 'member',
   ROLE: 'role',
 });
+
 
 export const AuditLogTargetTypes = Tools.normalize({
   ALL: null,
@@ -184,6 +217,7 @@ export const AuditLogTargetTypes = Tools.normalize({
   USER: null,
   WEBHOOK: null,
 });
+
 
 export enum AuditLogChangeKeys {
   AFK_CHANNEL_ID = 'afk_channel_id',
@@ -247,11 +281,13 @@ export enum AuditLogChangeKeys {
   USES = 'uses',
 }
 
+
 export enum CarouselMediaTypes {
   IMAGE = 1,
   YOUTUBE_VIDEO = 2,
   VIDEO = 3,
 }
+
 
 export enum ChannelTypes {
   BASE = -1,
@@ -267,12 +303,15 @@ export enum ChannelTypes {
   GUILD_PUBLIC_THREAD = 11,
   GUILD_PRIVATE_THREAD = 12,
   GUILD_STAGE_VOICE = 13,
+  GUILD_DIRECTORY = 14,
 }
+
 
 export enum ChannelVideoQualityModes {
   AUTO = 1,
   FULL = 2,
 }
+
 
 export enum ClientEvents {
   ACTIVITY_JOIN_INVITE = 'activityJoinInvite',
@@ -313,6 +352,7 @@ export enum ClientEvents {
   GUILD_ROLE_CREATE = 'guildRoleCreate',
   GUILD_ROLE_DELETE = 'guildRoleDelete',
   GUILD_ROLE_UPDATE = 'guildRoleUpdate',
+  GUILD_STICKERS_UPDATE = 'guildStickersUpdate',
   GUILD_UPDATE = 'guildUpdate',
   INTERACTION_CREATE = 'interactionCreate',
   INVITE_CREATE = 'inviteCreate',
@@ -396,6 +436,7 @@ export enum ClientEvents {
   WARN = 'warn',
 }
 
+
 export enum ClusterIPCOpCodes {
   READY = 0,
   CLOSE = 1,
@@ -404,12 +445,14 @@ export enum ClusterIPCOpCodes {
   EVAL = 4,
   IDENTIFY_REQUEST = 5,
   REST_REQUEST = 6,
-  FILL_SLASH_COMMANDS = 7,
+  FILL_INTERACTION_COMMANDS = 7,
 }
+
 
 export enum Colors {
   BLURPLE = 7506394,
 }
+
 
 export enum CommandArgumentTypes {
   BOOL = 'bool',
@@ -418,9 +461,11 @@ export enum CommandArgumentTypes {
   STRING = 'string',
 }
 
+
 export const CommandErrors = Object.freeze({
 
 });
+
 
 export enum CommandRatelimitTypes {
   CHANNEL = 'channel',
@@ -428,10 +473,12 @@ export enum CommandRatelimitTypes {
   USER = 'user',
 }
 
+
 export enum DiscordOpusFormat {
   CHANNELS = 2,
   SAMPLE_RATE = 48000,
 }
+
 
 export enum DiscordRegexNames {
   EMOJI = 'EMOJI',
@@ -451,6 +498,7 @@ export enum DiscordRegexNames {
   TEXT_URL = 'TEXT_URL',
 }
 
+
 export const DiscordRegex = Object.freeze({
   [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/g,
   [DiscordRegexNames.JUMP_CHANNEL]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)$/g,
@@ -468,6 +516,7 @@ export const DiscordRegex = Object.freeze({
   [DiscordRegexNames.TEXT_UNDERLINE]: /__([\s\S]+?)__/g,
   [DiscordRegexNames.TEXT_URL]: /((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s])/g,
 });
+
 
 export enum Distributors {
   BATTLENET = 'battlenet',
@@ -509,6 +558,7 @@ export const DistributorUrls = Tools.URIEncodeWrap({
     `https://store.ubi.com/search/?q=${skuId}`,
 });
 
+
 export enum EntitlementTypes {
   PURCHASE = 1,
   PREMIUM_SUBSCRIPTION = 2,
@@ -518,17 +568,20 @@ export enum EntitlementTypes {
   USER_GIFT = 6,
 }
 
+
 export enum ExplicitContentFilterTypes {
   DISABLED = 0,
   NON_FRIENDS = 1,
   FRIENDS_AND_NON_FRIENDS = 2,
 }
 
+
 export enum GuildExplicitContentFilterTypes {
   DISABLED = 0,
   MEMBERS_WITHOUT_ROLES = 1,
   ALL_MEMBERS = 2,
 }
+
 
 export const GuildFeatures = Tools.normalize({
   ANIMATED_ICON: null,
@@ -537,26 +590,39 @@ export const GuildFeatures = Tools.normalize({
   DISCOVERABLE: null,
   ENABLED_DISCOVERABLE_BEFORE: null,
   FEATURABLE: null,
+  HUB: null,
   INVITE_SPLASH: null,
   LURKABLE: null,
   MEMBER_VERIFICATION_GATE_ENABLED: null,
   MEMBER_LIST_DISABLED: null,
+  MONETIZATION_ENABLED: null,
   MORE_EMOJI: null,
+  MORE_STICKERS: null,
   NEWS: null,
+  NEW_THREAD_PERMISSIONS: null,
   PARTNERED: null,
   PREVIEW_ENABLED: null,
+  PRIVATE_THREADS: null,
   PUBLIC: null,
   PUBLIC_DISABLED: null,
+  ROLE_ICONS: null,
+  SEVEN_DAY_THREAD_ARCHIVE: null,
+  THREADS_ENABLED: null,
+  THREADS_ENABLED_TESTING: null,
+  THREE_DAY_THREAD_ARCHIVE: null,
+  TICKETED_EVENTS_ENABLED: null,
   VANITY_URL: null,
   VERIFIED: null,
   VIP_REGIONS: null,
   WELCOME_SCREEN_ENABLED: null,
 });
 
+
 export enum GuildNotificationSettings {
   ALL = 0,
   MENTIONS = 1,
 }
+
 
 export enum GuildNSFWLevels {
   DEFAULT = 0,
@@ -564,6 +630,7 @@ export enum GuildNSFWLevels {
   SAFE = 2,
   AGE_RESTRICTED = 3,
 }
+
 
 export enum GuildWidgetStyles {
   BANNER_1 = 'banner1',
@@ -573,6 +640,7 @@ export enum GuildWidgetStyles {
   SHIELD = 'shield',
 }
 
+
 export enum ImageFormats {
   GIF = 'gif',
   JPEG = 'jpeg',
@@ -580,6 +648,7 @@ export enum ImageFormats {
   PNG = 'png',
   WEBP = 'webp',
 }
+
 
 export enum InteractionCallbackTypes {
   PONG = 1,
@@ -590,16 +659,19 @@ export enum InteractionCallbackTypes {
   UPDATE_MESSAGE = 7,
 }
 
+
 export enum InteractionTypes {
   PING = 1,
   APPLICATION_COMMAND = 2,
   MESSAGE_COMPONENT = 3,
 }
 
+
 export enum InviteTargetTypes {
   STREAM = 1,
   EMBEDDED_APPLICATION = 2,
 }
+
 
 export enum LibraryApplicationFlags {
   HIDDEN = 1 << 0,
@@ -608,6 +680,7 @@ export enum LibraryApplicationFlags {
   ENTITLED = 1 << 3,
   PREMIUM = 1 << 4,
 }
+
 
 export enum LobbyErrors {
   NO_ERROR = 0,
@@ -620,10 +693,12 @@ export enum LobbyErrors {
   ALREADY_CONNECTING = 7,
 }
 
+
 export enum LobbyTypes {
   PRIVATE = 1,
   PUBLIC = 2,
 }
+
 
 export enum Locales {
   BULGARIAN = 'bg',
@@ -689,6 +764,18 @@ export const LocalesText = Object.freeze({
   [Locales.VIETNAMESE]: 'Vietnamese',
 });
 
+
+export enum MarkupTimestampStyles {
+  BOTH_LONG = 'F',
+  BOTH_SHORT = 'f',
+  DATE_LONG = 'D',
+  DATE_SHORT = 'd',
+  RELATIVE = 'R',
+  TIME_LONG = 'T',
+  TIME_SHORT = 't',
+}
+
+
 export enum MessageComponentButtonStyles {
   PRIMARY = 1,
   SECONDARY = 2,
@@ -697,11 +784,13 @@ export enum MessageComponentButtonStyles {
   LINK = 5,
 }
 
+
 export enum MessageComponentTypes {
   ACTION_ROW = 1,
   BUTTON = 2,
   SELECT_MENU = 3,
 }
+
 
 export enum MessageEmbedTypes {
   APPLICATION_NEWS = 'application_news',
@@ -714,6 +803,7 @@ export enum MessageEmbedTypes {
   VIDEO = 'video',
 }
 
+
 export enum MessageFlags {
   CROSSPOSTED = 1 << 0,
   IS_CROSSPOST = 1 << 1,
@@ -724,6 +814,7 @@ export enum MessageFlags {
   EPHEMERAL = 1 << 6,
   LOADING = 1 << 7,
 }
+
 
 export enum MessageTypes {
   BASE = -1,
@@ -747,9 +838,10 @@ export enum MessageTypes {
   GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17,
   THREAD_CREATED = 18,
   REPLY = 19,
-  APPLICATION_COMMAND = 20,
+  CHAT_INPUT_COMMAND = 20,
   THREAD_STARTER_MESSAGE = 21,
   GUILD_INVITE_REMINDER = 22,
+  CONTEXT_MENU_COMMAND = 23,
 }
 
 export const MessageTypesDeletable = Object.freeze({
@@ -774,20 +866,24 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING]: false,
   [MessageTypes.THREAD_CREATED]: false,
   [MessageTypes.REPLY]: true,
-  [MessageTypes.APPLICATION_COMMAND]: true,
+  [MessageTypes.CHAT_INPUT_COMMAND]: true,
   [MessageTypes.THREAD_STARTER_MESSAGE]: false,
   [MessageTypes.GUILD_INVITE_REMINDER]: true,
+  [MessageTypes.CONTEXT_MENU_COMMAND]: true,
 });
+
 
 export enum MfaLevels {
   NONE = 0,
   ELEVATED = 1,
 }
 
+
 export enum Oauth2AssetTypes {
   SMALL = 1,
   LARGE = 2,
 }
+
 
 export enum Oauth2Scopes {
   ACTIVITIES_READ = 'activities.read',
@@ -810,6 +906,7 @@ export enum Oauth2Scopes {
   RPC_NOTIFICATIONS_READ = 'rpc.notifications.read',
   WEBHOOK_INCOMING = 'webhook.incoming',
 }
+
 
 export enum OverwriteTypes {
   ROLE = 0,
@@ -852,10 +949,12 @@ export const Permissions = Object.freeze({
   MANAGE_EMOJIS: 1n << 30n,
   USE_APPLICATION_COMMANDS: 1n << 31n,
   REQUEST_TO_SPEAK: 1n << 32n,
-
+  MANAGE_EVENTS: 1n << 33n,
   MANAGE_THREADS: 1n << 34n,
   USE_PUBLIC_THREADS: 1n << 35n,
   USE_PRIVATE_THREADS: 1n << 36n,
+  USE_EXTERNAL_STICKERS: 1n << 37n,
+  SEND_MESSAGES_IN_THREADS: 1n << 38n,
 });
 
 export const PERMISSIONS_ALL = Object.values(Permissions).reduce(
@@ -928,6 +1027,27 @@ export const PERMISSIONS_LURKER = [
   Permissions.NONE,
 );
 
+export const PERMISSIONS_FOR_GUILD = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
+export const PERMISSIONS_FOR_CHANNEL_TEXT = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
+export const PERMISSIONS_FOR_CHANNEL_VOICE = [
+  Permissions.ADMINISTRATOR,
+].reduce(
+  (permissions: bigint, permission: bigint) => permissions | permission,
+  Permissions.NONE,
+);
+
 
 export enum PlatformTypes {
   BATTLENET = 'battlenet',
@@ -947,6 +1067,7 @@ export enum PlatformTypes {
   YOUTUBE = 'youtube',
   XBOX = 'xbox',
 }
+
 
 export enum PremiumGuildTiers {
   NONE = 0,
@@ -992,6 +1113,7 @@ export const PremiumGuildLimits = Object.freeze({
   }),
 });
 
+
 export enum PremiumUserTypes {
   NONE = 0,
   TIER_1 = 1,
@@ -1010,6 +1132,7 @@ export const PremiumUserLimits = Object.freeze({
   }),
 });
 
+
 export enum RelationshipTypes {
   NONE = 0,
   FRIEND = 1,
@@ -1019,11 +1142,13 @@ export enum RelationshipTypes {
   IMPLICIT = 5,
 }
 
+
 export enum SkuAccessTypes {
   FULL = 1,
   EARLY_ACCESS = 2,
   VIP_ACCESS = 3,
 }
+
 
 export enum SkuFlags {
   PREMIUM_PURCHASE = 1 << 0,
@@ -1033,6 +1158,7 @@ export enum SkuFlags {
   STICKER_PACK = 1 << 4,
 }
 
+
 export enum SkuTypes {
   BASE = 0,
   GAME = 1,
@@ -1041,6 +1167,7 @@ export enum SkuTypes {
   BUNDLE = 4,
   SUBSCRIPTION = 5,
 }
+
 
 export const SpecialUrls = Tools.URIEncodeWrap({
   SPOTIFY_TRACK: (trackId: string): string =>
@@ -1053,10 +1180,12 @@ export const SpecialUrls = Tools.URIEncodeWrap({
     `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
 });
 
+
 export enum StagePrivacyLevels {
   PUBLIC = 1,
   GUILD_ONLY = 2,
 }
+
 
 export enum StickerFormats {
   UNKNOWN = 0,
@@ -1065,19 +1194,21 @@ export enum StickerFormats {
   LOTTIE = 3,
 }
 
+
 export enum StickerExtensions {
   PNG = 'png',
   APNG = 'png',
   LOTTIE = 'json',
 }
 
+
 export enum SystemChannelFlags {
   SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0,
   SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1,
 }
 
+
 export const SystemMessages = Object.freeze({
-  ApplicationCommandUsed: ':user: used :command: with :application:.',
   CallMissed: 'You missed a call from :user:.',
   CallMissedWithDuration: 'You missed a call from :user: that lasted :duration:.',
   CallStarted: ':user: started a call.',
@@ -1085,6 +1216,8 @@ export const SystemMessages = Object.freeze({
   ChannelFollowAdd: ':user: has added **:webhookName:** to this channel.',
   ChannelIconChange: ':user: changed the channel name: **:name:**',
   ChannelNameChange: ':user: changed the channel icon.',
+  ChatInputCommandUsed: ':user: used /:command:.',
+  ContextMenuCommandUsed: ':user: used /:command:.',
   GuildDiscoveryDisqualified: 'This server has been removed from Server Discovery because it no longer passes all the requirements. Check Server Settings for more details.',
   GuildDiscoveryGracePeriodFinalWarning: 'This server has failed Discovery activity requirements for 3 weeks in a row. If this server fails for 1 more week, it will be removed from Discovery.',
   GuildDiscoveryGracePeriodInitialWarning: 'This server has failed Discovery activity requirements for 1 week. If this server fails for 4 weeks in a row, it will be automatically removed from Discovery.',
@@ -1112,11 +1245,13 @@ export const SystemMessages = Object.freeze({
   GuildMemberSubscribedAchievedTier: ':user: just boosted the server! :guild: has achieved **:premiumTier:!**',
 });
 
+
 export enum TeamMembershipStates {
   BASE = 0,
   INVITED = 1,
   ACCEPTED = 2,
 }
+
 
 export enum TeamPayoutAccountStatuses {
   UNSUBMITTED = -1,
@@ -1126,6 +1261,7 @@ export enum TeamPayoutAccountStatuses {
   BLOCKED = 5,
   SUSPENDED = 6,
 }
+
 
 export enum UserFlags {
   STAFF = 1 << 0,
@@ -1144,6 +1280,7 @@ export enum UserFlags {
   BUG_HUNTER_LEVEL_2 = 1 << 14,
   VERIFIED_BOT = 1 << 16,
   VERIFIED_DEVELOPER = 1 << 17,
+  DISCORD_CERTIFIED_MODERATOR = 1 << 18,
 }
 
 // the level of their boost badge
@@ -1192,6 +1329,7 @@ export enum WebhookTypes {
 }
 
 export const DiscordKeys = Object.freeze({
+  ACCENT_COLOR: 'accent_color',
   ACCESS_TYPE: 'access_type',
   ACCOUNT: 'account',
   ACTION_TYPE: 'action_type',
@@ -1371,6 +1509,7 @@ export const DiscordKeys = Object.freeze({
   MENTION_EVERYONE: 'mention_everyone',
   MENTION_ROLES: 'mention_roles',
   MESSAGE: 'message',
+  MESSAGES: 'messages',
   MESSAGE_COUNT: 'message_count',
   MESSAGE_ID: 'message_id',
   MESSAGE_REFERENCE: 'message_reference',
@@ -1471,6 +1610,7 @@ export const DiscordKeys = Object.freeze({
   SLUG: 'slug',
   SMALL_IMAGE: 'small_image',
   SMALL_TEXT: 'small_text',
+  SORT_VALUE: 'sort_value',
   SOURCE_CHANNEL: 'source_channel',
   SOURCE_GUILD: 'source_guild',
   SOURCE_GUILD_ID: 'source_guild_id',
@@ -1482,6 +1622,7 @@ export const DiscordKeys = Object.freeze({
   STATE: 'state',
   STATUS: 'status',
   STICKERS: 'stickers',
+  STICKER_ITEMS: 'sticker_items',
   STOPPED: 'stopped',
   STORE_APPLICATION_STATE: 'store_application_state',
   STORE_LISTING: 'store_listing',
@@ -1515,6 +1656,7 @@ export const DiscordKeys = Object.freeze({
   THREAD_METADATA: 'thread_metadata',
   THREADS: 'threads',
   THUMBNAIL: 'thumbnail',
+  TIMEOUT: 'timeout',
   TIMESTAMP: 'timestamp',
   TIMESTAMPS: 'timestamps',
   TITLE: 'title',
@@ -1555,6 +1697,7 @@ export const DiscordKeys = Object.freeze({
 });
 
 export const DetritusKeys = Object.freeze({
+  [DiscordKeys.ACCENT_COLOR]: 'accentColor',
   [DiscordKeys.ACCESS_TYPE]: 'accessType',
   [DiscordKeys.ACCOUNT]: 'account',
   [DiscordKeys.ACTION_TYPE]: 'actionType',
@@ -1734,6 +1877,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MENTION_EVERYONE]: 'mentionEveryone',
   [DiscordKeys.MENTION_ROLES]: 'mentionRoles',
   [DiscordKeys.MESSAGE]: 'message',
+  [DiscordKeys.MESSAGES]: 'messages',
   [DiscordKeys.MESSAGE_COUNT]: 'messageCount',
   [DiscordKeys.MESSAGE_ID]: 'messageId',
   [DiscordKeys.MESSAGE_REFERENCE]: 'messageReference',
@@ -1834,6 +1978,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SLUG]: 'slug',
   [DiscordKeys.SMALL_IMAGE]: 'smallImage',
   [DiscordKeys.SMALL_TEXT]: 'smallText',
+  [DiscordKeys.SORT_VALUE]: 'sortValue',
   [DiscordKeys.SOURCE_CHANNEL]: 'sourceChannel',
   [DiscordKeys.SOURCE_GUILD]: 'sourceGuild',
   [DiscordKeys.SOURCE_GUILD_ID]: 'sourceGuildId',
@@ -1845,6 +1990,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.STATE]: 'state',
   [DiscordKeys.STATUS]: 'status',
   [DiscordKeys.STICKERS]: 'stickers',
+  [DiscordKeys.STICKER_ITEMS]: 'stickerItems',
   [DiscordKeys.STOPPED]: 'stopped',
   [DiscordKeys.STORE_APPLICATION_STATE]: 'storeApplicationState',
   [DiscordKeys.STORE_LISTING]: 'storeListing',
@@ -1878,6 +2024,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.THREAD_METADATA]: 'threadMetadata',
   [DiscordKeys.THREADS]: 'threads',
   [DiscordKeys.THUMBNAIL]: 'thumbnail',
+  [DiscordKeys.TIMEOUT]: 'timeout',
   [DiscordKeys.TIMESTAMP]: 'timestamp',
   [DiscordKeys.TIMESTAMPS]: 'timestamps',
   [DiscordKeys.TITLE]: 'title',

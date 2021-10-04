@@ -5,10 +5,12 @@ import {
   RestClientEvents,
 } from 'detritus-client-rest';
 import { AuthTypes, RestEvents } from 'detritus-client-rest/lib/constants';
+import { Snowflake } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { ClientEvents } from '../constants';
+import { createComponentListenerOrNone } from '../utils';
 
 import {
   Application,
@@ -19,6 +21,7 @@ import {
   Channel,
   ChannelDM,
   ChannelDMGroup,
+  ChannelGuildThread,
   ConnectedAccount,
   Emoji,
   Gift,
@@ -34,6 +37,7 @@ import {
   Profile,
   Role,
   StageInstance,
+  Sticker,
   StoreApplicationAsset,
   StoreListing,
   Team,
@@ -42,6 +46,7 @@ import {
   ThreadMember,
   User,
   UserMe,
+  UserWithBanner,
   VoiceRegion,
   Webhook,
   createChannelFromData,
@@ -353,12 +358,22 @@ export class RestClient {
     return new Invite(this.client, data);
   }
 
-  createChannelMessageThread(
+  async createChannelMessageThread(
     channelId: string,
     messageId: string,
     options: RequestTypes.CreateChannelMessageThread,
-  ) {
-    return this.raw.createChannelMessageThread(channelId, messageId, options);
+  ): Promise<ChannelGuildThread> {
+    const data = await this.raw.createChannelMessageThread(channelId, messageId, options);
+    let channel: ChannelGuildThread;
+    if (this.client.channels.has(data.id)) {
+      channel = this.client.channels.get(data.id) as ChannelGuildThread;
+      channel.merge(data);
+      // this should never happen lmao
+    } else {
+      channel = createChannelFromData(this.client, data) as ChannelGuildThread;
+      this.client.channels.insert(channel);
+    }
+    return channel;
   }
 
   createChannelStoreListingGrantEntitlement(
@@ -367,11 +382,21 @@ export class RestClient {
     return this.raw.createChannelStoreListingGrantEntitlement(channelId);
   }
 
-  createChannelThread(
+  async createChannelThread(
     channelId: string,
     options: RequestTypes.CreateChannelThread,
-  ) {
-    return this.raw.createChannelThread(channelId, options);
+  ): Promise<ChannelGuildThread> {
+    const data = await this.raw.createChannelThread(channelId, options);
+    let channel: ChannelGuildThread;
+    if (this.client.channels.has(data.id)) {
+      channel = this.client.channels.get(data.id) as ChannelGuildThread;
+      channel.merge(data);
+      // this should never happen lmao
+    } else {
+      channel = createChannelFromData(this.client, data) as ChannelGuildThread;
+      this.client.channels.insert(channel);
+    }
+    return channel;
   }
 
   async createDm(
@@ -451,6 +476,14 @@ export class RestClient {
     return emoji;
   }
 
+  async createGuildSticker(
+    guildId: string,
+    options: RequestTypes.CreateGuildSticker,
+  ): Promise<Sticker> {
+    const data = await this.raw.createGuildSticker(guildId, options);
+    return new Sticker(this.client, data);
+  }
+
   createGuildIntegration(
     guildId: string,
     options: RequestTypes.CreateGuildIntegration,
@@ -481,13 +514,28 @@ export class RestClient {
     return new Template(this.client, data);
   }
 
-  createInteractionResponse(
+  async createInteractionResponse(
     interactionId: string,
     token: string,
-    options: RequestTypes.CreateInteractionResponse | number,
-    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+    options: (RequestTypes.CreateInteractionResponse &  {data?: {listenerId?: string}}) | number,
+    data?: (RequestTypes.CreateInteractionResponseInnerPayload & {listenerId?: string}) | string,
   ) {
-    return this.raw.createInteractionResponse(interactionId, token, options, data);
+    const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
+    const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
+
+    if (listenerData) {
+      const [lId, listener] = listenerData;
+
+      const listenerId = lId || interactionId;
+      if (listener) {
+        listener.id = listenerId;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      } else {
+        this.client.gatewayHandler._componentHandler.delete(listenerId);
+      }
+    }
+
+    return rawData;
   }
 
   createLobby(
@@ -513,6 +561,8 @@ export class RestClient {
     channelId: string,
     options: RequestTypes.CreateMessage | string = {},
   ): Promise<Message> {
+    const listenerData = createComponentListenerOrNone(options);
+
     const data = await this.raw.createMessage(channelId, options);
     if (this.client.channels.has(data.channel_id)) {
       const channel = this.client.channels.get(data.channel_id)!;
@@ -520,8 +570,22 @@ export class RestClient {
         data.guild_id = channel.guildId;
       }
     }
+
     const message = new Message(this.client, data);
     this.client.messages.insert(message);
+
+    if (listenerData) {
+      const [lId, listener] = listenerData;
+
+      const listenerId = lId || message.id;
+      if (listener) {
+        listener.id = listenerId;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      } else {
+        this.client.gatewayHandler._componentHandler.delete(listenerId);
+      }
+    }
+
     return message;
   }
 
@@ -635,6 +699,7 @@ export class RestClient {
     } else {
       channel = createChannelFromData(this.client, data);
     }
+    // go through each message and mark them as deleted or wait for the event?
     return channel;
   }
 
@@ -657,6 +722,7 @@ export class RestClient {
     guildId: string,
     options: RequestTypes.DeleteGuild = {},
   ) {
+    // go through each message and mark them as deleted or wait for the event?
     return this.raw.deleteGuild(guildId, options);
   }
 
@@ -689,6 +755,14 @@ export class RestClient {
     options: RequestTypes.DeleteGuildRole = {},
   ) {
     return this.raw.deleteGuildRole(guildId, roleId, options);
+  }
+
+  deleteGuildSticker(
+    guildId: string,
+    stickerId: string,
+    options: RequestTypes.DeleteGuildSticker = {},
+  ) {
+    return this.raw.deleteGuildSticker(guildId, stickerId, options);
   }
 
   deleteGuildTemplate(
@@ -734,6 +808,7 @@ export class RestClient {
       const message = this.client.messages.get(messageId)!;
       message.deleted = true;
     }
+    this.client.gatewayHandler._componentHandler.delete(messageId);
     return data;
   }
 
@@ -833,6 +908,7 @@ export class RestClient {
       const message = this.client.messages.get(messageId)!;
       message.deleted = true;
     }
+    this.client.gatewayHandler._componentHandler.delete(messageId);
     return data;
   }
 
@@ -1053,6 +1129,25 @@ export class RestClient {
     return collection;
   }
 
+  async editGuildSticker(
+    guildId: string,
+    stickerId: string,
+    options: RequestTypes.EditGuildSticker = {},
+    updateCache: boolean = true,
+  ): Promise<Sticker> {
+    const data = await this.raw.editGuildSticker(guildId, stickerId, options);
+    guildId = data.guild_id;
+
+    let sticker: Sticker;
+    if (updateCache && this.client.stickers.has(guildId, data.id)) {
+      sticker = this.client.stickers.get(guildId, data.id)!;
+      sticker.merge(data);
+    } else {
+      sticker = new Sticker(this.client, data);
+    }
+    return sticker;
+  }
+
   editGuildVanity(
     guildId: string,
     code: string,
@@ -1119,6 +1214,8 @@ export class RestClient {
     options: RequestTypes.EditMessage | string = {},
     updateCache: boolean = true,
   ): Promise<Message> {
+    const listenerData = createComponentListenerOrNone(options);
+
     const data = await this.raw.editMessage(channelId, messageId, options);
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
@@ -1129,6 +1226,19 @@ export class RestClient {
       message = new Message(this.client, data);
       this.client.messages.insert(message);
     }
+
+    if (listenerData) {
+      const [lId, listener] = listenerData;
+
+      const listenerId = lId || message.id;
+      if (listener) {
+        listener.id = listenerId;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      } else {
+        this.client.gatewayHandler._componentHandler.delete(listenerId);
+      }
+    }
+
     return message;
   }
 
@@ -1201,7 +1311,9 @@ export class RestClient {
     options: RequestTypes.EditWebhookTokenMessage = {},
     updateCache: boolean = true,
   ): Promise<Message> {
+    const listenerData = createComponentListenerOrNone(options);
     const data = await this.raw.editWebhookTokenMessage(webhookId, webhookToken, messageId, options);
+
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
       message = this.client.messages.get(data.id)!;
@@ -1210,6 +1322,23 @@ export class RestClient {
       message = new Message(this.client, data);
       this.client.messages.insert(message);
     }
+
+    if (message.interaction) {
+      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, message.id);
+    }
+
+    if (listenerData) {
+      const [lId, listener] = listenerData;
+
+      const listenerId = lId || message.id;
+      if (listener) {
+        listener.id = listenerId;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      } else {
+        this.client.gatewayHandler._componentHandler.delete(listenerId);
+      }
+    }
+
     return message;
   }
 
@@ -1231,12 +1360,36 @@ export class RestClient {
     options: RequestTypes.ExecuteWebhook | string = {},
     compatibleType?: string,
   ): Promise<Message | null> {
+    const listenerData = createComponentListenerOrNone(options);
     const data = await this.raw.executeWebhook(webhookId, webhookToken, options, compatibleType);
     if (data) {
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
+
+      if (listenerData) {
+        const [lId, listener] = listenerData;
+  
+        const listenerId = lId || message.id;
+        if (listener) {
+          listener.id = listenerId;
+          this.client.gatewayHandler._componentHandler.insert(listener);
+        } else {
+          this.client.gatewayHandler._componentHandler.delete(listenerId);
+        }
+      }
+
       return message;
     }
+
+    if (listenerData) {
+      const [ lId, listener ] = listenerData;
+
+      if (listener) {
+        listener.id = lId || Snowflake.generate().id;
+        this.client.gatewayHandler._componentHandler.insert(listener);
+      }
+    }
+
     return data;
   }
 
@@ -1404,7 +1557,7 @@ export class RestClient {
     const data = await this.raw.fetchChannelThreadsActive(channelId);
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
-    const threads = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
 
     for (let raw of data.members) {
       const threadMember = new ThreadMember(this.client, raw);
@@ -1419,7 +1572,7 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw);
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
       threads.set(thread.id, thread);
     }
 
@@ -1433,7 +1586,7 @@ export class RestClient {
     const data = await this.raw.fetchChannelThreadsArchivedPrivate(channelId, options);
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
-    const threads = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
 
     for (let raw of data.members) {
       const threadMember = new ThreadMember(this.client, raw);
@@ -1448,7 +1601,7 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw);
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
       threads.set(thread.id, thread);
     }
 
@@ -1462,7 +1615,7 @@ export class RestClient {
     const data = await this.raw.fetchChannelThreadsArchivedPrivateJoined(channelId, options);
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
-    const threads = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
 
     for (let raw of data.members) {
       const threadMember = new ThreadMember(this.client, raw);
@@ -1477,7 +1630,7 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw);
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
       threads.set(thread.id, thread);
     }
 
@@ -1491,7 +1644,7 @@ export class RestClient {
     const data = await this.raw.fetchChannelThreadsArchivedPublic(channelId, options);
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
-    const threads = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
 
     for (let raw of data.members) {
       const threadMember = new ThreadMember(this.client, raw);
@@ -1506,7 +1659,7 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw);
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
       threads.set(thread.id, thread);
     }
 
@@ -1698,7 +1851,7 @@ export class RestClient {
   ): Promise<BaseCollection<string, Emoji>> {
     const data = await this.raw.fetchGuildEmojis(guildId);
 
-    if (this.client.guilds.has(guildId)) {
+    if (this.client.emojis.enabled && this.client.guilds.has(guildId)) {
       const guild = this.client.guilds.get(guildId)!;
       guild.merge({emojis: data});
       return guild.emojis;
@@ -1889,6 +2042,47 @@ export class RestClient {
       }
     }
     return collection;
+  }
+
+  async fetchGuildSticker(
+    guildId: string,
+    stickerId: string,
+  ): Promise<Sticker> {
+    const data = await this.raw.fetchGuildSticker(guildId, stickerId);
+
+    let sticker: Sticker;
+    if (this.client.stickers.has(guildId, stickerId)) {
+      sticker = this.client.stickers.get(guildId, stickerId)!;
+      sticker.merge(data);
+    } else {
+      sticker = new Sticker(this.client, data);
+    }
+    return sticker;
+  }
+
+  async fetchGuildStickers(
+    guildId: string,
+  ): Promise<BaseCollection<string, Sticker>> {
+    const data = await this.raw.fetchGuildStickers(guildId);
+
+    if (this.client.guilds.has(guildId)) {
+      const guild = this.client.guilds.get(guildId)!;
+      guild.merge({stickers: data});
+      return guild.stickers;
+    } else {
+      const collection = new BaseCollection<string, Sticker>();
+      for (let raw of data) {
+        let sticker: Sticker;
+        if (this.client.stickers.has(guildId, raw.id)) {
+          sticker = this.client.stickers.get(guildId, raw.id)!;
+          sticker.merge(raw);
+        } else {
+          sticker = new Sticker(this.client, raw);
+        }
+        collection.set(sticker.id, sticker);
+      }
+      return collection;
+    }
   }
 
   async fetchGuildTemplates(
@@ -2342,16 +2536,12 @@ export class RestClient {
 
   async fetchUser(
     userId: string,
-  ): Promise<User> {
+  ): Promise<UserWithBanner> {
     const data = await this.raw.fetchUser(userId);
-    let user: User;
     if (this.client.users.has(data.id)) {
-      user = this.client.users.get(data.id)!;
-      user.merge(data);
-    } else {
-      user = new User(this.client, data);
+      this.client.users.get(data.id)!.merge(data);
     }
-    return user;
+    return new UserWithBanner(this.client, data);
   }
 
   fetchUserActivityMetadata(
@@ -2440,6 +2630,11 @@ export class RestClient {
       data.guild_id = guildId;
       message = new Message(this.client, data);
     }
+
+    if (message.interaction && message.components.length) {
+      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, messageId);
+    }
+
     return message;
   }
 

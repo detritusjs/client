@@ -1,3 +1,6 @@
+import { MarkupTimestampStyles } from '../constants';
+
+
 export const Strings = Object.freeze({
   BOLD: '**',
   CODEBLOCK: '```',
@@ -179,6 +182,23 @@ export function url(text: string, url: string, comment?: string): string {
     return `[${text}](${url} '${comment}')`;
   }
   return `[${text}](${url})`;
+}
+
+
+export function timestamp(timestamp: Date | number | string | null, format?: MarkupTimestampStyles): string {
+  let unixTimestamp: number;
+  if (timestamp) {
+    if (typeof(timestamp) === 'number' || typeof(timestamp) === 'string') {
+      timestamp = new Date(timestamp);
+    }
+    unixTimestamp = Math.floor(timestamp.getTime() / 1000);
+  } else {
+    unixTimestamp = Math.floor(Date.now() / 1000)
+  }
+  if (format) {
+    return `<t:${unixTimestamp}:${format}>`;
+  }
+  return `<t:${unixTimestamp}>`;
 }
 
 

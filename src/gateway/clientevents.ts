@@ -20,6 +20,7 @@ import {
   Role,
   Session,
   StageInstance,
+  Sticker,
   ThreadMember,
   Typing,
   User,
@@ -279,6 +280,17 @@ export namespace GatewayClientEvents {
     guildId: string,
     old: Role | null,
     role: Role,
+  }
+
+  export interface GuildStickersUpdate {
+    differences: {
+      created: BaseCollection<string, Sticker>,
+      deleted: BaseCollection<string, Sticker>,
+      updated: BaseCollection<string, {sticker: Sticker, old: Sticker}>,
+    } | null,
+    stickers: BaseCollection<string, Sticker>,
+    guild: Guild | null,
+    guildId: string,
   }
 
   export interface GuildUpdate {

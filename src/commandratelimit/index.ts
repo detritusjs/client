@@ -1,22 +1,23 @@
 import { Timers } from 'detritus-utils';
 
 import { BaseCollection } from '../collections/basecollection';
-import { Command } from './command';
-import { Context } from './context';
 import { 
   CommandRatelimitTypes,
   COMMAND_RATELIMIT_TYPES,
 } from '../constants';
 
+import { Command, Context } from '../command';
+import { InteractionCommand, InteractionCommandOption, InteractionContext } from '../interaction';
+
 
 
 export const KEY_SPLITTER = ':';
 
-export type CommandRatelimitCustomType = (context: Context) => string;
+export type CommandRatelimitCustomType = (context: Context | InteractionContext) => string;
 
 /**
  * Command Ratelimit Options
- * @category Command Options
+ * @category Command Ratelimit Options
  */
 export interface CommandRatelimitOptions {
   duration?: number,
@@ -27,7 +28,7 @@ export interface CommandRatelimitOptions {
 
 /**
  * Command Ratelimit Item
- * @category Command
+ * @category Command Ratelimit
  */
 export interface CommandRatelimitItem {
   key: string,
@@ -39,16 +40,19 @@ export interface CommandRatelimitItem {
 
 /**
  * Command Ratelimit Options and Cache
- * @category Command
+ * @category Command Ratelimit
  */
 export class CommandRatelimit {
-  command?: Command;
+  command?: Command | InteractionCommand | InteractionCommandOption;
   duration: number = 5000;
   key?: string;
   limit: number = 5;
   type: CommandRatelimitTypes | CommandRatelimitCustomType = CommandRatelimitTypes.USER;
 
-  constructor(options: boolean | CommandRatelimitOptions = {}, command?: Command) {
+  constructor(
+    options: boolean | CommandRatelimitOptions | CommandRatelimit = {},
+    command?: Command | InteractionCommand | InteractionCommandOption,
+  ) {
     options = Object.assign({}, options) as CommandRatelimitOptions;
 
     this.command = command || this.command;
@@ -76,22 +80,26 @@ export class CommandRatelimit {
       return 'KEY' + KEY_SPLITTER + this.key;
     }
     if (this.command) {
-      return 'COMMAND' + KEY_SPLITTER + this.command.names[0];
+      if (this.command instanceof InteractionCommand) {
+        return 'INTERACTION-COMMAND' + KEY_SPLITTER + this.command.fullName;
+      } else {
+        return 'COMMAND' + KEY_SPLITTER + this.command.fullName;
+      }
     }
     return '';
   }
 
-  createKey(context: Context): string {
+  createKey(context: Context | InteractionContext): string {
     let key: string;
     if (typeof(this.type) === 'function') {
       key = this.type(context);
     } else {
       switch (this.type) {
         case CommandRatelimitTypes.CHANNEL: {
-          key = context.channelId;
+          key = context.channelId || '';
         }; break;
         case CommandRatelimitTypes.GUILD: {
-          key = context.guildId || context.channelId;
+          key = context.guildId || context.channelId || '';
         }; break;
         case CommandRatelimitTypes.USER: {
           key = context.userId;
@@ -118,7 +126,7 @@ export class CommandRatelimiter {
   readonly cache = new BaseCollection<string, CommandRatelimitItem>();
 
   getExceeded(
-    context: Context,
+    context: Context | InteractionContext,
     ratelimits: Array<CommandRatelimit>,
     now: number = Date.now(),
   ): Array<{item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number}> {
@@ -137,7 +145,7 @@ export class CommandRatelimiter {
     return exceeded;
   }
 
-  getOrCreate(context: Context, ratelimit: CommandRatelimit): CommandRatelimitItem {
+  getOrCreate(context: Context | InteractionContext, ratelimit: CommandRatelimit): CommandRatelimitItem {
     const key = ratelimit.createKey(context);
 
     let item: CommandRatelimitItem;

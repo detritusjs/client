@@ -11,7 +11,7 @@ import {
 import { ClientEvents, Permissions, IS_TS_NODE } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
-import { SlashCommandClient } from './slashcommandclient';
+import { InteractionCommandClient } from './interactioncommandclient';
 import { PermissionTools, getFiles } from './utils';
 
 import {
@@ -25,7 +25,7 @@ import {
   CommandRatelimit,
   CommandRatelimitOptions,
   CommandRatelimiter,
-} from './command/ratelimit';
+} from './commandratelimit';
 
 import { BaseCollection, BaseSet } from './collections';
 import { Message, Typing, User } from './structures';
@@ -36,19 +36,25 @@ export interface CommandClientOptions extends ClusterClientOptions {
   ignoreMe?: boolean,
   maxEditDuration?: number,
   mentionsEnabled?: boolean,
-  onCommandCheck?: CommandClientCommandCheck,
-  onMessageCheck?: CommandClientMessageCheck,
-  onPrefixCheck?: CommandClientPrefixCheck,
   prefix?: string,
   prefixes?: Array<string>,
   prefixSpace?: boolean,
   ratelimit?: CommandRatelimitOptions,
   ratelimits?: Array<CommandRatelimitOptions>,
+  ratelimiter?: CommandRatelimiter,
   useClusterClient?: boolean,
+
+  onCommandCheck?: CommandClientCommandCheck,
+  onCommandCancel?: CommandClientCommandCancel,
+  onMessageCheck?: CommandClientMessageCheck,
+  onMessageCancel?: CommandClientMessageCancel,
+  onPrefixCheck?: CommandClientPrefixCheck,
 }
 
-export type CommandClientCommandCheck = (context: Context, command: Command) => boolean | Promise<boolean>;
-export type CommandClientMessageCheck = (context: Context) => boolean | Promise<boolean>;
+export type CommandClientCommandCheck = (context: Context, command: Command) => Promise<boolean> | boolean;
+export type CommandClientCommandCancel = (context: Context, command: Command) => Promise<any> | any;
+export type CommandClientMessageCheck = (context: Context) => Promise<boolean> | boolean;
+export type CommandClientMessageCancel = (context: Context) => Promise<any> | any;
 
 export type CommandClientPrefixes = Array<string> | BaseSet<string> | Set<string> | string;
 export type CommandClientPrefixCheck = (context: Context) => CommandClientPrefixes | Promise<CommandClientPrefixes>;
@@ -94,21 +100,23 @@ export class CommandClient extends EventSpewer {
   };
   ran: boolean = false;
   ratelimits: Array<CommandRatelimit> = [];
-  ratelimiter = new CommandRatelimiter();
+  ratelimiter: CommandRatelimiter;
   replies: BaseCollection<string, CommandReply>;
 
-  onCommandCheck?(context: Context, command: Command): boolean | Promise<boolean>;
-  onMessageCheck?(context: Context): boolean | Promise<boolean>;
+  onCommandCheck?(context: Context, command: Command): Promise<boolean> | boolean;
+  onCommandCancel?(context: Context, command: Command): Promise<any> | any;
+  onMessageCheck?(context: Context): Promise<boolean> | boolean;
+  onMessageCancel?(context: Context): Promise<any> | any;
   onPrefixCheck?(context: Context): CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
   constructor(
-    token: ClusterClient | ShardClient | SlashCommandClient | string,
+    token: ClusterClient | ShardClient | InteractionCommandClient | string,
     options: CommandClientOptions = {},
   ) {
     super();
     options = Object.assign({useClusterClient: true}, options);
 
-    if (token instanceof SlashCommandClient) {
+    if (token instanceof InteractionCommandClient) {
       token = token.client;
     }
 
@@ -139,6 +147,11 @@ export class CommandClient extends EventSpewer {
     }
     this.client = client;
     Object.defineProperty(this.client, 'commandClient', {value: this});
+    if (this.client instanceof ClusterClient) {
+      for (let [shardId, shard] of this.client.shards) {
+        Object.defineProperty(shard, 'commandClient', {value: this});
+      }
+    }
 
     this.activateOnEdits = !!options.activateOnEdits || this.activateOnEdits;
     this.commands = [];
@@ -149,10 +162,13 @@ export class CommandClient extends EventSpewer {
       custom: new BaseSet<string>(),
       mention: new BaseSet<string>(),
     });
+    this.ratelimiter = options.ratelimiter || new CommandRatelimiter();
     this.replies = new BaseCollection({expire: this.maxEditDuration});
 
     this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
+    this.onCommandCancel = options.onCommandCancel || this.onCommandCancel;
     this.onMessageCheck = options.onMessageCheck || this.onMessageCheck;
+    this.onMessageCancel = options.onMessageCancel || this.onMessageCancel;
     this.onPrefixCheck = options.onPrefixCheck || this.onPrefixCheck;
 
     if (options.prefix !== undefined) {
@@ -202,11 +218,15 @@ export class CommandClient extends EventSpewer {
       commands: {writable: false},
       maxEditDuration: {configurable: true, writable: false},
       mentionsEnabled: {configurable: true, writable: false},
-      onCommandCheck: {enumerable: false, writable: true},
-      onPrefixCheck: {enumerable: false, writable: true},
       prefixes: {writable: false},
       prefixSpace: {configurable: true, writable: false},
       ran: {configurable: true, writable: false},
+
+      onCommandCheck: {enumerable: false, writable: true},
+      onCommandCancel: {enumerable: false, writable: true},
+      onMessageCheck: {enumerable: false, writable: true},
+      onMessageCancel: {enumerable: false, writable: true},
+      onPrefixCheck: {enumerable: false, writable: true},
     });
   }
 
@@ -276,7 +296,9 @@ export class CommandClient extends EventSpewer {
 
     this.commands.push(command);
     this.commands.sort((x, y) => y.priority - x.priority);
-    this.setSubscriptions();
+    if (!this._clientSubscriptions.length) {
+      this.setSubscriptions();
+    }
     return this;
   }
 
@@ -357,7 +379,16 @@ export class CommandClient extends EventSpewer {
       }
     }
     this.commands.length = 0;
-    this.resetSubscriptions();
+    this.clearSubscriptions();
+  }
+
+  clearSubscriptions(): void {
+    while (this._clientSubscriptions.length) {
+      const subscription = this._clientSubscriptions.shift();
+      if (subscription) {
+        subscription.remove();
+      }
+    }
   }
 
   async resetCommands(): Promise<void> {
@@ -460,17 +491,8 @@ export class CommandClient extends EventSpewer {
     return this.prefixes.custom;
   }
 
-  resetSubscriptions(): void {
-    while (this._clientSubscriptions.length) {
-      const subscription = this._clientSubscriptions.shift();
-      if (subscription) {
-        subscription.remove();
-      }
-    }
-  }
-
   setSubscriptions(): void {
-    this.resetSubscriptions();
+    this.clearSubscriptions();
 
     const subscriptions = this._clientSubscriptions;
     subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_CREATE, this.handleMessageCreate.bind(this)));
@@ -482,7 +504,7 @@ export class CommandClient extends EventSpewer {
   kill(): void {
     this.client.kill();
     this.emit(ClientEvents.KILLED);
-    this.resetSubscriptions();
+    this.clearSubscriptions();
     this.removeAllListeners();
   }
 
@@ -542,6 +564,9 @@ export class CommandClient extends EventSpewer {
       try {
         const shouldContinue = await Promise.resolve(this.onMessageCheck(context));
         if (!shouldContinue) {
+          if (typeof(this.onMessageCancel) === 'function') {
+            return await Promise.resolve(this.onMessageCancel(context));
+          }
           const error = new Error('Message check returned false');
           const payload: CommandEvents.CommandNone = {context, error};
           this.emit(ClientEvents.COMMAND_NONE, payload);
@@ -594,6 +619,9 @@ export class CommandClient extends EventSpewer {
         try {
           const shouldContinue = await Promise.resolve(this.onCommandCheck(context, command));
           if (!shouldContinue) {
+            if (typeof(this.onCommandCancel) === 'function') {
+              return await Promise.resolve(this.onCommandCancel(context, command));
+            }
             const error = new Error('Command check returned false');
             const payload: CommandEvents.CommandNone = {context, error};
             this.emit(ClientEvents.COMMAND_NONE, payload);

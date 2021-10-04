@@ -32,7 +32,7 @@ export namespace ClusterIPCTypes {
     results?: Array<[any, boolean]>,
   }
 
-  export interface FillSlashCommands {
+  export interface FillInteractionCommands {
     data: Array<any>,
   }
 
@@ -48,8 +48,10 @@ export namespace ClusterIPCTypes {
       stack: string,
     },
     result?: any,
-    name: string,
+
     args?: Array<any>,
+    hash: string,
+    name: string,
   }
 
   export interface ShardState {

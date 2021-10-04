@@ -14,7 +14,7 @@ import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
 import { AuthTypes, ClientEvents, SocketStates, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { GatewayClientEvents } from './gateway/clientevents';
-import { SlashCommandClient } from './slashcommandclient';
+import { InteractionCommandClient } from './interactioncommandclient';
 
 
 export interface ClusterClientOptions extends ShardClientOptions {
@@ -40,7 +40,7 @@ export class ClusterClient extends EventSpewer {
   readonly commandClient: CommandClient | null = null;
   readonly manager: ClusterProcessChild | null = null;
   readonly rest: DetritusRestClient;
-  readonly slashCommandClient: SlashCommandClient | null = null;
+  readonly interactionCommandClient: InteractionCommandClient | null = null;
 
   buckets = new BaseCollection<number, Bucket>();
   maxConcurrency: number = 1;
@@ -107,8 +107,8 @@ export class ClusterClient extends EventSpewer {
     if (this.shardOptions.pass.commandClient) {
       this.commandClient = this.shardOptions.pass.commandClient;
     }
-    if (this.shardOptions.pass.slashCommandClient) {
-      this.slashCommandClient = this.shardOptions.pass.slashCommandClient;
+    if (this.shardOptions.pass.interactionCommandClient) {
+      this.interactionCommandClient = this.shardOptions.pass.interactionCommandClient;
     }
 
     if (isUsingClusterManager) {
@@ -125,7 +125,7 @@ export class ClusterClient extends EventSpewer {
       shardStart: {configurable: true, writable: false},
       shards: {writable: false},
       shardOptions: {enumerable: false, writable: false},
-      slashCommandClient: {enumerable: false, writable: false},
+      interactionCommandClient: {enumerable: false, writable: false},
       token: {enumerable: false, writable: false},
     });
   }
@@ -255,13 +255,13 @@ export class ClusterClient extends EventSpewer {
 
       const shardOptions = Object.assign({}, this.shardOptions);
       shardOptions.gateway = Object.assign({}, shardOptions.gateway, {shardCount, shardId});
-      if (this.commandClient || this.slashCommandClient) {
+      if (this.commandClient || this.interactionCommandClient) {
         shardOptions.pass = Object.assign({}, shardOptions.pass);
         if (this.commandClient) {
           shardOptions.pass.commandClient = this.commandClient;
         }
-        if (this.slashCommandClient) {
-          shardOptions.pass.slashCommandClient = this.slashCommandClient;
+        if (this.interactionCommandClient) {
+          shardOptions.pass.interactionCommandClient = this.interactionCommandClient;
         }
       }
 
@@ -397,6 +397,8 @@ export class ClusterClient extends EventSpewer {
   on(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete) => any): this;
   on(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
+  on(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): this;
+  on(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): this;
   on(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
   on(event: 'guildUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
   on(event: ClientEvents.INTERACTION_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.InteractionCreate) => any): this;
@@ -613,6 +615,8 @@ export class ClusterClient extends EventSpewer {
   once(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete) => any): this;
   once(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
   once(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): this;
+  once(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): this;
+  once(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): this;
   once(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
   once(event: 'guildUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): this;
   once(event: ClientEvents.INVITE_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.InviteCreate) => any): this;
@@ -827,6 +831,8 @@ export class ClusterClient extends EventSpewer {
   subscribe(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): EventSubscription;
   subscribe(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
+  subscribe(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): EventSubscription;
   subscribe(event: 'guildUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.INVITE_CREATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.InviteCreate) => any): EventSubscription;

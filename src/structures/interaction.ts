@@ -5,6 +5,7 @@ import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
   ApplicationCommandOptionTypes,
+  ApplicationCommandTypes,
   DiscordKeys,
   InteractionCallbackTypes,
   InteractionTypes,
@@ -149,9 +150,20 @@ export class Interaction extends BaseStructure {
     options: RequestTypes.CreateInteractionResponse | number,
     data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
   ) {
-    const response = await this.client.rest.createInteractionResponse(this.id, this.token, options, data);
     this.responded = true;
-    return response;
+    try {
+      if (this.isFromMessageComponent) {
+        const toAssignData = (typeof(options) === 'object') ? options.data || data : data;
+        if (typeof(toAssignData) === 'object' && toAssignData.components) {
+          const listenerId = (this.message) ? this.message.id : '';
+          Object.assign(toAssignData, {listenerId});
+        }
+      }
+      return await this.client.rest.createInteractionResponse(this.id, this.token, options, data);
+    } catch(error) {
+      this.responded = false;
+      throw error;
+    }
   }
 
   deleteMessage(messageId: string) {
@@ -245,6 +257,8 @@ const keysInteractionDataApplicationCommand = new BaseSet<string>([
   DiscordKeys.NAME,
   DiscordKeys.OPTIONS,
   DiscordKeys.RESOLVED,
+  DiscordKeys.TARGET_ID,
+  DiscordKeys.TYPE,
 ]);
 
 /**
@@ -259,6 +273,8 @@ export class InteractionDataApplicationCommand extends BaseStructure {
   name: string = '';
   options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
   resolved?: InteractionDataApplicationCommandResolved;
+  targetId?: string;
+  type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
 
   constructor(
     interaction: Interaction,
@@ -279,6 +295,22 @@ export class InteractionDataApplicationCommand extends BaseStructure {
       }
     }
     return this.name;
+  }
+
+  get isContextCommand(): boolean {
+    return this.isContextCommandMessage || this.isContextCommandUser;
+  }
+
+  get isContextCommandMessage(): boolean {
+    return this.type === ApplicationCommandTypes.MESSAGE;
+  }
+
+  get isContextCommandUser(): boolean {
+    return this.type === ApplicationCommandTypes.USER;
+  }
+
+  get isSlashCommand(): boolean {
+    return this.type === ApplicationCommandTypes.CHAT_INPUT;
   }
 
   mergeValue(key: string, value: any): void {
@@ -378,6 +410,7 @@ export class InteractionDataApplicationCommandOption extends BaseStructure {
 const keysInteractionDataApplicationCommandResolved = new BaseSet<string>([
   DiscordKeys.CHANNELS,
   DiscordKeys.MEMBERS,
+  DiscordKeys.MESSAGES,
   DiscordKeys.ROLES,
   DiscordKeys.USERS,
 ]);
@@ -397,6 +430,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
 
   channels?: BaseCollection<string, Channel>;
   members?: BaseCollection<string, Member>;
+  messages?: BaseCollection<string, Message>;
   roles?: BaseCollection<string, Role>;
   users?: BaseCollection<string, User>;
 
@@ -448,6 +482,17 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
               member.user = (this.users) ? this.users.get(userId)! : this.client.users.get(userId)!;
             }
             this.members.set(userId, member);
+          }
+        }; return;
+        case DiscordKeys.MESSAGES: {
+          if (!this.messages) {
+            this.messages = new BaseCollection();
+          }
+          this.messages.clear();
+          for (let messageId in value) {
+            value[messageId][DiscordKeys.GUILD_ID] = this.guildId;
+            const message = new Message(this.client, value[messageId], true);
+            this.messages.set(messageId, message);
           }
         }; return;
         case DiscordKeys.ROLES: {

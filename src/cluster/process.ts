@@ -95,7 +95,7 @@ export class ClusterProcess extends EventSpewer {
               }
             }
           }; return;
-          case ClusterIPCOpCodes.FILL_SLASH_COMMANDS: {
+          case ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS: {
             await this.manager.broadcast(message);
           }; return;
           case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
@@ -128,8 +128,8 @@ export class ClusterProcess extends EventSpewer {
             try {
               if (data.name in this.manager.rest && typeof((this.manager.rest as any)[data.name]) === 'function') {
                 let payload: ClusterManagerRestCachePayload;
-                if (this.manager.restCache.has(data.name)) {
-                  payload = this.manager.restCache.get(data.name)!;
+                if (this.manager.restCache.has(data.hash)) {
+                  payload = this.manager.restCache.get(data.hash)!;
                   if (payload.promise) {
                     payload.result = await payload.promise;
                     payload.promise = undefined;
@@ -138,13 +138,14 @@ export class ClusterProcess extends EventSpewer {
                   payload = {
                     promise: (this.manager.rest as any)[data.name](...(data.args || [])),
                   };
-                  this.manager.restCache.set(data.name, payload);
+                  this.manager.restCache.set(data.hash, payload);
                   payload.result = await payload.promise;
                   payload.promise = undefined;
                 }
-                this.manager.restCache.delete(data.name);
+                this.manager.restCache.delete(data.hash);
                 await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
                   result: payload.result,
+                  hash: data.hash,
                   name: data.name,
                 }, false, message.shardId, message.clusterId);
               } else {

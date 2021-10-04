@@ -8,7 +8,7 @@ import { EventSpewer, EventSubscription, Timers } from 'detritus-utils';
 import { ClusterClient } from './clusterclient';
 import { CommandClient } from './commandclient';
 import { RestClient } from './rest';
-import { SlashCommandClient } from './slashcommandclient';
+import { InteractionCommandClient } from './interactioncommandclient';
 
 import {
   AuthTypes,
@@ -50,6 +50,8 @@ import {
   SessionsOptions,
   StageInstances,
   StageInstancesOptions,
+  Stickers,
+  StickersOptions,
   TypingCollection,
   TypingOptions,
   Users,
@@ -75,6 +77,13 @@ import {
   UserMe,
 } from './structures';
 
+import { Components, ComponentActionRow, ComponentActionRowData } from './utils';
+
+
+export interface VoiceConnectObject {
+  connection: VoiceConnection,
+  isNew: boolean,
+}
 
 interface GatewayOptions extends Gateway.SocketOptions, GatewayHandlerOptions {
 
@@ -95,6 +104,7 @@ export interface ShardClientCacheOptions {
   roles?: RolesOptions | boolean,
   sessions?: SessionsOptions | boolean,
   stageInstances?: StageInstancesOptions | boolean,
+  stickers?: StickersOptions | boolean,
   typings?: TypingOptions | boolean,
   users?: UsersOptions | boolean,
   voiceCalls?: VoiceCallsOptions | boolean,
@@ -105,7 +115,7 @@ export interface ShardClientCacheOptions {
 export interface ShardClientPassOptions {
   cluster?: ClusterClient,
   commandClient?: CommandClient,
-  slashCommandClient?: SlashCommandClient,
+  interactionCommandClient?: InteractionCommandClient,
   applications?: Applications,
   channels?: Channels,
   connectedAccounts?: ConnectedAccounts,
@@ -120,6 +130,7 @@ export interface ShardClientPassOptions {
   roles?: Roles,
   sessions?: Sessions,
   stageInstances?: StageInstances,
+  stickers?: Stickers,
   typings?: TypingCollection,
   users?: Users,
   voiceCalls?: VoiceCalls,
@@ -168,7 +179,7 @@ export class ShardClient extends EventSpewer {
   application: Oauth2Application | null = null;
   cluster: ClusterClient | null = null;
   commandClient: CommandClient | null = null;
-  slashCommandClient: SlashCommandClient | null = null;
+  interactionCommandClient: InteractionCommandClient | null = null;
 
   /** Default Image Format to use for any url getters*/
   imageFormat: ImageFormats = ImageFormats.PNG;
@@ -215,6 +226,7 @@ export class ShardClient extends EventSpewer {
   readonly roles: Roles;
   readonly sessions: Sessions;
   readonly stageInstances: StageInstances;
+  readonly stickers: Stickers;
   readonly typings: TypingCollection;
   readonly users: Users;
   readonly voiceCalls: VoiceCalls;
@@ -240,7 +252,7 @@ export class ShardClient extends EventSpewer {
     }
     this.cluster = options.pass.cluster || this.cluster;
     this.commandClient = options.pass.commandClient || this.commandClient;
-    this.slashCommandClient = options.pass.slashCommandClient || this.slashCommandClient;
+    this.interactionCommandClient = options.pass.interactionCommandClient || this.interactionCommandClient;
 
     this.gateway = new Gateway.Socket(token, options.gateway);
     this.gatewayHandler = new GatewayHandler(this, options.gateway);
@@ -267,7 +279,7 @@ export class ShardClient extends EventSpewer {
       gateway: {enumerable: false, writable: false},
       ran: {configurable: true, writable: false},
       rest: {enumerable: false, writable: false},
-      slashCommandClient: {configurable: true, enumerable: false, writable: false},
+      interactionCommandClient: {configurable: true, enumerable: false, writable: false},
       token: {enumerable: false, writable: false},
     });
 
@@ -288,6 +300,7 @@ export class ShardClient extends EventSpewer {
         roles: {enabled},
         sessions: {enabled},
         stageInstances: {enabled},
+        stickers: {enabled},
         typings: {enabled},
         users: {enabled},
         voiceCalls: {enabled},
@@ -310,6 +323,7 @@ export class ShardClient extends EventSpewer {
     this.roles = options.pass.roles || new Roles(this, options.cache.roles);
     this.sessions = options.pass.sessions || new Sessions(this, options.cache.sessions);
     this.stageInstances = options.pass.stageInstances || new StageInstances(this, options.cache.stageInstances);
+    this.stickers = options.pass.stickers || new Stickers(this, options.cache.stickers);
     this.typings = options.pass.typings || new TypingCollection(this, options.cache.typings);
     this.users = options.pass.users || new Users(this, options.cache.users);
     this.voiceCalls = options.pass.voiceCalls || new VoiceCalls(this, options.cache.voiceCalls);
@@ -370,6 +384,20 @@ export class ShardClient extends EventSpewer {
       }
     }
     return oauth2Application;
+  }
+
+  hookComponents(
+    listenerId: string,
+    components: Components | Array<ComponentActionRowData | ComponentActionRow>,
+    timeout?: number,
+  ): Components {
+    if (components instanceof Components) {
+      components.id = listenerId;
+    } else {
+      components = new Components({components, id: listenerId, timeout: timeout || 0});
+    }
+    this.gatewayHandler._componentHandler.insert(components);
+    return components;
   }
 
   isOwner(userId: string): boolean {
@@ -489,6 +517,7 @@ export class ShardClient extends EventSpewer {
     }
     this.channels.clear();
     this.connectedAccounts.clear();
+    this.emojis.clear();
     this.guilds.clear();
     this.interactions.clear();
     this.members.clear();
@@ -496,8 +525,10 @@ export class ShardClient extends EventSpewer {
     this.notes.clear();
     this.presences.clear();
     this.relationships.clear();
+    this.roles.clear();
     this.sessions.clear();
     this.stageInstances.clear();
+    this.stickers.clear();
     this.typings.clear();
     this.users.clear();
     this.voiceCalls.clear();
@@ -544,10 +575,7 @@ export class ShardClient extends EventSpewer {
     guildId?: null | string,
     channelId?: null | string,
     options: VoiceConnectOptions = {},
-  ): Promise<{
-    connection: VoiceConnection,
-    isNew: boolean,
-  } | null> {
+  ): Promise<VoiceConnectObject | null> {
     options.selfDeaf = options.selfDeaf || options.deaf;
     options.selfMute = options.selfMute || options.mute;
     const gateway = await this.gateway.voiceConnect(guildId, channelId, options);
@@ -673,6 +701,8 @@ export class ShardClient extends EventSpewer {
   on(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.GuildRoleDelete) => any): this;
   on(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
+  on(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
+  on(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   on(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
   on(event: 'guildUpdate', listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
   on(event: ClientEvents.INTERACTION_CREATE, listener: (payload: GatewayClientEvents.InteractionCreate) => any): this;
@@ -885,6 +915,8 @@ export class ShardClient extends EventSpewer {
   once(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.GuildRoleDelete) => any): this;
   once(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
   once(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
+  once(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
+  once(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   once(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
   once(event: 'guildUpdate', listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
   once(event: ClientEvents.INVITE_CREATE, listener: (payload: GatewayClientEvents.InviteCreate) => any): this;
@@ -1095,6 +1127,8 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.GuildRoleDelete) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): EventSubscription;
   subscribe(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
+  subscribe(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): EventSubscription;
   subscribe(event: 'guildUpdate', listener: (payload: GatewayClientEvents.GuildUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.INVITE_CREATE, listener: (payload: GatewayClientEvents.InviteCreate) => any): EventSubscription;

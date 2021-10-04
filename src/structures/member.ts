@@ -46,6 +46,8 @@ const keysMember = new BaseSet<string>([
 
 const keysMergeMember = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
+  DiscordKeys.ROLES,
+  DiscordKeys.HOISTED_ROLE,
 ]);
 
 const keysSkipDifferenceMember = new BaseSet<string>([
@@ -352,13 +354,32 @@ export class Member extends UserMixin {
     return false;
   }
 
+  /* doesnt do any permission checks */
+  canEditRole(roleId: Role | string): boolean {
+    let role: Role;
+    if (roleId instanceof Role) {
+      role = roleId;
+    } else {
+      if (this.client.roles.has(this.guildId, roleId)) {
+        role = this.client.roles.get(this.guildId, roleId)!;
+      } else {
+        return false;
+      }
+    }
+    const us = this.highestRole;
+    if (us) {
+      return role.position < us.position;
+    }
+    return false;
+  }
+
   permissionsIn(channelId: Channel | string): bigint {
     let channel: Channel;
     if (channelId instanceof ChannelBase) {
       channel = channelId;
     } else {
       if (this.client.channels.has(channelId)) {
-        channel = this.client.channels.get(channelId) as Channel;
+        channel = this.client.channels.get(channelId)!;
       } else {
         return Permissions.NONE;
       }
@@ -478,7 +499,17 @@ export class Member extends UserMixin {
   }
 
   mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
+    if (value === undefined) {
+      switch (key) {
+        case DiscordKeys.HOISTED_ROLE: {
+          // find the hoisted role since we got the member from rest or an interaction (which wont give us a hoisted role value)
+          const hoistedRole = (this.roles.filter((x) => !!x) as Array<Role>).sort((x, y) => y.position - x.position).find((x) => x.hoist);
+          if (hoistedRole) {
+            this.hoistedRoleId = hoistedRole.id;
+          }
+        }; return;
+      }
+    } else {
       switch (key) {
         case DiscordKeys.AVATAR: {
           this._avatar = value;

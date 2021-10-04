@@ -88,8 +88,8 @@ export class Context {
     return this.client.shardId;
   }
 
-  get slashCommandClient() {
-    return this.client.slashCommandClient;
+  get interactionCommandClient() {
+    return this.client.interactionCommandClient;
   }
 
   get response(): Message | null {
@@ -151,6 +151,10 @@ export class Context {
 
   get stageInstances() {
     return this.client.stageInstances;
+  }
+
+  get stickers() {
+    return this.client.stickers;
   }
 
   get typings() {

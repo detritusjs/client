@@ -5,6 +5,7 @@ import {
 
 import {
   ShardClient,
+  VoiceConnectObject,
   VoiceConnectOptions,
 } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
@@ -485,208 +486,361 @@ export class ChannelBase extends BaseStructure {
     return false;
   }
 
-  async addPinnedMessage(messageId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async addPinnedMessage(messageId: string) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.addPinnedMessage(this.id, messageId);
   }
 
-  async addMember(userId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async addMember(userId: string) {
+    if (!this.isGuildThread) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.addThreadMember(this.id, userId);
   }
 
-  async addRecipient(userId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async addRecipient(userId: string) {
+    if (!this.isDm) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.addRecipient(this.id, userId);
   }
 
-  async bulkDelete(messageIds: Array<string>): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async bulkDelete(messageIds: Array<string>) {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.bulkDeleteMessages(this.id, messageIds);
   }
 
-  async close(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async close() {
+    if (!this.isDm) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.delete();
   }
 
   async createInvite(options: RequestTypes.CreateChannelInvite) {
     return this.client.rest.createChannelInvite(this.id, options);
   }
 
-  async createMessage(options: RequestTypes.CreateMessage | string = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async createMessage(options: RequestTypes.CreateMessage | string = {}) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.createMessage(this.id, options);
   }
 
-  async createReaction(messageId: string, emoji: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async createReaction(messageId: string, emoji: string) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.createReaction(this.id, messageId, emoji);
   }
 
-  async createStageInstance(options: PartialBy<RequestTypes.CreateStageInstance, 'channelId'>): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async createStageInstance(options: PartialBy<RequestTypes.CreateStageInstance, 'channelId'>) {
+    if (!this.isGuildStageVoice) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.createStageInstance({
+      ...options,
+      channelId: this.id,
+    });
   }
 
-  async createThread(options: RequestTypes.CreateChannelThread): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async createThread(options: RequestTypes.CreateChannelThread) {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.createChannelThread(this.id, options);
   }
 
-  async createWebhook(options: RequestTypes.CreateWebhook): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async createWebhook(options: RequestTypes.CreateWebhook) {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.createWebhook(this.id, options);
   }
 
-  async crosspostMessage(messageId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async crosspostMessage(messageId: string) {
+    if (!this.isGuildNews) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.crosspostMessage(this.id, messageId);
   }
 
   async delete(options: RequestTypes.DeleteChannel = {}) {
     return this.client.rest.deleteChannel(this.id, options);
   }
 
-  async deleteMessage(messageId: string, options: RequestTypes.DeleteMessage = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async deleteMessage(messageId: string, options: RequestTypes.DeleteMessage = {}) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.deleteMessage(this.id, messageId, options);
   }
 
-  async deleteOverwrite(overwriteId: string, options: RequestTypes.DeleteChannelOverwrite = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async deleteOverwrite(overwriteId: string, options: RequestTypes.DeleteChannelOverwrite = {}) {
+    if (!this.isGuildChannel) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.deleteChannelOverwrite(this.id, overwriteId, options);
   }
 
-  async deletePin(messageId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async deletePin(messageId: string) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.deletePinnedMessage(this.id, messageId);
   }
 
-  async deleteReaction(messageId: string, emoji: string, userId: string = '@me'): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async deleteReaction(messageId: string, emoji: string, userId: string = '@me') {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.deleteReaction(this.id, messageId, emoji, userId);
   }
 
-  async deleteReactions(messageId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async deleteReactions(messageId: string) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.deleteReactions(this.id, messageId);
   }
 
-  async deleteStageInstance(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async deleteStageInstance() {
+    if (!this.isGuildStageVoice) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.deleteStageInstance(this.id);
   }
 
   edit(options: RequestTypes.EditChannel = {}) {
     return this.client.rest.editChannel(this.id, options);
   }
 
-  async editMessage(messageId: string, options: RequestTypes.EditMessage = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async editMessage(messageId: string, options: RequestTypes.EditMessage = {}) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.editMessage(this.id, messageId, options);
   }
 
-  async editOverwrite(overwriteId: string, options: RequestTypes.EditChannelOverwrite = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async editOverwrite(overwriteId: string, options: RequestTypes.EditChannelOverwrite = {}) {
+    if (!this.isGuildChannel) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.editChannelOverwrite(this.id, overwriteId, options);
   }
 
-  async editStageInstance(options: RequestTypes.EditStageInstance = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async editStageInstance(options: RequestTypes.EditStageInstance = {}) {
+    if (!this.isGuildStageVoice) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.editStageInstance(this.id, options);
   }
 
-  async fetchCallStatus(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchCallStatus() {
+    if (!this.isDm) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchChannelCall(this.id);
   }
 
   async fetchInvites() {
     return this.client.rest.fetchChannelInvites(this.id);
   }
 
-  async fetchMembers(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchMembers() {
+    if (!this.isGuildThread) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchThreadMembers(this.id);
   }
 
-  async fetchMessage(messageId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchMessage(messageId: string) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchMessage(this.id, messageId);
   }
 
-  async fetchMessages(options: RequestTypes.FetchMessages = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchMessages(options: RequestTypes.FetchMessages = {}) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchMessages(this.id, options);
   }
 
-  async fetchPins(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchPins() {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchPinnedMessages(this.id);
   }
 
-  async fetchReactions(messageId: string, emoji: string, options: RequestTypes.FetchReactions = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchReactions(messageId: string, emoji: string, options: RequestTypes.FetchReactions = {}) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchReactions(this.id, messageId, emoji, options);
   }
 
-  async fetchStageInstance(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchStageInstance() {
+    if (!this.isGuildStageVoice) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchStageInstance(this.id);
   }
 
-  async fetchStoreListing(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchStoreListing() {
+    if (!this.isGuildStore) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchChannelStoreListing(this.id);
   }
 
-  async fetchThreadsActive(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchThreadsActive() {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchChannelThreadsActive(this.id);
   }
 
-  async fetchThreadsArchivedPrivate(options: RequestTypes.FetchChannelThreadsArchivedPrivate = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchThreadsArchivedPrivate(options: RequestTypes.FetchChannelThreadsArchivedPrivate = {}) {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchChannelThreadsArchivedPrivate(this.id, options);
   }
 
-  async fetchThreadsArchivedPrivateJoined(options: RequestTypes.FetchChannelThreadsArchivedPrivateJoined = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchThreadsArchivedPrivateJoined(options: RequestTypes.FetchChannelThreadsArchivedPrivateJoined = {}) {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchChannelThreadsArchivedPrivateJoined(this.id, options);
   }
 
-  async fetchThreadsArchivedPublic(options: RequestTypes.FetchChannelThreadsArchivedPublic = {}): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchThreadsArchivedPublic(options: RequestTypes.FetchChannelThreadsArchivedPublic = {}) {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchChannelThreadsArchivedPublic(this.id, options);
   }
 
-  async fetchWebhooks(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async fetchWebhooks() {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.fetchChannelWebhooks(this.id);
   }
 
-  async follow(options: RequestTypes.FollowChannel): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async follow(options: RequestTypes.FollowChannel) {
+    if (!this.isGuildNews) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.followChannel(this.id, options);
   }
 
-  async grantEntitlement(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async grantEntitlement() {
+    if (!this.isGuildStore) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
   }
 
-  async join(...args: any[]): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async join(): Promise<void>;
+  async join(options?: CallOptions): Promise<VoiceConnectObject | null>;
+  async join(options?: CallOptions): Promise<VoiceConnectObject | null | void> {
+    if (this.isGuildThread) {
+      return this.client.rest.joinThread(this.id);
+    } else if (this.isVoice) {
+      if (options && this.isDm) {
+        if (options.verify || options.verify === undefined) {
+          await this.fetchCallStatus();
+        }
+        if (options.recipients) {
+          await this.startCallRinging(options.recipients);
+        }
+      }
+      return this.client.voiceConnect(this.guildId || undefined, this.id, options);
+    } else {
+      throw new Error('Channel type doesn\'t support this.');
+    }
   }
 
-  async leave(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async leave() {
+    if (!this.isGuildThread) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.leaveThread(this.id);
   }
 
-  async publish(options: RequestTypes.CreateApplicationNews): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async removeMember(userId: string) {
+    if (!this.isGuildThread) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.removeThreadMember(this.id, userId);
   }
 
-  async removeMember(userId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async removeRecipient(userId: string) {
+    if (!this.isDm) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.removeRecipient(this.id, userId);
   }
 
-  async removeRecipient(userId: string): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async search(options: RequestTypes.SearchOptions, retry?: boolean) {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.searchChannel(this.id, options, retry);
   }
 
-  async search(options: RequestTypes.SearchOptions, retry?: boolean): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async startCallRinging(recipients?: Array<string>) {
+    if (!this.isDm) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.startChannelCallRinging(this.id, {recipients});
   }
 
-  async startCallRinging(recipients?: Array<string>): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async stopCallRinging(recipients?: Array<string>) {
+    if (!this.isDm) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.stopChannelCallRinging(this.id, {recipients});
   }
 
-  async stopCallRinging(recipients?: Array<string>): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async triggerTyping() {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.triggerTyping(this.id);
   }
 
-  async triggerTyping(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async turnIntoNewsChannel() {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.edit({
+      type: ChannelTypes.GUILD_NEWS,
+    });
   }
 
-  async turnIntoNewsChannel(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async turnIntoTextChannel() {
+    if (!this.isGuildText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.edit({
+      type: ChannelTypes.GUILD_TEXT,
+    });
   }
 
-  async turnIntoTextChannel(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
-  }
-
-  async unack(): Promise<any> {
-    throw new Error('Channel type doesn\'t support this.');
+  async unack() {
+    if (!this.isText) {
+      throw new Error('Channel type doesn\'t support this.');
+    }
+    return this.client.rest.unAckChannel(this.id);
   }
 
   mergeValue(key: string, value: any): void {
@@ -781,96 +935,6 @@ export class ChannelDM extends ChannelBase {
       return user.avatarUrlFormat(format, query);
     }
     return null;
-  }
-
-  async addPinnedMessage(messageId: string) {
-    return this.client.rest.addPinnedMessage(this.id, messageId);
-  }
-
-  async bulkDelete(messageIds: Array<string>) {
-    return this.client.rest.bulkDeleteMessages(this.id, messageIds);
-  }
-
-  async close() {
-    return this.delete();
-  }
-
-  async createMessage(options: RequestTypes.CreateMessage | string = {}) {
-    return this.client.rest.createMessage(this.id, options);
-  }
-
-  async createReaction(messageId: string, emoji: string) {
-    return this.client.rest.createReaction(this.id, messageId, emoji);
-  }
-
-  async deleteMessage(messageId: string, options: RequestTypes.DeleteMessage = {}) {
-    return this.client.rest.deleteMessage(this.id, messageId, options);
-  }
-
-  async deletePin(messageId: string) {
-    return this.client.rest.deletePinnedMessage(this.id, messageId);
-  }
-
-  async deleteReaction(messageId: string, emoji: string, userId: string = '@me') {
-    return this.client.rest.deleteReaction(this.id, messageId, userId);
-  }
-
-  async deleteReactions(messageId: string) {
-    return this.client.rest.deleteReactions(this.id, messageId);
-  }
-
-  async editMessage(messageId: string, options: RequestTypes.EditMessage = {}) {
-    return this.client.rest.editMessage(this.id, messageId, options);
-  }
-
-  async fetchCallStatus() {
-    return this.client.rest.fetchChannelCall(this.id);
-  }
-
-  async fetchMessage(messageId: string) {
-    return this.client.rest.fetchMessage(this.id, messageId);
-  }
-
-  async fetchMessages(options: RequestTypes.FetchMessages) {
-    return this.client.rest.fetchMessages(this.id, options);
-  }
-
-  async fetchPins() {
-    return this.client.rest.fetchPinnedMessages(this.id);
-  }
-
-  async fetchReactions(messageId: string, emoji: string, options: RequestTypes.FetchReactions = {}) {
-    return this.client.rest.fetchReactions(this.id, messageId, emoji, options);
-  }
-
-  async join(options: CallOptions) {
-    if (options.verify || options.verify === undefined) {
-      await this.fetchCallStatus();
-    }
-    if (options.recipients) {
-      await this.startCallRinging(options.recipients);
-    }
-    return this.client.voiceConnect(undefined, this.id, options);
-  }
-
-  async search(options: RequestTypes.SearchOptions, retry?: boolean) {
-    return this.client.rest.searchChannel(this.id, options, retry);
-  }
-
-  async startCallRinging(recipients?: Array<string>) {
-    return this.client.rest.startChannelCallRinging(this.id, {recipients});
-  }
-
-  async stopCallRinging(recipients?: Array<string>) {
-    return this.client.rest.stopChannelCallRinging(this.id, {recipients});
-  }
-
-  async triggerTyping() {
-    return this.client.rest.triggerTyping(this.id);
-  }
-
-  async unack() {
-    return this.client.rest.unAckChannel(this.id);
   }
 
   mergeValue(key: string, value: any): void {
@@ -997,14 +1061,6 @@ export class ChannelDMGroup extends ChannelDM {
 
   isOwner(userId: string): boolean {
     return this.ownerId === userId;
-  }
-
-  async addRecipient(userId: string) {
-    return this.client.rest.addRecipient(this.id, userId);
-  }
-
-  async removeRecipient(userId: string) {
-    return this.client.rest.removeRecipient(this.id, userId);
   }
 }
 
@@ -1273,14 +1329,6 @@ export class ChannelGuildBase extends ChannelBase {
     return false;
   }
 
-  async deleteOverwrite(overwriteId: string, options: RequestTypes.DeleteChannelOverwrite = {}) {
-    return this.client.rest.deleteChannelOverwrite(this.id, overwriteId, options);
-  }
-
-  async editOverwrite(overwriteId: string, options: RequestTypes.EditChannelOverwrite = {}) {
-    return this.client.rest.editChannelOverwrite(this.id, overwriteId, options);
-  }
-
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
@@ -1410,123 +1458,6 @@ export class ChannelGuildText extends ChannelGuildBase {
     return collection;
   }
 
-  async addPinnedMessage(messageId: string) {
-    return this.client.rest.addPinnedMessage(this.id, messageId);
-  }
-
-  async bulkDelete(messageIds: Array<string>) {
-    return this.client.rest.bulkDeleteMessages(this.id, messageIds);
-  }
-
-  async createMessage(options: RequestTypes.CreateMessage | string = {}) {
-    return this.client.rest.createMessage(this.id, options);
-  }
-
-  async createReaction(messageId: string, emoji: string) {
-    return this.client.rest.createReaction(this.id, messageId, emoji);
-  }
-
-  async createThread(options: RequestTypes.CreateChannelThread) {
-    return this.client.rest.createChannelThread(this.id, options);
-  }
-
-  async createWebhook(options: RequestTypes.CreateWebhook) {
-    return this.client.rest.createWebhook(this.id, options);
-  }
-
-  async crosspostMessage(messageId: string) {
-    return this.client.rest.crosspostMessage(this.id, messageId);
-  }
-
-  async deleteMessage(messageId: string, options: RequestTypes.DeleteMessage = {}) {
-    return this.client.rest.deleteMessage(this.id, messageId, options);
-  }
-
-  async deletePin(messageId: string) {
-    return this.client.rest.deletePinnedMessage(this.id, messageId);
-  }
-
-  async deleteReaction(messageId: string, emoji: string, userId: string = '@me') {
-    return this.client.rest.deleteReaction(this.id, messageId, userId);
-  }
-
-  async deleteReactions(messageId: string) {
-    return this.client.rest.deleteReactions(this.id, messageId);
-  }
-
-  async editMessage(messageId: string, options: RequestTypes.EditMessage = {}) {
-    return this.client.rest.editMessage(this.id, messageId, options);
-  }
-
-  async fetchMessage(messageId: string) {
-    return this.client.rest.fetchMessage(this.id, messageId);
-  }
-
-  async fetchMessages(options: RequestTypes.FetchMessages) {
-    return this.client.rest.fetchMessages(this.id, options);
-  }
-
-  async fetchPins() {
-    return this.client.rest.fetchPinnedMessages(this.id);
-  }
-
-  async fetchReactions(messageId: string, emoji: string, options: RequestTypes.FetchReactions = {}) {
-    return this.client.rest.fetchReactions(this.id, messageId, emoji, options);
-  }
-
-  async fetchThreadsActive() {
-    return this.client.rest.fetchChannelThreadsActive(this.id);
-  }
-
-  async fetchThreadsArchivedPrivate(options: RequestTypes.FetchChannelThreadsArchivedPrivate = {}) {
-    return this.client.rest.fetchChannelThreadsArchivedPrivate(this.id, options);
-  }
-
-  async fetchThreadsArchivedPrivateJoined(options: RequestTypes.FetchChannelThreadsArchivedPrivateJoined = {}) {
-    return this.client.rest.fetchChannelThreadsArchivedPrivateJoined(this.id, options);
-  }
-
-  async fetchThreadsArchivedPublic(options: RequestTypes.FetchChannelThreadsArchivedPublic = {}) {
-    return this.client.rest.fetchChannelThreadsArchivedPublic(this.id, options);
-  }
-  
-  async fetchWebhooks() {
-    return this.client.rest.fetchChannelWebhooks(this.id);
-  }
-
-  async follow(options: RequestTypes.FollowChannel): Promise<any> {
-    return this.client.rest.followChannel(this.id, options);
-  }
-
-  async publish(options: RequestTypes.CreateApplicationNews) {
-    options.channelId = this.id;
-    return this.client.rest.createApplicationNews(options);
-  }
-
-  async search(options: RequestTypes.SearchOptions, retry?: boolean) {
-    return this.client.rest.searchChannel(this.id, options, retry);
-  }
-
-  async triggerTyping() {
-    return this.client.rest.triggerTyping(this.id);
-  }
-
-  async turnIntoNewsChannel() {
-    return this.edit({
-      type: ChannelTypes.GUILD_NEWS,
-    });
-  }
-
-  async turnIntoTextChannel() {
-    return this.edit({
-      type: ChannelTypes.GUILD_TEXT,
-    });
-  }
-
-  async unack() {
-    return this.client.rest.unAckChannel(this.id);
-  }
-
   mergeValue(key: string, value: any) {
     if (value !== undefined) {
       switch (key) {
@@ -1615,10 +1546,6 @@ export class ChannelGuildVoice extends ChannelGuildBase {
 
     return collection;
   }
-
-  join(options: VoiceConnectOptions = {}) {
-    return this.client.voiceConnect(this.guildId, this.id, options);
-  }
 }
 
 
@@ -1656,14 +1583,6 @@ export class ChannelGuildStore extends ChannelGuildBase {
     super(client, undefined, isClone);
     this.merge(data);
   }
-
-  async fetchStoreListing() {
-    return this.client.rest.fetchChannelStoreListing(this.id);
-  }
-
-  async grantEntitlement() {
-    return this.client.rest.createChannelStoreListingGrantEntitlement(this.id);
-  }
 }
 
 
@@ -1689,25 +1608,6 @@ export class ChannelGuildStageVoice extends ChannelGuildVoice {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
-  }
-
-  createStageInstance(options: PartialBy<RequestTypes.CreateStageInstance, 'channelId'>) {
-    return this.client.rest.createStageInstance({
-      ...options,
-      channelId: this.id,
-    });
-  }
-
-  deleteStageInstance() {
-    return this.client.rest.deleteStageInstance(this.id);
-  }
-
-  editStageInstance(options: RequestTypes.EditStageInstance = {}) {
-    return this.client.rest.editStageInstance(this.id, options);
-  }
-
-  fetchStageInstance() {
-    return this.client.rest.fetchStageInstance(this.id);
   }
 }
 
@@ -1761,26 +1661,6 @@ export class ChannelGuildThread extends ChannelGuildBase {
       return this.parent.nsfw;
     }
     return false;
-  }
-
-  addMember(userId: string) {
-    return this.client.rest.addThreadMember(this.id, userId);
-  }
-
-  fetchMembers() {
-    return this.client.rest.fetchThreadMembers(this.id);
-  }
-
-  join() {
-    return this.client.rest.joinThread(this.id);
-  }
-
-  leave() {
-    return this.client.rest.leaveThread(this.id);
-  }
-
-  removeMember(userId: string) {
-    return this.client.rest.removeThreadMember(this.id, userId);
   }
 
   mergeValue(key: string, value: any) {

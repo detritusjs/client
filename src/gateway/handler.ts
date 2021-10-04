@@ -28,6 +28,7 @@ import {
   Role,
   Session,
   StageInstance,
+  Sticker,
   ThreadMember,
   Typing,
   User,
@@ -37,6 +38,7 @@ import {
 } from '../structures';
 
 import { GatewayClientEvents } from './clientevents';
+import { ComponentHandler } from './componenthandler';
 import { GatewayRawEvents } from './rawevents';
 
 
@@ -61,6 +63,7 @@ export interface ChunkWaiting {
 export class GatewayHandler {
   readonly client: ShardClient;
   readonly _chunksWaiting = new BaseCollection<string, ChunkWaiting>();
+  readonly _componentHandler = new ComponentHandler();
 
   disabledEvents: BaseSet<string>;
   dispatchHandler: GatewayDispatchHandler;
@@ -154,6 +157,12 @@ export class GatewayDispatchHandler {
   /* Dispatch Events */
   async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
     this.client.reset(false);
+
+    for (let [listenerId, listener] of this.handler._componentHandler.listeners) {
+      if (!listener.timeout) {
+        this.handler._componentHandler.listeners.delete(listenerId);
+      }
+    }
 
     for (let [nonce, cache] of this.handler._chunksWaiting) {
       cache.promise.reject(new Error('Gateway re-identified before a result came.'));
@@ -397,8 +406,10 @@ export class GatewayDispatchHandler {
     if (channel.isText) {
       for (let [messageId, message] of this.client.messages) {
         if (message.channelId === channel.id) {
+          message.deleted = true;
           this.client.messages.delete(messageId);
         }
+        this.handler._componentHandler.delete(messageId);
       }
     }
 
@@ -677,7 +688,9 @@ export class GatewayDispatchHandler {
 
       for (let [messageId, message] of this.client.messages) {
         if (message.guildId === guildId) {
+          message.deleted = true;
           this.client.messages.delete(messageId);
+          this.handler._componentHandler.delete(messageId);
         }
       }
 
@@ -1125,6 +1138,70 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_ROLE_UPDATE, payload);
   }
 
+  [GatewayDispatchEvents.GUILD_STICKERS_UPDATE](data: GatewayRawEvents.GuildStickersUpdate) {
+    let differences: {
+      created: BaseCollection<string, Sticker>,
+      deleted: BaseCollection<string, Sticker>,
+      updated: BaseCollection<string, {sticker: Sticker, old: Sticker}>,
+    } | null = null;
+    let stickers: BaseCollection<string, Sticker>;
+    let guild: Guild | null = null;
+    const guildId = data['guild_id'];
+
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (this.client.hasEventListener(ClientEvents.GUILD_STICKERS_UPDATE)) {
+        differences = {
+          created: new BaseCollection<string, Sticker>(),
+          deleted: new BaseCollection<string, Sticker>(),
+          updated: new BaseCollection<string, {sticker: Sticker, old: Sticker}>(),
+        };
+        const unchanged = new BaseSet<string>();
+
+        // go through each one
+        for (let raw of data['stickers']) {
+          if (guild.stickers.has(raw.id)) {
+            // updated
+            const sticker = guild.stickers.get(raw.id)!;
+            if (sticker.hasDifferences(raw)) {
+              differences.updated.set(sticker.id, {
+                sticker,
+                old: sticker.clone(),
+              });
+              sticker.merge(raw);
+            } else {
+              unchanged.add(sticker.id);
+            }
+          } else {
+            // created
+            differences.created.set(raw.id, new Sticker(this.client, raw));
+          }
+        }
+        for (let [stickerId, sticker] of guild.stickers) {
+          if (!unchanged.has(stickerId) && !differences.updated.has(stickerId)) {
+            differences.deleted.set(stickerId, sticker);
+            guild.stickers.delete(stickerId);
+          }
+        }
+        for (let [stickerId, sticker] of differences.created) {
+          guild.stickers.set(stickerId, sticker);
+        }
+      } else {
+        guild.merge({stickers: data['stickers']});
+      }
+      stickers = guild.stickers;
+    } else {
+      stickers = new BaseCollection();
+      for (let raw of data['stickers']) {
+        const sticker = new Sticker(this.client, raw);
+        stickers.set(sticker.id, sticker);
+      }
+    }
+
+    const payload: GatewayClientEvents.GuildStickersUpdate = {differences, stickers, guild, guildId};
+    this.client.emit(ClientEvents.GUILD_STICKERS_UPDATE, payload);
+  }
+
   [GatewayDispatchEvents.GUILD_UPDATE](data: GatewayRawEvents.GuildUpdate) {
     let differences: GatewayClientEvents.Differences = null;
     let guild: Guild;
@@ -1152,8 +1229,16 @@ export class GatewayDispatchHandler {
     const interaction = new Interaction(this.client, data);
     this.client.interactions.insert(interaction);
 
+    if (interaction.message && interaction.message.interaction) {
+      this.handler._componentHandler.replaceId(interaction.message.interaction.id, interaction.message.id);
+    }
+
     const payload: GatewayClientEvents.InteractionCreate = {_raw: data, interaction};
     this.client.emit(ClientEvents.INTERACTION_CREATE, payload);
+
+    if (interaction.isFromMessageComponent) {
+      this.handler._componentHandler.execute(interaction);
+    }
   }
 
   [GatewayDispatchEvents.INVITE_CREATE](data: GatewayRawEvents.InviteCreate) {
@@ -1243,9 +1328,12 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (message.interaction && this.client.interactions.has(message.interaction.id)) {
-      const interaction = this.client.interactions.get(message.interaction.id)!;
-      interaction.responseId = message.id;
+    if (message.interaction) {
+      if (this.client.interactions.has(message.interaction.id)) {
+        const interaction = this.client.interactions.get(message.interaction.id)!;
+        interaction.responseId = message.id;
+      }
+      this.handler._componentHandler.replaceId(message.interaction.id, message.id);
     }
 
     const payload: GatewayClientEvents.MessageCreate = {message, typing};
@@ -1277,6 +1365,8 @@ export class GatewayDispatchHandler {
       }
     }
 
+    this.handler._componentHandler.delete(messageId);
+
     const payload: GatewayClientEvents.MessageDelete = {channelId, guildId, message, messageId, raw: data};
     this.client.emit(ClientEvents.MESSAGE_DELETE, payload);
   }
@@ -1296,6 +1386,7 @@ export class GatewayDispatchHandler {
       } else {
         messages.set(messageId, null);
       }
+      this.handler._componentHandler.delete(messageId);
     }
 
     const payload: GatewayClientEvents.MessageDeleteBulk = {amount, channelId, guildId, messages, raw: data};
