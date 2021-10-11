@@ -12,8 +12,8 @@
   },
   "description": "A Typescript NodeJS library to interact with Discord's API, both Rest and Gateway.",
   "devDependencies": {
-    "@ts-docs/ts-docs": "^0.1.0",
-    "@ts-docs/default-docs-structure": "^0.1.17",
+    "@ts-docs/ts-docs": "^0.1.2",
+    "@ts-docs/default-docs-structure": "^0.1.19",
     "typescript": "4.2.x"
   },
   "files": [
