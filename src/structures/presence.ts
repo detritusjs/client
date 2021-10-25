@@ -263,6 +263,12 @@ export class Presence extends BaseStructure {
             }
           }
         }; return;
+        case DiscordKeys.CLIENT_STATUS: {
+          if (value && !Object.keys(value).length) {
+            value = undefined;
+          }
+          this.clientStatus = value;
+        }; return;
         case DiscordKeys.GAME: {
           // itll always be in the activities array
         }; return;

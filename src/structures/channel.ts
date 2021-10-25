@@ -174,6 +174,10 @@ export class ChannelBase extends BaseStructure {
     return this.isDm;
   }
 
+  get canEditPermissions(): boolean {
+    return false;
+  }
+
   get canEmbedLinks(): boolean {
     return this.canMessage;
   }
@@ -259,7 +263,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get canView(): boolean {
-    return this.isText;
+    return true;
   }
 
   get children(): BaseCollection<string, ChannelGuildType> {
@@ -1126,13 +1130,22 @@ export class ChannelGuildBase extends ChannelBase {
 
   get canDeafenMembers(): boolean {
     return this.isVoice && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.DEAFEN_MEMBERS,
     ]);
   }
 
   get canEdit(): boolean {
     return this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.MANAGE_CHANNELS,
+    ]);
+  }
+
+  get canEditPermissions(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.MANAGE_ROLES,
     ]);
   }
 
@@ -1153,18 +1166,21 @@ export class ChannelGuildBase extends ChannelBase {
 
   get canManageMessages(): boolean {
     return this.isText && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.MANAGE_MESSAGES,
     ]);
   }
 
   get canManageWebhooks(): boolean {
     return this.isText && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.MANAGE_WEBHOOKS,
     ]);
   }
 
   get canManageThreads(): boolean {
     return this.isText && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.MANAGE_THREADS,
     ]);
   }
@@ -1186,18 +1202,21 @@ export class ChannelGuildBase extends ChannelBase {
 
   get canMoveMembers(): boolean {
     return this.isVoice && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.MOVE_MEMBERS,
     ]);
   }
 
   get canMuteMembers(): boolean {
     return this.isVoice && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.MUTE_MEMBERS,
     ]);
   }
 
   get canPrioritySpeaker(): boolean {
     return this.isVoice && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.PRIORITY_SPEAKER,
     ]);
   }
@@ -1212,12 +1231,14 @@ export class ChannelGuildBase extends ChannelBase {
 
   get canSpeak(): boolean {
     return this.isVoice && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.SPEAK,
     ]);
   }
 
   get canStream(): boolean {
     return this.isVoice && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.STREAM,
     ]);
   }
@@ -1253,12 +1274,13 @@ export class ChannelGuildBase extends ChannelBase {
 
   get canUseVAD(): boolean {
     return this.isVoice && this.can([
+      Permissions.VIEW_CHANNEL,
       Permissions.USE_VAD,
     ]);
   }
 
   get canView(): boolean {
-    return this.isText && this.can([
+    return this.can([
       Permissions.VIEW_CHANNEL,
     ]);
   }
