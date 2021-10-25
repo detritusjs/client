@@ -288,7 +288,7 @@ export class Context {
     }
     let reply: Message;
     if (this.commandClient.replies.has(this.messageId)) {
-      options = Object.assign({attachments: [], content: '', embed: null}, options);
+      options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
 
       const old = this.commandClient.replies.get(this.messageId)!;
       if (options.activity || options.applicationId) {
