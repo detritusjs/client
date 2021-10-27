@@ -22,12 +22,14 @@ export class ClusterProcessChild extends EventSpewer {
 
   clusterCount: number = 1;
   clusterId: number = 0;
+  clusterShardsPer: number = 1;
 
   constructor(cluster: ClusterClient) {
     super();
     this.cluster = cluster;
     this.clusterCount = +((process.env.CLUSTER_COUNT as string) || this.clusterCount);
     this.clusterId = +((process.env.CLUSTER_ID as string) || this.clusterId);
+    this.clusterShardsPer = +((process.env.CLUSTER_SHARDS_PER as string) || this.clusterShardsPer);
 
     process.on('message', this.onMessage.bind(this));
     process.on('message', this.emit.bind(this, 'ipc'));
@@ -220,6 +222,9 @@ export class ClusterProcessChild extends EventSpewer {
             case 'boolean':
             case 'number': {
               evalArgs.push(`${arg}`);
+            }; break;
+            case 'object': {
+              evalArgs.push(`JSON.parse(${JSON.stringify(arg)})`);
             }; break;
             default: {
               evalArgs.push(`"${arg}"`);

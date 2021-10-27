@@ -50,6 +50,7 @@ export class ClusterProcess extends EventSpewer {
       CLUSTER_SHARD_COUNT: String(options.shardCount),
       CLUSTER_SHARD_END: String(options.shardEnd),
       CLUSTER_SHARD_START: String(options.shardStart),
+      CLUSTER_SHARDS_PER: String(this.manager.shardsPerCluster),
     });
 
     Object.defineProperties(this, {
