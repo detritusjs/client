@@ -8,7 +8,7 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
-import { ClientEvents, Permissions, IS_TS_NODE } from './constants';
+import { ClientEvents, Permissions, FILE_EXTENSION_ESM, FILE_EXTENSIONS_IMPORT } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { InteractionCommandClient } from './interactioncommandclient';
@@ -347,12 +347,14 @@ export class CommandClient extends EventSpewer {
       }
     };
     for (let file of files) {
-      if (!file.endsWith((IS_TS_NODE) ? '.ts' : '.js')) {
+      if (!FILE_EXTENSIONS_IMPORT.some((ext) => file.endsWith(ext))) {
         continue;
       }
       const filepath = path.resolve(directory, file);
       try {
-        let importedCommand: any = require(filepath);
+        const isESM = file.endsWith(FILE_EXTENSION_ESM);
+
+        let importedCommand: any = (isESM) ? await import(filepath) : require(filepath);
         if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
           importedCommand = importedCommand.default;
         }

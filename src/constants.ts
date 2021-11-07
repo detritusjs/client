@@ -41,12 +41,17 @@ export const Package = Object.freeze({
 
 export type Snowflake = number | string;
 
-
 export const IS_TS_NODE = Symbol.for('ts-node.register.instance') in process;
 
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;
 export const DEFAULT_MAX_VIDEO_CHANNEL_USERS = 25;
+
+export const FILE_EXTENSION_ESM = '.mjs';
+export const FILE_EXTENSIONS_IMPORT = ['.js', '.cjs', FILE_EXTENSION_ESM];
+if (IS_TS_NODE) {
+  FILE_EXTENSIONS_IMPORT.push('.ts');
+}
 
 export const LOCAL_GUILD_ID = '@me';
 
