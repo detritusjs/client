@@ -1046,12 +1046,23 @@ export class RestClient {
     return this.raw.editGuildIntegration(guildId, integrationId, options);
   }
 
-  editGuildMember(
+  async editGuildMember(
     guildId: string,
     userId: string,
     options: RequestTypes.EditGuildMember = {},
-  ) {
-    return this.raw.editGuildMember(guildId, userId, options);
+    updateCache: boolean = true,
+  ): Promise<Member> {
+    const data = await this.raw.editGuildMember(guildId, userId, options);
+    let member: Member;
+    if (updateCache && this.client.members.has(guildId, userId)) {
+      member = this.client.members.get(guildId, userId)!;
+      member.merge(data);
+    } else {
+      data.guild_id = guildId;
+      member = new Member(this.client, data);
+      this.client.members.insert(member);
+    }
+    return member;
   }
 
   editGuildMemberVerification(

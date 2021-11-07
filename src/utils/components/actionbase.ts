@@ -54,7 +54,7 @@ export class ComponentActionBase extends Structure {
     }
     this.run = data.run || this.run;
     this.onError = data.onError || this.onError;
-    if (!(data as any)[DiscordKeys.CUSTOM_ID] && !this.customId) {
+    if (((data as any)[DiscordKeys.CUSTOM_ID] === undefined) && !this.customId) {
       (data as any)[DiscordKeys.CUSTOM_ID] = Snowflake.generate().id;
     }
     this.merge(data);
@@ -62,8 +62,11 @@ export class ComponentActionBase extends Structure {
 
   toJSON(): RequestTypes.RawChannelMessageComponent {
     const data = super.toJSON() as any;
-    if (data.emoji instanceof Emoji) {
-      data.emoji = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};
+    if (data[DiscordKeys.EMOJI] instanceof Emoji) {
+      data[DiscordKeys.EMOJI] = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};
+    }
+    if (data[DiscordKeys.URL] && data[DiscordKeys.CUSTOM_ID] !== undefined) {
+      data[DiscordKeys.CUSTOM_ID] = null;
     }
     return data;
   }

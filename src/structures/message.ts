@@ -307,8 +307,24 @@ export class Message extends BaseStructure {
     return this.hasFlag(MessageFlags.IS_CROSSPOST);
   }
 
+  get hasFlagLoading(): boolean {
+    return this.hasFlag(MessageFlags.LOADING);
+  }
+
+  get hasFlagSourceMessageDeleted(): boolean {
+    return this.hasFlag(MessageFlags.SOURCE_MESSAGE_DELETED);
+  }
+
   get hasFlagSuppressEmbeds(): boolean {
     return this.hasFlag(MessageFlags.SUPPRESS_EMBEDS);
+  }
+
+  get hasFlagHasThread(): boolean {
+    return this.hasFlag(MessageFlags.HAS_THREAD);
+  }
+
+  get hasFlagUrgent(): boolean {
+    return this.hasFlag(MessageFlags.URGENT);
   }
 
   get inDm(): boolean {
