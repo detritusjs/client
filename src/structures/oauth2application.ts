@@ -2,7 +2,7 @@ import { Endpoints, RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, Oauth2AssetTypes } from '../constants';
+import { ApplicationFlags, DiscordKeys, Oauth2AssetTypes } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -81,6 +81,18 @@ export class Oauth2Application extends BaseStructure {
     this.merge(data);
   }
 
+  get canGatewayGuildMembers(): boolean {
+    return this.hasFlag(ApplicationFlags.GATEWAY_GUILD_MEMBERS) || this.hasFlag(ApplicationFlags.GATEWAY_GUILD_MEMBERS_LIMITED);
+  }
+
+  get canGatewayMessageContent(): boolean {
+    return this.hasFlag(ApplicationFlags.GATEWAY_MESSAGE_CONTENT) || this.hasFlag(ApplicationFlags.GATEWAY_MESSAGE_CONTENT_LIMITED);
+  }
+
+  get canGatewayPresence(): boolean {
+    return this.hasFlag(ApplicationFlags.GATEWAY_PRESENCE) || this.hasFlag(ApplicationFlags.GATEWAY_PRESENCE_LIMITED);
+  }
+
   get coverImageUrl(): null | string {
     return this.coverImageUrlFormat();
   }
@@ -126,6 +138,10 @@ export class Oauth2Application extends BaseStructure {
       return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
     }
     return null;
+  }
+
+  hasFlag(flag: number): boolean {
+    return (this.flags & flag) === flag;
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
