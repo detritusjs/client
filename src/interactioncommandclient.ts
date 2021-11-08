@@ -931,7 +931,12 @@ export class InteractionCommandClient extends EventSpewer {
   
     let timeout: Timers.Timeout | null = null;
     try {
-      if (invoker.triggerLoadingAfter !== undefined && 0 <= invoker.triggerLoadingAfter && !context.responded) {
+      const shouldTriggerLoading = invoker.triggerLoadingAfter !== undefined && 0 <= invoker.triggerLoadingAfter;
+      if (shouldTriggerLoading && context._responding) {
+        await context._responding;
+      }
+
+      if (shouldTriggerLoading && !context.responded) {
         let data: RequestTypes.CreateInteractionResponseInnerPayload | undefined;
         if (invoker.triggerLoadingAsEphemeral) {
           data = {flags: MessageFlags.EPHEMERAL};
@@ -940,16 +945,21 @@ export class InteractionCommandClient extends EventSpewer {
           timeout = new Timers.Timeout();
           Object.defineProperty(context, 'loadingTimeout', {value: timeout});
           timeout.start(invoker.triggerLoadingAfter, async () => {
-            if (!context.responded) {
-              try {
-                if (typeof(invoker.onLoadingTrigger) === 'function') {
-                  await Promise.resolve(invoker.onLoadingTrigger(context));
-                } else {
-                  await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
-                }
-              } catch(error) {
-                // do something maybe?
+            if (context._responding) {
+              await context._responding;
+            }
+            if (context.responded) {
+              return;
+            }
+
+            try {
+              if (typeof(invoker.onLoadingTrigger) === 'function') {
+                await Promise.resolve(invoker.onLoadingTrigger(context));
+              } else {
+                await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
               }
+            } catch(error) {
+              // do something maybe?
             }
           });
         } else {

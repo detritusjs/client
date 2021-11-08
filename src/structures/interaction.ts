@@ -61,6 +61,7 @@ export class Interaction extends BaseStructure {
   readonly _keys = keysInteraction;
   readonly _keysMerge = keysMergeInteraction;
   readonly _deleted: boolean = false;
+  _responding: Promise<boolean> | null = null;
 
   applicationId: string = '';
   channelId?: string;
@@ -150,8 +151,11 @@ export class Interaction extends BaseStructure {
     options: RequestTypes.CreateInteractionResponse | number,
     data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
   ) {
-    this.responded = true;
-    try {
+    if (this._responding) {
+      await this._responding;
+    }
+
+    const response = new Promise((resolve, reject) => {
       if (this.isFromMessageComponent) {
         const toAssignData = (typeof(options) === 'object') ? options.data || data : data;
         if (typeof(toAssignData) === 'object' && toAssignData.components) {
@@ -159,11 +163,24 @@ export class Interaction extends BaseStructure {
           Object.assign(toAssignData, {listenerId});
         }
       }
-      return await this.client.rest.createInteractionResponse(this.id, this.token, options, data);
-    } catch(error) {
-      this.responded = false;
-      throw error;
-    }
+
+      this.client.rest.createInteractionResponse(this.id, this.token, options, data)
+        .then(resolve)
+        .catch(reject);
+    });
+
+    this._responding = new Promise((resolve) => {
+      response.then(() => {
+        this.responded = true;
+      }).catch(() => {
+        this.responded = false;
+      }).then(() => {
+        this._responding = null;
+        resolve(this.responded);
+      });
+    });
+
+    return response;
   }
 
   deleteMessage(messageId: string) {
@@ -182,7 +199,11 @@ export class Interaction extends BaseStructure {
     return this.editMessage('@original', options);
   }
 
-  editOrRespond(options: InteractionEditOrRespond | string = {}) {
+  async editOrRespond(options: InteractionEditOrRespond | string = {}) {
+    if (this._responding) {
+      await this._responding;
+    }
+
     // try respond, try edit, try followup
     if (this.responded) {
       if (typeof(options) === 'string') {

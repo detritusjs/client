@@ -166,6 +166,10 @@ export class InteractionContextBase {
   }
 
   /* Interaction Properties */
+  get _responding() {
+    return this.interaction._responding;
+  }
+
   get data() {
     return this.interaction.data as InteractionDataApplicationCommand;
   }
