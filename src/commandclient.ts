@@ -8,7 +8,7 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
-import { ClientEvents, Permissions, FILE_EXTENSION_ESM, FILE_EXTENSIONS_IMPORT } from './constants';
+import { ClientEvents, Permissions, FILE_EXTENSIONS_IMPORT, IS_IMPORT_AVAILABLE } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { InteractionCommandClient } from './interactioncommandclient';
@@ -352,9 +352,7 @@ export class CommandClient extends EventSpewer {
       }
       const filepath = path.resolve(directory, file);
       try {
-        const isESM = file.endsWith(FILE_EXTENSION_ESM);
-
-        let importedCommand: any = (isESM) ? await import(filepath) : require(filepath);
+        let importedCommand: any = (IS_IMPORT_AVAILABLE) ? await import(filepath) : require(filepath);
         if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
           importedCommand = importedCommand.default;
         }
