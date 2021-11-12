@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.4-beta.5',
+  VERSION: '0.16.4-beta.6',
 });
 
 export type Snowflake = number | string;
@@ -44,7 +44,7 @@ export type Snowflake = number | string;
 
 let isImportAvailable = false;
 try {
-  (import as any);
+  import('detritus-utils');
 } catch(error) {
   if (error.name === 'SyntaxError') {
     isImportAvailable = true;

@@ -352,7 +352,7 @@ export class CommandClient extends EventSpewer {
       }
       const filepath = path.resolve(directory, file);
       try {
-        let importedCommand: any = (IS_IMPORT_AVAILABLE) ? await import(filepath) : require(filepath);
+        let importedCommand: any = (IS_IMPORT_AVAILABLE) ? (await import(filepath)).default : require(filepath);
         if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
           importedCommand = importedCommand.default;
         }
