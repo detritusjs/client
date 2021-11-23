@@ -215,6 +215,8 @@ export interface InteractionCommandOptionOptions {
   ratelimits?: Array<CommandRatelimitOptions>,
   triggerLoadingAfter?: number,
   triggerLoadingAsEphemeral?: boolean,
+  minValue?: number,
+  maxValue?: number,
 
   onAutoComplete?: CommandCallbackAutoComplete,
   onAutoCompleteError?: CommandCallbackAutoCompleteError,
@@ -574,6 +576,8 @@ const keysInteractionCommandOption = new BaseSet<string>([
   DiscordKeys.OPTIONS,
   DiscordKeys.REQUIRED,
   DiscordKeys.TYPE,
+  DiscordKeys.MAX_VALUE,
+  DiscordKeys.MIN_VALUE,
 ]);
 
 export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends Structure {
@@ -589,6 +593,8 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   name: string = '';
   required?: boolean;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.STRING;
+  minValue?: number;
+  maxValue?: number;
 
   default?: ArgumentDefault;
   disableDm?: boolean;
@@ -621,6 +627,13 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
   constructor(data: InteractionCommandOptionOptions = {}) {
     super();
+    if (DetritusKeys[DiscordKeys.MIN_VALUE] in data) {
+      (data as any)[DiscordKeys.MIN_VALUE] = (data as any)[DetritusKeys[DiscordKeys.MIN_VALUE]];
+    }
+
+    if (DetritusKeys[DiscordKeys.MAX_VALUE] in data) {
+      (data as any)[DiscordKeys.MAX_VALUE] = (data as any)[DetritusKeys[DiscordKeys.MAX_VALUE]];
+    }
 
     this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
     this.label = data.label || this.label;
