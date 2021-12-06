@@ -1,7 +1,16 @@
 import * as Crypto from 'crypto';
 
-import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from '../commandratelimit';
-import { ApplicationCommandOptionTypes, ApplicationCommandTypes, DetritusKeys, DiscordKeys } from '../constants';
+import {
+  CommandRatelimit,
+  CommandRatelimitItem,
+  CommandRatelimitOptions,
+} from '../commandratelimit';
+import {
+  ApplicationCommandOptionTypes,
+  ApplicationCommandTypes,
+  DetritusKeys,
+  DiscordKeys,
+} from '../constants';
 
 import { BaseSet } from '../collections/baseset';
 import { BaseCollection } from '../collections/basecollection';
@@ -13,98 +22,138 @@ import {
 
 import { InteractionContext } from './context';
 
-
 export type ParsedArgs = Record<string, any>;
 export type ParsedErrors = Record<string, Error>;
 
-export type CommandRatelimitInfo = {item: CommandRatelimitItem, ratelimit: CommandRatelimit, remaining: number};
-export type CommandRatelimitMetadata = {global: boolean, now: number};
+export type CommandRatelimitInfo = {
+  item: CommandRatelimitItem;
+  ratelimit: CommandRatelimit;
+  remaining: number;
+};
+export type CommandRatelimitMetadata = { global: boolean; now: number };
 
 export type FailedPermissions = Array<bigint>;
 
-export type InteractionCommandInvoker = InteractionCommand | InteractionCommandOption;
-
-
-/**
- * @category InteractionCommand
- */
-export type ArgumentConverter = (value: any, context: InteractionContext) => Promise<any> | any;
+export type InteractionCommandInvoker =
+  | InteractionCommand
+  | InteractionCommandOption;
 
 /**
  * @category InteractionCommand
  */
-export type ArgumentDefault = ((context: InteractionContext) => Promise<any> | any) | any;
-
-
-/**
- * @category InteractionCommand
- */
-export type CommandCallbackDmBlocked = (context: InteractionContext) => Promise<any> | any;
-
-/**
- * @category InteractionCommand
- */
-export type CommandCallbackLoadingTrigger = (context: InteractionContext) => Promise<any> | any;
-
-/**
- * @category InteractionCommand
- */
-export type CommandCallbackBefore = (context: InteractionContext) => Promise<boolean> | boolean;
-
-/**
- * @category InteractionCommand
- */
-export type CommandCallbackBeforeRun = (context: InteractionContext, args: ParsedArgs) => Promise<boolean> | boolean;
-
-/**
- * @category InteractionCommand
- */
-export type CommandCallbackCancel = (context: InteractionContext) => Promise<any> | any;
-
-/**
- * @category InteractionCommand
- */
-export type CommandCallbackCancelRun = (context: InteractionContext, args: ParsedArgs) => Promise<any> | any;
-
-/**
- * @category InteractionCommand
- */
-export type CommandCallbackError = (context: InteractionContext, error: any) => Promise<any> | any;
-
-/**
- * @category InteractionCommand
- */
-export type CommandCallbackPermissionsFail = (context: InteractionContext, permissions: FailedPermissions) => Promise<any> | any;
-
-/**
-* @category InteractionCommand
-*/
-export type CommandCallbackRatelimit = (
- context: InteractionContext,
- ratelimits: Array<CommandRatelimitInfo>,
- metadata: CommandRatelimitMetadata,
+export type ArgumentConverter = (
+  value: any,
+  context: InteractionContext,
 ) => Promise<any> | any;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackRun = (context: InteractionContext, args: ParsedArgs) => Promise<any> | any;
+export type ArgumentDefault =
+  | ((context: InteractionContext) => Promise<any> | any)
+  | any;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackRunError = (context: InteractionContext, args: ParsedArgs, error: any) => Promise<any> | any;
+export type CommandCallbackDmBlocked = (
+  context: InteractionContext,
+) => Promise<any> | any;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackSuccess = (context: InteractionContext) => Promise<any> | any;
+export type CommandCallbackLoadingTrigger = (
+  context: InteractionContext,
+) => Promise<any> | any;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackValueError = (context: InteractionContext, args: ParsedArgs, errors: ParsedErrors) => Promise<any> | any;
+export type CommandCallbackBefore = (
+  context: InteractionContext,
+) => Promise<boolean> | boolean;
 
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackBeforeRun = (
+  context: InteractionContext,
+  args: ParsedArgs,
+) => Promise<boolean> | boolean;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackCancel = (
+  context: InteractionContext,
+) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackCancelRun = (
+  context: InteractionContext,
+  args: ParsedArgs,
+) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackError = (
+  context: InteractionContext,
+  error: any,
+) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackPermissionsFail = (
+  context: InteractionContext,
+  permissions: FailedPermissions,
+) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackRatelimit = (
+  context: InteractionContext,
+  ratelimits: Array<CommandRatelimitInfo>,
+  metadata: CommandRatelimitMetadata,
+) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackRun = (
+  context: InteractionContext,
+  args: ParsedArgs,
+) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackRunError = (
+  context: InteractionContext,
+  args: ParsedArgs,
+  error: any,
+) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackSuccess = (
+  context: InteractionContext,
+) => Promise<any> | any;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackValueError = (
+  context: InteractionContext,
+  args: ParsedArgs,
+  errors: ParsedErrors,
+) => Promise<any> | any;
 
 const ON_FUNCTION_NAMES = Object.freeze([
   'onDmBlocked',
@@ -138,83 +187,98 @@ const SET_VARIABLE_NAMES = Object.freeze([
  * @category Command Options
  */
 export interface InteractionCommandOptions {
-  _file?: string,
-  default_permission?: boolean,
-  defaultPermission?: boolean,
-  description?: string,
-  name?: string,
-  options?: Array<InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption>,
-  type?: ApplicationCommandTypes,
+  _file?: string;
+  default_permission?: boolean;
+  defaultPermission?: boolean;
+  description?: string;
+  name?: string;
+  options?: Array<
+    | InteractionCommandOption
+    | InteractionCommandOptionOptions
+    | typeof InteractionCommandOption
+  >;
+  type?: ApplicationCommandTypes;
 
-  disableDm?: boolean,
-  global?: boolean,
-  guildIds?: Array<string>,
-  metadata?: Record<string, any>,
-  permissions?: Array<bigint | number>,
-  permissionsClient?: Array<bigint | number>,
-  permissionsIgnoreClientOwner?: boolean,
-  ratelimit?: boolean | CommandRatelimitOptions | null,
-  ratelimits?: Array<CommandRatelimitOptions>,
-  triggerLoadingAfter?: number,
-  triggerLoadingAsEphemeral?: boolean,
+  disableDm?: boolean;
+  global?: boolean;
+  guildIds?: Array<string>;
+  metadata?: Record<string, any>;
+  permissions?: Array<bigint | number>;
+  permissionsClient?: Array<bigint | number>;
+  permissionsIgnoreClientOwner?: boolean;
+  ratelimit?: boolean | CommandRatelimitOptions | null;
+  ratelimits?: Array<CommandRatelimitOptions>;
+  triggerLoadingAfter?: number;
+  triggerLoadingAsEphemeral?: boolean;
 
-  onDmBlocked?: CommandCallbackDmBlocked,
-  onLoadingTrigger?: CommandCallbackLoadingTrigger,
-  onBefore?: CommandCallbackBefore,
-  onBeforeRun?: CommandCallbackBeforeRun,
-  onCancel?: CommandCallbackCancel,
-  onCancelRun?: CommandCallbackCancelRun,
-  onError?: CommandCallbackError,
-  onPermissionsFail?: CommandCallbackPermissionsFail,
-  onPermissionsFailClient?: CommandCallbackPermissionsFail,
-  onRatelimit?: CommandCallbackRatelimit,
-  run?: CommandCallbackRun,
-  onRunError?: CommandCallbackRunError,
-  onSuccess?: CommandCallbackSuccess,
-  onValueError?: CommandCallbackValueError,
+  onDmBlocked?: CommandCallbackDmBlocked;
+  onLoadingTrigger?: CommandCallbackLoadingTrigger;
+  onBefore?: CommandCallbackBefore;
+  onBeforeRun?: CommandCallbackBeforeRun;
+  onCancel?: CommandCallbackCancel;
+  onCancelRun?: CommandCallbackCancelRun;
+  onError?: CommandCallbackError;
+  onPermissionsFail?: CommandCallbackPermissionsFail;
+  onPermissionsFailClient?: CommandCallbackPermissionsFail;
+  onRatelimit?: CommandCallbackRatelimit;
+  run?: CommandCallbackRun;
+  onRunError?: CommandCallbackRunError;
+  onSuccess?: CommandCallbackSuccess;
+  onValueError?: CommandCallbackValueError;
 }
 
 export interface InteractionCommandOptionOptions {
-  _file?: string,
-  choices?: Array<InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions>,
-  default?: ArgumentDefault,
-  description?: string,
-  name?: string,
-  options?: Array<InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption>,
-  required?: boolean,
-  type?: ApplicationCommandOptionTypes | StringConstructor | BooleanConstructor | NumberConstructor | string,
-  value?: ArgumentConverter,
+  _file?: string;
+  choices?: Array<
+    InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions
+  >;
+  default?: ArgumentDefault;
+  description?: string;
+  name?: string;
+  options?: Array<
+    | InteractionCommandOption
+    | InteractionCommandOptionOptions
+    | typeof InteractionCommandOption
+  >;
+  required?: boolean;
+  type?:
+    | ApplicationCommandOptionTypes
+    | StringConstructor
+    | BooleanConstructor
+    | NumberConstructor
+    | string;
+  value?: ArgumentConverter;
 
-  disableDm?: boolean,
-  label?: string,
-  metadata?: Record<string, any>,
-  permissions?: Array<bigint | number>,
-  permissionsClient?: Array<bigint | number>,
-  permissionsIgnoreClientOwner?: boolean,
-  ratelimit?: boolean | CommandRatelimitOptions | null,
-  ratelimits?: Array<CommandRatelimitOptions>,
-  triggerLoadingAfter?: number,
-  triggerLoadingAsEphemeral?: boolean,
+  disableDm?: boolean;
+  label?: string;
+  metadata?: Record<string, any>;
+  permissions?: Array<bigint | number>;
+  permissionsClient?: Array<bigint | number>;
+  permissionsIgnoreClientOwner?: boolean;
+  ratelimit?: boolean | CommandRatelimitOptions | null;
+  ratelimits?: Array<CommandRatelimitOptions>;
+  triggerLoadingAfter?: number;
+  triggerLoadingAsEphemeral?: boolean;
 
-  onDmBlocked?: CommandCallbackDmBlocked,
-  onLoadingTrigger?: CommandCallbackLoadingTrigger,
-  onBefore?: CommandCallbackBefore,
-  onBeforeRun?: CommandCallbackBeforeRun,
-  onCancel?: CommandCallbackCancel,
-  onCancelRun?: CommandCallbackCancelRun,
-  onError?: CommandCallbackError,
-  onPermissionsFail?: CommandCallbackPermissionsFail,
-  onPermissionsFailClient?: CommandCallbackPermissionsFail,
-  onRatelimit?: CommandCallbackRatelimit,
-  run?: CommandCallbackRun,
-  onRunError?: CommandCallbackRunError,
-  onSuccess?: CommandCallbackSuccess,
-  onValueError?: CommandCallbackValueError,
+  onDmBlocked?: CommandCallbackDmBlocked;
+  onLoadingTrigger?: CommandCallbackLoadingTrigger;
+  onBefore?: CommandCallbackBefore;
+  onBeforeRun?: CommandCallbackBeforeRun;
+  onCancel?: CommandCallbackCancel;
+  onCancelRun?: CommandCallbackCancelRun;
+  onError?: CommandCallbackError;
+  onPermissionsFail?: CommandCallbackPermissionsFail;
+  onPermissionsFailClient?: CommandCallbackPermissionsFail;
+  onRatelimit?: CommandCallbackRatelimit;
+  run?: CommandCallbackRun;
+  onRunError?: CommandCallbackRunError;
+  onSuccess?: CommandCallbackSuccess;
+  onValueError?: CommandCallbackValueError;
 }
 
 export interface InteractionCommandOptionChoiceOptions {
-  name?: string,
-  value?: number | string,
+  name?: string;
+  value?: number | string;
 }
 
 const keysInteractionCommand = new BaseSet<string>([
@@ -231,7 +295,9 @@ const keysSkipDifferenceInteractionCommand = new BaseSet<string>([
   DiscordKeys.IDS,
 ]);
 
-export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
+export class InteractionCommand<
+  ParsedArgsFinished = ParsedArgs,
+> extends Structure {
   readonly _file?: string;
   readonly _keys = keysInteractionCommand;
   readonly _keysSkipDifference = keysSkipDifferenceInteractionCommand;
@@ -257,39 +323,89 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
   onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
-  onBeforeRun?(context: InteractionContext, args: ParsedArgs): Promise<boolean> | boolean;
+  onBeforeRun?(
+    context: InteractionContext,
+    args: ParsedArgs,
+  ): Promise<boolean> | boolean;
   onCancel?(context: InteractionContext): Promise<any> | any;
-  onCancelRun?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
-  onError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
-  onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
-  onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
-  onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
-  run?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
-  onRunError?(context: InteractionContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
-  onSuccess?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
-  onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): Promise<any> | any;
+  onCancelRun?(
+    context: InteractionContext,
+    args: ParsedArgs,
+  ): Promise<any> | any;
+  onError?(
+    context: InteractionContext,
+    args: ParsedArgs,
+    error: any,
+  ): Promise<any> | any;
+  onPermissionsFail?(
+    context: InteractionContext,
+    permissions: FailedPermissions,
+  ): Promise<any> | any;
+  onPermissionsFailClient?(
+    context: InteractionContext,
+    permissions: FailedPermissions,
+  ): Promise<any> | any;
+  onRatelimit?(
+    context: InteractionContext,
+    ratelimits: Array<CommandRatelimitInfo>,
+    metadata: CommandRatelimitMetadata,
+  ): Promise<any> | any;
+  run?(
+    context: InteractionContext,
+    args: ParsedArgsFinished,
+  ): Promise<any> | any;
+  onRunError?(
+    context: InteractionContext,
+    args: ParsedArgsFinished,
+    error: any,
+  ): Promise<any> | any;
+  onSuccess?(
+    context: InteractionContext,
+    args: ParsedArgsFinished,
+  ): Promise<any> | any;
+  onValueError?(
+    context: InteractionContext,
+    args: ParsedArgs,
+    errors: ParsedErrors,
+  ): Promise<any> | any;
 
   constructor(data: InteractionCommandOptions = {}) {
     super();
     if (DetritusKeys[DiscordKeys.DEFAULT_PERMISSION] in data) {
-      (data as any)[DiscordKeys.DEFAULT_PERMISSION] = (data as any)[DetritusKeys[DiscordKeys.DEFAULT_PERMISSION]];
+      (data as any)[DiscordKeys.DEFAULT_PERMISSION] = (data as any)[
+        DetritusKeys[DiscordKeys.DEFAULT_PERMISSION]
+      ];
     }
 
-    this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
-    this.global = (data.global !== undefined) ? !!data.global : this.global;
+    this.disableDm =
+      data.disableDm !== undefined ? !!data.disableDm : this.disableDm;
+    this.global = data.global !== undefined ? !!data.global : this.global;
     this.metadata = Object.assign(this.metadata, data.metadata);
-    this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
-    this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
-    this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
-    this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
-    this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
+    this.permissions = data.permissions
+      ? data.permissions.map((x) => BigInt(x))
+      : undefined;
+    this.permissionsClient = data.permissionsClient
+      ? data.permissionsClient.map((x) => BigInt(x))
+      : undefined;
+    this.permissionsIgnoreClientOwner =
+      data.permissionsIgnoreClientOwner !== undefined
+        ? !!data.permissionsIgnoreClientOwner
+        : undefined;
+    this.triggerLoadingAfter =
+      data.triggerLoadingAfter !== undefined
+        ? data.triggerLoadingAfter
+        : this.triggerLoadingAfter;
+    this.triggerLoadingAsEphemeral =
+      data.triggerLoadingAsEphemeral !== undefined
+        ? data.triggerLoadingAsEphemeral
+        : this.triggerLoadingAsEphemeral;
 
     if (data.ratelimit) {
       this.ratelimits.push(new CommandRatelimit(data.ratelimit, this));
     }
     if (data.ratelimits) {
       for (let rOptions of data.ratelimits) {
-        if (typeof(rOptions.type) === 'string') {
+        if (typeof rOptions.type === 'string') {
           const rType = (rOptions.type || '').toLowerCase();
           if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
             throw new Error(`Ratelimit with type ${rType} already exists`);
@@ -310,7 +426,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
       this._file = data._file;
     }
     Object.defineProperties(this, {
-      _file: {configurable: true, writable: false},
+      _file: { configurable: true, writable: false },
     });
 
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
@@ -321,7 +437,8 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     this.onCancelRun = data.onCancelRun || this.onCancelRun;
     this.onError = data.onError || this.onError;
     this.onPermissionsFail = data.onPermissionsFail || this.onPermissionsFail;
-    this.onPermissionsFailClient = data.onPermissionsFailClient || this.onPermissionsFailClient;
+    this.onPermissionsFailClient =
+      data.onPermissionsFailClient || this.onPermissionsFailClient;
     this.onRatelimit = data.onRatelimit || this.onRatelimit;
     this.run = data.run || this.run;
     this.onRunError = data.onRunError || this.onRunError;
@@ -332,7 +449,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   }
 
   get _optionsKey(): string {
-    return (this._options) ? this._options.map((x) => x.key).join(':') : '';
+    return this._options ? this._options.map((x) => x.key).join(':') : '';
   }
 
   get fullName(): string {
@@ -347,12 +464,14 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     if (this.isGroup && this._options) {
       return this._options.every((option) => option.hasRun);
     }
-    return typeof(this.run) === 'function';
+    return typeof this.run === 'function';
   }
 
   get isGroup(): boolean {
     if (this._options) {
-      return this._options.some((option) => option.isSubCommand || option.isSubCommandGroup);
+      return this._options.some(
+        (option) => option.isSubCommand || option.isSubCommandGroup,
+      );
     }
     return false;
   }
@@ -391,7 +510,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   }
 
   get options(): Array<InteractionCommandOption> | undefined {
-    return (this._options) ? this._options.toArray() : this._options;
+    return this._options ? this._options.toArray() : this._options;
   }
 
   set options(value: Array<InteractionCommandOption> | undefined) {
@@ -408,9 +527,16 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     }
   }
 
-  getInvoker(data: InteractionDataApplicationCommand): InteractionCommandInvoker | null {
+  getInvoker(
+    data: InteractionDataApplicationCommand,
+  ): InteractionCommandInvoker | null {
     if (this.name === data.name) {
-      if (data.options && data.options.some((option) => option.isSubCommand || option.isSubCommandGroup)) {
+      if (
+        data.options &&
+        data.options.some(
+          (option) => option.isSubCommand || option.isSubCommandGroup,
+        )
+      ) {
         return this.getInvokerOption(data.options);
       }
       return this;
@@ -445,36 +571,42 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
 
   mergeValue(key: string, value: any): void {
     switch (key) {
-      case DiscordKeys.IDS: {
-        this.ids = new BaseCollection<string, string>(value);
-      }; return;
-      case DiscordKeys.OPTIONS: {
-        if (value) {
-          if (!this._options) {
-            this._options = new BaseCollection<string, InteractionCommandOption>();
-          }
-          this._options.clear();
-          for (let raw of value) {
-            let option: InteractionCommandOption;
-            if (typeof(raw) === 'function') {
-              option = new raw();
-            } else if (raw instanceof InteractionCommandOption) {
-              option = raw;
-            } else {
-              option = new InteractionCommandOption(raw)
-            }
-            option._transferValuesToChildren(this);
-            this._options.set(option.name, option);
-          }
-        } else {
-          this._options = undefined;
+      case DiscordKeys.IDS:
+        {
+          this.ids = new BaseCollection<string, string>(value);
         }
-      }; return;
+        return;
+      case DiscordKeys.OPTIONS:
+        {
+          if (value) {
+            if (!this._options) {
+              this._options = new BaseCollection<
+                string,
+                InteractionCommandOption
+              >();
+            }
+            this._options.clear();
+            for (let raw of value) {
+              let option: InteractionCommandOption;
+              if (typeof raw === 'function') {
+                option = new raw();
+              } else if (raw instanceof InteractionCommandOption) {
+                option = raw;
+              } else {
+                option = new InteractionCommandOption(raw);
+              }
+              option._transferValuesToChildren(this);
+              this._options.set(option.name, option);
+            }
+          } else {
+            this._options = undefined;
+          }
+        }
+        return;
     }
     return super.mergeValue(key, value);
   }
 }
-
 
 const keysInteractionCommandOption = new BaseSet<string>([
   DiscordKeys.CHOICES,
@@ -485,7 +617,9 @@ const keysInteractionCommandOption = new BaseSet<string>([
   DiscordKeys.TYPE,
 ]);
 
-export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends Structure {
+export class InteractionCommandOption<
+  ParsedArgsFinished = ParsedArgs,
+> extends Structure {
   readonly parent?: InteractionCommand | InteractionCommandOption;
 
   readonly _file?: string;
@@ -513,29 +647,77 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   onDmBlocked?(context: InteractionContext): Promise<any> | any;
   onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
-  onBeforeRun?(context: InteractionContext, args: ParsedArgs): Promise<boolean> | boolean;
+  onBeforeRun?(
+    context: InteractionContext,
+    args: ParsedArgs,
+  ): Promise<boolean> | boolean;
   onCancel?(context: InteractionContext): Promise<any> | any;
-  onCancelRun?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
-  onError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
-  onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
-  onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
-  onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
-  run?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
-  onRunError?(context: InteractionContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
-  onSuccess?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
-  onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): Promise<any> | any;
+  onCancelRun?(
+    context: InteractionContext,
+    args: ParsedArgs,
+  ): Promise<any> | any;
+  onError?(
+    context: InteractionContext,
+    args: ParsedArgs,
+    error: any,
+  ): Promise<any> | any;
+  onPermissionsFail?(
+    context: InteractionContext,
+    permissions: FailedPermissions,
+  ): Promise<any> | any;
+  onPermissionsFailClient?(
+    context: InteractionContext,
+    permissions: FailedPermissions,
+  ): Promise<any> | any;
+  onRatelimit?(
+    context: InteractionContext,
+    ratelimits: Array<CommandRatelimitInfo>,
+    metadata: CommandRatelimitMetadata,
+  ): Promise<any> | any;
+  run?(
+    context: InteractionContext,
+    args: ParsedArgsFinished,
+  ): Promise<any> | any;
+  onRunError?(
+    context: InteractionContext,
+    args: ParsedArgsFinished,
+    error: any,
+  ): Promise<any> | any;
+  onSuccess?(
+    context: InteractionContext,
+    args: ParsedArgsFinished,
+  ): Promise<any> | any;
+  onValueError?(
+    context: InteractionContext,
+    args: ParsedArgs,
+    errors: ParsedErrors,
+  ): Promise<any> | any;
 
   constructor(data: InteractionCommandOptionOptions = {}) {
     super();
 
-    this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
+    this.disableDm =
+      data.disableDm !== undefined ? !!data.disableDm : this.disableDm;
     this.label = data.label || this.label;
     this.metadata = Object.assign(this.metadata, data.metadata);
-    this.permissions = (data.permissions) ? data.permissions.map((x) => BigInt(x)) : undefined;
-    this.permissionsClient = (data.permissionsClient) ? data.permissionsClient.map((x) => BigInt(x)) : undefined;
-    this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
-    this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
-    this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
+    this.permissions = data.permissions
+      ? data.permissions.map((x) => BigInt(x))
+      : undefined;
+    this.permissionsClient = data.permissionsClient
+      ? data.permissionsClient.map((x) => BigInt(x))
+      : undefined;
+    this.permissionsIgnoreClientOwner =
+      data.permissionsIgnoreClientOwner !== undefined
+        ? !!data.permissionsIgnoreClientOwner
+        : undefined;
+    this.triggerLoadingAfter =
+      data.triggerLoadingAfter !== undefined
+        ? data.triggerLoadingAfter
+        : this.triggerLoadingAfter;
+    this.triggerLoadingAsEphemeral =
+      data.triggerLoadingAsEphemeral !== undefined
+        ? data.triggerLoadingAsEphemeral
+        : this.triggerLoadingAsEphemeral;
 
     if (data.ratelimit || data.ratelimits) {
       if (!this.ratelimits) {
@@ -546,7 +728,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
       }
       if (data.ratelimits) {
         for (let rOptions of data.ratelimits) {
-          if (typeof(rOptions.type) === 'string') {
+          if (typeof rOptions.type === 'string') {
             const rType = (rOptions.type || '').toLowerCase();
             if (this.ratelimits.some((ratelimit) => ratelimit.type === rType)) {
               throw new Error(`Ratelimit with type ${rType} already exists`);
@@ -561,7 +743,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
       this.default = data.default;
     }
 
-    if (typeof(data.value) === 'function') {
+    if (typeof data.value === 'function') {
       this.value = data.value;
     }
 
@@ -570,8 +752,8 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     }
 
     Object.defineProperties(this, {
-      _file: {configurable: true, writable: false},
-      parent: {configurable: true, writable: false},
+      _file: { configurable: true, writable: false },
+      parent: { configurable: true, writable: false },
     });
 
     this.onDmBlocked = data.onDmBlocked || this.onDmBlocked;
@@ -582,14 +764,15 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     this.onCancelRun = data.onCancelRun || this.onCancelRun;
     this.onError = data.onError || this.onError;
     this.onPermissionsFail = data.onPermissionsFail || this.onPermissionsFail;
-    this.onPermissionsFailClient = data.onPermissionsFailClient || this.onPermissionsFailClient;
+    this.onPermissionsFailClient =
+      data.onPermissionsFailClient || this.onPermissionsFailClient;
     this.onRatelimit = data.onRatelimit || this.onRatelimit;
     this.run = data.run || this.run;
     this.onRunError = data.onRunError || this.onRunError;
     this.onSuccess = data.onSuccess || this.onSuccess;
     this.onValueError = data.onValueError || this.onValueError;
 
-    if (typeof(this.run) === 'function') {
+    if (typeof this.run === 'function') {
       this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
     }
 
@@ -597,11 +780,11 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get _choicesKey(): string {
-    return (this.choices) ? this.choices.map((x) => x.key).join(':') : '';
+    return this.choices ? this.choices.map((x) => x.key).join(':') : '';
   }
 
   get _optionsKey(): string {
-    return (this._options) ? this._options.map((x) => x.key).join(':') : '';
+    return this._options ? this._options.map((x) => x.key).join(':') : '';
   }
 
   get fullName(): string {
@@ -613,7 +796,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
   get hasRun(): boolean {
     if (this.isSubCommand) {
-      return typeof(this.run) === 'function';
+      return typeof this.run === 'function';
     } else if (this.isSubCommandGroup) {
       if (this._options) {
         return this._options.every((option) => option.hasRun);
@@ -632,7 +815,9 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${this._optionsKey}-${this._choicesKey}`;
+    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${
+      this._optionsKey
+    }-${this._choicesKey}`;
   }
 
   get length(): number {
@@ -661,7 +846,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get options(): Array<InteractionCommandOption> | undefined {
-    return (this._options) ? this._options.toArray() : this._options;
+    return this._options ? this._options.toArray() : this._options;
   }
 
   set options(value: Array<InteractionCommandOption> | undefined) {
@@ -682,7 +867,9 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     }
   }
 
-  getInvoker(option: InteractionDataApplicationCommandOption): InteractionCommandOption | null {
+  getInvoker(
+    option: InteractionDataApplicationCommandOption,
+  ): InteractionCommandOption | null {
     if (this.type === option.type && this.name === option.name) {
       if (this.isSubCommandGroup) {
         if (option.options && this._options) {
@@ -702,28 +889,49 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     return null;
   }
 
-  addChoice(name: InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions): InteractionCommandOptionChoice
-  addChoice(name: string, value: number | string): InteractionCommandOptionChoice
-  addChoice(name: InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions | string, value?: number | string): InteractionCommandOptionChoice {
+  addChoice(
+    name:
+      | InteractionCommandOptionChoice
+      | InteractionCommandOptionChoiceOptions,
+  ): InteractionCommandOptionChoice;
+  addChoice(
+    name: string,
+    value: number | string,
+  ): InteractionCommandOptionChoice;
+  addChoice(
+    name:
+      | InteractionCommandOptionChoice
+      | InteractionCommandOptionChoiceOptions
+      | string,
+    value?: number | string,
+  ): InteractionCommandOptionChoice {
     if (!this.choices) {
       this.choices = [];
     }
     let choice: InteractionCommandOptionChoice;
-    if (typeof(name) === 'object') {
-      choice = (name instanceof InteractionCommandOptionChoice) ? name : new InteractionCommandOptionChoice(name);
+    if (typeof name === 'object') {
+      choice =
+        name instanceof InteractionCommandOptionChoice
+          ? name
+          : new InteractionCommandOptionChoice(name);
     } else {
-      choice = new InteractionCommandOptionChoice({name, value});
+      choice = new InteractionCommandOptionChoice({ name, value });
     }
     this.choices.push(choice);
     return choice;
   }
 
-  addOption(value: InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption): InteractionCommandOption {
+  addOption(
+    value:
+      | InteractionCommandOption
+      | InteractionCommandOptionOptions
+      | typeof InteractionCommandOption,
+  ): InteractionCommandOption {
     if (!this.options) {
       this.options = [];
     }
     let option: InteractionCommandOption;
-    if (typeof(value) === 'function') {
+    if (typeof value === 'function') {
       option = new value();
     } else if (value instanceof InteractionCommandOption) {
       option = value;
@@ -734,7 +942,11 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     return option;
   }
 
-  setChoices(value: Array<InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions> = []): this {
+  setChoices(
+    value: Array<
+      InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions
+    > = [],
+  ): this {
     this.mergeValue(DiscordKeys.CHOICES, value);
     return this;
   }
@@ -749,7 +961,11 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     return this;
   }
 
-  setOptions(value: Array<InteractionCommandOption | InteractionCommandOptionOptions> = []): this {
+  setOptions(
+    value: Array<
+      InteractionCommandOption | InteractionCommandOptionOptions
+    > = [],
+  ): this {
     this.mergeValue(DiscordKeys.OPTIONS, value);
     return this;
   }
@@ -764,28 +980,32 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     return this;
   }
 
-  _transferValuesToChildren(parent: InteractionCommand | InteractionCommandOption): void {
-    Object.defineProperty(this, 'parent', {value: parent});
+  _transferValuesToChildren(
+    parent: InteractionCommand | InteractionCommandOption,
+  ): void {
+    Object.defineProperty(this, 'parent', { value: parent });
     if (this.isSubCommand || this.isSubCommandGroup) {
       for (let name of ON_FUNCTION_NAMES) {
-        if (typeof((this as any)[name]) !== 'function') {
+        if (typeof (this as any)[name] !== 'function') {
           (this as any)[name] = (parent as any)[name];
         }
       }
       for (let name of SET_VARIABLE_NAMES) {
         if ((this as any)[name] === undefined) {
           switch (name) {
-            case 'ratelimits': {
-              if (parent.ratelimits && parent.ratelimits.length) {
-                this.ratelimits = [];
-                for (let ratelimit of parent.ratelimits) {
-                  this.ratelimits.push(new CommandRatelimit(ratelimit, this));
+            case 'ratelimits':
+              {
+                if (parent.ratelimits && parent.ratelimits.length) {
+                  this.ratelimits = [];
+                  for (let ratelimit of parent.ratelimits) {
+                    this.ratelimits.push(new CommandRatelimit(ratelimit, this));
+                  }
                 }
               }
-            }; break;
+              break;
             default: {
               (this as any)[name] = (parent as any)[name];
-            };
+            }
           }
         }
       }
@@ -799,65 +1019,79 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
   mergeValue(key: string, value: any): void {
     switch (key) {
-      case DiscordKeys.CHOICES: {
-        if (value) {
-          if (this.choices) {
-            this.choices.length = 0;
-          } else {
-            this.choices = [];
-          }
-          for (let raw of value) {
-            const choice = new InteractionCommandOptionChoice(raw);
-            this.choices.push(choice);
-          }
-        } else {
-          this.choices = value;
-        }
-      }; return;
-      case DiscordKeys.OPTIONS: {
-        if (value) {
-          if (!this._options) {
-            this._options = new BaseCollection<string, InteractionCommandOption>();
-          }
-          this._options.clear();
-          for (let raw of value) {
-            let option: InteractionCommandOption;
-            if (typeof(raw) === 'function') {
-              option = new raw();
-            } else if (raw instanceof InteractionCommandOption) {
-              option = raw;
+      case DiscordKeys.CHOICES:
+        {
+          if (value) {
+            if (this.choices) {
+              this.choices.length = 0;
             } else {
-              option = new InteractionCommandOption(raw)
+              this.choices = [];
             }
-            option._transferValuesToChildren(this);
-            this._options.set(option.name, option);
-          }
-          this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
-          if (this._options.some((option) => option.isSubCommand)) {
-            this.type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
-          }
-        } else {
-          this._options = undefined;
-        }
-      }; return;
-      case DiscordKeys.TYPE: {
-        if (typeof(value) === 'string') {
-          value = (ApplicationCommandOptionTypes as any)[value.toUpperCase()];
-        } else if (typeof(value) === 'number') {
-          // pass
-        } else {
-          switch (value) {
-            case Boolean: value = ApplicationCommandOptionTypes.BOOLEAN; break;
-            case Number: value = ApplicationCommandOptionTypes.INTEGER; break;
-            case String: value = ApplicationCommandOptionTypes.STRING; break;
+            for (let raw of value) {
+              const choice = new InteractionCommandOptionChoice(raw);
+              this.choices.push(choice);
+            }
+          } else {
+            this.choices = value;
           }
         }
-      }; break;
+        return;
+      case DiscordKeys.OPTIONS:
+        {
+          if (value) {
+            if (!this._options) {
+              this._options = new BaseCollection<
+                string,
+                InteractionCommandOption
+              >();
+            }
+            this._options.clear();
+            for (let raw of value) {
+              let option: InteractionCommandOption;
+              if (typeof raw === 'function') {
+                option = new raw();
+              } else if (raw instanceof InteractionCommandOption) {
+                option = raw;
+              } else {
+                option = new InteractionCommandOption(raw);
+              }
+              option._transferValuesToChildren(this);
+              this._options.set(option.name, option);
+            }
+            this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
+            if (this._options.some((option) => option.isSubCommand)) {
+              this.type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
+            }
+          } else {
+            this._options = undefined;
+          }
+        }
+        return;
+      case DiscordKeys.TYPE:
+        {
+          if (typeof value === 'string') {
+            value = (ApplicationCommandOptionTypes as any)[value.toUpperCase()];
+          } else if (typeof value === 'number') {
+            // pass
+          } else {
+            switch (value) {
+              case Boolean:
+                value = ApplicationCommandOptionTypes.BOOLEAN;
+                break;
+              case Number:
+                value = ApplicationCommandOptionTypes.NUMBER;
+                break;
+              case String:
+                value = ApplicationCommandOptionTypes.STRING;
+                break;
+            }
+          }
+        }
+        break;
     }
     return super.mergeValue(key, value);
   }
 }
-
 
 const keysInteractionCommandOptionChoice = new BaseSet<string>([
   DiscordKeys.NAME,
@@ -876,11 +1110,11 @@ export class InteractionCommandOptionChoice extends Structure {
   }
 
   get key(): string {
-    return `${this.name}-${this.value}-${typeof(this.value)}`;
+    return `${this.name}-${this.value}-${typeof this.value}`;
   }
 
   get length(): number {
-    if (typeof(this.value) === 'string') {
+    if (typeof this.value === 'string') {
       return this.name.length + this.value.length;
     }
     return this.name.length;
