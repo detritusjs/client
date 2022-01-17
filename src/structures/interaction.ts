@@ -45,6 +45,7 @@ const keysInteraction = new BaseSet<string>([
   DiscordKeys.TYPE,
   DiscordKeys.USER,
   DiscordKeys.VERSION,
+  DiscordKeys.LOCALE
 ]);
 
 const keysMergeInteraction = new BaseSet<string>([
@@ -68,6 +69,7 @@ export class Interaction extends BaseStructure {
   data?: InteractionDataApplicationCommand | InteractionDataComponent;
   guildId?: string;
   id: string = '';
+  locale: string = '';
   member?: Member;
   message?: Message;
   responded: boolean = false;
