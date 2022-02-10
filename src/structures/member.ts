@@ -30,6 +30,7 @@ export type MemberOrUser = Member | User;
 
 const keysMember = new BaseSet<string>([
   DiscordKeys.AVATAR,
+  DiscordKeys.COMMUNICATION_DISABLED_UNTIL,
   DiscordKeys.DEAF,
   DiscordKeys.GUILD_ID,
   DiscordKeys.HOISTED_ROLE,
@@ -67,6 +68,7 @@ export class Member extends UserMixin {
   _roles?: Array<string>;
   _permissions?: bigint = 0n;
 
+  communicationDisabledUntilUnix: number = 0;
   deaf: boolean = false;
   guildId: string = '';
   hoistedRoleId: null | string = null;
@@ -184,6 +186,13 @@ export class Member extends UserMixin {
       }
     }
     return highestRole;
+  }
+
+  get communicationDisabledUntil(): Date | null {
+    if (this.communicationDisabledUntilUnix) {
+      return new Date(this.communicationDisabledUntilUnix);
+    }
+    return null;
   }
 
   get guild(): Guild | null {
@@ -518,6 +527,9 @@ export class Member extends UserMixin {
       switch (key) {
         case DiscordKeys.AVATAR: {
           this._avatar = value;
+        }; return;
+        case DiscordKeys.COMMUNICATION_DISABLED_UNTIL: {
+          this.communicationDisabledUntilUnix = (value) ? (new Date(value).getTime()) : 0;
         }; return;
         case DiscordKeys.HOISTED_ROLE: {
           this.hoistedRoleId = value;
