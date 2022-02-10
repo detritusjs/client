@@ -10,6 +10,7 @@ export * from './actionrow';
 export * from './button';
 export * from './components';
 export * from './context';
+export * from './inputtext';
 export * from './selectmenu';
 
 

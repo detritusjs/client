@@ -632,7 +632,7 @@ export class Message extends BaseStructure {
             }
             this._attachments.clear();
             for (let raw of value) {
-              this._attachments.set(raw.id, new Attachment(this, raw));
+              this._attachments.set(raw.id, new Attachment(this.client, raw, this.isClone));
             }
           } else {
             if (this._attachments) {

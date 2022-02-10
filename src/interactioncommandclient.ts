@@ -577,6 +577,11 @@ export class InteractionCommandClient extends EventSpewer {
           let value: any = option.value;
           if (resolved) {
             switch (option.type) {
+              case ApplicationCommandOptionTypes.ATTACHMENT: {
+                if (resolved.attachments) {
+                  value = resolved.attachments.get(value) || value;
+                }
+              }; break;
               case ApplicationCommandOptionTypes.CHANNEL: {
                 if (resolved.channels) {
                   value = resolved.channels.get(value) || value;
@@ -593,6 +598,7 @@ export class InteractionCommandClient extends EventSpewer {
                   value = resolved.users.get(value);
                 }
               }; break;
+              case ApplicationCommandOptionTypes.NUMBER: value = BigInt(value); break;
               case ApplicationCommandOptionTypes.ROLE: {
                 if (resolved.roles) {
                   value = resolved.roles.get(value) || value;

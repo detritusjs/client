@@ -190,6 +190,10 @@ export class InteractionContextBase {
     return this.interaction.guildId;
   }
 
+  get guildLocale() {
+    return this.interaction.guildLocale;
+  }
+
   get id() {
     return this.interaction.id;
   }
@@ -200,6 +204,10 @@ export class InteractionContextBase {
 
   get interactionId() {
     return this.interaction.id;
+  }
+
+  get locale() {
+    return this.interaction.locale;
   }
 
   get me() {

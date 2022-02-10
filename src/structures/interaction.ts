@@ -18,6 +18,7 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
+import { Attachment } from './attachment';
 import { Channel, createChannelFromData } from './channel';
 import { Guild } from './guild';
 import { Member } from './member';
@@ -38,7 +39,9 @@ const keysInteraction = new BaseSet<string>([
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.DATA,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.GUILD_LOCALE,
   DiscordKeys.ID,
+  DiscordKeys.LOCALE,
   DiscordKeys.MEMBER,
   DiscordKeys.MESSAGE,
   DiscordKeys.TOKEN,
@@ -67,7 +70,9 @@ export class Interaction extends BaseStructure {
   channelId?: string;
   data?: InteractionDataApplicationCommand | InteractionDataComponent;
   guildId?: string;
+  guildLocale?: string;
   id: string = '';
+  locale?: string;
   member?: Member;
   message?: Message;
   responded: boolean = false;
@@ -435,6 +440,7 @@ export class InteractionDataApplicationCommandOption extends BaseStructure {
 
 
 const keysInteractionDataApplicationCommandResolved = new BaseSet<string>([
+  DiscordKeys.ATTACHMENTS,
   DiscordKeys.CHANNELS,
   DiscordKeys.MEMBERS,
   DiscordKeys.MESSAGES,
@@ -455,6 +461,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
   readonly _keysMerge = keysMergeInteractionDataApplicationCommandResolved;
   readonly interactionData: InteractionDataApplicationCommand;
 
+  attachments?: BaseCollection<string, Attachment>;
   channels?: BaseCollection<string, Channel>;
   members?: BaseCollection<string, Member>;
   messages?: BaseCollection<string, Message>;
@@ -479,6 +486,16 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case DiscordKeys.ATTACHMENTS: {
+          if (!this.attachments) {
+            this.attachments = new BaseCollection();
+          }
+          this.attachments.clear();
+          for (let attachmentId in value) {
+            const attachment = new Attachment(this.client, value[attachmentId]);
+            this.attachments.set(attachmentId, attachment);
+          }
+        }; return;
         case DiscordKeys.CHANNELS: {
           if (!this.channels) {
             this.channels = new BaseCollection();

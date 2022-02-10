@@ -1,3 +1,4 @@
+import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, SPOILER_ATTACHMENT_PREFIX } from '../constants';
 import { Snowflake } from '../utils';
@@ -6,7 +7,6 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { Message } from './message';
 
 
 export const EmbeddableRegexes = Object.freeze({
@@ -100,14 +100,12 @@ const keysAttachment = new BaseSet<string>([
 ]);
 
 /**
- * Attachment Structure, used for [Message] objects
+ * Attachment Structure, used in [Message] or [Interaction] objects
  * @category Structure
  */
 export class Attachment extends BaseStructure {
   readonly _uncloneable = true;
   readonly _keys = keysAttachment;
-
-  readonly message: Message;
 
   ephemeral?: boolean;
   filename: string = '';
@@ -118,11 +116,13 @@ export class Attachment extends BaseStructure {
   url?: string;
   width: number = 0;
 
-  constructor(message: Message, data: BaseStructureData) {
-    super(message.client, undefined, message._clone);
-    this.message = message;
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false, writable: false});
   }
 
   get classType(): string {

@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.4-beta.6',
+  VERSION: '0.16.4-beta.7',
 });
 
 export type Snowflake = number | string;
@@ -109,6 +109,8 @@ export enum ApplicationCommandOptionTypes {
   CHANNEL = 7,
   ROLE = 8,
   MENTIONABLE = 9,
+  NUMBER = 10,
+  ATTACHMENT = 11,
 }
 
 
@@ -685,6 +687,7 @@ export enum InteractionCallbackTypes {
   DEFERRED_UPDATE_MESSAGE = 6,
   UPDATE_MESSAGE = 7,
   APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8,
+  MODAL = 9,
 }
 
 
@@ -693,6 +696,7 @@ export enum InteractionTypes {
   APPLICATION_COMMAND = 2,
   MESSAGE_COMPONENT = 3,
   APPLICATION_COMMAND_AUTOCOMPLETE = 4,
+  MODAL_SUBMIT = 5,
 }
 
 
@@ -814,10 +818,17 @@ export enum MessageComponentButtonStyles {
 }
 
 
+export enum MessageComponentInputTextStyles {
+  SHORT = 1,
+  PARAGRAPH = 2,
+}
+
+
 export enum MessageComponentTypes {
   ACTION_ROW = 1,
   BUTTON = 2,
   SELECT_MENU = 3,
+  INPUT_TEXT = 4,
 }
 
 
@@ -1478,6 +1489,7 @@ export const DiscordKeys = Object.freeze({
   GUILD: 'guild',
   GUILD_ID: 'guild_id',
   GUILD_IDS: 'guild_ids',
+  GUILD_LOCALE: 'guild_locale',
   GUILD_SCHEDULED_EVENT_ID: 'guild_scheduled_event_id',
   HEADER_BACKGROUND: 'header_background',
   HEADER_LOGO_DARK_THEME: 'header_logo_dark_theme',
@@ -1524,6 +1536,7 @@ export const DiscordKeys = Object.freeze({
   MANIFEST_LABELS: 'manifest_labels',
   MATCH: 'match',
   MAX_AGE: 'max_age',
+  MAX_LENGTH: 'max_length',
   MAX_MEMBERS: 'max_members',
   MAX_PRESENCES: 'max_presences',
   MAX_USES: 'max_uses',
@@ -1549,6 +1562,7 @@ export const DiscordKeys = Object.freeze({
   MFA_ENABLED: 'mfa_enabled',
   MFA_LEVEL: 'mfa_level',
   MIME_TYPE: 'mime_type',
+  MIN_LENGTH: 'min_length',
   MIN_VALUES: 'min_values',
   MOBILE: 'mobile',
   MUTE: 'mute',
@@ -1850,6 +1864,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.GUILD]: 'guild',
   [DiscordKeys.GUILD_ID]: 'guildId',
   [DiscordKeys.GUILD_IDS]: 'guildIds',
+  [DiscordKeys.GUILD_LOCALE]: 'guildLocale',
   [DiscordKeys.GUILD_SCHEDULED_EVENT_ID]: 'guildScheduledEventId',
   [DiscordKeys.HEADER_BACKGROUND]: 'headerBackground',
   [DiscordKeys.HEADER_LOGO_DARK_THEME]: 'headerLogoDarkTheme',
@@ -1896,6 +1911,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MANIFEST_LABELS]: 'manifestLabels',
   [DiscordKeys.MATCH]: 'match',
   [DiscordKeys.MAX_AGE]: 'maxAge',
+  [DiscordKeys.MAX_LENGTH]: 'maxLength',
   [DiscordKeys.MAX_MEMBERS]: 'maxMembers',
   [DiscordKeys.MAX_PRESENCES]: 'maxPresences',
   [DiscordKeys.MAX_USES]: 'maxUses',
@@ -1921,6 +1937,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MFA_ENABLED]: 'mfaEnabled',
   [DiscordKeys.MFA_LEVEL]: 'mfaLevel',
   [DiscordKeys.MIME_TYPE]: 'mimeType',
+  [DiscordKeys.MIN_LENGTH]: 'minLength',
   [DiscordKeys.MIN_VALUES]: 'minValues',
   [DiscordKeys.MOBILE]: 'mobile',
   [DiscordKeys.MUTE]: 'mute',
