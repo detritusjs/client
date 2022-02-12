@@ -8,12 +8,5 @@
     "target": "esnext"
   },
   "include": ["src"],
-  "exclude": ["node_modules"],
-  "typedocOptions": {
-    "name": "Detritus Client",
-    "out": "./docs",
-    "entryPoints": [
-      "./src"
-    ]
-  }
+  "exclude": ["node_modules"]
 }
