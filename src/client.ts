@@ -396,7 +396,7 @@ export class ShardClient extends EventSpewer {
     } else {
       components = new Components({components, id: listenerId, timeout: timeout || 0});
     }
-    this.gatewayHandler._componentHandler.insert(components);
+    this.gatewayHandler._handlers.component.insert(components);
     return components;
   }
 

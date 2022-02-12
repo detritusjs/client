@@ -38,6 +38,7 @@ export class ComponentHandler {
       const context = new ComponentContext(interaction);
       try {
         if (typeof(listener.run) === 'function') {
+          const context = new ComponentContext(interaction);
           await Promise.resolve(listener.run(context));
         }
       } catch(error) {

@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.16.4-beta.7',
+  VERSION: '0.17.0-beta.0',
 });
 
 export type Snowflake = number | string;
@@ -66,6 +66,7 @@ if (IS_TS_NODE) {
 export const LOCAL_GUILD_ID = '@me';
 
 export const MAX_ACTION_ROW_BUTTONS = 5;
+export const MAX_ACTION_ROW_INPUT_TEXTS = 1;
 export const MAX_ACTION_ROW_SELECT_MENUS = 1;
 export const MAX_ATTACHMENT_SIZE = 8 * 1024 * 1024;
 export const MAX_ATTACHMENT_SIZE_PREMIUM = 50 * 1024 * 1024;
@@ -1428,6 +1429,7 @@ export const DiscordKeys = Object.freeze({
   CONTENT: 'content',
   CONTENT_RATING: 'content_rating',
   CONTENT_RATING_AGENCY: 'content_rating_agency',
+  CONTENT_TYPE: 'content_type',
   COUNT: 'count',
   COVER_IMAGE: 'cover_image',
   CREATED_AT: 'created_at',
@@ -1804,6 +1806,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.CONTENT]: 'content',
   [DiscordKeys.CONTENT_RATING]: 'contentRating',
   [DiscordKeys.CONTENT_RATING_AGENCY]: 'contentRatingAgency',
+  [DiscordKeys.CONTENT_TYPE]: 'contentType',
   [DiscordKeys.COUNT]: 'count',
   [DiscordKeys.COVER_IMAGE]: 'coverImage',
   [DiscordKeys.CREATED_AT]: 'createdAt',

@@ -6,7 +6,7 @@
   "dependencies": {
     "@types/node": "^14.17.2",
     "@types/node-fetch": "^2.5.10",
-    "detritus-client-rest": "^0.10.6-beta.1",
+    "detritus-client-rest": "^0.10.6-beta.2",
     "detritus-client-socket": "^0.8.4-beta.1",
     "detritus-utils": "^0.4.0"
   },
@@ -56,5 +56,5 @@
     "typedoc": "typedoc"
   },
   "types": "lib/index.d.ts",
-  "version": "0.16.4-beta.7"
+  "version": "0.17.0-beta.0"
 }

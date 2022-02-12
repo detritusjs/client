@@ -5,12 +5,14 @@ import {
   DiscordKeys,
   MessageComponentTypes,
   MAX_ACTION_ROW_BUTTONS,
+  MAX_ACTION_ROW_INPUT_TEXTS,
   MAX_ACTION_ROW_SELECT_MENUS,
 } from '../../constants';
 import { Structure } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
 import { ComponentButton } from './button';
+import { ComponentInputText } from './inputtext';
 import { ComponentSelectMenu } from './selectmenu';
 
 
@@ -31,7 +33,7 @@ const keysComponentActionRow = new BaseSet<string>([
  export class ComponentActionRow extends Structure {
   readonly _keys = keysComponentActionRow;
 
-  components: Array<ComponentButton | ComponentSelectMenu> = [];
+  components: Array<ComponentButton | ComponentInputText | ComponentSelectMenu> = [];
   type = MessageComponentTypes.ACTION_ROW;
 
   constructor(data: ComponentActionRowData = {}) {
@@ -49,8 +51,17 @@ const keysComponentActionRow = new BaseSet<string>([
     return false;
   }
 
+  get hasInputText(): boolean {
+    for (let component of this.components) {
+      if (component.type === MessageComponentTypes.INPUT_TEXT) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   get hasRun(): boolean {
-    return this.components.some((component) => typeof(component.run) === 'function');
+    return this.components.some((component) => component.hasRun);
   }
 
   get hasSelectMenu(): boolean {
@@ -69,6 +80,8 @@ const keysComponentActionRow = new BaseSet<string>([
   get isFull(): boolean {
     if (this.hasSelectMenu) {
       return MAX_ACTION_ROW_SELECT_MENUS <= this.components.length;
+    } else if (this.hasInputText) {
+      return MAX_ACTION_ROW_INPUT_TEXTS <= this.components.length;
     } else if (this.hasButton) {
       return MAX_ACTION_ROW_BUTTONS <= this.components.length;
     }
@@ -82,9 +95,16 @@ const keysComponentActionRow = new BaseSet<string>([
     return this.addComponent(new ComponentButton(data));
   }
 
-  addComponent(component: ComponentButton | ComponentSelectMenu): this {
+  addComponent(component: ComponentButton | ComponentInputText | ComponentSelectMenu): this {
     this.components.push(component);
     return this;
+  }
+
+  addInputText(data: ComponentInputText | ComponentActionData = {}): this {
+    if (data instanceof ComponentInputText) {
+      return this.addComponent(data);
+    }
+    return this.addComponent(new ComponentInputText(data));
   }
 
   addSelectMenu(data: ComponentSelectMenu | ComponentActionData = {}): this {
@@ -96,6 +116,12 @@ const keysComponentActionRow = new BaseSet<string>([
 
   createButton(data: ComponentActionData = {}): ComponentButton {
     const component = new ComponentButton(data);
+    this.addComponent(component);
+    return component;
+  }
+
+  createInputText(data: ComponentActionData = {}): ComponentInputText {
+    const component = new ComponentInputText(data);
     this.addComponent(component);
     return component;
   }

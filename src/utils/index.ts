@@ -23,6 +23,7 @@ export {
 };
 export * from './components';
 export * from './embed';
+export * from './modal';
 
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

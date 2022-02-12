@@ -5,6 +5,7 @@ export * from './attachment';
 export * from './auditlog';
 export * from './basestructure';
 export * from './channel';
+export * from './components';
 export * from './connectedaccount';
 export * from './emoji';
 export * from './gift';

@@ -11,8 +11,6 @@ import {
   DiscordRegex,
   DiscordRegexNames,
   InteractionTypes,
-  MessageComponentButtonStyles,
-  MessageComponentTypes,
   MessageFlags,
   MessageTypes,
   MessageTypesDeletable,
@@ -29,7 +27,7 @@ import {
 import { Application } from './application';
 import { Attachment } from './attachment';
 import { Channel, ChannelGuildThread, ChannelTextType, createChannelFromData } from './channel';
-import { Emoji } from './emoji';
+import { ComponentActionRow } from './components';
 import { Guild } from './guild';
 import { Member } from './member';
 import { MessageEmbed } from './messageembed';
@@ -108,7 +106,7 @@ export class Message extends BaseStructure {
   readonly _keysSkipDifference = keysSkipDifferenceMessage;
   _content = '';
   _attachments?: BaseCollection<string, Attachment>;
-  _components?: BaseCollection<number, MessageComponentActionRow>;
+  _components?: BaseCollection<number, ComponentActionRow>;
   _embeds?: BaseCollection<number, MessageEmbed>;
   _mentions?: BaseCollection<string, Member | User>;
   _mentionChannels?: BaseCollection<string, Channel>;
@@ -227,7 +225,7 @@ export class Message extends BaseStructure {
     return null;
   }
 
-  get components(): BaseCollection<number, MessageComponentActionRow> {
+  get components(): BaseCollection<number, ComponentActionRow> {
     if (this._components) {
       return this._components;
     }
@@ -662,11 +660,11 @@ export class Message extends BaseStructure {
         case DiscordKeys.COMPONENTS: {
           if (value.length) {
             if (!this._components) {
-              this._components = new BaseCollection<number, MessageComponentActionRow>();
+              this._components = new BaseCollection<number, ComponentActionRow>();
             }
             this._components.clear();
             for (let i = 0; i < value.length; i++) {
-              this._components.set(i, new MessageComponentActionRow(this, value[i]));
+              this._components.set(i, new ComponentActionRow(this.client, value[i]));
             }
           } else {
             if (this._components) {
@@ -1053,210 +1051,6 @@ export class MessageCall extends BaseStructure {
             value = new Date(value);
           }
         }; break;
-      }
-      return super.mergeValue(key, value);
-    }
-  }
-}
-
-
-const keysMessageComponentActionRow = new BaseSet<string>([
-  DiscordKeys.COMPONENTS,
-  DiscordKeys.TYPE,
-]);
-
-/**
- * Channel Message Component Action Row Structure
- * @category Structure
- */
-export class MessageComponentActionRow extends BaseStructure {
-  readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentActionRow;
-  readonly message: Message;
-
-  components = new BaseCollection<string, MessageComponent | MessageComponentSelectMenu>();
-  type: MessageComponentTypes = MessageComponentTypes.ACTION_ROW;
-
-  constructor(message: Message, data: BaseStructureData) {
-    super(message.client, undefined, message._clone);
-    this.message = message;
-    this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
-  }
-
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.COMPONENTS: {
-          this.components.clear();
-          for (let raw of value) {
-            let component: MessageComponent | MessageComponentSelectMenu;
-            switch (raw.type) {
-              case MessageComponentTypes.SELECT_MENU: {
-                component = new MessageComponentSelectMenu(this.message, raw);
-              }; break;
-              default: {
-                component = new MessageComponent(this.message, raw);
-              };
-            }
-            this.components.set(component.id, component);
-          }
-        }; return;
-      }
-      return super.mergeValue(key, value);
-    }
-  }
-}
-
-
-const keysMessageComponent = new BaseSet<string>([
-  DiscordKeys.CUSTOM_ID,
-  DiscordKeys.DISABLED,
-  DiscordKeys.EMOJI,
-  DiscordKeys.LABEL,
-  DiscordKeys.STYLE,
-  DiscordKeys.TYPE,
-  DiscordKeys.URL,
-]);
-
-/**
- * Channel Message Component Structure
- * @category Structure
- */
-export class MessageComponent extends BaseStructure {
-  readonly _uncloneable = true;
-  readonly _keys = keysMessageComponent;
-  readonly message: Message;
-
-  customId?: string;
-  disabled?: boolean;
-  emoji?: Emoji;
-  label?: string;
-  style?: MessageComponentButtonStyles;
-  type: MessageComponentTypes = MessageComponentTypes.BUTTON;
-  url?: string;
-
-  constructor(message: Message, data: BaseStructureData) {
-    super(message.client, undefined, message._clone);
-    this.message = message;
-    this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
-  }
-
-  get id(): string {
-    return this.url || this.customId || '';
-  }
-
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.EMOJI: {
-          if (this.emoji) {
-            this.emoji.merge(value);
-          } else {
-            this.emoji = new Emoji(this.client, value);
-          }
-        }; return;
-      }
-      return super.mergeValue(key, value);
-    }
-  }
-}
-
-
-const keysMessageComponentSelectMenu = new BaseSet<string>([
-  DiscordKeys.CUSTOM_ID,
-  DiscordKeys.MAX_VALUES,
-  DiscordKeys.MIN_VALUES,
-  DiscordKeys.OPTIONS,
-  DiscordKeys.PLACEHOLDER,
-  DiscordKeys.TYPE,
-]);
-
-/**
- * Channel Message Component Select Menu Structure
- * @category Structure
- */
-export class MessageComponentSelectMenu extends BaseStructure {
-  readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentSelectMenu;
-  readonly message: Message;
-
-  customId: string = '';
-  maxValues: number = 1;
-  minValues: number = 1;
-  options = new BaseCollection<string, MessageComponentSelectMenuOption>();
-  placeholder: string = '';
-  type: MessageComponentTypes.SELECT_MENU = MessageComponentTypes.SELECT_MENU;
-
-  constructor(message: Message, data: BaseStructureData) {
-    super(message.client, undefined, message._clone);
-    this.message = message;
-    this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
-  }
-
-  get id(): string {
-    return this.customId;
-  }
-
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.OPTIONS: {
-          this.options.clear();
-          for (let raw of value) {
-            const option = new MessageComponentSelectMenuOption(this.message, raw);
-            this.options.set(option.value, option);
-          }
-        }; return;
-      }
-      return super.mergeValue(key, value);
-    }
-  }
-}
-
-
-const keysMessageComponentSelectMenuOption = new BaseSet<string>([
-  DiscordKeys.DEFAULT,
-  DiscordKeys.DESCRIPTION,
-  DiscordKeys.EMOJI,
-  DiscordKeys.LABEL,
-  DiscordKeys.VALUE,
-]);
-
-/**
- * Channel Message Component Select Menu Structure
- * @category Structure
- */
-export class MessageComponentSelectMenuOption extends BaseStructure {
-  readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentSelectMenuOption;
-  readonly message: Message;
-
-  default: boolean = false;
-  description?: string;
-  emoji?: Emoji;
-  label: string = '';
-  value: string = '';
-
-  constructor(message: Message, data: BaseStructureData) {
-    super(message.client, undefined, message._clone);
-    this.message = message;
-    this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
-  }
-
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.EMOJI: {
-          if (this.emoji) {
-            this.emoji.merge(value);
-          } else {
-            this.emoji = new Emoji(this.client, value);
-          }
-        }; return;
       }
       return super.mergeValue(key, value);
     }

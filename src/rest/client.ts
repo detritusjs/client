@@ -9,8 +9,8 @@ import { Snowflake } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ClientEvents } from '../constants';
-import { createComponentListenerOrNone } from '../utils';
+import { ClientEvents, InteractionCallbackTypes } from '../constants';
+import { InteractionModal, createComponentListenerOrNone } from '../utils';
 
 import {
   Application,
@@ -517,25 +517,38 @@ export class RestClient {
   async createInteractionResponse(
     interactionId: string,
     token: string,
-    options: (RequestTypes.CreateInteractionResponse &  {data?: {listenerId?: string}}) | number,
+    options: (RequestTypes.CreateInteractionResponse & {data?: {listenerId?: string}}) | number,
     data?: (RequestTypes.CreateInteractionResponseInnerPayload & {listenerId?: string}) | string,
   ) {
-    const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
-    const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
-
-    if (listenerData) {
-      const [lId, listener] = listenerData;
-
-      const listenerId = lId || interactionId;
-      if (listener) {
-        listener.id = listenerId;
-        this.client.gatewayHandler._componentHandler.insert(listener);
-      } else {
-        this.client.gatewayHandler._componentHandler.delete(listenerId);
-      }
+    if (options instanceof InteractionModal) {
+      options = {data: options as RequestTypes.CreateInteractionResponseInnerPayload, type: InteractionCallbackTypes.MODAL};
+    }
+    if (data instanceof InteractionModal) {
+      options = {data, type: InteractionCallbackTypes.MODAL};
     }
 
-    return rawData;
+    if (typeof(options) === 'object' && options.data instanceof InteractionModal) {
+      const listener = options.data;
+      const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
+      this.client.gatewayHandler._handlers.modal.insert(listener);
+      return rawData;
+    } else {
+      const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
+      const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
+
+      if (listenerData) {
+        const [lId, listener] = listenerData;
+
+        const listenerId = lId || interactionId;
+        if (listener) {
+          listener.id = listenerId;
+          this.client.gatewayHandler._handlers.component.insert(listener);
+        } else {
+          this.client.gatewayHandler._handlers.component.delete(listenerId);
+        }
+      }
+      return rawData;
+    }
   }
 
   createLobby(
@@ -580,9 +593,9 @@ export class RestClient {
       const listenerId = lId || message.id;
       if (listener) {
         listener.id = listenerId;
-        this.client.gatewayHandler._componentHandler.insert(listener);
+        this.client.gatewayHandler._handlers.component.insert(listener);
       } else {
-        this.client.gatewayHandler._componentHandler.delete(listenerId);
+        this.client.gatewayHandler._handlers.component.delete(listenerId);
       }
     }
 
@@ -808,7 +821,7 @@ export class RestClient {
       const message = this.client.messages.get(messageId)!;
       message.deleted = true;
     }
-    this.client.gatewayHandler._componentHandler.delete(messageId);
+    this.client.gatewayHandler._handlers.component.delete(messageId);
     return data;
   }
 
@@ -908,7 +921,7 @@ export class RestClient {
       const message = this.client.messages.get(messageId)!;
       message.deleted = true;
     }
-    this.client.gatewayHandler._componentHandler.delete(messageId);
+    this.client.gatewayHandler._handlers.component.delete(messageId);
     return data;
   }
 
@@ -1244,9 +1257,9 @@ export class RestClient {
       const listenerId = lId || message.id;
       if (listener) {
         listener.id = listenerId;
-        this.client.gatewayHandler._componentHandler.insert(listener);
+        this.client.gatewayHandler._handlers.component.insert(listener);
       } else {
-        this.client.gatewayHandler._componentHandler.delete(listenerId);
+        this.client.gatewayHandler._handlers.component.delete(listenerId);
       }
     }
 
@@ -1335,7 +1348,7 @@ export class RestClient {
     }
 
     if (message.interaction) {
-      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, message.id);
+      this.client.gatewayHandler._handlers.component.replaceId(message.interaction.id, message.id);
     }
 
     if (listenerData) {
@@ -1344,9 +1357,9 @@ export class RestClient {
       const listenerId = lId || message.id;
       if (listener) {
         listener.id = listenerId;
-        this.client.gatewayHandler._componentHandler.insert(listener);
+        this.client.gatewayHandler._handlers.component.insert(listener);
       } else {
-        this.client.gatewayHandler._componentHandler.delete(listenerId);
+        this.client.gatewayHandler._handlers.component.delete(listenerId);
       }
     }
 
@@ -1383,9 +1396,9 @@ export class RestClient {
         const listenerId = lId || message.id;
         if (listener) {
           listener.id = listenerId;
-          this.client.gatewayHandler._componentHandler.insert(listener);
+          this.client.gatewayHandler._handlers.component.insert(listener);
         } else {
-          this.client.gatewayHandler._componentHandler.delete(listenerId);
+          this.client.gatewayHandler._handlers.component.delete(listenerId);
         }
       }
 
@@ -1397,7 +1410,7 @@ export class RestClient {
 
       if (listener) {
         listener.id = lId || Snowflake.generate().id;
-        this.client.gatewayHandler._componentHandler.insert(listener);
+        this.client.gatewayHandler._handlers.component.insert(listener);
       }
     }
 
@@ -2643,7 +2656,7 @@ export class RestClient {
     }
 
     if (message.interaction && message.components.length) {
-      this.client.gatewayHandler._componentHandler.replaceId(message.interaction.id, messageId);
+      this.client.gatewayHandler._handlers.component.replaceId(message.interaction.id, messageId);
     }
 
     return message;

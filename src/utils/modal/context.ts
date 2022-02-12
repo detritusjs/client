@@ -5,13 +5,13 @@ import { ClusterClient } from '../../clusterclient';
 import { ClusterProcessChild } from '../../cluster/processchild';
 import {
   Interaction,
-  InteractionDataComponent,
+  InteractionDataModal,
   InteractionEditOrRespond,
   Message,
 } from '../../structures';
 
 
-export class ComponentContext {
+export class InteractionModalContext {
   readonly client: ShardClient;
   readonly interaction: Interaction;
 
@@ -148,12 +148,16 @@ export class ComponentContext {
   }
 
   /* Interaction Properties */
+  get components() {
+    return this.data.components;
+  }
+
   get customId(): string {
     return this.data.customId;
   }
 
-  get data(): InteractionDataComponent {
-    return this.interaction.data as InteractionDataComponent;
+  get data(): InteractionDataModal {
+    return this.interaction.data as InteractionDataModal;
   }
 
   get channel() {
@@ -300,6 +304,6 @@ export class ComponentContext {
   }
 
   toString() {
-    return `Interaction Component Context (${this.interaction.id})`;
+    return `Interaction Modal Context (${this.interaction.id})`;
   }
 }

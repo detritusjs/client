@@ -1,18 +1,12 @@
-import { RequestTypes } from 'detritus-client-rest';
-
 import { BaseSet } from '../../collections/baseset';
 import {
   DetritusKeys,
   DiscordKeys,
-  DiscordRegexNames,
   MessageComponentInputTextStyles,
   MessageComponentTypes,
 } from '../../constants';
-import { Structure } from '../../structures/basestructure';
-import { Emoji } from '../../structures/emoji';
-import { regex as discordRegex } from '../../utils';
 
-import { ComponentActionBase, ComponentActionData, ComponentEmojiData } from './actionbase';
+import { ComponentActionBase, ComponentActionData } from './actionbase';
 
 
 const keysComponentInputText = new BaseSet<string>([

@@ -1,7 +1,7 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { BaseCollection } from '../collections/basecollection';
+import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
   ApplicationCommandOptionTypes,
@@ -12,7 +12,7 @@ import {
   MessageComponentTypes,
   INTERACTION_TIMEOUT,
 } from '../constants';
-import { Snowflake } from '../utils';
+import { InteractionModal, Snowflake } from '../utils';
 
 import {
   BaseStructure,
@@ -20,6 +20,7 @@ import {
 } from './basestructure';
 import { Attachment } from './attachment';
 import { Channel, createChannelFromData } from './channel';
+import { ComponentActionRow } from './components';
 import { Guild } from './guild';
 import { Member } from './member';
 import { Message } from './message';
@@ -68,7 +69,7 @@ export class Interaction extends BaseStructure {
 
   applicationId: string = '';
   channelId?: string;
-  data?: InteractionDataApplicationCommand | InteractionDataComponent;
+  data?: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
   guildId?: string;
   guildLocale?: string;
   id: string = '';
@@ -133,6 +134,10 @@ export class Interaction extends BaseStructure {
     return this.type === InteractionTypes.APPLICATION_COMMAND;
   }
 
+  get isFromModalSubmit() {
+    return this.type === InteractionTypes.MODAL_SUBMIT;
+  }
+
   get isFromMessageComponent() {
     return this.type === InteractionTypes.MESSAGE_COMPONENT;
   }
@@ -163,7 +168,7 @@ export class Interaction extends BaseStructure {
     const response = new Promise((resolve, reject) => {
       if (this.isFromMessageComponent) {
         const toAssignData = (typeof(options) === 'object') ? options.data || data : data;
-        if (typeof(toAssignData) === 'object' && toAssignData.components) {
+        if (typeof(toAssignData) === 'object' && 'components' in toAssignData) {
           const listenerId = (this.message) ? this.message.id : '';
           Object.assign(toAssignData, {listenerId});
         }
@@ -221,6 +226,7 @@ export class Interaction extends BaseStructure {
     let type: InteractionCallbackTypes = InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE;
     switch (this.type) {
       case InteractionTypes.APPLICATION_COMMAND: type = InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE; break;
+      case InteractionTypes.MODAL_SUBMIT: type = InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE; break;
       case InteractionTypes.MESSAGE_COMPONENT: type = InteractionCallbackTypes.UPDATE_MESSAGE; break;
     }
     return this.respond(type, options);
@@ -261,6 +267,9 @@ export class Interaction extends BaseStructure {
             }; break;
             case InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE: {
               value = new InteractionDataApplicationCommand(this, value);
+            }; break;
+            case InteractionTypes.MODAL_SUBMIT: {
+              value = new InteractionDataModal(this, value);
             }; break;
           }
         }; break;
@@ -594,5 +603,66 @@ export class InteractionDataComponent extends BaseStructure {
     this.interaction = interaction;
     this.merge(data);
     Object.defineProperty(this, 'interaction', {enumerable: false});
+  }
+}
+
+
+
+const keysInteractionDataModal = new BaseSet<string>([
+  DiscordKeys.COMPONENTS,
+  DiscordKeys.CUSTOM_ID,
+]);
+
+/**
+ * Interaction Data Modal Structure
+ * @category Structure
+ */
+export class InteractionDataModal extends BaseStructure {
+  readonly _keys = keysInteractionDataModal;
+  readonly interaction: Interaction;
+  _components?: BaseCollection<number, ComponentActionRow>;
+
+  customId: string = '';
+
+  constructor(
+    interaction: Interaction,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(interaction.client, undefined, isClone);
+    this.interaction = interaction;
+    this.merge(data);
+    Object.defineProperty(this, 'interaction', {enumerable: false});
+  }
+
+  get components(): BaseCollection<number, ComponentActionRow> {
+    if (this._components) {
+      return this._components;
+    }
+    return emptyBaseCollection;
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case DiscordKeys.COMPONENTS: {
+          if (value.length) {
+            if (!this._components) {
+              this._components = new BaseCollection<number, ComponentActionRow>();
+            }
+            this._components.clear();
+            for (let i = 0; i < value.length; i++) {
+              this._components.set(i, new ComponentActionRow(this.client, value[i]));
+            }
+          } else {
+            if (this._components) {
+              this._components.clear();
+              this._components = undefined;
+            }
+          }
+        }; return;
+      }
+      return super.mergeValue(key, value);
+    }
   }
 }

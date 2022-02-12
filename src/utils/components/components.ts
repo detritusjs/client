@@ -9,6 +9,7 @@ import { ComponentActionData } from './actionbase';
 import { ComponentActionRowData, ComponentActionRow } from './actionrow';
 import { ComponentButton } from './button';
 import { ComponentContext } from './context';
+import { ComponentInputText } from './inputtext';
 import { ComponentSelectMenu } from './selectmenu';
 
 
@@ -77,10 +78,20 @@ export class Components extends Structure {
     return this;
   }
 
+  addInputText(data: ComponentInputText | ComponentActionData = {}): this {
+    const actionRow = this.createActionRow();
+    actionRow.addInputText(data);
+    return this;
+  }
+
   addSelectMenu(data: ComponentSelectMenu | ComponentActionData = {}): this {
     const actionRow = this.createActionRow();
     actionRow.addSelectMenu(data);
     return this;
+  }
+
+  clear() {
+    this.components.length = 0;
   }
 
   createActionRow(data: ComponentActionRowData = {}): ComponentActionRow {
@@ -99,6 +110,11 @@ export class Components extends Structure {
     return actionRow.createButton(data);
   }
 
+  createInputText(data: ComponentActionData = {}): ComponentInputText {
+    const actionRow = this.createActionRow();
+    return actionRow.createInputText(data);
+  }
+
   createSelectMenu(data: ComponentActionData = {}): ComponentSelectMenu {
     const actionRow = this.createActionRow();
     return actionRow.createSelectMenu(data);
@@ -107,7 +123,7 @@ export class Components extends Structure {
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.COMPONENTS: {
-        this.components.length = 0;
+        this.clear();
         for (let raw of value) {
           if (raw instanceof ComponentActionRow) {
             this.components.push(raw);

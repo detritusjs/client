@@ -89,6 +89,7 @@ export const MimeClassTypes: Array<{
 
 
 const keysAttachment = new BaseSet<string>([
+  DiscordKeys.CONTENT_TYPE,
   DiscordKeys.EPHEMERAL,
   DiscordKeys.FILENAME,
   DiscordKeys.HEIGHT,
@@ -107,7 +108,8 @@ export class Attachment extends BaseStructure {
   readonly _uncloneable = true;
   readonly _keys = keysAttachment;
 
-  ephemeral?: boolean;
+  contentType?: string;
+  ephemeral: boolean = false;
   filename: string = '';
   height: number = 0;
   id: string = '';

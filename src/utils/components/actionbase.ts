@@ -66,6 +66,16 @@ export class ComponentActionBase extends Structure {
     this.merge(data);
   }
 
+  get hasRun(): boolean {
+    switch (this.type) {
+      case MessageComponentTypes.BUTTON:
+      case MessageComponentTypes.SELECT_MENU: {
+        return typeof(this.run) === 'function';
+      };
+    }
+    return false;
+  }
+
   toJSON(): RequestTypes.RawChannelMessageComponent {
     const data = super.toJSON() as any;
     if (data[DiscordKeys.EMOJI] instanceof Emoji) {
