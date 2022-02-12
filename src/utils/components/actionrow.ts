@@ -137,12 +137,16 @@ const keysComponentActionRow = new BaseSet<string>([
       case DiscordKeys.COMPONENTS: {
         this.components.length = 0;
         for (let raw of value) {
-          if (raw instanceof ComponentButton || raw instanceof ComponentSelectMenu) {
+          if (raw instanceof ComponentButton || raw instanceof ComponentInputText || raw instanceof ComponentSelectMenu) {
             this.components.push(raw);
           } else {
             switch (raw.type) {
               case MessageComponentTypes.BUTTON: {
                 const component = new ComponentButton(raw);
+                this.components.push(component);
+              }; break;
+              case MessageComponentTypes.INPUT_TEXT: {
+                const component = new ComponentInputText(raw);
                 this.components.push(component);
               }; break;
               case MessageComponentTypes.SELECT_MENU: {
