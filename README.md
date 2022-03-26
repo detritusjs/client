@@ -2,13 +2,6 @@
 
 ![npm](https://img.shields.io/npm/v/detritus-client?style=flat-square)
 
-This fork is intended to make detritus able to import ESModules commands
-(This means if you use TS and compile to ESNext)
-
-**NOTE:** If you are using GroupCommands please in **every command**
-export the option **NOT** as default, only the **MAIN** GroupCommand
-should be exported as default
-
 A wheels-attached, pure-TypeScript library for the Discord API.
 
 -   [API Documentation](https://detritusjs.com)
@@ -89,6 +82,8 @@ commandClient.add({
 ```
 
 ### InteractionCommand Client Sample
+
+NOTE: If you are compiling your commands to ESNEXT and you are using group commands, only the main group needs to be exported **as default** the subcommands or subgroups **cannot** be exported as default
 
 ```js
 const { Constants, InteractionCommandClient } = require('detritus-client')
