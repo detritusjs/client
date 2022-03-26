@@ -42,12 +42,12 @@ export const Package = Object.freeze({
 export type Snowflake = number | string;
 
 
-let isImportAvailable = false;
+let isImportAvailable = true;
 try {
-  import('detritus-utils');
+  import('path');
 } catch(error) {
   if (error.name === 'SyntaxError') {
-    isImportAvailable = true;
+    isImportAvailable = false;
   }
 }
 

@@ -362,12 +362,14 @@ export class InteractionCommandClient extends EventSpewer {
 			}
 			const filepath = path.resolve(directory, file)
 			try {
-				let importedCommand: any = await Function(
-					`return import('file://' + '${filepath.replace(
-						/\\/g,
-						'\\\\'
-					)}')`
-				)()
+				let importedCommand: any = IS_IMPORT_AVAILABLE
+					? await Function(
+							`return import('file://' + '${filepath.replace(
+								/\\/g,
+								'\\\\'
+							)}')`
+					  )()
+					: require(filepath)
 				if (
 					(typeof importedCommand === 'object' &&
 						importedCommand.__esModule) ||
