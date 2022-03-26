@@ -363,11 +363,15 @@ export class InteractionCommandClient extends EventSpewer {
 			const filepath = path.resolve(directory, file)
 			try {
 				let importedCommand: any = await Function(
-					`return import('file://' + '${filepath.replace(/\\/g, '\\\\')}')`
+					`return import('file://' + '${filepath.replace(
+						/\\/g,
+						'\\\\'
+					)}')`
 				)()
 				if (
-					typeof importedCommand === 'object' &&
-					importedCommand.__esModule
+					(typeof importedCommand === 'object' &&
+						importedCommand.__esModule) ||
+					importedCommand?.default
 				) {
 					importedCommand = importedCommand.default
 				}
