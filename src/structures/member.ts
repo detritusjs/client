@@ -68,6 +68,8 @@ export class Member extends UserMixin {
   _roles?: Array<string>;
   _permissions?: bigint = 0n;
 
+  declare user: User;
+
   communicationDisabledUntilUnix: number = 0;
   deaf: boolean = false;
   guildId: string = '';
@@ -79,7 +81,6 @@ export class Member extends UserMixin {
   nick: null | string = null;
   pending: boolean = false;
   premiumSinceUnix: number = 0;
-  user!: User;
 
   constructor(
     client: ShardClient,

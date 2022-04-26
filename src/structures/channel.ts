@@ -51,7 +51,9 @@ export type ChannelGuildType = (
   ChannelGuildText |
   ChannelGuildStore |
   ChannelGuildThread |
-  ChannelGuildStageVoice
+  ChannelGuildStageVoice |
+  ChannelGuildDirectory |
+  ChannelGuildForum
 );
 
 export type ChannelTextType = (
@@ -97,6 +99,12 @@ export function createChannelFromData(
       }; break;
       case ChannelTypes.GUILD_STAGE_VOICE: {
         Class = ChannelGuildStageVoice;
+      }; break;
+      case ChannelTypes.GUILD_DIRECTORY: {
+        Class = ChannelGuildDirectory;
+      }; break;
+      case ChannelTypes.GUILD_FORUM: {
+        Class = ChannelGuildForum;
       }; break;
     }
   }
@@ -267,6 +275,15 @@ export class ChannelBase extends BaseStructure {
   }
 
   get children(): BaseCollection<string, ChannelGuildType> {
+    if (this.isGuildCategory) {
+      const collection = new BaseCollection<string, ChannelGuildType>();
+      for (let [channelId, channel] of this.client.channels) {
+        if (channel.isGuildChannel && channel.parentId === this.id) {
+          collection.set(channelId, channel as ChannelGuildType);
+        }
+      }
+      return collection;
+    }
     return emptyBaseCollection;
   }
 
@@ -315,7 +332,17 @@ export class ChannelBase extends BaseStructure {
       (this.isGuildThreadNews) ||
       (this.isGuildThreadPrivate) ||
       (this.isGuildThreadPublic) ||
-      (this.isGuildStageVoice);
+      (this.isGuildStageVoice) || 
+      (this.isGuildDirectory) ||
+      (this.isGuildForum);
+  }
+
+  get isGuildDirectory(): boolean {
+    return this.type === ChannelTypes.GUILD_DIRECTORY;
+  }
+
+  get isGuildForum(): boolean {
+    return this.type === ChannelTypes.GUILD_FORUM;
   }
 
   get isGuildNews(): boolean {
@@ -461,6 +488,19 @@ export class ChannelBase extends BaseStructure {
   get recipients(): BaseCollection<string, User> {
     if (this._recipients) {
       return this._recipients;
+    }
+    return emptyBaseCollection;
+  }
+
+  get threads(): BaseCollection<string, ChannelGuildThread> {
+    if (this.isGuildChannel) {
+      const collection = new BaseCollection<string, ChannelGuildThread>();
+      for (let [channelId, channel] of this.client.channels) {
+        if (channel.isGuildThread && channel.parentId === this.id) {
+          collection.set(channelId, channel as ChannelGuildThread);
+        }
+      }
+      return collection;
     }
     return emptyBaseCollection;
   }
@@ -891,7 +931,7 @@ export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
   type = ChannelTypes.DM;
 
-  lastMessageId?: null | string;
+  declare lastMessageId?: null | string;
 
   constructor(
     client: ShardClient,
@@ -1027,7 +1067,7 @@ export class ChannelDMGroup extends ChannelDM {
   readonly _keys = keysChannelDmGroup;
   type = ChannelTypes.GROUP_DM;
 
-  applicationId?: string;
+  declare applicationId?: string;
   icon: null | string = null;
   ownerId: string = '';
 
@@ -1408,16 +1448,6 @@ export class ChannelGuildCategory extends ChannelGuildBase {
     super(client, undefined, isClone);
     this.merge(data);
   }
-
-  get children(): BaseCollection<string, ChannelGuildType> {
-    const collection = new BaseCollection<string, ChannelGuildType>();
-    for (let [channelId, channel] of this.client.channels) {
-      if (channel.isGuildChannel && channel.parentId === this.id) {
-        collection.set(channelId, channel as ChannelGuildType);
-      }
-    }
-    return collection;
-  }
 }
 
 
@@ -1445,7 +1475,7 @@ export class ChannelGuildText extends ChannelGuildBase {
   readonly _keys = keysChannelGuildText;
   type = ChannelTypes.GUILD_TEXT;
 
-  lastMessageId: null | string = null;
+  declare lastMessageId: null | string;
   topic: null | string = null;
 
   constructor(
@@ -1665,11 +1695,12 @@ export class ChannelGuildThread extends ChannelGuildBase {
   readonly _keys = keysChannelGuildThread;
   type = ChannelTypes.GUILD_PUBLIC_THREAD;
 
-  member?: ThreadMember;
+  declare member?: ThreadMember;
+  declare threadMetadata: ThreadMetadata;
+
   memberCount: number = 0;
   messageCount: number = 0;
   ownerId: string = '';
-  threadMetadata!: ThreadMetadata;
 
   constructor(
     client: ShardClient,
@@ -1702,5 +1733,63 @@ export class ChannelGuildThread extends ChannelGuildBase {
       }
       return super.mergeValue(key, value);
     }
+  }
+}
+
+
+
+const keysChannelGuildDirectory = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
+  DiscordKeys.NAME,
+  DiscordKeys.TYPE,
+]);
+
+
+/**
+ * Guild Directory Channel
+ * @category Structure
+ */
+export class ChannelGuildDirectory extends ChannelGuildBase {
+  readonly _keys = keysChannelGuildDirectory;
+  type = ChannelTypes.GUILD_DIRECTORY;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+}
+
+
+
+const keysChannelGuildForum = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.IS_PARTIAL,
+  DiscordKeys.NAME,
+  DiscordKeys.TYPE,
+]);
+
+
+/**
+ * Guild Forum Channel
+ * @category Structure
+ */
+export class ChannelGuildForum extends ChannelGuildBase {
+  readonly _keys = keysChannelGuildForum;
+  type = ChannelTypes.GUILD_FORUM;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
   }
 }

@@ -275,7 +275,7 @@ export class Argument {
             parsedValue = value || this.default;
           }; break;
         }
-      } catch(error) {
+      } catch(error: any) {
         if (this.help) {
           throw new Error(this.help.replace(/:error/g, error.message));
         } else {

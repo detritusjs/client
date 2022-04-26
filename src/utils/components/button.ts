@@ -28,7 +28,8 @@ const keysComponentButton = new BaseSet<string>([
  export class ComponentButton extends ComponentActionBase {
   readonly _keys = keysComponentButton;
 
-  customId?: null | string;
+  declare customId?: null | string;
+
   disabled?: boolean;
   emoji?: null | ComponentEmojiData;
   label?: null | string;

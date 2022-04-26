@@ -84,7 +84,7 @@ export class ClusterProcess extends EventSpewer {
                   ...data,
                   results,
                 });
-              } catch(error) {
+              } catch(error: any) {
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
                   ...data,
                   error: {
@@ -152,7 +152,7 @@ export class ClusterProcess extends EventSpewer {
               } else {
                 throw Error('Invalid rest function name');
               }
-            } catch(error) {
+            } catch(error: any) {
               await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
                 ...data,
                 error: {

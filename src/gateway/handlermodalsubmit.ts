@@ -43,7 +43,7 @@ export class ModalSubmitHandler {
 
       try {
         await Promise.resolve(listener.run(context, args));
-      } catch(error) {
+      } catch(error: any) {
         try {
           if (typeof(listener.onError) === 'function') {
             await Promise.resolve(listener.onError(context, args, error));

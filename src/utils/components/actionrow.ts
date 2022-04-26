@@ -17,7 +17,7 @@ import { ComponentSelectMenu } from './selectmenu';
 
 
 export interface ComponentActionRowData {
-  components?: Array<ComponentActionData | ComponentButton | ComponentSelectMenu>,
+  components?: Array<ComponentActionData | ComponentButton | ComponentInputText | ComponentSelectMenu>,
   type?: number,
 }
 

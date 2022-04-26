@@ -159,7 +159,11 @@ export interface InteractionCommandOptions {
   default_permission?: boolean,
   defaultPermission?: boolean,
   description?: string,
+  description_localizations?: Record<string, string | undefined>,
+  descriptionLocalizations?: Record<string, string | undefined>,
   name?: string,
+  name_localizations?: Record<string, string | undefined>,
+  nameLocalizations?: Record<string, string | undefined>,
   options?: Array<InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption>,
   type?: ApplicationCommandTypes,
 
@@ -196,10 +200,20 @@ export interface InteractionCommandOptions {
 export interface InteractionCommandOptionOptions {
   _file?: string,
   autocomplete?: boolean,
+  channel_types?: Array<number>,
+  channelTypes?: Array<number>,
   choices?: Array<InteractionCommandOptionChoice | InteractionCommandOptionChoiceOptions>,
   default?: ArgumentDefault,
   description?: string,
+  description_localizations?: Record<string, string | undefined>,
+  descriptionLocalizations?: Record<string, string | undefined>,
+  max_value?: bigint | number,
+  maxValue?: bigint | number,
+  min_value?: bigint | number,
+  minValue?: bigint | number,
   name?: string,
+  name_localizations?: Record<string, string | undefined>,
+  nameLocalizations?: Record<string, string | undefined>,
   options?: Array<InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption>,
   required?: boolean,
   type?: ApplicationCommandOptionTypes | StringConstructor | BooleanConstructor | NumberConstructor | string,
@@ -242,8 +256,10 @@ export interface InteractionCommandOptionChoiceOptions {
 const keysInteractionCommand = new BaseSet<string>([
   DiscordKeys.DEFAULT_PERMISSION,
   DiscordKeys.DESCRIPTION,
+  DiscordKeys.DESCRIPTION_LOCALIZATIONS,
   DiscordKeys.IDS,
   DiscordKeys.NAME,
+  DiscordKeys.NAME_LOCALIZATIONS,
   DiscordKeys.OPTIONS,
   DiscordKeys.TYPE,
 ]);
@@ -261,10 +277,12 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
 
   defaultPermission: boolean = true;
   description: string = '';
+  descriptionLocalizations?: Record<string, string | undefined>;
   ids = new BaseCollection<string, string>();
   global: boolean = true;
   guildIds?: BaseSet<string>;
   name: string = '';
+  nameLocalizations?: Record<string, string | undefined>;
   type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
 
   disableDm?: boolean;
@@ -297,6 +315,12 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     super();
     if (DetritusKeys[DiscordKeys.DEFAULT_PERMISSION] in data) {
       (data as any)[DiscordKeys.DEFAULT_PERMISSION] = (data as any)[DetritusKeys[DiscordKeys.DEFAULT_PERMISSION]];
+    }
+    if (DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS] in data) {
+      (data as any)[DiscordKeys.DESCRIPTION_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS]];
+    }
+    if (DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS] in data) {
+      (data as any)[DiscordKeys.NAME_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS]];
     }
 
     this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
@@ -400,7 +424,15 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}`;
+    return [
+      this.name,
+      this.description,
+      this.type,
+      this._optionsKey,
+      JSON.stringify(this.descriptionLocalizations),
+      JSON.stringify(this.nameLocalizations),
+    ].join('-');
+
   }
 
   get length(): number {
@@ -568,9 +600,14 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
 
 const keysInteractionCommandOption = new BaseSet<string>([
   DiscordKeys.AUTOCOMPLETE,
+  DiscordKeys.CHANNEL_TYPES,
   DiscordKeys.CHOICES,
   DiscordKeys.DESCRIPTION,
+  DiscordKeys.DESCRIPTION_LOCALIZATIONS,
+  DiscordKeys.MAX_VALUE,
+  DiscordKeys.MIN_VALUE,
   DiscordKeys.NAME,
+  DiscordKeys.NAME_LOCALIZATIONS,
   DiscordKeys.OPTIONS,
   DiscordKeys.REQUIRED,
   DiscordKeys.TYPE,
@@ -584,9 +621,14 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   _options?: BaseCollection<string, InteractionCommandOption>;
 
   autocomplete?: boolean;
+  channelTypes?: Array<number>;
   choices?: Array<InteractionCommandOptionChoice>;
   description: string = '';
+  descriptionLocalizations?: Record<string, string | undefined>;
+  maxValue?: bigint | number;
+  minValue?: bigint | number;
   name: string = '';
+  nameLocalizations?: Record<string, string | undefined>;
   required?: boolean;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.STRING;
 
@@ -621,6 +663,21 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
   constructor(data: InteractionCommandOptionOptions = {}) {
     super();
+    if (DetritusKeys[DiscordKeys.CHANNEL_TYPES] in data) {
+      (data as any)[DiscordKeys.CHANNEL_TYPES] = (data as any)[DetritusKeys[DiscordKeys.CHANNEL_TYPES]];
+    }
+    if (DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS] in data) {
+      (data as any)[DiscordKeys.DESCRIPTION_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS]];
+    }
+    if (DetritusKeys[DiscordKeys.MAX_VALUE] in data) {
+      (data as any)[DiscordKeys.MAX_VALUE] = (data as any)[DetritusKeys[DiscordKeys.MAX_VALUE]];
+    }
+    if (DetritusKeys[DiscordKeys.MIN_VALUE] in data) {
+      (data as any)[DiscordKeys.MIN_VALUE] = (data as any)[DetritusKeys[DiscordKeys.MIN_VALUE]];
+    }
+    if (DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS] in data) {
+      (data as any)[DiscordKeys.NAME_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS]];
+    }
 
     this.disableDm = (data.disableDm !== undefined) ? !!data.disableDm : this.disableDm;
     this.label = data.label || this.label;
@@ -732,7 +789,20 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${!!this.autocomplete}-${this._optionsKey}-${this._choicesKey}`;
+    return [
+      this.name,
+      this.description,
+      this.type,
+      !!this.required,
+      !!this.autocomplete,
+      this._optionsKey,
+      this._choicesKey,
+      JSON.stringify(this.descriptionLocalizations),
+      JSON.stringify(this.nameLocalizations),
+      JSON.stringify(this.channelTypes),
+      this.maxValue,
+      this.minValue,
+    ].join('-');
   }
 
   get length(): number {
@@ -991,6 +1061,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
 const keysInteractionCommandOptionChoice = new BaseSet<string>([
   DiscordKeys.NAME,
+  DiscordKeys.NAME_LOCALIZATIONS,
   DiscordKeys.VALUE,
 ]);
 
@@ -998,6 +1069,7 @@ export class InteractionCommandOptionChoice extends Structure {
   readonly _keys = keysInteractionCommandOptionChoice;
 
   name: string = '';
+  nameLocalizations?: Record<string, string | undefined>;
   value: number | string = '';
 
   constructor(data: InteractionCommandOptionChoiceOptions = {}) {
@@ -1006,7 +1078,7 @@ export class InteractionCommandOptionChoice extends Structure {
   }
 
   get key(): string {
-    return `${this.name}-${this.value}-${typeof(this.value)}`;
+    return `${this.name}-${this.value}-${typeof(this.value)}-${JSON.stringify(this.nameLocalizations)}`;
   }
 
   get length(): number {

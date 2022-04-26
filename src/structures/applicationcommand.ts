@@ -23,9 +23,11 @@ const keysApplicationCommand = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.DEFAULT_PERMISSION,
   DiscordKeys.DESCRIPTION,
+  DiscordKeys.DESCRIPTION_LOCALIZATIONS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.NAME,
+  DiscordKeys.NAME_LOCALIZATIONS,
   DiscordKeys.OPTIONS,
   DiscordKeys.TYPE,
   DiscordKeys.VERSION,
@@ -41,9 +43,11 @@ export class ApplicationCommand extends BaseStructure {
   applicationId: string = '';
   defaultPermission: boolean = true;
   description: string = '';
+  descriptionLocalizations?: Record<string, string | undefined>;
   guildId?: string;
   id: string = '';
   name: string = '';
+  nameLocalizations?: Record<string, string | undefined>;
   options?: BaseCollection<string, ApplicationCommandOption>;
   type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
   version: string = '';
@@ -62,7 +66,14 @@ export class ApplicationCommand extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${this._optionsKey}`;
+    return [
+      this.name,
+      this.description,
+      this.type,
+      this._optionsKey,
+      JSON.stringify(this.descriptionLocalizations),
+      JSON.stringify(this.nameLocalizations),
+    ].join('-');
   }
 
   edit(options: RequestTypes.EditApplicationCommand | RequestTypes.EditApplicationGuildCommand) {
@@ -103,9 +114,14 @@ export class ApplicationCommand extends BaseStructure {
 
 const keysApplicationCommandOption = new BaseSet<string>([
   DiscordKeys.AUTOCOMPLETE,
+  DiscordKeys.CHANNEL_TYPES,
   DiscordKeys.CHOICES,
   DiscordKeys.DESCRIPTION,
+  DiscordKeys.DESCRIPTION_LOCALIZATIONS,
+  DiscordKeys.MAX_VALUE,
+  DiscordKeys.MIN_VALUE,
   DiscordKeys.NAME,
+  DiscordKeys.NAME_LOCALIZATIONS,
   DiscordKeys.OPTIONS,
   DiscordKeys.REQUIRED,
   DiscordKeys.TYPE,
@@ -120,9 +136,14 @@ export class ApplicationCommandOption extends BaseStructure {
   readonly command: ApplicationCommand;
 
   autocomplete?: boolean;
+  channelTypes?: Array<number>;
   choices?: BaseCollection<string, ApplicationCommandOptionChoice>;
   description: string = '';
+  descriptionLocalizations?: Record<string, string | undefined>;
+  maxValue?: bigint;
+  minValue?: bigint;
   name: string = '';
+  nameLocalizations?: Record<string, string | undefined>;
   options?: BaseCollection<string, ApplicationCommandOption>;
   required: boolean = false;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.SUB_COMMAND;
@@ -143,7 +164,20 @@ export class ApplicationCommandOption extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.name}-${this.description}-${this.type}-${!!this.required}-${!!this.autocomplete}-${this._optionsKey}-${this._choicesKey}`;
+    return [
+      this.name,
+      this.description,
+      this.type,
+      !!this.required,
+      !!this.autocomplete,
+      this._optionsKey,
+      this._choicesKey,
+      JSON.stringify(this.descriptionLocalizations),
+      JSON.stringify(this.nameLocalizations),
+      JSON.stringify(this.channelTypes),
+      this.maxValue,
+      this.minValue,
+    ].join('-');
   }
 
   mergeValue(key: string, value: any): void {
@@ -162,6 +196,12 @@ export class ApplicationCommandOption extends BaseStructure {
           this.choices = undefined;
         }
       }; return;
+      case DiscordKeys.MAX_VALUE: {
+        value = BigInt(value);
+      }; break;
+      case DiscordKeys.MIN_VALUE: {
+        value = BigInt(value);
+      }; break;
       case DiscordKeys.OPTIONS: {
         if (value) {
           if (!this.options) {
@@ -184,6 +224,7 @@ export class ApplicationCommandOption extends BaseStructure {
 
 const keysApplicationCommandOptionChoice = new BaseSet<string>([
   DiscordKeys.NAME,
+  DiscordKeys.NAME_LOCALIZATIONS,
   DiscordKeys.VALUE,
 ]);
 
@@ -196,6 +237,7 @@ export class ApplicationCommandOptionChoice extends BaseStructure {
   readonly option: ApplicationCommandOption;
 
   name: string = '';
+  nameLocalizations?: Record<string, string | undefined>;
   value: string | number = '';
 
   constructor(option: ApplicationCommandOption, data: BaseStructureData, isClone?: boolean) {
@@ -206,7 +248,7 @@ export class ApplicationCommandOptionChoice extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.name}-${this.value}-${typeof(this.value)}`;
+    return `${this.name}-${this.value}-${typeof(this.value)}-${JSON.stringify(this.nameLocalizations)}`;
   }
 }
 

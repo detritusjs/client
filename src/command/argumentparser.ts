@@ -47,18 +47,21 @@ export class ArgumentParser {
     const parsed: ParsedArgs = {};
     if (this.args.length) {
       if (this.positional) {
-        for (const arg of this.args) {
+        for (let i = 0; i < this.args.length; i++) {
+          const arg = this.args[i];
+
           try {
-            let value: string;
-            let content: string;
-            if (arg.consume) {
+            let value: string = '';
+            let content: string = '';
+            if (arg.consume || i === this.args.length) {
               value = attributes.content;
               content = '';
             } else {
               if (attributes.content) {
                 // get first value from attributes.content;
                 [ value, content ] = getFirstArgument(attributes.content);
-              } else {
+              } else if (i !== 0) {
+                // parse our first element but skip the rest since our content is clean
                 continue;
               }
             }

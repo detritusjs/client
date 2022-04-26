@@ -126,7 +126,7 @@ export class GatewayHandler {
       if (name in this.dispatchHandler) {
         try {
           (this.dispatchHandler as any)[name](data);
-        } catch(error) {
+        } catch(error: any) {
           this.client.emit(ClientEvents.WARN, {error: new GatewayError(error, packet)});
         }
       } else {
@@ -276,7 +276,7 @@ export class GatewayDispatchHandler {
         } else {
           await this.client.rest.fetchOauth2Application();
         }
-      } catch(error) {
+      } catch(error: any) {
         const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch OAuth2 Application Information', error)};
         this.client.emit(ClientEvents.WARN, payload);
       }
@@ -291,7 +291,7 @@ export class GatewayDispatchHandler {
       } else {
         await this.client.applications.fill();
       }
-    } catch(error) {
+    } catch(error: any) {
       const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Applications', error)};
       this.client.emit(ClientEvents.WARN, payload);
     }
@@ -1952,7 +1952,7 @@ export class GatewayDispatchHandler {
 
     try {
       await this.client.connectedAccounts.fill();
-    } catch(error) {
+    } catch(error: any) {
       const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Connected Accounts', error)};
       this.client.emit(ClientEvents.WARN, payload);
     }

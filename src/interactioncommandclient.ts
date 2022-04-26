@@ -314,7 +314,7 @@ export class InteractionCommandClient extends EventSpewer {
           importedCommand = importedCommand.default;
         }
         addCommand(importedCommand, filepath);
-      } catch(error) {
+      } catch(error: any) {
         errors[filepath] = error;
       }
     }
@@ -619,7 +619,7 @@ export class InteractionCommandClient extends EventSpewer {
             if (commandOption.value && typeof(commandOption.value) === 'function') {
               try {
                 args[label] = await Promise.resolve(commandOption.value(value, context));
-              } catch(error) {
+              } catch(error: any) {
                 hasError = true;
                 errors[label] = error;
               }
@@ -659,7 +659,7 @@ export class InteractionCommandClient extends EventSpewer {
         if (typeof(commandOption.default) === 'function') {
           try {
             args[label] = await Promise.resolve(commandOption.default(context));
-          } catch(error) {
+          } catch(error: any) {
             hasError = true;
             errors[label] = error;
           }
@@ -759,7 +759,7 @@ export class InteractionCommandClient extends EventSpewer {
           }
           return
         }
-      } catch(error) {
+      } catch(error: any) {
         const payload: InteractionCommandEvents.CommandError = {command, context, error};
         this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
@@ -775,7 +775,7 @@ export class InteractionCommandClient extends EventSpewer {
           }
           return;
         }
-      } catch(error) {
+      } catch(error: any) {
         const payload: InteractionCommandEvents.CommandError = {command, context, error};
         this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
@@ -829,7 +829,7 @@ export class InteractionCommandClient extends EventSpewer {
         if (typeof(invoker.onDmBlocked) === 'function') {
           try {
             await Promise.resolve(invoker.onDmBlocked(context));
-          } catch(error) {
+          } catch(error: any) {
             const payload: InteractionCommandEvents.CommandError = {command, context, error};
             this.emit(ClientEvents.COMMAND_ERROR, payload);
           }
@@ -926,7 +926,7 @@ export class InteractionCommandClient extends EventSpewer {
           }
           return;
         }
-      } catch(error) {
+      } catch(error: any) {
         const payload: InteractionCommandEvents.CommandError = {command, context, error};
         this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
@@ -1015,7 +1015,7 @@ export class InteractionCommandClient extends EventSpewer {
         if (typeof(invoker.onSuccess) === 'function') {
           await Promise.resolve(invoker.onSuccess(context, args));
         }
-      } catch(error) {
+      } catch(error: any) {
         if (timeout) {
           timeout.stop();
         }
@@ -1026,7 +1026,7 @@ export class InteractionCommandClient extends EventSpewer {
           await Promise.resolve(invoker.onRunError(context, args, error));
         }
       }
-    } catch(error) {
+    } catch(error: any) {
       if (typeof(invoker.onError) === 'function') {
         await Promise.resolve(invoker.onError(context, args, error));
       }
@@ -1069,7 +1069,7 @@ export class InteractionCommandClient extends EventSpewer {
     if (typeof(invoker.onAutoComplete) === 'function') {
       try {
         await Promise.resolve(invoker.onAutoComplete(context));
-      } catch(error) {
+      } catch(error: any) {
         if (typeof(invoker.onAutoCompleteError) === 'function') {
           await Promise.resolve(invoker.onAutoCompleteError(context, error));
         }

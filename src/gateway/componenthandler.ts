@@ -40,7 +40,7 @@ export class ComponentHandler {
         if (typeof(listener.run) === 'function') {
           await Promise.resolve(listener.run(context));
         }
-      } catch(error) {
+      } catch(error: any) {
         try {
           if (typeof(listener.onError) === 'function') {
             await Promise.resolve(listener.onError(context, error));
@@ -55,7 +55,7 @@ export class ComponentHandler {
             if (typeof(component.run) === 'function') {
               await Promise.resolve(component.run(context));
             }
-          } catch(error) {
+          } catch(error: any) {
             try {
               if (typeof(component.onError) === 'function') {
                 await Promise.resolve(component.onError(context, error));

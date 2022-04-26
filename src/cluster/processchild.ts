@@ -94,7 +94,7 @@ export class ClusterProcessChild extends EventSpewer {
                   ...data,
                   result,
                 });
-              } catch(error) {
+              } catch(error: any) {
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
                   ...data,
                   error: {
@@ -138,7 +138,7 @@ export class ClusterProcessChild extends EventSpewer {
           }
         }; return;
       }
-    } catch(error) {
+    } catch(error: any) {
       const payload: GatewayClientEvents.Warn = {error};
       this.cluster.emit(ClientEvents.WARN, payload);
     }
@@ -174,7 +174,7 @@ export class ClusterProcessChild extends EventSpewer {
   ): Promise<void> {
     try {
       await this.sendIPC(op, data, request, shard);
-    } catch(error) {
+    } catch(error: any) {
       const payload: GatewayClientEvents.Warn = {error};
       this.cluster.emit(ClientEvents.WARN, payload);
     }

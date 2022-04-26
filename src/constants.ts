@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.1',
+  VERSION: '0.17.0-beta.2',
 });
 
 export type Snowflake = number | string;
@@ -45,7 +45,7 @@ export type Snowflake = number | string;
 let isImportAvailable = false;
 try {
   import('detritus-utils');
-} catch(error) {
+} catch(error: any) {
   if (error.name === 'SyntaxError') {
     isImportAvailable = true;
   }
@@ -334,6 +334,7 @@ export enum ChannelTypes {
   GUILD_PRIVATE_THREAD = 12,
   GUILD_STAGE_VOICE = 13,
   GUILD_DIRECTORY = 14,
+  GUILD_FORUM = 15,
 }
 
 
@@ -1416,6 +1417,7 @@ export const DiscordKeys = Object.freeze({
   CHANNEL: 'channel',
   CHANNELS: 'channels',
   CHANNEL_ID: 'channel_id',
+  CHANNEL_TYPES: 'channel_types',
   CHOICES: 'choices',
   CLIENT: 'client',
   CLIENT_INFO: 'client_info',
@@ -1449,6 +1451,7 @@ export const DiscordKeys = Object.freeze({
   DEPENDENT_SKU_ID: 'dependent_sku_id',
   DEPRECATED: 'deprecated',
   DESCRIPTION: 'description',
+  DESCRIPTION_LOCALIZATIONS: 'description_localizations',
   DESKTOP: 'desktop',
   DETAILS: 'details',
   DEVELOPERS: 'developers',
@@ -1543,6 +1546,7 @@ export const DiscordKeys = Object.freeze({
   MAX_MEMBERS: 'max_members',
   MAX_PRESENCES: 'max_presences',
   MAX_USES: 'max_uses',
+  MAX_VALUE: 'max_value',
   MAX_VALUES: 'max_values',
   MAX_VIDEO_CHANNEL_USERS: 'max_video_channel_users',
   ME: 'me',
@@ -1566,11 +1570,13 @@ export const DiscordKeys = Object.freeze({
   MFA_LEVEL: 'mfa_level',
   MIME_TYPE: 'mime_type',
   MIN_LENGTH: 'min_length',
+  MIN_VALUE: 'min_value',
   MIN_VALUES: 'min_values',
   MOBILE: 'mobile',
   MUTE: 'mute',
   MUTUAL_GUILDS: 'mutual_guilds',
   NAME: 'name',
+  NAME_LOCALIZATIONS: 'name_localizations',
   NEW_VALUE: 'new_value',
   NICK: 'nick',
   NICKS: 'nicks',
@@ -1793,6 +1799,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.CHANNEL]: 'channel',
   [DiscordKeys.CHANNELS]: 'channels',
   [DiscordKeys.CHANNEL_ID]: 'channelId',
+  [DiscordKeys.CHANNEL_TYPES]: 'channelTypes',
   [DiscordKeys.CHOICES]: 'choices',
   [DiscordKeys.CLIENT]: 'client',
   [DiscordKeys.CLIENT_INFO]: 'clientInfo',
@@ -1826,6 +1833,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DEPENDENT_SKU_ID]: 'dependentSkuId',
   [DiscordKeys.DEPRECATED]: 'deprecated',
   [DiscordKeys.DESCRIPTION]: 'description',
+  [DiscordKeys.DESCRIPTION_LOCALIZATIONS]: 'descriptionLocalizations',
   [DiscordKeys.DESKTOP]: 'desktop',
   [DiscordKeys.DETAILS]: 'details',
   [DiscordKeys.DEVELOPERS]: 'developers',
@@ -1920,6 +1928,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MAX_MEMBERS]: 'maxMembers',
   [DiscordKeys.MAX_PRESENCES]: 'maxPresences',
   [DiscordKeys.MAX_USES]: 'maxUses',
+  [DiscordKeys.MAX_VALUE]: 'maxValue',
   [DiscordKeys.MAX_VALUES]: 'maxValues',
   [DiscordKeys.MAX_VIDEO_CHANNEL_USERS]: 'maxVideoChannelUsers',
   [DiscordKeys.ME]: 'me',
@@ -1943,11 +1952,13 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MFA_LEVEL]: 'mfaLevel',
   [DiscordKeys.MIME_TYPE]: 'mimeType',
   [DiscordKeys.MIN_LENGTH]: 'minLength',
+  [DiscordKeys.MIN_VALUE]: 'minValue',
   [DiscordKeys.MIN_VALUES]: 'minValues',
   [DiscordKeys.MOBILE]: 'mobile',
   [DiscordKeys.MUTE]: 'mute',
   [DiscordKeys.MUTUAL_GUILDS]: 'mutualGuilds',
   [DiscordKeys.NAME]: 'name',
+  [DiscordKeys.NAME_LOCALIZATIONS]: 'nameLocalizations',
   [DiscordKeys.NEW_VALUE]: 'newValue',
   [DiscordKeys.NICK]: 'nick',
   [DiscordKeys.NICKS]: 'nicks',

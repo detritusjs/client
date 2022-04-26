@@ -357,7 +357,7 @@ export class CommandClient extends EventSpewer {
           importedCommand = importedCommand.default;
         }
         addCommand(importedCommand, filepath);
-      } catch(error) {
+      } catch(error: any) {
         errors[filepath] = error;
       }
     }
@@ -572,7 +572,7 @@ export class CommandClient extends EventSpewer {
           this.emit(ClientEvents.COMMAND_NONE, payload);
           return;
         }
-      } catch(error) {
+      } catch(error: any) {
         const payload: CommandEvents.CommandNone = {context, error};
         this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
@@ -606,7 +606,7 @@ export class CommandClient extends EventSpewer {
       if (!attributes) {
         throw new Error('Does not start with any allowed prefixes');
       }
-    } catch(error) {
+    } catch(error: any) {
       const payload: CommandEvents.CommandNone = {context, error};
       this.emit(ClientEvents.COMMAND_NONE, payload);
       return;
@@ -627,7 +627,7 @@ export class CommandClient extends EventSpewer {
             this.emit(ClientEvents.COMMAND_NONE, payload);
             return;
           }
-        } catch(error) {
+        } catch(error: any) {
           const payload: CommandEvents.CommandNone = {context, error};
           this.emit(ClientEvents.COMMAND_ERROR, payload);
           return;
@@ -661,7 +661,7 @@ export class CommandClient extends EventSpewer {
           if (typeof(command.onRatelimit) === 'function') {
             try {
               await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
-            } catch(error) {
+            } catch(error: any) {
               // do something with this error?
             }
           }
@@ -681,7 +681,7 @@ export class CommandClient extends EventSpewer {
             try {
               const reply = await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
               this.storeReply(message.id, command, context, reply);
-            } catch(error) {
+            } catch(error: any) {
               // do something with this error?
             }
           }
@@ -696,7 +696,7 @@ export class CommandClient extends EventSpewer {
           try {
             const reply = await Promise.resolve(command.onDmBlocked(context));
             this.storeReply(message.id, command, context, reply);
-          } catch(error) {
+          } catch(error: any) {
             const payload: CommandEvents.CommandError = {command, context, error};
             this.emit(ClientEvents.COMMAND_ERROR, payload);
           }
@@ -711,7 +711,7 @@ export class CommandClient extends EventSpewer {
               this.storeReply(message.id, command, context, reply);
               const payload: CommandEvents.CommandError = {command, context, error, reply};
               this.emit(ClientEvents.COMMAND_ERROR, payload);
-            } catch(e) {
+            } catch(e: any) {
               const payload: CommandEvents.CommandError = {command, context, error, extra: e};
               this.emit(ClientEvents.COMMAND_ERROR, payload);
             }
@@ -749,7 +749,7 @@ export class CommandClient extends EventSpewer {
             try {
               const reply = await Promise.resolve(command.onPermissionsFailClient(context, failed));
               this.storeReply(message.id, command, context, reply);
-            } catch(error) {
+            } catch(error: any) {
               // do something with this error?
             }
           }
@@ -788,7 +788,7 @@ export class CommandClient extends EventSpewer {
               try {
                 const reply = await Promise.resolve(command.onPermissionsFail(context, failed));
                 this.storeReply(message.id, command, context, reply);
-              } catch(error) {
+              } catch(error: any) {
                 // do something with this error?
               }
             }
@@ -808,7 +808,7 @@ export class CommandClient extends EventSpewer {
           }
           return;
         }
-      } catch(error) {
+      } catch(error: any) {
         const payload: CommandEvents.CommandError = {command, context, error};
         this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
@@ -849,7 +849,7 @@ export class CommandClient extends EventSpewer {
             timeout.start(command.triggerTypingAfter, async () => {
               try {
                 await context.triggerTyping();
-              } catch(error) {
+              } catch(error: any) {
                 // do something maybe?
               }
             });
@@ -872,7 +872,7 @@ export class CommandClient extends EventSpewer {
         if (typeof(command.onSuccess) === 'function') {
           await Promise.resolve(command.onSuccess(context, args));
         }
-      } catch(error) {
+      } catch(error: any) {
         if (timeout) {
           timeout.stop();
         }
@@ -884,7 +884,7 @@ export class CommandClient extends EventSpewer {
           this.storeReply(message.id, command, context, reply);
         }
       }
-    } catch(error) {
+    } catch(error: any) {
       if (typeof(command.onError) === 'function') {
         await Promise.resolve(command.onError(context, args, error));
       }

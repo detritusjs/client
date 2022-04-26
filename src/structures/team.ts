@@ -141,10 +141,11 @@ const keysTeamMember = new BaseSet<string>([
 export class TeamMember extends UserMixin {
   readonly _keys = keysTeamMember;
 
+  declare user: User;
+
   membershipState: TeamMembershipStates = TeamMembershipStates.BASE;
   permissions!: BaseSet<string>;
   teamId: string = '';
-  user!: User;
 
   constructor(
     client: ShardClient,

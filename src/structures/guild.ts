@@ -7,6 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  DetritusKeys,
   DiscordKeys,
   GuildExplicitContentFilterTypes,
   GuildFeatures,
@@ -39,6 +40,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  convertKey,
 } from './basestructure';
 import {
   createChannelFromData,
@@ -472,21 +474,33 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.syncGuildIntegration(this.id, integrationId);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.FEATURES: {
-          if (this.features) {
-            this.features.clear();
-            for (let raw of value) {
-              this.features.add(raw);
-            }
-          } else {
-            this.features = new BaseSet(value);
-          }
-        }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.FEATURES in data) {
+      const value = data[DiscordKeys.FEATURES];
+      if (this.features) {
+        this.features.clear();
+        for (let raw of value) {
+          this.features.add(raw);
+        }
+      } else {
+        this.features = new BaseSet(value);
       }
-      super.mergeValue(key, value);
+    }
+
+    if (DiscordKeys.ICON in data) {
+      (this as any)[DiscordKeys.ICON] = data[DiscordKeys.ICON];
+    }
+
+    if (DiscordKeys.ID in data) {
+      (this as any)[DiscordKeys.ID] = data[DiscordKeys.ID];
+    }
+
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DiscordKeys.NAME] = data[DiscordKeys.NAME];
     }
   }
 
