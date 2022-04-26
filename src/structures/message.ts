@@ -1149,6 +1149,9 @@ export class MessageReference extends BaseStructure {
   }
 
   get message(): null | Message {
+    if (this.parent && this.parent.referencedMessage) {
+      return this.parent.referencedMessage;
+    }
     if (this.messageId) {
       return this.client.messages.get(this.messageId) || null;
     }

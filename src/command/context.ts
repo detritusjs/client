@@ -5,6 +5,7 @@ import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
 import { CommandClient, CommandReply } from '../commandclient';
+import { MAX_ATTACHMENT_SIZE } from '../constants';
 
 import { Message, Typing, MessageReplyOptions } from '../structures';
 
@@ -232,6 +233,14 @@ export class Context {
 
   get inDm() {
     return this.message.inDm;
+  }
+
+  get maxAttachmentSize(): number {
+    const guild = this.guild;
+    if (guild) {
+      return guild.maxAttachmentSize;
+    }
+    return MAX_ATTACHMENT_SIZE;
   }
 
   get me() {

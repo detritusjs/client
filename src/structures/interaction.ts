@@ -215,11 +215,11 @@ export class Interaction extends BaseStructure {
     }
 
     // try respond, try edit, try followup
+    if (typeof(options) === 'string') {
+      options = {content: options};
+    }
+    options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
     if (this.responded) {
-      if (typeof(options) === 'string') {
-        options = {content: options};
-      }
-      options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
       return this.editResponse(options);
     }
 

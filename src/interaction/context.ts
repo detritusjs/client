@@ -4,7 +4,7 @@ import { Timers } from 'detritus-utils';
 import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
-import { InteractionCallbackTypes } from '../constants';
+import { InteractionCallbackTypes, MAX_ATTACHMENT_SIZE } from '../constants';
 import { InteractionCommandClient } from '../interactioncommandclient';
 
 import {
@@ -208,6 +208,14 @@ export class InteractionContextBase {
 
   get locale() {
     return this.interaction.locale;
+  }
+
+  get maxAttachmentSize(): number {
+    const guild = this.guild;
+    if (guild) {
+      return guild.maxAttachmentSize;
+    }
+    return MAX_ATTACHMENT_SIZE;
   }
 
   get me() {
