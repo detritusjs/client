@@ -492,15 +492,15 @@ export class BaseGuild extends BaseStructure {
     }
 
     if (DiscordKeys.ICON in data) {
-      (this as any)[DiscordKeys.ICON] = data[DiscordKeys.ICON];
+      (this as any)[DetritusKeys[DiscordKeys.ICON]] = data[DiscordKeys.ICON];
     }
 
     if (DiscordKeys.ID in data) {
-      (this as any)[DiscordKeys.ID] = data[DiscordKeys.ID];
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
 
     if (DiscordKeys.NAME in data) {
-      (this as any)[DiscordKeys.NAME] = data[DiscordKeys.NAME];
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
     }
   }
 
@@ -589,26 +589,55 @@ export class GuildPartial extends BaseGuild {
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.WELCOME_SCREEN: {
-        if (value) {
-          let welcomeScreen: GuildWelcomeScreen;
-          if (this.isClone) {
-            welcomeScreen = new GuildWelcomeScreen(this.client, value, this.isClone);
-          } else {
-            if (this.welcomeScreen) {
-              welcomeScreen = this.welcomeScreen;
-              welcomeScreen.merge(value);
-            } else {
-              welcomeScreen = new GuildWelcomeScreen(this.client, value, this.isClone);
-            }
-          }
-          value = welcomeScreen;
-        }
-      }; break;
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
     }
-    return super.mergeValue(key, value);
+
+    if (DiscordKeys.BANNER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BANNER]] = data[DiscordKeys.BANNER];
+    }
+
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+
+    if (DiscordKeys.NSFW in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NSFW]] = data[DiscordKeys.NSFW];
+    }
+
+    if (DiscordKeys.NSFW_LEVEL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NSFW_LEVEL]] = data[DiscordKeys.NSFW_LEVEL];
+    }
+
+    if (DiscordKeys.SPLASH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SPLASH]] = data[DiscordKeys.SPLASH];
+    }
+
+    if (DiscordKeys.VANITY_URL_CODE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VANITY_URL_CODE]] = data[DiscordKeys.VANITY_URL_CODE];
+    }
+
+    if (DiscordKeys.VERIFICATION_LEVEL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VERIFICATION_LEVEL]] = data[DiscordKeys.VERIFICATION_LEVEL];
+    }
+
+    if (DiscordKeys.WELCOME_SCREEN in data) {
+      const value = data[DiscordKeys.WELCOME_SCREEN];
+      let welcomeScreen: GuildWelcomeScreen;
+      if (this.isClone) {
+        welcomeScreen = new GuildWelcomeScreen(this.client, value, this.isClone);
+      } else {
+        if (this.welcomeScreen) {
+          welcomeScreen = this.welcomeScreen;
+          welcomeScreen.merge(value);
+        } else {
+          welcomeScreen = new GuildWelcomeScreen(this.client, value, this.isClone);
+        }
+      }
+      this.welcomeScreen = welcomeScreen;
+    }
   }
 }
 
@@ -1063,227 +1092,317 @@ export class Guild extends GuildPartial {
     return region;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.CHANNELS: {
-          this._channelIds.clear();
-          if (this.client.channels.enabled) {
-            for (let raw of value) {
-              raw.guild_id = this.id;
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
 
-              let channel: Channel;
-              if (this.isClone) {
-                channel = createChannelFromData(this.client, raw, this.isClone);
-              } else {
-                if (this.client.channels.has(raw.id)) {
-                  channel = this.client.channels.get(raw.id)!;
-                  channel.merge(raw);
-                } else {
-                  channel = createChannelFromData(this.client, raw);
-                  this.client.channels.insert(channel);
-                }
-              }
-              this._channelIds.add(channel.id);
-            }
-          }
-        }; return;
-        case DiscordKeys.EMOJIS: {
-          if (this.client.emojis.enabled) {
-            const emojis: Array<Emoji> = [];
-            for (let raw of value) {
-              raw.guild_id = this.id;
+    if (DiscordKeys.AFK_CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AFK_CHANNEL_ID]] = data[DiscordKeys.AFK_CHANNEL_ID];
+    }
+    if (DiscordKeys.AFK_TIMEOUT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AFK_TIMEOUT]] = data[DiscordKeys.AFK_TIMEOUT];
+    }
+    if (DiscordKeys.APPLICATION_COMMAND_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_COMMAND_COUNT]] = data[DiscordKeys.APPLICATION_COMMAND_COUNT];
+    }
+    if (DiscordKeys.CHANNELS in data) {
+      this._channelIds.clear();
+      if (this.client.channels.enabled) {
+        const value = data[DiscordKeys.CHANNELS];
+        for (let raw of value) {
+          raw.guild_id = this.id;
 
-              let emoji: Emoji;
-              if (this.isClone) {
-                emoji = new Emoji(this.client, raw, this.isClone);
-              } else {
-                if (this.emojis.has(raw.id)) {
-                  emoji = this.emojis.get(raw.id)!;
-                  emoji.merge(raw);
-                } else {
-                  emoji = new Emoji(this.client, raw);
-                }
-              }
-              emojis.push(emoji);
-            }
-            this.emojis.clear();
-            for (let emoji of emojis) {
-              this.emojis.set(emoji.id || emoji.name, emoji);
+          let channel: Channel;
+          if (this.isClone) {
+            channel = createChannelFromData(this.client, raw, this.isClone);
+          } else {
+            if (this.client.channels.has(raw.id)) {
+              channel = this.client.channels.get(raw.id)!;
+              channel.merge(raw);
+            } else {
+              channel = createChannelFromData(this.client, raw);
+              this.client.channels.insert(channel);
             }
           }
-        }; return;
-        case DiscordKeys.JOINED_AT: {
-          this.joinedAtUnix = (value) ? (new Date(value)).getTime() : 0;
-        }; return;
-        case DiscordKeys.MAX_PRESENCES: {
-          if (value === null) {
-            value = DEFAULT_MAX_PRESENCES;
+          this._channelIds.add(channel.id);
+        }
+      }
+    }
+    if (DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS]] = data[DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS];
+    }
+    if (DiscordKeys.DISCOVERY_SPLASH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DISCOVERY_SPLASH]] = data[DiscordKeys.DISCOVERY_SPLASH];
+    }
+    if (DiscordKeys.EMBED_CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EMBED_CHANNEL_ID]] = data[DiscordKeys.EMBED_CHANNEL_ID];
+    }
+    if (DiscordKeys.EMBED_ENABLED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EMBED_ENABLED]] = data[DiscordKeys.EMBED_ENABLED];
+    }
+    if (DiscordKeys.EMOJIS in data) {
+      const value = data[DiscordKeys.EMOJIS];
+      if (this.client.emojis.enabled) {
+        const emojis: Array<Emoji> = [];
+        for (let raw of value) {
+          raw.guild_id = this.id;
+
+          let emoji: Emoji;
+          if (this.isClone) {
+            emoji = new Emoji(this.client, raw, this.isClone);
+          } else {
+            if (this.emojis.has(raw.id)) {
+              emoji = this.emojis.get(raw.id)!;
+              emoji.merge(raw);
+            } else {
+              emoji = new Emoji(this.client, raw);
+            }
           }
-        }; break;
-        case DiscordKeys.MEMBERS: {
-          this.members.clear();
+          emojis.push(emoji);
+        }
+        this.emojis.clear();
+        for (let emoji of emojis) {
+          this.emojis.set(emoji.id || emoji.name, emoji);
+        }
+      }
+    }
+    if (DiscordKeys.EXPLICIT_CONTENT_FILTER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EXPLICIT_CONTENT_FILTER]] = data[DiscordKeys.EXPLICIT_CONTENT_FILTER];
+    }
+    if (DiscordKeys.JOINED_AT in data) {
+      const value = data[DiscordKeys.JOINED_AT];
+      this.joinedAtUnix = (value) ? (new Date(value)).getTime() : 0;
+    }
+    if (DiscordKeys.LARGE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LARGE]] = data[DiscordKeys.LARGE];
+    }
+    if (DiscordKeys.LAZY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LAZY]] = data[DiscordKeys.LAZY];
+    }
+    if (DiscordKeys.MAX_MEMBERS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MAX_MEMBERS]] = data[DiscordKeys.MAX_MEMBERS];
+    }
+    if (DiscordKeys.MAX_PRESENCES in data) {
+      let value = data[DiscordKeys.MAX_PRESENCES];
+      if (value === null) {
+        value = DEFAULT_MAX_PRESENCES;
+      }
+      (this as any)[DetritusKeys[DiscordKeys.MAX_PRESENCES]] = value;
+    }
+    if (DiscordKeys.MAX_VIDEO_CHANNEL_USERS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MAX_VIDEO_CHANNEL_USERS]] = data[DiscordKeys.MAX_VIDEO_CHANNEL_USERS];
+    }
+    if (DiscordKeys.MEMBER_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER_COUNT]] = data[DiscordKeys.MEMBER_COUNT];
+    }
+    if (DiscordKeys.MEMBERS in data) {
+      const value = data[DiscordKeys.MEMBERS];
+      this.members.clear();
+      for (let raw of value) {
+        raw.guild_id = this.id;
+        if (this.client.user && this.client.user.id === raw.user.id) {
+          const member = new Member(this.client, raw, this.isClone);
+          this.members.set(member.id, member);
+          if (this.client.members.enabled || this.client.presences.enabled || this.client.users.enabled) {
+            continue;
+          }
+          break;
+        }
+
+        if (this.client.members.enabled) {
+          let member: Member;
+          if (this.members.has(raw.user.id)) {
+            member = this.members.get(raw.user.id)!;
+            member.merge(raw);
+          } else {
+            member = new Member(this.client, raw, this.isClone);
+            this.members.set(member.id, member);
+          }
+        } else if (this.client.presences.enabled || this.client.users.enabled) {
+          // if this isn't a clone, merge user into our cache then
+          if (!this.isClone) {
+            let user: User;
+            if (this.client.users.has(raw.user.id)) {
+              user = this.client.users.get(raw.user.id)!;
+              user.merge(raw.user);
+            } else {
+              user = new User(this.client, raw.user);
+              this.client.users.insert(user);
+            }
+          }
+        }
+      }
+    }
+    if (DiscordKeys.MFA_LEVEL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MFA_LEVEL]] = data[DiscordKeys.MFA_LEVEL];
+    }
+    if (DiscordKeys.OWNER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OWNER_ID]] = data[DiscordKeys.OWNER_ID];
+    }
+    if (DiscordKeys.PREFERRED_LOCALE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREFERRED_LOCALE]] = data[DiscordKeys.PREFERRED_LOCALE];
+    }
+    if (DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT]] = data[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT];
+    }
+    if (DiscordKeys.PREMIUM_TIER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREMIUM_TIER]] = data[DiscordKeys.PREMIUM_TIER];
+    }
+    if (DiscordKeys.PRESENCES in data) {
+      const value = data[DiscordKeys.PRESENCES];
+      if (!this.isClone) {
+        // drop the presences when cloning the guild..
+
+        this.client.presences.clearGuildId(this.id);
+        if (this.client.presences.enabled) {
           for (let raw of value) {
             raw.guild_id = this.id;
-            if (this.client.user && this.client.user.id === raw.user.id) {
-              const member = new Member(this.client, raw, this.isClone);
-              this.members.set(member.id, member);
-              if (this.client.members.enabled || this.client.presences.enabled || this.client.users.enabled) {
-                continue;
-              }
-              break;
-            }
-
-            if (this.client.members.enabled) {
-              let member: Member;
-              if (this.members.has(raw.user.id)) {
-                member = this.members.get(raw.user.id)!;
-                member.merge(raw);
-              } else {
-                member = new Member(this.client, raw, this.isClone);
-                this.members.set(member.id, member);
-              }
-            } else if (this.client.presences.enabled || this.client.users.enabled) {
-              // if this isn't a clone, merge user into our cache then
-              if (!this.isClone) {
-                let user: User;
-                if (this.client.users.has(raw.user.id)) {
-                  user = this.client.users.get(raw.user.id)!;
-                  user.merge(raw.user);
-                } else {
-                  user = new User(this.client, raw.user);
-                  this.client.users.insert(user);
-                }
-              }
-            }
+            this.client.presences.insert(raw);
           }
-        }; return;
-        case DiscordKeys.ROLES: {
-          if (this.client.roles.enabled) {
-            const roles: Array<Role> = [];
-            for (let raw of value) {
-              let role: Role;
-              if (this.roles.has(raw.id)) {
-                role = this.roles.get(raw.id)!;
-                role.merge(raw);
-              } else {
-                raw.guild_id = this.id;
-                role = new Role(this.client, raw, this.isClone);
-              }
-              roles.push(role);
-            }
-            this.roles.clear();
-            for (let role of roles) {
-              this.roles.set(role.id, role);
-            }
-          }
-        }; return;
-        case DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT: {
-          value = value || 0;
-        }; break;
-        case DiscordKeys.PRESENCES: {
-          if (!this.isClone) {
-            // drop the presences when cloning the guild..
-
-            this.client.presences.clearGuildId(this.id);
-            if (this.client.presences.enabled) {
-              for (let raw of value) {
-                raw.guild_id = this.id;
-                this.client.presences.insert(raw);
-              }
-            }
-          }
-        }; return;
-        case DiscordKeys.STAGE_INSTANCES: {
-          if (this.client.stageInstances.enabled) {
-            const stageInstances: Array<StageInstance> = [];
-            for (let raw of value) {
-              let stage: StageInstance;
-              if (this.stageInstances.has(raw.id)) {
-                stage = this.stageInstances.get(raw.id)!;
-                stage.merge(raw);
-              } else {
-                raw.guild_id = this.id;
-                stage = new StageInstance(this.client, raw, this.isClone);
-              }
-              stageInstances.push(stage);
-            }
-            this.stageInstances.clear();
-            for (let stage of stageInstances) {
-              this.stageInstances.set(stage.id, stage);
-            }
-          }
-        }; return;
-        case DiscordKeys.STICKERS: {
-          if (this.client.stickers.enabled) {
-            const stickers: Array<Sticker> = [];
-            for (let raw of value) {
-              raw.guild_id = this.id;
-
-              let sticker: Sticker;
-              if (this.isClone) {
-                sticker = new Sticker(this.client, raw, this.isClone);
-              } else {
-                if (this.stickers.has(raw.id)) {
-                  sticker = this.stickers.get(raw.id)!;
-                  sticker.merge(raw);
-                } else {
-                  sticker = new Sticker(this.client, raw);
-                }
-              }
-              stickers.push(sticker);
-            }
-            this.stickers.clear();
-            for (let sticker of stickers) {
-              this.stickers.set(sticker.id, sticker);
-            }
-          }
-        }; return;
-        case DiscordKeys.THREADS: {
-          this._threadIds.clear();
-          if (this.client.channels.enabled) {
-            for (let raw of value) {
-              raw.guild_id = this.id;
-
-              let channel: Channel;
-              if (this.isClone) {
-                channel = createChannelFromData(this.client, raw, this.isClone);
-              } else {
-                if (this.client.channels.has(raw.id)) {
-                  channel = this.client.channels.get(raw.id)!;
-                  channel.merge(raw);
-                } else {
-                  channel = createChannelFromData(this.client, raw);
-                  this.client.channels.insert(channel);
-                }
-              }
-              this._threadIds.add(channel.id);
-            }
-          }
-        }; return;
-        case DiscordKeys.VOICE_STATES: {
-          // drop the voice states when cloning the guild.. (unexpected behavior, maybe stop guilds from being cloned?)
-
-          if (this.client.voiceStates.enabled && !this.isClone) {
-            const cache = this.client.voiceStates.insertCache(this.id);
-            cache.clear();
-            for (let raw of value) {
-              if (cache.has(raw.user_id)) {
-                const voiceState = cache.get(raw.user_id)!;
-                voiceState.merge(raw);
-              } else {
-                raw.guild_id = this.id;
-                const voiceState = new VoiceState(this.client, raw);
-                if (!voiceState.member && this.members.has(voiceState.userId)) {
-                  voiceState.member = this.members.get(voiceState.userId)!;
-                }
-                cache.set(voiceState.userId, voiceState);
-              }
-            }
-          }
-        }; return;
+        }
       }
-      super.mergeValue(key, value);
+    }
+    if (DiscordKeys.PUBLIC_UPDATES_CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PUBLIC_UPDATES_CHANNEL_ID]] = data[DiscordKeys.PUBLIC_UPDATES_CHANNEL_ID];
+    }
+    if (DiscordKeys.REGION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REGION]] = data[DiscordKeys.REGION];
+    }
+    if (DiscordKeys.ROLES in data) {
+      const value = data[DiscordKeys.ROLES];
+      if (this.client.roles.enabled) {
+        const roles: Array<Role> = [];
+        for (let raw of value) {
+          let role: Role;
+          if (this.roles.has(raw.id)) {
+            role = this.roles.get(raw.id)!;
+            role.merge(raw);
+          } else {
+            raw.guild_id = this.id;
+            role = new Role(this.client, raw, this.isClone);
+          }
+          roles.push(role);
+        }
+        this.roles.clear();
+        for (let role of roles) {
+          this.roles.set(role.id, role);
+        }
+      }
+    }
+    if (DiscordKeys.RULES_CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.RULES_CHANNEL_ID]] = data[DiscordKeys.RULES_CHANNEL_ID];
+    }
+    if (DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT]] = data[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT] || 0;
+    }
+    if (DiscordKeys.STAGE_INSTANCES in data) {
+      const value = data[DiscordKeys.STAGE_INSTANCES];
+      if (this.client.stageInstances.enabled) {
+        const stageInstances: Array<StageInstance> = [];
+        for (let raw of value) {
+          let stage: StageInstance;
+          if (this.stageInstances.has(raw.id)) {
+            stage = this.stageInstances.get(raw.id)!;
+            stage.merge(raw);
+          } else {
+            raw.guild_id = this.id;
+            stage = new StageInstance(this.client, raw, this.isClone);
+          }
+          stageInstances.push(stage);
+        }
+        this.stageInstances.clear();
+        for (let stage of stageInstances) {
+          this.stageInstances.set(stage.id, stage);
+        }
+      }
+    }
+    if (DiscordKeys.STICKERS in data) {
+      const value = data[DiscordKeys.STICKERS];
+      if (this.client.stickers.enabled) {
+        const stickers: Array<Sticker> = [];
+        for (let raw of value) {
+          raw.guild_id = this.id;
+
+          let sticker: Sticker;
+          if (this.isClone) {
+            sticker = new Sticker(this.client, raw, this.isClone);
+          } else {
+            if (this.stickers.has(raw.id)) {
+              sticker = this.stickers.get(raw.id)!;
+              sticker.merge(raw);
+            } else {
+              sticker = new Sticker(this.client, raw);
+            }
+          }
+          stickers.push(sticker);
+        }
+        this.stickers.clear();
+        for (let sticker of stickers) {
+          this.stickers.set(sticker.id, sticker);
+        }
+      }
+    }
+    if (DiscordKeys.SYSTEM_CHANNEL_FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SYSTEM_CHANNEL_FLAGS]] = data[DiscordKeys.SYSTEM_CHANNEL_FLAGS];
+    }
+    if (DiscordKeys.SYSTEM_CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SYSTEM_CHANNEL_ID]] = data[DiscordKeys.SYSTEM_CHANNEL_ID];
+    }
+    if (DiscordKeys.THREADS in data) {
+      const value = data[DiscordKeys.THREADS];
+      this._threadIds.clear();
+      if (this.client.channels.enabled) {
+        for (let raw of value) {
+          raw.guild_id = this.id;
+
+          let channel: Channel;
+          if (this.isClone) {
+            channel = createChannelFromData(this.client, raw, this.isClone);
+          } else {
+            if (this.client.channels.has(raw.id)) {
+              channel = this.client.channels.get(raw.id)!;
+              channel.merge(raw);
+            } else {
+              channel = createChannelFromData(this.client, raw);
+              this.client.channels.insert(channel);
+            }
+          }
+          this._threadIds.add(channel.id);
+        }
+      }
+    }
+    if (DiscordKeys.UNAVAILABLE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.UNAVAILABLE]] = data[DiscordKeys.UNAVAILABLE];
+    }
+    if (DiscordKeys.VOICE_STATES in data) {
+      // drop the voice states when cloning the guild.. (unexpected behavior, maybe stop guilds from being cloned?)
+
+      const value = data[DiscordKeys.VOICE_STATES];
+      if (this.client.voiceStates.enabled && !this.isClone) {
+        const cache = this.client.voiceStates.insertCache(this.id);
+        cache.clear();
+        for (let raw of value) {
+          if (cache.has(raw.user_id)) {
+            const voiceState = cache.get(raw.user_id)!;
+            voiceState.merge(raw);
+          } else {
+            raw.guild_id = this.id;
+            const voiceState = new VoiceState(this.client, raw);
+            if (!voiceState.member && this.members.has(voiceState.userId)) {
+              voiceState.member = this.members.get(voiceState.userId)!;
+            }
+            cache.set(voiceState.userId, voiceState);
+          }
+        }
+      }
+    }
+    if (DiscordKeys.WIDGET_CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.WIDGET_CHANNEL_ID]] = data[DiscordKeys.WIDGET_CHANNEL_ID];
+    }
+    if (DiscordKeys.WIDGET_ENABLED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.WIDGET_ENABLED]] = data[DiscordKeys.WIDGET_ENABLED];
     }
   }
 }
@@ -1341,13 +1460,15 @@ export class GuildMe extends BaseGuild {
     return PermissionTools.checkPermissions(total, permissions);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.PERMISSIONS: {
-        value = BigInt(value);
-      }; break;
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
     }
-    return super.mergeValue(key, value);
+
+    if (DiscordKeys.PERMISSIONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PERMISSIONS]] = BigInt(data[DiscordKeys.PERMISSIONS]);
+    }
   }
 }
 
@@ -1378,18 +1499,22 @@ export class GuildWelcomeScreen extends BaseStructure {
     this.merge(data);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.WELCOME_CHANNELS: {
-          this.welcomeChannels.clear();
-          for (let raw of value) {
-            const welcomeChannel = new GuildWelcomeScreenChannel(this, raw);
-            this.welcomeChannels.set(welcomeChannel.channelId, welcomeChannel);
-          }
-        }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+
+    if (DiscordKeys.WELCOME_CHANNELS in data) {
+      const value = data[DiscordKeys.WELCOME_CHANNELS];
+      this.welcomeChannels.clear();
+      for (let raw of value) {
+        const welcomeChannel = new GuildWelcomeScreenChannel(this, raw);
+        this.welcomeChannels.set(welcomeChannel.channelId, welcomeChannel);
       }
-      return super.mergeValue(key, value);
     }
   }
 }
