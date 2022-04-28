@@ -874,12 +874,6 @@ export class CommandClient extends EventSpewer {
         if (timeout) {
           timeout.stop();
         }
-
-        const payload: CommandEvents.CommandRan = {args, command, context, prefix};
-        this.emit(ClientEvents.COMMAND_RAN, payload);
-        if (typeof(command.onSuccess) === 'function') {
-          await Promise.resolve(command.onSuccess(context, args));
-        }
       } catch(error: any) {
         if (timeout) {
           timeout.stop();
@@ -891,6 +885,13 @@ export class CommandClient extends EventSpewer {
           const reply = await Promise.resolve(command.onRunError(context, args, error));
           this.storeReply(message.id, command, context, reply);
         }
+        return;
+      }
+
+      const payload: CommandEvents.CommandRan = {args, command, context, prefix};
+      this.emit(ClientEvents.COMMAND_RAN, payload);
+      if (typeof(command.onSuccess) === 'function') {
+        await Promise.resolve(command.onSuccess(context, args));
       }
     } catch(error: any) {
       if (typeof(command.onError) === 'function') {

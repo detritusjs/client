@@ -1009,12 +1009,6 @@ export class InteractionCommandClient extends EventSpewer {
         if (timeout) {
           timeout.stop();
         }
-
-        const payload: InteractionCommandEvents.CommandRan = {args, command, context};
-        this.emit(ClientEvents.COMMAND_RAN, payload);
-        if (typeof(invoker.onSuccess) === 'function') {
-          await Promise.resolve(invoker.onSuccess(context, args));
-        }
       } catch(error: any) {
         if (timeout) {
           timeout.stop();
@@ -1025,7 +1019,15 @@ export class InteractionCommandClient extends EventSpewer {
         if (typeof(invoker.onRunError) === 'function') {
           await Promise.resolve(invoker.onRunError(context, args, error));
         }
+        return;
       }
+
+      const payload: InteractionCommandEvents.CommandRan = {args, command, context};
+      this.emit(ClientEvents.COMMAND_RAN, payload);
+      if (typeof(invoker.onSuccess) === 'function') {
+        await Promise.resolve(invoker.onSuccess(context, args));
+      }
+
     } catch(error: any) {
       if (typeof(invoker.onError) === 'function') {
         await Promise.resolve(invoker.onError(context, args, error));
