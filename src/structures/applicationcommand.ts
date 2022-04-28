@@ -21,9 +21,11 @@ import { User } from './user';
 
 const keysApplicationCommand = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
+  DiscordKeys.DEFAULT_MEMBER_PERMISSIONS,
   DiscordKeys.DEFAULT_PERMISSION,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DESCRIPTION_LOCALIZATIONS,
+  DiscordKeys.DM_PERMISSION,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.NAME,
@@ -41,13 +43,15 @@ export class ApplicationCommand extends BaseStructure {
   readonly _keys = keysApplicationCommand;
 
   applicationId: string = '';
+  defaultMemberPermissions: bigint | null = null;
   defaultPermission: boolean = true;
   description: string = '';
-  descriptionLocalizations?: Record<string, string | undefined>;
+  descriptionLocalizations: Record<string, string | undefined> | null = null;
+  dmPermission: boolean | null = null;
   guildId?: string;
   id: string = '';
   name: string = '';
-  nameLocalizations?: Record<string, string | undefined>;
+  nameLocalizations: Record<string, string | undefined> | null = null;
   options?: BaseCollection<string, ApplicationCommandOption>;
   type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
   version: string = '';
@@ -73,6 +77,8 @@ export class ApplicationCommand extends BaseStructure {
       this._optionsKey,
       JSON.stringify(this.descriptionLocalizations),
       JSON.stringify(this.nameLocalizations),
+      this.defaultMemberPermissions,
+      this.dmPermission,
     ].join('-');
   }
 
@@ -92,6 +98,11 @@ export class ApplicationCommand extends BaseStructure {
 
   mergeValue(key: string, value: any): void {
     switch (key) {
+      case DiscordKeys.DEFAULT_MEMBER_PERMISSIONS: {
+        if (value) {
+          value = BigInt(value);
+        }
+      }; break;
       case DiscordKeys.OPTIONS: {
         if (value) {
           if (!this.options) {
@@ -139,11 +150,11 @@ export class ApplicationCommandOption extends BaseStructure {
   channelTypes?: Array<number>;
   choices?: BaseCollection<string, ApplicationCommandOptionChoice>;
   description: string = '';
-  descriptionLocalizations?: Record<string, string | undefined>;
+  descriptionLocalizations: Record<string, string | undefined> | null = null;
   maxValue?: bigint;
   minValue?: bigint;
   name: string = '';
-  nameLocalizations?: Record<string, string | undefined>;
+  nameLocalizations: Record<string, string | undefined> | null = null;
   options?: BaseCollection<string, ApplicationCommandOption>;
   required: boolean = false;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.SUB_COMMAND;
@@ -237,7 +248,7 @@ export class ApplicationCommandOptionChoice extends BaseStructure {
   readonly option: ApplicationCommandOption;
 
   name: string = '';
-  nameLocalizations?: Record<string, string | undefined>;
+  nameLocalizations: Record<string, string | undefined> | null = null;
   value: string | number = '';
 
   constructor(option: ApplicationCommandOption, data: BaseStructureData, isClone?: boolean) {

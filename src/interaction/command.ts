@@ -254,9 +254,11 @@ export interface InteractionCommandOptionChoiceOptions {
 }
 
 const keysInteractionCommand = new BaseSet<string>([
+  DiscordKeys.DEFAULT_MEMBER_PERMISSIONS,
   DiscordKeys.DEFAULT_PERMISSION,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DESCRIPTION_LOCALIZATIONS,
+  DiscordKeys.DM_PERMISSION,
   DiscordKeys.IDS,
   DiscordKeys.NAME,
   DiscordKeys.NAME_LOCALIZATIONS,
@@ -275,14 +277,16 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   readonly _keysSkipDifference = keysSkipDifferenceInteractionCommand;
   _options?: BaseCollection<string, InteractionCommandOption>;
 
+  defaultMemberPermissions: bigint | null = null;
   defaultPermission: boolean = true;
   description: string = '';
-  descriptionLocalizations?: Record<string, string | undefined>;
+  descriptionLocalizations: Record<string, string | undefined> | null = null;
+  dmPermission: boolean | null = null;
   ids = new BaseCollection<string, string>();
   global: boolean = true;
   guildIds?: BaseSet<string>;
   name: string = '';
-  nameLocalizations?: Record<string, string | undefined>;
+  nameLocalizations: Record<string, string | undefined> | null = null;
   type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
 
   disableDm?: boolean;
@@ -313,11 +317,17 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
 
   constructor(data: InteractionCommandOptions = {}) {
     super();
+    if (DetritusKeys[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] in data) {
+      (data as any)[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] = (data as any)[DetritusKeys[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS]];
+    }
     if (DetritusKeys[DiscordKeys.DEFAULT_PERMISSION] in data) {
       (data as any)[DiscordKeys.DEFAULT_PERMISSION] = (data as any)[DetritusKeys[DiscordKeys.DEFAULT_PERMISSION]];
     }
     if (DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS] in data) {
       (data as any)[DiscordKeys.DESCRIPTION_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS]];
+    }
+    if (DetritusKeys[DiscordKeys.DM_PERMISSION] in data) {
+      (data as any)[DiscordKeys.DM_PERMISSION] = (data as any)[DetritusKeys[DiscordKeys.DM_PERMISSION]];
     }
     if (DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS] in data) {
       (data as any)[DiscordKeys.NAME_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS]];
@@ -331,6 +341,14 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     this.permissionsIgnoreClientOwner = (data.permissionsIgnoreClientOwner !== undefined) ? !!data.permissionsIgnoreClientOwner : undefined;
     this.triggerLoadingAfter = (data.triggerLoadingAfter !== undefined) ? data.triggerLoadingAfter : this.triggerLoadingAfter;
     this.triggerLoadingAsEphemeral = (data.triggerLoadingAsEphemeral !== undefined) ? data.triggerLoadingAsEphemeral : this.triggerLoadingAsEphemeral;
+
+    if (this.permissions && this.permissions.length && (data as any)[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] === undefined) {
+      (data as any)[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] = this.permissions.reduce((x, y) => x | y, 0n);
+    }
+
+    if (this.disableDm !== undefined && (data as any)[DiscordKeys.DM_PERMISSION] === undefined) {
+      (data as any)[DiscordKeys.DM_PERMISSION] = !this.disableDm;
+    }
 
     if (data.ratelimit) {
       this.ratelimits.push(new CommandRatelimit(data.ratelimit, this));
@@ -431,8 +449,9 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
       this._optionsKey,
       JSON.stringify(this.descriptionLocalizations),
       JSON.stringify(this.nameLocalizations),
+      this.defaultMemberPermissions,
+      this.dmPermission,
     ].join('-');
-
   }
 
   get length(): number {
@@ -595,6 +614,17 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     }
     return super.mergeValue(key, value);
   }
+
+  toJSON() {
+    const data = super.toJSON();
+    if ((data as any)[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] === null && this.permissions && this.permissions.length) {
+      (data as any)[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] = this.defaultMemberPermissions = this.permissions.reduce((x, y) => x | y, 0n);
+    }
+    if ((data as any)[DiscordKeys.DM_PERMISSION] === null && this.disableDm !== undefined) {
+      (data as any)[DiscordKeys.DM_PERMISSION] = this.dmPermission = !this.disableDm;
+    }
+    return data;
+  }
 }
 
 
@@ -624,11 +654,11 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   channelTypes?: Array<number>;
   choices?: Array<InteractionCommandOptionChoice>;
   description: string = '';
-  descriptionLocalizations?: Record<string, string | undefined>;
+  descriptionLocalizations: Record<string, string | undefined> | null = null;
   maxValue?: bigint | number;
   minValue?: bigint | number;
   name: string = '';
-  nameLocalizations?: Record<string, string | undefined>;
+  nameLocalizations: Record<string, string | undefined> | null = null;
   required?: boolean;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.STRING;
 
@@ -1069,7 +1099,7 @@ export class InteractionCommandOptionChoice extends Structure {
   readonly _keys = keysInteractionCommandOptionChoice;
 
   name: string = '';
-  nameLocalizations?: Record<string, string | undefined>;
+  nameLocalizations: Record<string, string | undefined> | null = null;
   value: number | string = '';
 
   constructor(data: InteractionCommandOptionChoiceOptions = {}) {

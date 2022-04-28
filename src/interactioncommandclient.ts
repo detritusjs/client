@@ -428,7 +428,7 @@ export class InteractionCommandClient extends EventSpewer {
       const data = command.toJSON();
       (data as any)[DiscordKeys.ID] = command.ids.get(guildId || LOCAL_GUILD_ID);
       (data as any)[DiscordKeys.IDS] = undefined;
-      return data;
+      return {toJSON: () => data};
     });
 
     const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;

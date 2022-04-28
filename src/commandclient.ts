@@ -559,6 +559,14 @@ export class CommandClient extends EventSpewer {
       ({typing} = event as GatewayClientEvents.MessageCreate);
     }
 
+    if (name === ClientEvents.MESSAGE_UPDATE) {
+      if (this.replies.has(message.id)) {
+        const { command, context, reply } = this.replies.get(message.id)!;
+        const payload: CommandEvents.CommandDelete = {command, context, reply};
+        this.emit(ClientEvents.COMMAND_DELETE, payload);
+      }
+    }
+
     const context = new Context(message, typing, this);
     if (typeof(this.onMessageCheck) === 'function') {
       try {
@@ -896,7 +904,7 @@ export class CommandClient extends EventSpewer {
   async handleDelete(name: string, deletePayload: {raw: {id: string}}): Promise<void> {
     const messageId = deletePayload.raw.id;
     if (this.replies.has(messageId)) {
-      const { command, context, reply } = this.replies.get(messageId) as CommandReply;
+      const { command, context, reply } = this.replies.get(messageId)!;
       this.replies.delete(messageId);
 
       const payload: CommandEvents.CommandDelete = {command, context, reply};

@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.4',
+  VERSION: '0.17.0-beta.5',
 });
 
 export type Snowflake = number | string;
@@ -118,6 +118,7 @@ export enum ApplicationCommandOptionTypes {
 export enum ApplicationCommandPermissionTypes {
   ROLE = 1,
   USER = 2,
+  CHANNEL = 3,
 }
 
 
@@ -217,6 +218,16 @@ export enum AuditLogActions {
   STICKER_CREATE = 90,
   STICKER_UPDATE = 91,
   STICKER_DELETE = 92,
+
+  GUILD_SCHEDULED_EVENT_CREATE = 100,
+  GUILD_SCHEDULED_EVENT_UPDATE = 101,
+  GUILD_SCHEDULED_EVENT_DELETE = 102,
+
+  THREAD_CREATE = 110,
+  THREAD_UPDATE = 111,
+  THREAD_DELETE = 112,
+
+  APPLICATION_COMMAND_PERMISSION_UPDATE = 121,
 }
 
 
@@ -261,6 +272,7 @@ export enum AuditLogChangeKeys {
   CHANNEL_ID = 'channel_id',
   CODE = 'code',
   COLOR = 'color',
+  COMMAND_ID = 'command_id',
   DEAF = 'deaf',
   DEFAULT_MESSAGE_NOTIFICATIONS = 'default_message_notifications',
   DENY = 'deny',
@@ -351,6 +363,7 @@ export enum ClientEvents {
   APPLICATION_COMMAND_CREATE = 'applicationCommandCreate',
   APPLICATION_COMMAND_DELETE = 'applicationCommandDelete',
   APPLICATION_COMMAND_UPDATE = 'applicationCommandUpdate',
+  APPLICATION_COMMAND_PERMISSIONS_UPDATE = 'applicationCommandPermissionsUpdate',
   BRAINTREE_POPUP_BRIDGE_CALLBACK = 'braintreePopupBridgeCallback',
   CALL_CREATE = 'callCreate',
   CALL_DELETE = 'callDelete',
@@ -1443,6 +1456,7 @@ export const DiscordKeys = Object.freeze({
   DATA: 'data',
   DEAF: 'deaf',
   DEFAULT: 'default',
+  DEFAULT_MEMBER_PERMISSIONS: 'default_member_permissions',
   DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
   DEFAULT_PERMISSION: 'default_permission',
   DELETE_MEMBER_DAYS: 'delete_member_days',
@@ -1460,6 +1474,7 @@ export const DiscordKeys = Object.freeze({
   DISCOVERY_SPLASH: 'discovery_splash',
   DISCRIMINATOR: 'discriminator',
   DISTRIBUTOR: 'distributor',
+  DM_PERMISSION: 'dm_permission',
   EDITED_TIMESTAMP: 'edited_timestamp',
   EMAIL: 'email',
   EMBEDS: 'embeds',
@@ -1825,6 +1840,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DATA]: 'data',
   [DiscordKeys.DEAF]: 'deaf',
   [DiscordKeys.DEFAULT]: 'default',
+  [DiscordKeys.DEFAULT_MEMBER_PERMISSIONS]: 'defaultMemberPermissions',
   [DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS]: 'defaultMessageNotifications',
   [DiscordKeys.DEFAULT_PERMISSION]: 'defaultPermission',
   [DiscordKeys.DELETE_MEMBER_DAYS]: 'deleteMemberDays',
@@ -1842,6 +1858,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DISCOVERY_SPLASH]: 'discoverySplash',
   [DiscordKeys.DISCRIMINATOR]: 'discriminator',
   [DiscordKeys.DISTRIBUTOR]: 'distributor',
+  [DiscordKeys.DM_PERMISSION]: 'dmPermission',
   [DiscordKeys.EDITED_TIMESTAMP]: 'editedTimestamp',
   [DiscordKeys.EMAIL]: 'email',
   [DiscordKeys.EMBEDS]: 'embeds',
