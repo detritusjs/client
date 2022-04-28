@@ -618,7 +618,8 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   toJSON() {
     const data = super.toJSON();
     if ((data as any)[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] === null && this.permissions && this.permissions.length) {
-      (data as any)[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] = this.defaultMemberPermissions = this.permissions.reduce((x, y) => x | y, 0n);
+      this.defaultMemberPermissions = this.permissions.reduce((x, y) => x | y, 0n);
+      (data as any)[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS] = String(this.defaultMemberPermissions);
     }
     if ((data as any)[DiscordKeys.DM_PERMISSION] === null && this.disableDm !== undefined) {
       (data as any)[DiscordKeys.DM_PERMISSION] = this.dmPermission = !this.disableDm;
