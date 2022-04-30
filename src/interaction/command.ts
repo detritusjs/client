@@ -418,6 +418,13 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     return typeof(this.run) === 'function';
   }
 
+  get invokers(): Array<InteractionCommand | InteractionCommandOptions> {
+    if (this._options && this.isGroup) {
+      return this._options.map((option) => option.invokers).flat();
+    }
+    return [this];
+  }
+
   get isGroup(): boolean {
     if (this._options) {
       return this._options.some((option) => option.isSubCommand || option.isSubCommandGroup);
@@ -809,6 +816,15 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
       return false;
     }
     return true;
+  }
+
+  get invokers(): Array<InteractionCommandOption> {
+    if (this._options && this.isSubCommandGroup) {
+      return this._options.map((option) => option.invokers).flat();
+    } else if (this.isSubCommand) {
+      return [this];
+    }
+    return [];
   }
 
   get isSubCommand(): boolean {

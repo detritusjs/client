@@ -218,7 +218,11 @@ export class Interaction extends BaseStructure {
     if (typeof(options) === 'string') {
       options = {content: options};
     }
-    options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
+
+    if (!(options instanceof InteractionModal)) {
+      options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
+    }
+
     if (this.responded) {
       return this.editResponse(options);
     }
