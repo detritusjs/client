@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.8',
+  VERSION: '0.17.0-beta.9',
 });
 
 export type Snowflake = number | string;
@@ -328,6 +328,12 @@ export enum CarouselMediaTypes {
   IMAGE = 1,
   YOUTUBE_VIDEO = 2,
   VIDEO = 3,
+}
+
+
+export enum ChannelFlags {
+  GUILD_FEED_REMOVED = 1,
+  PINNED = 2,
 }
 
 
@@ -637,8 +643,9 @@ export const GuildFeatures = Tools.normalize({
   HUB: null,
   INVITE_SPLASH: null,
   LURKABLE: null,
-  MEMBER_VERIFICATION_GATE_ENABLED: null,
   MEMBER_LIST_DISABLED: null,
+  MEMBER_PROFILES: null,
+  MEMBER_VERIFICATION_GATE_ENABLED: null,
   MONETIZATION_ENABLED: null,
   MORE_EMOJI: null,
   MORE_STICKERS: null,
@@ -662,6 +669,11 @@ export const GuildFeatures = Tools.normalize({
 });
 
 
+export enum GuildMemberFlags {
+  DID_REJOIN = 1,
+}
+
+
 export enum GuildNotificationSettings {
   ALL = 0,
   MENTIONS = 1,
@@ -673,6 +685,25 @@ export enum GuildNSFWLevels {
   EXPLICIT = 1,
   SAFE = 2,
   AGE_RESTRICTED = 3,
+}
+
+
+export enum GuildScheduledEventEntityTypes {
+  STAGE_INSTANCE = 1,
+  VOICE = 2,
+  EXTERNAL = 3,
+}
+
+
+export enum GuildScheduledEventPrivacyLevels {
+  GUILD_ONLY = 2,
+}
+
+export enum GuildScheduledEventStatusTypes {
+  SCHEDULED = 1,
+  ACTIVE = 2,
+  COMPLETED = 3,
+  CANCELLED = 4,
 }
 
 
@@ -1489,6 +1520,9 @@ export const DiscordKeys = Object.freeze({
   ENDED: 'ended',
   ENDED_TIMESTAMP: 'ended_timestamp',
   ENTITLEMENT_BRANCH_ID: 'entitlement_branch_id',
+  ENTITY_ID: 'entity_id',
+  ENTITY_METADATA: 'entity_metadata',
+  ENTITY_TYPE: 'entity_type',
   EPHEMERAL: 'ephemeral',
   EULA_ID: 'eula_id',
   EXECUTABLES: 'executables',
@@ -1511,6 +1545,7 @@ export const DiscordKeys = Object.freeze({
   GUILD_ID: 'guild_id',
   GUILD_IDS: 'guild_ids',
   GUILD_LOCALE: 'guild_locale',
+  GUILD_SCHEDULED_EVENTS: 'guild_scheduled_events',
   GUILD_SCHEDULED_EVENT_ID: 'guild_scheduled_event_id',
   HEADER_BACKGROUND: 'header_background',
   HEADER_LOGO_DARK_THEME: 'header_logo_dark_theme',
@@ -1626,6 +1661,7 @@ export const DiscordKeys = Object.freeze({
   PREFERRED_LOCALE: 'preferred_locale',
   PREMIUM: 'premium',
   PREMIUM_GUILD_SINCE: 'premium_guild_since',
+  PREMIUM_PROGRESS_BAR_ENABLED: 'premium_progress_bar_enabled',
   PREMIUM_SINCE: 'premium_since',
   PREMIUM_SUBSCRIPTION_COUNT: 'premium_subscription_count',
   PREMIUM_TIER: 'premium_tier',
@@ -1664,6 +1700,8 @@ export const DiscordKeys = Object.freeze({
   RPC_ORIGINS: 'rpc_origins',
   RTC_REGION: 'rtc_region',
   RULES_CHANNEL_ID: 'rules_channel_id',
+  SCHEDULED_END_TIME: 'scheduled_end_time',
+  SCHEDULED_START_TIME: 'scheduled_start_time',
   SECRET: 'secret',
   SECRETS: 'secrets',
   SELF_DEAF: 'self_deaf',
@@ -1742,6 +1780,7 @@ export const DiscordKeys = Object.freeze({
   USER: 'user',
   USERNAME: 'username',
   USERS: 'users',
+  USER_COUNT: 'user_count',
   USER_ID: 'user_id',
   USER_LIMIT: 'user_limit',
   USES: 'uses',
@@ -1873,6 +1912,9 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ENDED]: 'ended',
   [DiscordKeys.ENDED_TIMESTAMP]: 'endedTimestamp',
   [DiscordKeys.ENTITLEMENT_BRANCH_ID]: 'entitlementBranchId',
+  [DiscordKeys.ENTITY_ID]: 'entityId',
+  [DiscordKeys.ENTITY_METADATA]: 'entityMetadata',
+  [DiscordKeys.ENTITY_TYPE]: 'entityType',
   [DiscordKeys.EPHEMERAL]: 'ephemeral',
   [DiscordKeys.EULA_ID]: 'eulaId',
   [DiscordKeys.EXECUTABLES]: 'executables',
@@ -1895,6 +1937,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.GUILD_ID]: 'guildId',
   [DiscordKeys.GUILD_IDS]: 'guildIds',
   [DiscordKeys.GUILD_LOCALE]: 'guildLocale',
+  [DiscordKeys.GUILD_SCHEDULED_EVENTS]: 'guildScheduledEvents',
   [DiscordKeys.GUILD_SCHEDULED_EVENT_ID]: 'guildScheduledEventId',
   [DiscordKeys.HEADER_BACKGROUND]: 'headerBackground',
   [DiscordKeys.HEADER_LOGO_DARK_THEME]: 'headerLogoDarkTheme',
@@ -2011,6 +2054,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PREMIUM]: 'premium',
   [DiscordKeys.PREMIUM_GUILD_SINCE]: 'premiumGuildSince',
   [DiscordKeys.PREMIUM_SINCE]: 'premiumSince',
+  [DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED]: 'premiumProgressBarEnabled',
   [DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT]: 'premiumSubscriptionCount',
   [DiscordKeys.PREMIUM_TIER]: 'premiumTier',
   [DiscordKeys.PREMIUM_TYPE]: 'premiumType',
@@ -2048,6 +2092,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.RPC_ORIGINS]: 'rpcOrigins',
   [DiscordKeys.RTC_REGION]: 'rtcRegion',
   [DiscordKeys.RULES_CHANNEL_ID]: 'rulesChannelId',
+  [DiscordKeys.SCHEDULED_END_TIME]: 'scheduledEndTime',
+  [DiscordKeys.SCHEDULED_START_TIME]: 'scheduledStartTime',
   [DiscordKeys.SECRET]: 'secret',
   [DiscordKeys.SECRETS]: 'secrets',
   [DiscordKeys.SELF_DEAF]: 'selfDeaf',
@@ -2126,6 +2172,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.USER]: 'user',
   [DiscordKeys.USERNAME]: 'username',
   [DiscordKeys.USERS]: 'users',
+  [DiscordKeys.USER_COUNT]: 'userCount',
   [DiscordKeys.USER_ID]: 'userId',
   [DiscordKeys.USER_LIMIT]: 'userLimit',
   [DiscordKeys.USES]: 'uses',

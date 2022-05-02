@@ -6,7 +6,7 @@ import {
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, Permissions, PERMISSIONS_ALL } from '../constants';
+import { DetritusKeys, DiscordKeys, Permissions, PERMISSIONS_ALL } from '../constants';
 import { PermissionTools, UrlQuery, addQuery, getFormatFromHash, getQueryForImage } from '../utils';
 
 import { BaseStructureData } from './basestructure';
@@ -32,6 +32,7 @@ const keysMember = new BaseSet<string>([
   DiscordKeys.AVATAR,
   DiscordKeys.COMMUNICATION_DISABLED_UNTIL,
   DiscordKeys.DEAF,
+  DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.HOISTED_ROLE,
   DiscordKeys.IS_PENDING,
@@ -45,12 +46,6 @@ const keysMember = new BaseSet<string>([
   DiscordKeys.USER,
 ]);
 
-const keysMergeMember = new BaseSet<string>([
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ROLES,
-  DiscordKeys.HOISTED_ROLE,
-]);
-
 const keysSkipDifferenceMember = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
   DiscordKeys.PERMISSIONS,
@@ -62,7 +57,6 @@ const keysSkipDifferenceMember = new BaseSet<string>([
  */
 export class Member extends UserMixin {
   readonly _keys = keysMember;
-  readonly _keysMerge = keysMergeMember;
   readonly _keysSkipDifference = keysSkipDifferenceMember;
   _avatar: null | string = null;
   _roles?: Array<string>;
@@ -72,6 +66,7 @@ export class Member extends UserMixin {
 
   communicationDisabledUntilUnix: number = 0;
   deaf: boolean = false;
+  flags: number = 0;
   guildId: string = '';
   hoistedRoleId: null | string = null;
   isPending: boolean = false;
@@ -513,61 +508,83 @@ export class Member extends UserMixin {
     return super.hasDifference(key, value);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value === undefined) {
-      switch (key) {
-        case DiscordKeys.HOISTED_ROLE: {
-          // find the hoisted role since we got the member from rest or an interaction (which wont give us a hoisted role value)
-          const hoistedRole = (this.roles.filter((x) => !!x) as Array<Role>).sort((x, y) => y.position - x.position).find((x) => x.hoist);
-          if (hoistedRole) {
-            this.hoistedRoleId = hoistedRole.id;
-          }
-        }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+
+    if (DiscordKeys.AVATAR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AVATAR]] = data[DiscordKeys.AVATAR];
+    }
+    if (DiscordKeys.COMMUNICATION_DISABLED_UNTIL in data) {
+      const value = data[DiscordKeys.COMMUNICATION_DISABLED_UNTIL];
+      this.communicationDisabledUntilUnix = (value) ? Date.parse(value) : 0;
+    }
+    if (DiscordKeys.DEAF in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEAF]] = data[DiscordKeys.DEAF];
+    }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+    if (DiscordKeys.IS_PENDING in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IS_PENDING]] = data[DiscordKeys.IS_PENDING];
+    }
+    if (DiscordKeys.JOINED_AT in data) {
+      const value = data[DiscordKeys.JOINED_AT];
+      this.joinedAtUnix = (value) ? Date.parse(value) : 0;
+    }
+    if (DiscordKeys.MUTE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MUTE]] = data[DiscordKeys.MUTE];
+    }
+    if (DiscordKeys.NICK in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NICK]] = data[DiscordKeys.NICK];
+    }
+    if (DiscordKeys.PENDING in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PENDING]] = data[DiscordKeys.PENDING];
+    }
+    if (DiscordKeys.PERMISSIONS in data) {
+      const value = data[DiscordKeys.PERMISSIONS];
+      this._permissions = BigInt(value);
+    }
+    if (DiscordKeys.PREMIUM_SINCE in data) {
+      const value = data[DiscordKeys.PREMIUM_SINCE];
+      this.premiumSinceUnix = (value) ? Date.parse(value) : 0;
+    }
+    if (DiscordKeys.ROLES in data) {
+      const value = data[DiscordKeys.ROLES];
+      this._roles = (value.length) ? value : undefined;
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+  
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id)!;
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+          this.client.users.insert(user);
+        }
       }
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
+    }
+
+    // do this last because of roles being required
+    if (DiscordKeys.HOISTED_ROLE in data) {
+      this.hoistedRoleId = data[DiscordKeys.HOISTED_ROLE];
     } else {
-      switch (key) {
-        case DiscordKeys.AVATAR: {
-          this._avatar = value;
-        }; return;
-        case DiscordKeys.COMMUNICATION_DISABLED_UNTIL: {
-          this.communicationDisabledUntilUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
-        case DiscordKeys.HOISTED_ROLE: {
-          this.hoistedRoleId = value;
-        }; return;
-        case DiscordKeys.JOINED_AT: {
-          this.joinedAtUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
-        case DiscordKeys.PERMISSIONS: {
-          this._permissions = BigInt(value);
-        }; return;
-        case DiscordKeys.PREMIUM_SINCE: {
-          this.premiumSinceUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
-        case DiscordKeys.ROLES: {
-          if (value.length) {
-            this._roles = value;
-          } else {
-            this._roles = undefined;
-          }
-        }; return;
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.isClone) {
-            user = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id)!;
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-              this.client.users.insert(user);
-            }
-          }
-          value = user;
-        }; break;
+      // find the hoisted role since we got the member from rest or an interaction (which wont give us a hoisted role value)
+      const hoistedRole = (this.roles.filter((x) => !!x) as Array<Role>).sort((x, y) => y.position - x.position).find((x) => x.hoist);
+      if (hoistedRole) {
+        this.hoistedRoleId = hoistedRole.id;
       }
-      return super.mergeValue(key, value);
     }
   }
 

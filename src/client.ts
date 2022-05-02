@@ -32,6 +32,8 @@ import {
   EmojisOptions,
   Guilds,
   GuildsOptions,
+  GuildScheduledEvents,
+  GuildScheduledEventsOptions,
   Interactions,
   InteractionsOptions,
   Members,
@@ -95,6 +97,7 @@ export interface ShardClientCacheOptions {
   connectedAccounts?: ConnectedAccountsOptions | boolean,
   emojis?: EmojisOptions | boolean,
   guilds?: GuildsOptions | boolean,
+  guildScheduledEvents?: GuildScheduledEventsOptions | boolean,
   interactions?: InteractionsOptions | boolean,
   members?: MembersOptions | boolean,
   messages?: MessagesOptions | boolean,
@@ -121,6 +124,7 @@ export interface ShardClientPassOptions {
   connectedAccounts?: ConnectedAccounts,
   emojis?: Emojis,
   guilds?: Guilds,
+  guildScheduledEvents?: GuildScheduledEvents,
   interactions?: Interactions,
   members?: Members,
   messages?: Messages,
@@ -217,6 +221,7 @@ export class ShardClient extends EventSpewer {
   readonly connectedAccounts: ConnectedAccounts;
   readonly emojis: Emojis;
   readonly guilds: Guilds;
+  readonly guildScheduledEvents: GuildScheduledEvents;
   readonly interactions: Interactions;
   readonly members: Members;
   readonly messages: Messages;
@@ -291,6 +296,7 @@ export class ShardClient extends EventSpewer {
         connectedAccounts: {enabled},
         emojis: {enabled},
         guilds: {enabled},
+        guildScheduledEvents: {enabled},
         interactions: {enabled},
         members: {enabled},
         messages: {enabled},
@@ -314,6 +320,7 @@ export class ShardClient extends EventSpewer {
     this.connectedAccounts = options.pass.connectedAccounts || new ConnectedAccounts(this, options.cache.connectedAccounts);
     this.emojis = options.pass.emojis || new Emojis(this, options.cache.emojis);
     this.guilds = options.pass.guilds || new Guilds(this, options.cache.guilds);
+    this.guildScheduledEvents = options.pass.guildScheduledEvents || new GuildScheduledEvents(this, options.cache.guildScheduledEvents);
     this.interactions = options.pass.interactions || new Interactions(this, options.cache.interactions);
     this.members = options.pass.members || new Members(this, options.cache.members);
     this.messages = options.pass.messages || new Messages(this, options.cache.messages);
@@ -519,6 +526,7 @@ export class ShardClient extends EventSpewer {
     this.connectedAccounts.clear();
     this.emojis.clear();
     this.guilds.clear();
+    this.guildScheduledEvents.clear();
     this.interactions.clear();
     this.members.clear();
     this.messages.clear();

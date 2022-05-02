@@ -5,6 +5,7 @@ export * from './channels';
 export * from './connectedaccounts';
 export * from './emojis';
 export * from './guilds';
+export * from './guildscheduledevents';
 export * from './interactions';
 export * from './members';
 export * from './messages';

@@ -137,6 +137,7 @@ export class ChannelBase extends BaseStructure {
   applicationId?: string;
   bitrate?: number;
   deleted: boolean = false;
+  flags?: number;
   guildId?: string;
   id: string = '';
   icon?: null | string;
@@ -1112,6 +1113,7 @@ export class ChannelDMGroup extends ChannelDM {
 
 
 const keysChannelGuildBase = new BaseSet<string>([
+  DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.IS_PARTIAL,
@@ -1138,6 +1140,7 @@ export class ChannelGuildBase extends ChannelBase {
   readonly _keysMerge = keysMergeChannelGuildBase;
   type = ChannelTypes.BASE;
 
+  flags: number = 0;
   guildId: string = '';
   parentId: null | string = null;
   position: number = -1;

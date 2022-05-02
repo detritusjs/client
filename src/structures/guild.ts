@@ -53,6 +53,7 @@ import {
   ChannelGuildVoice,
 } from './channel';
 import { Emoji } from './emoji';
+import { GuildScheduledEvent } from './guildscheduledevent';
 import { Member } from './member';
 import { Message } from './message';
 import { Presence } from './presence';
@@ -646,7 +647,6 @@ export class GuildPartial extends BaseGuild {
 const keysGuild = new BaseSet<string>([
   DiscordKeys.AFK_CHANNEL_ID,
   DiscordKeys.AFK_TIMEOUT,
-  DiscordKeys.APPLICATION_COMMAND_COUNT,
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.BANNER,
   DiscordKeys.CHANNELS,
@@ -658,6 +658,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.EMOJIS,
   DiscordKeys.EXPLICIT_CONTENT_FILTER,
   DiscordKeys.FEATURES,
+  DiscordKeys.GUILD_SCHEDULED_EVENTS,
   DiscordKeys.ICON,
   DiscordKeys.ID,
   DiscordKeys.IS_PARTIAL,
@@ -675,6 +676,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.NSFW_LEVEL,
   DiscordKeys.OWNER_ID,
   DiscordKeys.PREFERRED_LOCALE,
+  DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED,
   DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT,
   DiscordKeys.PREMIUM_TIER,
   DiscordKeys.PRESENCES,
@@ -726,7 +728,6 @@ export class Guild extends GuildPartial {
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
-  applicationCommandCount: number = 0;
   applicationId?: null | string;
   banner: null | string = null;
   defaultMessageNotifications: number = 0;
@@ -737,6 +738,7 @@ export class Guild extends GuildPartial {
   emojis: BaseCollection<string, Emoji>;
   features = new BaseSet<string>();
   discoverySplash: null | string = null;
+  guildScheduledEvents: BaseCollection<string, GuildScheduledEvent>;
   hasMetadata: boolean = false;
   icon: null | string = null;
   id: string = '';
@@ -757,6 +759,7 @@ export class Guild extends GuildPartial {
   nsfwLevel: GuildNSFWLevels = GuildNSFWLevels.DEFAULT;
   ownerId: string = '';
   preferredLocale: Locales = Locales.ENGLISH_US;
+  premiumProgressBarEnabled: boolean = false;
   premiumSubscriptionCount: number = 0;
   premiumTier: PremiumGuildTiers = PremiumGuildTiers.NONE;
   publicUpdatesChannelId: null | string = null;
@@ -779,12 +782,14 @@ export class Guild extends GuildPartial {
     super(client, undefined, isClone);
     if (this.isClone) {
       this.emojis = new BaseCollection<string, Emoji>();
+      this.guildScheduledEvents = new BaseCollection<string, GuildScheduledEvent>();
       this.members = new BaseCollection<string, Member>();
       this.roles = new BaseCollection<string, Role>();
       this.stageInstances = new BaseCollection<string, StageInstance>();
       this.stickers = new BaseCollection<string, Sticker>();
     } else {
       this.emojis = new BaseCollection<string, Emoji>(this.client.emojis.options);
+      this.guildScheduledEvents = new BaseCollection<string, GuildScheduledEvent>(this.client.guildScheduledEvents.options);
       this.members = new BaseCollection<string, Member>(this.client.members.options);
       this.roles = new BaseCollection<string, Role>(this.client.roles.options);
       this.stageInstances = new BaseCollection<string, StageInstance>(this.client.stageInstances.options);
@@ -1104,9 +1109,6 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.AFK_TIMEOUT in data) {
       (this as any)[DetritusKeys[DiscordKeys.AFK_TIMEOUT]] = data[DiscordKeys.AFK_TIMEOUT];
     }
-    if (DiscordKeys.APPLICATION_COMMAND_COUNT in data) {
-      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_COMMAND_COUNT]] = data[DiscordKeys.APPLICATION_COMMAND_COUNT];
-    }
     if (DiscordKeys.CHANNELS in data) {
       this._channelIds.clear();
       if (this.client.channels.enabled) {
@@ -1170,6 +1172,17 @@ export class Guild extends GuildPartial {
     }
     if (DiscordKeys.EXPLICIT_CONTENT_FILTER in data) {
       (this as any)[DetritusKeys[DiscordKeys.EXPLICIT_CONTENT_FILTER]] = data[DiscordKeys.EXPLICIT_CONTENT_FILTER];
+    }
+    if (DiscordKeys.GUILD_SCHEDULED_EVENTS in data) {
+      const value = data[DiscordKeys.GUILD_SCHEDULED_EVENTS];
+      this.guildScheduledEvents.clear();
+      if (this.client.guildScheduledEvents.enabled) {
+        for (let raw of value) {
+          raw.guild_id = this.id;
+          const event = new GuildScheduledEvent(this.client, value);
+          this.guildScheduledEvents.set(event.id, event);
+        }
+      }
     }
     if (DiscordKeys.JOINED_AT in data) {
       const value = data[DiscordKeys.JOINED_AT];
@@ -1243,6 +1256,9 @@ export class Guild extends GuildPartial {
     }
     if (DiscordKeys.PREFERRED_LOCALE in data) {
       (this as any)[DetritusKeys[DiscordKeys.PREFERRED_LOCALE]] = data[DiscordKeys.PREFERRED_LOCALE];
+    }
+    if (DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED]] = data[DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED];
     }
     if (DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT]] = data[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT];
