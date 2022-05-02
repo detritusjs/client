@@ -518,7 +518,7 @@ export class Member extends UserMixin {
     }
 
     if (DiscordKeys.AVATAR in data) {
-      (this as any)[DetritusKeys[DiscordKeys.AVATAR]] = data[DiscordKeys.AVATAR];
+      this._avatar = data[DiscordKeys.AVATAR];
     }
     if (DiscordKeys.COMMUNICATION_DISABLED_UNTIL in data) {
       const value = data[DiscordKeys.COMMUNICATION_DISABLED_UNTIL];
