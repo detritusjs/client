@@ -10,6 +10,7 @@ export * from './connectedaccount';
 export * from './emoji';
 export * from './gift';
 export * from './guild';
+export * from './guildban';
 export * from './guildscheduledevent';
 export * from './integration';
 export * from './interaction';

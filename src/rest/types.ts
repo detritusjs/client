@@ -31,13 +31,4 @@ export namespace RestResponses {
     members: BaseCollection<string, BaseCollection<string, ThreadMember>>,
     threads: BaseCollection<string, ChannelGuildThread>,
   }
-
-  export interface FetchGuildBans extends BaseCollection<string, RawGuildBan> {
-
-  }
-
-  export interface RawGuildBan {
-    reason: null | string,
-    user: User,
-  }
 }

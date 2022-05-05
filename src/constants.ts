@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.10',
+  VERSION: '0.17.0-beta.11',
 });
 
 export type Snowflake = number | string;
@@ -881,6 +881,7 @@ export enum MessageComponentTypes {
 export enum MessageEmbedTypes {
   APPLICATION_NEWS = 'application_news',
   ARTICLE = 'article',
+  AUTO_MODERATION_MESSAGE = 'auto_moderation_message',
   GIFV = 'gifv',
   IMAGE = 'image',
   LINK = 'link',
@@ -1444,6 +1445,7 @@ export const DiscordKeys = Object.freeze({
   AUTO_ARCHIVE_DURATION: 'auto_archive_duration',
   AUTOCOMPLETE: 'autocomplete',
   AVAILABLE: 'available',
+  AVAILABLE_TAGS: 'available_tags',
   AVATAR: 'avatar',
   BANNER: 'banner',
   BANNER_COLOR: 'banner_color',
@@ -1487,6 +1489,7 @@ export const DiscordKeys = Object.freeze({
   DATA: 'data',
   DEAF: 'deaf',
   DEFAULT: 'default',
+  DEFAULT_AUTO_ARCHIVE_DURATION: 'default_auto_archive_duration',
   DEFAULT_MEMBER_PERMISSIONS: 'default_member_permissions',
   DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
   DEFAULT_PERMISSION: 'default_permission',
@@ -1757,6 +1760,7 @@ export const DiscordKeys = Object.freeze({
   TAX_INCLUSIVE: 'tax_inclusive',
   TEAM: 'team',
   TEAM_ID: 'team_id',
+  TEMPLATE: 'template',
   TEMPORARY: 'temporary',
   TEXT: 'text',
   THIRD_PARTY_SKUS: 'third_party_skus',
@@ -1836,6 +1840,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.AUTO_ARCHIVE_DURATION]: 'autoArchiveDuration',
   [DiscordKeys.AUTOCOMPLETE]: 'autocomplete',
   [DiscordKeys.AVAILABLE]: 'available',
+  [DiscordKeys.AVAILABLE_TAGS]: 'availableTags',
   [DiscordKeys.AVATAR]: 'avatar',
   [DiscordKeys.BANNER]: 'banner',
   [DiscordKeys.BANNER_COLOR]: 'bannerColor',
@@ -1879,6 +1884,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DATA]: 'data',
   [DiscordKeys.DEAF]: 'deaf',
   [DiscordKeys.DEFAULT]: 'default',
+  [DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION]: 'defaultAutoArchiveDuration',
   [DiscordKeys.DEFAULT_MEMBER_PERMISSIONS]: 'defaultMemberPermissions',
   [DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS]: 'defaultMessageNotifications',
   [DiscordKeys.DEFAULT_PERMISSION]: 'defaultPermission',
@@ -2149,6 +2155,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.TAX_INCLUSIVE]: 'taxInclusive',
   [DiscordKeys.TEAM]: 'team',
   [DiscordKeys.TEAM_ID]: 'teamId',
+  [DiscordKeys.TEMPLATE]: 'template',
   [DiscordKeys.TEMPORARY]: 'temporary',
   [DiscordKeys.TEXT]: 'text',
   [DiscordKeys.THIRD_PARTY_SKUS]: 'thirdPartySkus',

@@ -9,7 +9,7 @@ import { Snowflake } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ClientEvents, InteractionCallbackTypes } from '../constants';
+import { ClientEvents, DiscordKeys, InteractionCallbackTypes } from '../constants';
 import { InteractionModal, createComponentListenerOrNone } from '../utils';
 
 import {
@@ -26,6 +26,7 @@ import {
   Emoji,
   Gift,
   Guild,
+  GuildBan,
   GuildMe,
   Integration,
   Invite,
@@ -1824,23 +1825,25 @@ export class RestClient {
     return collection;
   }
 
+  async fetchGuildBan(
+    guildId: string,
+    userId: string,
+  ): Promise<GuildBan> {
+    const data = await this.raw.fetchGuildBan(guildId, userId);
+    data[DiscordKeys.GUILD_ID] = guildId;
+    return new GuildBan(this.client, data);
+  }
+
   async fetchGuildBans(
     guildId: string,
-  ): Promise<RestResponses.FetchGuildBans> {
+  ): Promise<BaseCollection<string, GuildBan>> {
     const data = await this.raw.fetchGuildBans(guildId);
-    const collection: RestResponses.FetchGuildBans = new BaseCollection();
+
+    const collection = new BaseCollection<string, GuildBan>();
     for (let raw of data) {
-      let user: User;
-      if (this.client.users.has(raw.user.id)) {
-        user = this.client.users.get(raw.user.id)!;
-        user.merge(raw.user);
-      } else {
-        user = new User(this.client, raw.user);
-      }
-      collection.set(user.id, {
-        reason: raw.reason,
-        user,
-      });
+      raw[DiscordKeys.GUILD_ID] = guildId;
+      const ban = new GuildBan(this.client, raw);
+      collection.set(ban.user.id, ban);
     }
     return collection;
   }

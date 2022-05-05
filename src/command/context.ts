@@ -118,6 +118,10 @@ export class Context {
     return this.client.guilds;
   }
 
+  get guildScheduledEvents() {
+    return this.client.guildScheduledEvents;
+  }
+
   get interactions() {
     return this.client.interactions;
   }

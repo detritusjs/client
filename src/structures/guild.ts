@@ -343,6 +343,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.fetchGuildAuditLogs(this.id, options);
   }
 
+  async fetchBan(userId: string) {
+    return this.client.rest.fetchGuildBan(this.id, userId);
+  }
+
   async fetchBans() {
     return this.client.rest.fetchGuildBans(this.id);
   }
@@ -1114,7 +1118,7 @@ export class Guild extends GuildPartial {
       if (this.client.channels.enabled) {
         const value = data[DiscordKeys.CHANNELS];
         for (let raw of value) {
-          raw.guild_id = this.id;
+          raw[DiscordKeys.GUILD_ID] = this.id;
 
           let channel: Channel;
           if (this.isClone) {
@@ -1149,7 +1153,7 @@ export class Guild extends GuildPartial {
       if (this.client.emojis.enabled) {
         const emojis: Array<Emoji> = [];
         for (let raw of value) {
-          raw.guild_id = this.id;
+          raw[DiscordKeys.GUILD_ID] = this.id;
 
           let emoji: Emoji;
           if (this.isClone) {
@@ -1178,8 +1182,8 @@ export class Guild extends GuildPartial {
       this.guildScheduledEvents.clear();
       if (this.client.guildScheduledEvents.enabled) {
         for (let raw of value) {
-          raw.guild_id = this.id;
-          const event = new GuildScheduledEvent(this.client, value);
+          raw[DiscordKeys.GUILD_ID] = this.id;
+          const event = new GuildScheduledEvent(this.client, raw);
           this.guildScheduledEvents.set(event.id, event);
         }
       }
@@ -1214,7 +1218,7 @@ export class Guild extends GuildPartial {
       const value = data[DiscordKeys.MEMBERS];
       this.members.clear();
       for (let raw of value) {
-        raw.guild_id = this.id;
+        raw[DiscordKeys.GUILD_ID] = this.id;
         if (this.client.user && this.client.user.id === raw.user.id) {
           const member = new Member(this.client, raw, this.isClone);
           this.members.set(member.id, member);
@@ -1274,7 +1278,7 @@ export class Guild extends GuildPartial {
         this.client.presences.clearGuildId(this.id);
         if (this.client.presences.enabled) {
           for (let raw of value) {
-            raw.guild_id = this.id;
+            raw[DiscordKeys.GUILD_ID] = this.id;
             this.client.presences.insert(raw);
           }
         }
@@ -1296,7 +1300,7 @@ export class Guild extends GuildPartial {
             role = this.roles.get(raw.id)!;
             role.merge(raw);
           } else {
-            raw.guild_id = this.id;
+            raw[DiscordKeys.GUILD_ID] = this.id;
             role = new Role(this.client, raw, this.isClone);
           }
           roles.push(role);
@@ -1323,7 +1327,7 @@ export class Guild extends GuildPartial {
             stage = this.stageInstances.get(raw.id)!;
             stage.merge(raw);
           } else {
-            raw.guild_id = this.id;
+            raw[DiscordKeys.GUILD_ID] = this.id;
             stage = new StageInstance(this.client, raw, this.isClone);
           }
           stageInstances.push(stage);
@@ -1339,7 +1343,7 @@ export class Guild extends GuildPartial {
       if (this.client.stickers.enabled) {
         const stickers: Array<Sticker> = [];
         for (let raw of value) {
-          raw.guild_id = this.id;
+          raw[DiscordKeys.GUILD_ID] = this.id;
 
           let sticker: Sticker;
           if (this.isClone) {
@@ -1371,7 +1375,7 @@ export class Guild extends GuildPartial {
       this._threadIds.clear();
       if (this.client.channels.enabled) {
         for (let raw of value) {
-          raw.guild_id = this.id;
+          raw[DiscordKeys.GUILD_ID] = this.id;
 
           let channel: Channel;
           if (this.isClone) {
@@ -1404,7 +1408,7 @@ export class Guild extends GuildPartial {
             const voiceState = cache.get(raw.user_id)!;
             voiceState.merge(raw);
           } else {
-            raw.guild_id = this.id;
+            raw[DiscordKeys.GUILD_ID] = this.id;
             const voiceState = new VoiceState(this.client, raw);
             if (!voiceState.member && this.members.has(voiceState.userId)) {
               voiceState.member = this.members.get(voiceState.userId)!;

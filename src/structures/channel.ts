@@ -10,7 +10,14 @@ import {
 } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, ChannelTypes, ChannelVideoQualityModes, Permissions, DEFAULT_GROUP_DM_AVATARS } from '../constants';
+import {
+  DetritusKeys,
+  DiscordKeys,
+  ChannelTypes,
+  ChannelVideoQualityModes,
+  Permissions,
+  DEFAULT_GROUP_DM_AVATARS,
+} from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -128,6 +135,7 @@ const keysMergeChannelBase = new BaseSet<string>();
 export class ChannelBase extends BaseStructure {
   readonly _keys = keysChannelBase;
   readonly _keysMerge = keysMergeChannelBase;
+  _availableTags?: BaseCollection<string, ChannelAvailableTag>;
   _name: string = '';
   _nicks?: BaseCollection<string, string>;
   _nsfw?: boolean;
@@ -136,6 +144,7 @@ export class ChannelBase extends BaseStructure {
 
   applicationId?: string;
   bitrate?: number;
+  defaultAutoArchiveDuration?: number;
   deleted: boolean = false;
   flags?: number;
   guildId?: string;
@@ -152,6 +161,7 @@ export class ChannelBase extends BaseStructure {
   position?: number;
   rateLimitPerUser?: number;
   rtcRegion?: null | string;
+  template?: string;
   threadMetadata?: ThreadMetadata;
   topic: null | string = null;
   type: ChannelTypes = ChannelTypes.BASE;
@@ -165,6 +175,13 @@ export class ChannelBase extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  get availableTags(): BaseCollection<string, ChannelAvailableTag> {
+    if (this._availableTags) {
+      return this._availableTags;
+    }
+    return emptyBaseCollection;
   }
 
   get canAddReactions(): boolean {
@@ -889,18 +906,23 @@ export class ChannelBase extends BaseStructure {
     return this.client.rest.unAckChannel(this.id);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.NAME: {
-          this._name = value;
-        }; return;
-        case DiscordKeys.NSFW: {
-          this._nsfw = value;
-        }; return;
-      }
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
-    return super.mergeValue(key, value);
+
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.IS_PARTIAL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IS_PARTIAL]] = data[DiscordKeys.IS_PARTIAL];
+    }
+    if (DiscordKeys.NAME in data) {
+      this._name = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
   }
 
   toString(): string {
@@ -983,70 +1005,77 @@ export class ChannelDM extends ChannelBase {
     return null;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.LAST_PIN_TIMESTAMP: {
-          this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
-        case DiscordKeys.NICKS: {
-          if (Object.keys(value).length) {
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.LAST_MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
+    }
+    if (DiscordKeys.LAST_PIN_TIMESTAMP in data) {
+      const value = data[DiscordKeys.LAST_PIN_TIMESTAMP];
+      this.lastPinTimestampUnix = (value) ? Date.parse(value) : 0;
+    }
+    if (DiscordKeys.NICKS in data) {
+      const value = data[DiscordKeys.NICKS];
+      if (Object.keys(value).length) {
+        if (!this._nicks) {
+          this._nicks = new BaseCollection<string, string>();
+        }
+        this._nicks.clear();
+        for (let userId in value) {
+          this._nicks.set(userId, value[userId]);
+        }
+      } else {
+        if (this._nicks) {
+          this._nicks.clear();
+          this._nicks = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.RECIPIENTS in data) {
+      const value = data[DiscordKeys.RECIPIENTS];
+      if (value.length) {
+        if (!this._recipients) {
+          this._recipients = new BaseCollection<string, User>();
+        }
+        this._recipients.clear();
+        if (this.client.user) {
+          // maybe add it in between the user ids as to preserve the sort
+          this._recipients.set(this.client.user.id, this.client.user);
+        }
+
+        for (let raw of value) {
+          let user: User;
+          if (this.isClone) {
+            user = new User(this.client, raw, true);
+          } else {
+            if (this.client.users.has(raw.id)) {
+              user = this.client.users.get(raw.id)!;
+              user.merge(raw);
+            } else {
+              user = new User(this.client, raw);
+              this.client.users.insert(user);
+            }
+          }
+          this._recipients.set(user.id, user);
+
+          // unsure of this
+          if (DiscordKeys.NICK in raw) {
             if (!this._nicks) {
               this._nicks = new BaseCollection<string, string>();
             }
-            this._nicks.clear();
-            for (let userId in value) {
-              this._nicks.set(userId, value[userId]);
-            }
-          } else {
-            if (this._nicks) {
-              this._nicks.clear();
-              this._nicks = undefined;
-            }
+            this._nicks.set(user.id, raw[DiscordKeys.NICK]);
           }
-        }; return;
-        case DiscordKeys.RECIPIENTS: {
-          if (value.length) {
-            if (!this._recipients) {
-              this._recipients = new BaseCollection<string, User>();
-            }
-            this._recipients.clear();
-            if (this.client.user) {
-              this._recipients.set(this.client.user.id, this.client.user);
-            }
-
-            for (let raw of value) {
-              let user: User;
-              if (this.isClone) {
-                user = new User(this.client, raw, true);
-              } else {
-                if (this.client.users.has(raw.id)) {
-                  user = this.client.users.get(raw.id)!;
-                  user.merge(raw);
-                } else {
-                  user = new User(this.client, raw);
-                  this.client.users.insert(user);
-                }
-              }
-              this._recipients.set(user.id, user);
-
-              // unsure of this
-              if (DiscordKeys.NICK in raw) {
-                if (!this._nicks) {
-                  this._nicks = new BaseCollection<string, string>();
-                }
-                this._nicks.set(user.id, raw.nick);
-              }
-            }
-          } else {
-            if (this._recipients) {
-              this._recipients.clear();
-              this._recipients = undefined;
-            }
-          }
-        }; return;
+        }
+      } else {
+        if (this._recipients) {
+          this._recipients.clear();
+          this._recipients = undefined;
+        }
       }
-      return super.mergeValue(key, value);
     }
   }
 }
@@ -1058,7 +1087,7 @@ const keysChannelDmGroup = new BaseSet<string>([
   DiscordKeys.ICON,
   DiscordKeys.NAME,
   DiscordKeys.OWNER_ID,
-]);
+].sort());
 
 /**
  * Group DM Channel
@@ -1109,6 +1138,23 @@ export class ChannelDMGroup extends ChannelDM {
   isOwner(userId: string): boolean {
     return this.ownerId === userId;
   }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.ICON in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ICON]] = data[DiscordKeys.ICON];
+    }
+    if (DiscordKeys.OWNER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OWNER_ID]] = data[DiscordKeys.OWNER_ID];
+    }
+  }
 }
 
 
@@ -1126,18 +1172,12 @@ const keysChannelGuildBase = new BaseSet<string>([
   DiscordKeys.TYPE,
 ]);
 
-const keysMergeChannelGuildBase = new BaseSet<string>([
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ID,
-]);
-
 /**
  * Basic Guild Channel
  * @category Structure
  */
 export class ChannelGuildBase extends ChannelBase {
   readonly _keys = keysChannelGuildBase;
-  readonly _keysMerge = keysMergeChannelGuildBase;
   type = ChannelTypes.BASE;
 
   flags: number = 0;
@@ -1396,40 +1436,61 @@ export class ChannelGuildBase extends ChannelBase {
     return false;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.PERMISSION_OVERWRITES: {
-          if (value.length) {
-            if (!this._permissionOverwrites) {
-              this._permissionOverwrites = new BaseCollection<string, Overwrite>();
-            }
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
 
-            const overwrites: Array<Overwrite> = [];
-            for (let raw of value) {
-              let overwrite: Overwrite;
-              if (this._permissionOverwrites.has(raw.id)) {
-                overwrite = this._permissionOverwrites.get(raw.id)!;
-                overwrite.merge(raw);
-              } else {
-                overwrite = new Overwrite(this, raw);
-              }
-              overwrites.push(overwrite);
-            }
+    // this first to fill up the other stuff
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
 
-            this._permissionOverwrites.clear();
-            for (let overwrite of overwrites) {
-              this._permissionOverwrites.set(overwrite.id, overwrite);
-            }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+    if (DiscordKeys.NSFW in data) {
+      this._nsfw = data[DiscordKeys.NSFW];
+    }
+    if (DiscordKeys.PARENT_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PARENT_ID]] = data[DiscordKeys.PARENT_ID];
+    }
+    if (DiscordKeys.PERMISSION_OVERWRITES in data) {
+      const value = data[DiscordKeys.PERMISSION_OVERWRITES];
+      if (value.length) {
+        if (!this._permissionOverwrites) {
+          this._permissionOverwrites = new BaseCollection<string, Overwrite>();
+        }
+
+        const overwrites: Array<Overwrite> = [];
+        for (let raw of value) {
+          let overwrite: Overwrite;
+          if (this._permissionOverwrites.has(raw.id)) {
+            overwrite = this._permissionOverwrites.get(raw.id)!;
+            overwrite.merge(raw);
           } else {
-            if (this._permissionOverwrites) {
-              this._permissionOverwrites.clear();
-              this._permissionOverwrites = undefined;
-            }
+            overwrite = new Overwrite(this, raw);
           }
-        }; return;
+          overwrites.push(overwrite);
+        }
+
+        this._permissionOverwrites.clear();
+        for (let overwrite of overwrites) {
+          this._permissionOverwrites.set(overwrite.id, overwrite);
+        }
+      } else {
+        if (this._permissionOverwrites) {
+          this._permissionOverwrites.clear();
+          this._permissionOverwrites = undefined;
+        }
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.POSITION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.POSITION]] = data[DiscordKeys.POSITION];
+    }
+    if (DiscordKeys.RATE_LIMIT_PER_USER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.RATE_LIMIT_PER_USER]] = data[DiscordKeys.RATE_LIMIT_PER_USER];
     }
   }
 }
@@ -1455,20 +1516,11 @@ export class ChannelGuildCategory extends ChannelGuildBase {
 
 
 const keysChannelGuildText = new BaseSet<string>([
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ID,
-  DiscordKeys.IS_PARTIAL,
+  ...keysChannelGuildBase,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.LAST_PIN_TIMESTAMP,
-  DiscordKeys.NAME,
-  DiscordKeys.NSFW,
-  DiscordKeys.PARENT_ID,
-  DiscordKeys.PERMISSION_OVERWRITES,
-  DiscordKeys.POSITION,
-  DiscordKeys.RATE_LIMIT_PER_USER,
   DiscordKeys.TOPIC,
-  DiscordKeys.TYPE,
-]);
+].sort());
 
 /**
  * Guild Text Channel, it can also be a news channel.
@@ -1515,36 +1567,34 @@ export class ChannelGuildText extends ChannelGuildBase {
     return collection;
   }
 
-  mergeValue(key: string, value: any) {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.LAST_PIN_TIMESTAMP: {
-          this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
-      }
-      return super.mergeValue(key, value);
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.LAST_MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
+    }
+    if (DiscordKeys.LAST_PIN_TIMESTAMP in data) {
+      const value = data[DiscordKeys.LAST_PIN_TIMESTAMP];
+      this.lastPinTimestampUnix = (value) ? Date.parse(value) : 0;
+    }
+    if (DiscordKeys.TOPIC in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
     }
   }
 }
 
 
 const keysChannelGuildVoice = new BaseSet<string>([
+  ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ID,
-  DiscordKeys.IS_PARTIAL,
-  DiscordKeys.NAME,
-  DiscordKeys.NSFW,
-  DiscordKeys.PARENT_ID,
-  DiscordKeys.PERMISSION_OVERWRITES,
-  DiscordKeys.POSITION,
-  DiscordKeys.RATE_LIMIT_PER_USER,
   DiscordKeys.RTC_REGION,
   DiscordKeys.TOPIC,
-  DiscordKeys.TYPE,
   DiscordKeys.USER_LIMIT,
   DiscordKeys.VIDEO_QUALITY_MODE,
-]);
+].sort());
 
 /**
  * Guild Voice Channel
@@ -1603,23 +1653,37 @@ export class ChannelGuildVoice extends ChannelGuildBase {
 
     return collection;
   }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.BITRATE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BITRATE]] = data[DiscordKeys.BITRATE];
+    }
+    if (DiscordKeys.REGION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REGION]] = data[DiscordKeys.REGION];
+    }
+    if (DiscordKeys.TOPIC in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
+    }
+    if (DiscordKeys.USER_LIMIT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER_LIMIT]] = data[DiscordKeys.USER_LIMIT];
+    }
+    if (DiscordKeys.VIDEO_QUALITY_MODE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VIDEO_QUALITY_MODE]] = data[DiscordKeys.VIDEO_QUALITY_MODE];
+    }
+  }
 }
 
 
 const keysChannelGuildStore = new BaseSet<string>([
+  ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ID,
-  DiscordKeys.IS_PARTIAL,
-  DiscordKeys.NAME,
-  DiscordKeys.NSFW,
-  DiscordKeys.PARENT_ID,
-  DiscordKeys.PERMISSION_OVERWRITES,
-  DiscordKeys.POSITION,
-  DiscordKeys.RATE_LIMIT_PER_USER,
-  DiscordKeys.TYPE,
   DiscordKeys.USER_LIMIT,
-]);
+].sort());
 
 /**
  * Guild Store Channel
@@ -1640,13 +1704,27 @@ export class ChannelGuildStore extends ChannelGuildBase {
     super(client, undefined, isClone);
     this.merge(data);
   }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.BITRATE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BITRATE]] = data[DiscordKeys.BITRATE];
+    }
+    if (DiscordKeys.USER_LIMIT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER_LIMIT]] = data[DiscordKeys.USER_LIMIT];
+    }
+  }
 }
 
 
 const keysChannelGuildStageVoice = new BaseSet<string>([
   ...keysChannelGuildVoice,
   DiscordKeys.TOPIC,
-]);
+].sort());
 
 /**
  * Guild Stage Voice Channel
@@ -1666,28 +1744,30 @@ export class ChannelGuildStageVoice extends ChannelGuildVoice {
     super(client, undefined, isClone);
     this.merge(data);
   }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.TOPIC in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
+    }
+  }
 }
 
 
 const keysChannelGuildThread = new BaseSet<string>([
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ID,
-  DiscordKeys.IS_PARTIAL,
+  ...keysChannelGuildBase,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.LAST_PIN_TIMESTAMP,
   DiscordKeys.MEMBER,
   DiscordKeys.MEMBER_COUNT,
   DiscordKeys.MESSAGE_COUNT,
-  DiscordKeys.NAME,
-  DiscordKeys.NSFW,
   DiscordKeys.OWNER_ID,
-  DiscordKeys.PARENT_ID,
-  DiscordKeys.PERMISSION_OVERWRITES,
-  DiscordKeys.POSITION,
-  DiscordKeys.RATE_LIMIT_PER_USER,
   DiscordKeys.THREAD_METADATA,
-  DiscordKeys.TYPE,
-]);
+].sort());
 
 
 /**
@@ -1721,20 +1801,35 @@ export class ChannelGuildThread extends ChannelGuildBase {
     return false;
   }
 
-  mergeValue(key: string, value: any) {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.LAST_PIN_TIMESTAMP: {
-          this.lastPinTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
-        case DiscordKeys.MEMBER: {
-          value = new ThreadMember(this.client, value);
-        }; break;
-        case DiscordKeys.THREAD_METADATA: {
-          value = new ThreadMetadata(this, value);
-        }; break;
-      }
-      return super.mergeValue(key, value);
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.LAST_MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
+    }
+    if (DiscordKeys.LAST_PIN_TIMESTAMP in data) {
+      const value = data[DiscordKeys.LAST_PIN_TIMESTAMP];
+      this.lastPinTimestampUnix = (value) ? Date.parse(value) : 0;
+    }
+    if (DiscordKeys.MEMBER in data) {
+      const value = data[DiscordKeys.MEMBER];
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = new ThreadMember(this.client, value);
+    }
+    if (DiscordKeys.MEMBER_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER_COUNT]] = data[DiscordKeys.MEMBER_COUNT];
+    }
+    if (DiscordKeys.MESSAGE_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE_COUNT]] = data[DiscordKeys.MESSAGE_COUNT];
+    }
+    if (DiscordKeys.OWNER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OWNER_ID]] = data[DiscordKeys.OWNER_ID];
+    }
+    if (DiscordKeys.THREAD_METADATA in data) {
+      const value = data[DiscordKeys.THREAD_METADATA];
+      (this as any)[DetritusKeys[DiscordKeys.THREAD_METADATA]] = new ThreadMetadata(this, value);
     }
   }
 }
@@ -1742,11 +1837,7 @@ export class ChannelGuildThread extends ChannelGuildBase {
 
 
 const keysChannelGuildDirectory = new BaseSet<string>([
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ID,
-  DiscordKeys.IS_PARTIAL,
-  DiscordKeys.NAME,
-  DiscordKeys.TYPE,
+  ...keysChannelGuildBase,
 ]);
 
 
@@ -1771,12 +1862,12 @@ export class ChannelGuildDirectory extends ChannelGuildBase {
 
 
 const keysChannelGuildForum = new BaseSet<string>([
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ID,
-  DiscordKeys.IS_PARTIAL,
-  DiscordKeys.NAME,
-  DiscordKeys.TYPE,
-]);
+  ...keysChannelGuildBase,
+  DiscordKeys.AVAILABLE_TAGS,
+  DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION,
+  DiscordKeys.LAST_MESSAGE_ID,
+  DiscordKeys.TEMPLATE,
+].sort());
 
 
 /**
@@ -1787,6 +1878,9 @@ export class ChannelGuildForum extends ChannelGuildBase {
   readonly _keys = keysChannelGuildForum;
   type = ChannelTypes.GUILD_FORUM;
 
+  defaultAutoArchiveDuration: number = 0;
+  template: string = '';
+
   constructor(
     client: ShardClient,
     data?: BaseStructureData,
@@ -1794,5 +1888,87 @@ export class ChannelGuildForum extends ChannelGuildBase {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.AVAILABLE_TAGS in data) {
+      const value = data[DiscordKeys.AVAILABLE_TAGS];
+      if (value.length) {
+        if (!this._availableTags) {
+          this._availableTags = new BaseCollection<string, ChannelAvailableTag>();
+        }
+        for (let raw of value) {
+          raw[DiscordKeys.CHANNEL_ID] = this.id;
+          const tag = new ChannelAvailableTag(this.client, raw);
+          this._availableTags.set(tag.id, tag);
+        }
+      } else {
+        if (this._availableTags) {
+          this._availableTags.clear();
+          this._availableTags = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION]] = data[DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION];
+    }
+    if (DiscordKeys.LAST_MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
+    }
+    if (DiscordKeys.TEMPLATE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TEMPLATE]] = data[DiscordKeys.TEMPLATE];
+    }
+  }
+}
+
+
+
+const keysChannelAvailableTag = new BaseSet<string>([
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.EMOJI_ID,
+  DiscordKeys.EMOJI_NAME,
+  DiscordKeys.ID,
+  DiscordKeys.NAME,
+]);
+
+/**
+ * Channel Available Tag (As seen in [[ChannelGuildForum]])
+ * @category Structure
+ */
+export class ChannelAvailableTag extends BaseStructure {
+  readonly _keys = keysChannelAvailableTag;
+
+  channelId: string = '';
+  emojiId: string | null = null;
+  emojiName: string = '';
+  id: string = '';
+  name: string = '';
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.EMOJI_ID in data) {
+      const value = data[DiscordKeys.EMOJI_ID];
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI_ID]] = value || null;
+    }
+    if (DiscordKeys.EMOJI_NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI_NAME]] = data[DiscordKeys.EMOJI_NAME];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
   }
 }

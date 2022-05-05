@@ -6,7 +6,11 @@ import {
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { ShardClient } from '../client';
-import { DiscordKeys, ImageFormats } from '../constants';
+import {
+  DetritusKeys,
+  DiscordKeys,
+  ImageFormats,
+} from '../constants';
 import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 
 import {
@@ -30,19 +34,12 @@ const keysEmoji = new BaseSet<string>([
   DiscordKeys.USER,
 ]);
 
-const keysMergeEmoji = new BaseSet<string>([
-  DiscordKeys.ANIMATED,
-  DiscordKeys.ID,
-  DiscordKeys.GUILD_ID,
-]);
-
 /**
  * Emoji Structure
  * @category Structure
  */
 export class Emoji extends BaseStructure {
   readonly _keys = keysEmoji;
-  readonly _keysMerge = keysMergeEmoji;
   _roles?: Array<string>;
 
   animated: boolean = false;
@@ -206,44 +203,54 @@ export class Emoji extends BaseStructure {
     return super.hasDifference(key, value);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.ANIMATED: {
-        this.animated = !!value;
-      }; return;
-      case DiscordKeys.ID: {
-        // since presences can have emojis now, we want to reuse the emoji object
-        // this can cause someone switching from an emoji with an id to one without (which will make the id stay, this fixes it)
-        this.id = value || null;
-      }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
 
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ROLES: {
-          if (value.length) {
-            this._roles = value;
-          } else {
-            this._roles = undefined;
-          }
-        }; return;
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.isClone) {
-            user = new User(this.client, value);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id)!;
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-              this.client.users.insert(user);
-            }
-          }
-          value = user;
-        }; break;
+    (this as any)[DetritusKeys[DiscordKeys.ANIMATED]] = !!data[DiscordKeys.ANIMATED];
+    // since presences can have emojis now, we want to reuse the emoji object
+    // this can cause someone switching from an emoji with an id to one without (which will make the id stay, this fixes it)
+    (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID] || null;
+
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+
+
+    if (DiscordKeys.AVAILABLE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AVAILABLE]] = data[DiscordKeys.AVAILABLE];
+    }
+    if (DiscordKeys.MANAGED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MANAGED]] = data[DiscordKeys.MANAGED];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.REQUIRE_COLONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REQUIRE_COLONS]] = data[DiscordKeys.REQUIRE_COLONS];
+    }
+    if (DiscordKeys.ROLES in data) {
+      const value = data[DiscordKeys.ROLES];
+      this._roles = (value.length) ? value : undefined;
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id)!;
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+          this.client.users.insert(user);
+        }
       }
-      super.mergeValue(key, value);
+
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
   }
 
