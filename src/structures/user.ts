@@ -7,6 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  DetritusKeys,
   DiscordKeys,
   PremiumUserTypes,
   RelationshipTypes,
@@ -287,6 +288,34 @@ export class User extends BaseStructure {
     return this.deleteRelationship();
   }
 
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.AVATAR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AVATAR]] = data[DiscordKeys.AVATAR];
+    }
+    if (DiscordKeys.BOT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BOT]] = data[DiscordKeys.BOT];
+    }
+    if (DiscordKeys.DISCRIMINATOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DISCRIMINATOR]] = data[DiscordKeys.DISCRIMINATOR];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.PUBLIC_FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PUBLIC_FLAGS]] = data[DiscordKeys.PUBLIC_FLAGS];
+    }
+    if (DiscordKeys.SYSTEM in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SYSTEM]] = data[DiscordKeys.SYSTEM];
+    }
+    if (DiscordKeys.USERNAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USERNAME]] = data[DiscordKeys.USERNAME];
+    }
+  }
+
   toString(): string {
     return this.tag;
   }
@@ -296,7 +325,7 @@ export class User extends BaseStructure {
 const keysUserWithToken = new BaseSet<string>([
   ...keysUser,
   DiscordKeys.TOKEN,
-]);
+].sort());
 
 /**
  * User with Token Structure
@@ -316,6 +345,17 @@ export class UserWithToken extends User {
     super(client, undefined, isClone);
     this.merge(data);
   }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.TOKEN in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOKEN]] = data[DiscordKeys.TOKEN];
+    }
+  }
 }
 
 
@@ -329,7 +369,7 @@ const keysUserWithBanner = new BaseSet<string>([
   DiscordKeys.ACCENT_COLOR,
   DiscordKeys.BANNER,
   DiscordKeys.BANNER_COLOR,
-]);
+].sort());
 
 export class UserWithBanner extends User {
   readonly _keys = keysUserWithBanner;
@@ -364,6 +404,23 @@ export class UserWithBanner extends User {
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.BANNER(this.id, hash, format), query);
   }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ACCENT_COLOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ACCENT_COLOR]] = data[DiscordKeys.ACCENT_COLOR];
+    }
+    if (DiscordKeys.BANNER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BANNER]] = data[DiscordKeys.BANNER];
+    }
+    if (DiscordKeys.BANNER_COLOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BANNER_COLOR]] = data[DiscordKeys.BANNER_COLOR];
+    }
+  }
 }
 
 
@@ -371,7 +428,7 @@ const keysUserWithFlags = new BaseSet<string>([
   ...keysUserWithBanner,
   DiscordKeys.BIO,
   DiscordKeys.FLAGS,
-]);
+].sort());
 
 /**
  * User with Flags Structure
@@ -396,6 +453,20 @@ export class UserWithFlags extends UserWithBanner {
   hasFlag(flag: number): boolean {
     return (this.flags & flag) === flag;
   }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.BIO in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BIO]] = data[DiscordKeys.BIO];
+    }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+  }
 }
 
 
@@ -406,7 +477,7 @@ const keysUserExtended = new BaseSet<string>([
   DiscordKeys.MFA_ENABLED,
   DiscordKeys.PREMIUM_TYPE,
   DiscordKeys.VERIFIED,
-]);
+].sort());
 
 /**
  * User Extended Structure
@@ -448,6 +519,29 @@ export class UserExtended extends UserWithFlags {
   hasPremiumType(type: number): boolean {
     return this.premiumType === type;
   }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.EMAIL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EMAIL]] = data[DiscordKeys.EMAIL];
+    }
+    if (DiscordKeys.LOCALE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LOCALE]] = data[DiscordKeys.LOCALE];
+    }
+    if (DiscordKeys.MFA_ENABLED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MFA_ENABLED]] = data[DiscordKeys.MFA_ENABLED];
+    }
+    if (DiscordKeys.PREMIUM_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREMIUM_TYPE]] = data[DiscordKeys.PREMIUM_TYPE];
+    }
+    if (DiscordKeys.VERIFIED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VERIFIED]] = data[DiscordKeys.VERIFIED];
+    }
+  }
 }
 
 
@@ -455,7 +549,7 @@ const keysUserMe = new BaseSet<string>([
   ...keysUserExtended,
   DiscordKeys.ANALYTICS_TOKEN,
   DiscordKeys.PHONE,
-]);
+].sort());
 
 /**
  * User Me Structure
@@ -475,6 +569,20 @@ export class UserMe extends UserExtended {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ANALYTICS_TOKEN in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ANALYTICS_TOKEN]] = data[DiscordKeys.ANALYTICS_TOKEN];
+    }
+    if (DiscordKeys.PHONE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PHONE]] = data[DiscordKeys.PHONE];
+    }
   }
 }
 

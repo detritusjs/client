@@ -3,7 +3,7 @@ import { Endpoints, RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, Permissions } from '../constants';
+import { DetritusKeys, DiscordKeys, Permissions } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -38,18 +38,12 @@ const keysRole = new BaseSet<string>([
   DiscordKeys.UNICODE_EMOJI,
 ]);
 
-const keysMergeRole = new BaseSet<string>([
-  DiscordKeys.ID,
-  DiscordKeys.TAGS,
-]);
-
 /**
  * Guild Role Structure, used in [Guild]
  * @category Structure
  */
 export class Role extends BaseStructure {
   readonly _keys = keysRole;
-  readonly _keysMerge = keysMergeRole;
 
   color: number = 0;
   guildId: string = '';
@@ -61,11 +55,7 @@ export class Role extends BaseStructure {
   name: string = '';
   permissions: bigint = Permissions.NONE;
   position: number = 0;
-  tags: {
-    bot_id: string,
-    integration_id?: string,
-    premium_subscriber?: null,
-  } | null = null;
+  tags: RoleTags | null = null;
   unicodeEmoji: null | string = null;
 
   constructor(
@@ -78,8 +68,8 @@ export class Role extends BaseStructure {
   }
 
   get botId(): null | string {
-    if (this.tags && this.tags.bot_id) {
-      return this.tags.bot_id;
+    if (this.tags && this.tags.botId) {
+      return this.tags.botId;
     }
     return null;
   }
@@ -101,15 +91,15 @@ export class Role extends BaseStructure {
   }
 
   get integrationId(): null | string {
-    if (this.tags && this.tags.integration_id) {
-      return this.tags.integration_id;
+    if (this.tags && this.tags.integrationId) {
+      return this.tags.integrationId;
     }
     return null;
   }
 
   get isBoosterRole(): boolean {
     if (this.tags) {
-      return 'premium_subscriber' in this.tags;
+      return this.tags.premiumSubscriber;
     }
     return false;
   }
@@ -178,7 +168,7 @@ export class Role extends BaseStructure {
 
     let allow = Permissions.NONE, deny = Permissions.NONE;
     if (channel.permissionOverwrites.has(this.id)) {
-      const overwrite = channel.permissionOverwrites.get(this.id) as Overwrite;
+      const overwrite = channel.permissionOverwrites.get(this.id)!;
       allow |= overwrite.allow;
       deny |= overwrite.deny;
     }
@@ -197,19 +187,83 @@ export class Role extends BaseStructure {
     return this.client.rest.editGuildRolePositions(this.guildId, [{id: this.id, position}], options);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.PERMISSIONS: {
-        value = BigInt(value);
-      }; break;
-      case DiscordKeys.TAGS: {
-        value = value || null;
-      }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
-    return super.mergeValue(key, value);
+
+    {
+      // always merge in tags since it might not appear
+      const value = data[DiscordKeys.TAGS];
+      (this as any)[DetritusKeys[DiscordKeys.TAGS]] = (value) ? new RoleTags(this.client, value) : null;
+    }
+
+    if (DiscordKeys.COLOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.COLOR]] = data[DiscordKeys.COLOR];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.HOIST in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HOIST]] = data[DiscordKeys.HOIST];
+    }
+    if (DiscordKeys.ICON in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ICON]] = data[DiscordKeys.ICON];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.MANAGED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MANAGED]] = data[DiscordKeys.MANAGED];
+    }
+    if (DiscordKeys.MENTIONABLE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MENTIONABLE]] = data[DiscordKeys.MENTIONABLE];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.PERMISSIONS in data) {
+      const value = data[DiscordKeys.PERMISSIONS];
+      (this as any)[DetritusKeys[DiscordKeys.PERMISSIONS]] = BigInt(value);
+    }
+    if (DiscordKeys.POSITION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.POSITION]] = data[DiscordKeys.POSITION];
+    }
+    if (DiscordKeys.UNICODE_EMOJI in data) {
+      (this as any)[DetritusKeys[DiscordKeys.UNICODE_EMOJI]] = data[DiscordKeys.UNICODE_EMOJI];
+    }
   }
 
   toString(): string {
     return this.name;
+  }
+}
+
+
+const keysRoleTags = new BaseSet<string>([
+  DiscordKeys.BOT_ID,
+  DiscordKeys.INTEGRATION_ID,
+  DiscordKeys.PREMIUM_SUBSCRIBER,
+]);
+
+/**
+ * Guild Role Tags Structure, used in [Guild]
+ * @category Structure
+ */
+export class RoleTags extends BaseStructure {
+  readonly _keys = keysRoleTags;
+
+  botId?: string;
+  integrationId?: string;
+  premiumSubscriber: boolean = false;
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    (this as any)[DetritusKeys[DiscordKeys.BOT_ID]] = data[DiscordKeys.BOT_ID];
+    (this as any)[DetritusKeys[DiscordKeys.INTEGRATION_ID]] = data[DiscordKeys.INTEGRATION_ID];
+    (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIBER]] = (DiscordKeys.PREMIUM_SUBSCRIBER in data);
   }
 }

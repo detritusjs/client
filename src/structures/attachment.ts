@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, SPOILER_ATTACHMENT_PREFIX } from '../constants';
+import { DetritusKeys, DiscordKeys, SPOILER_ATTACHMENT_PREFIX } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
@@ -180,6 +180,40 @@ export class Attachment extends BaseStructure {
 
   get mimetype(): string {
     return '';
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CONTENT_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONTENT_TYPE]] = data[DiscordKeys.CONTENT_TYPE];
+    }
+    if (DiscordKeys.EPHEMERAL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EPHEMERAL]] = data[DiscordKeys.EPHEMERAL];
+    }
+    if (DiscordKeys.FILENAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FILENAME]] = data[DiscordKeys.FILENAME];
+    }
+    if (DiscordKeys.HEIGHT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HEIGHT]] = data[DiscordKeys.HEIGHT];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.PROXY_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PROXY_URL]] = data[DiscordKeys.PROXY_URL];
+    }
+    if (DiscordKeys.SIZE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SIZE]] = data[DiscordKeys.SIZE];
+    }
+    if (DiscordKeys.URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+    }
+    if (DiscordKeys.WIDTH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.WIDTH]] = data[DiscordKeys.WIDTH];
+    }
   }
 
   toString(): string {

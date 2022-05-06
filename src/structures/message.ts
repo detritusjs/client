@@ -7,6 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  DetritusKeys,
   DiscordKeys,
   DiscordRegex,
   DiscordRegexNames,
@@ -77,17 +78,6 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.WEBHOOK_ID,
 ]);
 
-// we need webhook id before merging the user to make sure not to cache it
-const keysMergeMessage = new BaseSet<string>([
-  DiscordKeys.WEBHOOK_ID,
-  DiscordKeys.AUTHOR,
-  DiscordKeys.CHANNEL_ID,
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.ID,
-  DiscordKeys.MENTIONS,
-  DiscordKeys.TYPE,
-]);
-
 const keysSkipDifferenceMessage = new BaseSet<string>([
   DiscordKeys.AUTHOR,
   DiscordKeys.CHANNEL_ID,
@@ -102,7 +92,6 @@ const keysSkipDifferenceMessage = new BaseSet<string>([
  */
 export class Message extends BaseStructure {
   readonly _keys = keysMessage;
-  readonly _keysMerge = keysMergeMessage;
   readonly _keysSkipDifference = keysSkipDifferenceMessage;
   _content = '';
   _attachments?: BaseCollection<string, Attachment>;
@@ -374,6 +363,7 @@ export class Message extends BaseStructure {
     return emptyBaseCollection;
   }
 
+  // deprecated
   get stickers(): BaseCollection<string, Sticker> {
     if (this._stickers) {
       return this._stickers;
@@ -602,345 +592,408 @@ export class Message extends BaseStructure {
     return [false, null];
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ACTIVITY: {
-          value = new MessageActivity(this, value);
-        }; break;
-        case DiscordKeys.APPLICATION: {
-          let application: Application;
-          if (this.isClone) {
-            application = new Application(this.client, value, this.isClone);
-          } else {
-            // highly unlikely we have this in cache, but might as well check
-            if (this.client.applications.has(value.id)) {
-              application = this.client.applications.get(value.id)!;
-              application.merge(value);
-            } else {
-              application = new Application(this.client, value);
-            }
-          }
-          value = application;
-        }; break;
-        case DiscordKeys.ATTACHMENTS: {
-          if (value.length) {
-            if (!this._attachments) {
-              this._attachments = new BaseCollection<string, Attachment>();
-            }
-            this._attachments.clear();
-            for (let raw of value) {
-              this._attachments.set(raw.id, new Attachment(this.client, raw, this.isClone));
-            }
-          } else {
-            if (this._attachments) {
-              this._attachments.clear();
-              this._attachments = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.AUTHOR: {
-          let user: User;
-          if (this.fromWebhook || this.isClone) {
-            user = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id)!;
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-              this.client.users.insert(user);
-            }
-          }
-          value = user;
-        }; break;
-        case DiscordKeys.CALL: {
-          value = new MessageCall(this, value);
-        }; break;
-        case DiscordKeys.COMPONENTS: {
-          if (value.length) {
-            if (!this._components) {
-              this._components = new BaseCollection<number, ComponentActionRow>();
-            }
-            this._components.clear();
-            for (let i = 0; i < value.length; i++) {
-              this._components.set(i, new ComponentActionRow(this.client, value[i]));
-            }
-          } else {
-            if (this._components) {
-              this._components.clear();
-              this._components = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.CONTENT: {
-          if (this._content) {
-            Object.defineProperty(this, '_content', {
-              value: messageSystemContent(this, value),
-            });
-          }
-        }; break;
-        case DiscordKeys.EDITED_TIMESTAMP: {
-          this.editedTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
-        case DiscordKeys.EMBEDS: {
-          if (value.length) {
-            if (!this._embeds) {
-              this._embeds = new BaseCollection<number, MessageEmbed>();
-            }
-            this._embeds.clear();
-            for (let i = 0; i < value.length; i++) {
-              this._embeds.set(i, new MessageEmbed(this.client, value[i], this.isClone));
-            }
-          } else {
-            if (this._embeds) {
-              this._embeds.clear();
-              this._embeds = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.FLAGS: {
-          this.flags = value;
-          if (this.hasFlagEphemeral) {
-            this.deleted = true;
-          }
-        }; return;
-        case DiscordKeys.INTERACTION: {
-          if (this.interaction) {
-            this.interaction.merge(value);
-          } else {
-            this.interaction = new MessageInteraction(this, value);
-          }
-        }; return;
-        case DiscordKeys.MEMBER: {
-          const guildId = this.guildId!;
-          value.guild_id = guildId;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-          let member: Member;
-          if (this.isClone) {
-            member = new Member(this.client, value, this.isClone);
-            member.user = this.author.clone();
-          } else {
-            if (this.client.members.has(guildId, this.author.id)) {
-              member = this.client.members.get(guildId, this.author.id)!;
-              // should we merge? this event is so common so we'll be wasting resources..
-            } else {
-              member = new Member(this.client, value);
-              member.user = this.author.clone();
-              this.client.members.insert(member);
-            }
-          }
-          value = member;
-        }; break;
-        case DiscordKeys.MENTIONS: {
-          if (value.length) {
-            if (!this._mentions) {
-              this._mentions = new BaseCollection<string, Member | User>();
-            }
-            this._mentions.clear();
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    // we need this before content to format it
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    // we need webhook id before merging the author to make sure not to cache it
+    if (DiscordKeys.WEBHOOK_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.WEBHOOK_ID]] = data[DiscordKeys.WEBHOOK_ID];
+    }
 
-            const guildId = this.guildId!;
-            for (let raw of value) {
-              if (raw.user) {
-                // we just cloned the message object so we got the full member object
-                // {...memberWithUser}
-                const member = new Member(this.client, raw);
-                this._mentions.set(member.id, member);
-              } else if (raw.member) {
-                // member object exists in the mention (is from a guild message create)
-                // {member: {memberWithoutUser}, ...user}
-                raw.member.guild_id = guildId;
+    // do not put webhook user into cache since the username can change per-message
+    if (DiscordKeys.AUTHOR in data) {
+      const value = data[DiscordKeys.AUTHOR];
 
-                let member: Member;
-                if (this.isClone) {
-                  member = new Member(this.client, raw.member, this.isClone);
-                  member.merge({user: raw});
-                } else {
-                  if (this.client.members.has(guildId, raw.id)) {
-                    member = this.client.members.get(guildId, raw.id)!;
-                    // should we merge?
-                  } else {
-                    member = new Member(this.client, raw.member);
-                    member.merge({user: raw});
-                    this.client.members.insert(member);
-                  }
-                }
-                this._mentions.set(member.id, member);
-              } else {
-                // {...user}
-                // check our member cache and try to fill the member object (could've gotten the message object from rest)
-                if (this.isClone) {
-                  if (guildId && this.client.members.has(guildId, raw.id)) {
-                    const member = this.client.members.get(guildId, raw.id)!.clone();
-                    member.merge({user: raw});
-                    this._mentions.set(member.id, member);
-                  } else {
-                    const user = new User(this.client, raw, this.isClone);
-                    this._mentions.set(user.id, user);
-                  }
-                } else {
-                  // try and get object from cache and update it
-                  if (guildId && this.client.members.has(guildId, raw.id)) {
-                    const member = this.client.members.get(guildId, raw.id)!;
-                    member.merge({user: raw});
-                    this._mentions.set(member.id, member);
-                  } else {
-                    let user: User;
-                    if (this.client.users.has(raw.id)) {
-                      user = this.client.users.get(raw.id)!;
-                      user.merge(raw);
-                    } else {
-                      user = new User(this.client, raw);
-                      this.client.users.insert(user);
-                    }
-                    this._mentions.set(user.id, user);
-                  }
-                }
-              }
-            }
-          } else {
-            if (this._mentions) {
-              this._mentions.clear();
-              this._mentions = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.MENTION_CHANNELS: {
-          if (value.length) {
-            if (!this._mentionChannels) {
-              this._mentionChannels = new BaseCollection<string, Channel>();
-            }
-            this._mentionChannels.clear();
-            for (let raw of value) {
-              let channel: Channel;
-              if (this.isClone) {
-                channel = createChannelFromData(this.client, raw, this.isClone);
-              } else {
-                if (this.client.channels.has(raw.id)) {
-                  channel = this.client.channels.get(raw.id)!;
-                  channel.merge(raw);
-                } else {
-                  raw.is_partial = true;
-                  channel = createChannelFromData(this.client, raw);
-                }
-              }
-              this._mentionChannels.set(channel.id, channel);
-            }
-          } else {
-            if (this._mentionChannels) {
-              this._mentionChannels.clear();
-              this._mentionChannels = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.MENTION_ROLES: {
-          if (value.length) {
-            if (!this._mentionRoles) {
-              this._mentionRoles = new BaseCollection<string, null | Role>();
-            }
-            this._mentionRoles.clear();
-
-            const guild = this.guild;
-            for (let roleId of value) {
-              this._mentionRoles.set(roleId, (guild) ? guild.roles.get(roleId) || null : null);
-            }
-          } else {
-            if (this._mentionRoles) {
-              this._mentionRoles.clear();
-              this._mentionRoles = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.MESSAGE_REFERENCE: {
-          value = new MessageReference(this, value);
-        }; break;
-        case DiscordKeys.REACTIONS: {
-          if (value.length) {
-            if (!this._reactions) {
-              this._reactions = new BaseCollection<string, Reaction>();
-            }
-            this._reactions.clear();
-            for (let raw of value) {
-              raw.channel_id = this.channelId;
-              raw.guild_id = this.guildId;
-              raw.message_id = this.id;
-
-              const emojiId = raw.emoji.id || raw.emoji.name;
-              this.reactions.set(emojiId, new Reaction(this.client, raw));
-            }
-          } else {
-            if (this._reactions) {
-              this._reactions.clear();
-              this._reactions = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.REFERENCED_MESSAGE: {
-          if (value) {
-            let message: Message;
-            if (this.isClone) {
-              message = new Message(this.client, value, this.isClone);
-            } else {
-              if (this.client.messages.has(value.id)) {
-                message = this.client.messages.get(value.id)!;
-                message.merge(value);
-              } else {
-                message = new Message(this.client, value);
-              }
-            }
-            value = message;
-          }
-        }; break;
-        case DiscordKeys.STICKERS: {
-          if (value.length) {
-            if (!this._stickers) {
-              this._stickers = new BaseCollection<string, Sticker>();
-            }
-            this._stickers.clear();
-            for (let raw of value) {
-              const guildId = raw.guild_id;
-
-              let sticker: Sticker;
-              if (guildId && this.client.stickers.has(guildId, raw.id)) {
-                sticker = this.client.stickers.get(guildId, raw.id)!;
-                sticker.merge(raw);
-              } else {
-                sticker = new Sticker(this.client, raw);
-              }
-              this.stickers.set(sticker.id, sticker);
-            }
-          } else {
-            if (this._stickers) {
-              this._stickers.clear();
-              this._stickers = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.STICKER_ITEMS: {
-          if (value.length) {
-            if (!this._stickerItems) {
-              this._stickerItems = new BaseCollection<string, StickerItem>();
-            }
-            this._stickerItems.clear();
-            for (let raw of value) {
-              const sticker = new StickerItem(this.client, raw);
-              this.stickerItems.set(sticker.id, sticker);
-            }
-          } else {
-            if (this._stickerItems) {
-              this._stickerItems.clear();
-              this._stickerItems = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.TIMESTAMP: {
-          this.timestampUnix = (new Date(value)).getTime();
-        }; return;
-        case DiscordKeys.THREAD: {
-          value = createChannelFromData(this.client, value);
-        }; break;
+      let user: User;
+      if (this.fromWebhook || this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id)!;
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+          this.client.users.insert(user);
+        }
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.AUTHOR]] = user;
+    }
+    // we need mentions and author before content to format it
+    if (DiscordKeys.MENTIONS in data) {
+      const value = data[DiscordKeys.AUTHOR];
+
+      if (value.length) {
+        if (!this._mentions) {
+          this._mentions = new BaseCollection<string, Member | User>();
+        }
+        this._mentions.clear();
+
+        const guildId = this.guildId!;
+        for (let raw of value) {
+          if (raw.user) {
+            // we just cloned the message object so we got the full member object
+            // {...memberWithUser}
+            const member = new Member(this.client, raw);
+            this._mentions.set(member.id, member);
+          } else if (raw.member) {
+            // member object exists in the mention (is from a guild message create)
+            // {member: {memberWithoutUser}, ...user}
+            raw.member[DiscordKeys.GUILD_ID] = guildId;
+
+            let member: Member;
+            if (this.isClone) {
+              member = new Member(this.client, raw.member, this.isClone);
+              member.merge({user: raw});
+            } else {
+              if (this.client.members.has(guildId, raw.id)) {
+                member = this.client.members.get(guildId, raw.id)!;
+                // should we merge?
+              } else {
+                member = new Member(this.client, raw.member);
+                member.merge({user: raw});
+                this.client.members.insert(member);
+              }
+            }
+            this._mentions.set(member.id, member);
+          } else {
+            // {...user}
+            // check our member cache and try to fill the member object (could've gotten the message object from rest)
+            if (this.isClone) {
+              if (guildId && this.client.members.has(guildId, raw.id)) {
+                const member = this.client.members.get(guildId, raw.id)!.clone();
+                member.merge({user: raw});
+                this._mentions.set(member.id, member);
+              } else {
+                const user = new User(this.client, raw, this.isClone);
+                this._mentions.set(user.id, user);
+              }
+            } else {
+              // try and get object from cache and update it
+              if (guildId && this.client.members.has(guildId, raw.id)) {
+                const member = this.client.members.get(guildId, raw.id)!;
+                member.merge({user: raw});
+                this._mentions.set(member.id, member);
+              } else {
+                let user: User;
+                if (this.client.users.has(raw.id)) {
+                  user = this.client.users.get(raw.id)!;
+                  user.merge(raw);
+                } else {
+                  user = new User(this.client, raw);
+                  this.client.users.insert(user);
+                }
+                this._mentions.set(user.id, user);
+              }
+            }
+          }
+        }
+      } else {
+        if (this._mentions) {
+          this._mentions.clear();
+          this._mentions = undefined;
+        }
+      }
+    }
+
+
+    if (DiscordKeys.ACTIVITY in data) {
+      const value = data[DiscordKeys.ACTIVITY];
+      (this as any)[DetritusKeys[DiscordKeys.ACTIVITY]] = new MessageActivity(this, value);
+    }
+    if (DiscordKeys.APPLICATION in data) {
+      const value = data[DiscordKeys.APPLICATION];
+
+      let application: Application;
+      if (this.isClone) {
+        application = new Application(this.client, value, this.isClone);
+      } else {
+        // highly unlikely we have this in cache, but might as well check
+        if (this.client.applications.has(value.id)) {
+          application = this.client.applications.get(value.id)!;
+          application.merge(value);
+        } else {
+          application = new Application(this.client, value);
+        }
+      }
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION]] = application;
+    }
+    if (DiscordKeys.ATTACHMENTS in data) {
+      const value = data[DiscordKeys.ATTACHMENTS];
+      if (value.length) {
+        if (!this._attachments) {
+          this._attachments = new BaseCollection<string, Attachment>();
+        }
+        this._attachments.clear();
+        for (let raw of value) {
+          this._attachments.set(raw.id, new Attachment(this.client, raw, this.isClone));
+        }
+      } else {
+        if (this._attachments) {
+          this._attachments.clear();
+          this._attachments = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.CALL in data) {
+      const value = data[DiscordKeys.CALL];
+      (this as any)[DetritusKeys[DiscordKeys.CALL]] = new MessageCall(this, value);
+    }
+    if (DiscordKeys.COMPONENTS in data) {
+      const value = data[DiscordKeys.COMPONENTS];
+      if (value.length) {
+        if (!this._components) {
+          this._components = new BaseCollection<number, ComponentActionRow>();
+        }
+        this._components.clear();
+        for (let i = 0; i < value.length; i++) {
+          this._components.set(i, new ComponentActionRow(this.client, value[i]));
+        }
+      } else {
+        if (this._components) {
+          this._components.clear();
+          this._components = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.CONTENT in data) {
+      // _content is only set if its a system message, dunno if we ever receive content updates for those
+      if (this._content) {
+        Object.defineProperty(this, '_content', {
+          value: messageSystemContent(this, data[DiscordKeys.CONTENT]),
+        });
+      }
+      (this as any)[DetritusKeys[DiscordKeys.CONTENT]] = data[DiscordKeys.CONTENT];
+    }
+    if (DiscordKeys.EDITED_TIMESTAMP in data) {
+      const value = data[DiscordKeys.EDITED_TIMESTAMP];
+      this.editedTimestampUnix = (value) ? Date.parse(value) : 0;
+    }
+    if (DiscordKeys.EMBEDS in data) {
+      const value = data[DiscordKeys.EMBEDS];
+      if (value.length) {
+        if (!this._embeds) {
+          this._embeds = new BaseCollection<number, MessageEmbed>();
+        }
+        this._embeds.clear();
+        for (let i = 0; i < value.length; i++) {
+          this._embeds.set(i, new MessageEmbed(this.client, value[i], this.isClone));
+        }
+      } else {
+        if (this._embeds) {
+          this._embeds.clear();
+          this._embeds = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+      if (this.hasFlagEphemeral) {
+        // set ephemeral messages to always deleted since we cant delete them nor will we ever know
+        this.deleted = true;
+      }
+    }
+    if (DiscordKeys.INTERACTION in data) {
+      const value = data[DiscordKeys.INTERACTION];
+      if (this.interaction) {
+        this.interaction.merge(value);
+      } else {
+        this.interaction = new MessageInteraction(this, value);
+      }
+    }
+    if (DiscordKeys.MEMBER in data) {
+      const value = data[DiscordKeys.MEMBER];
+  
+      const guildId = this.guildId!;
+      value[DiscordKeys.GUILD_ID] = guildId;
+
+      let member: Member;
+      if (this.isClone) {
+        member = new Member(this.client, value, this.isClone);
+        member.user = this.author.clone();
+      } else {
+        if (this.client.members.has(guildId, this.author.id)) {
+          member = this.client.members.get(guildId, this.author.id)!;
+          // should we merge? this event is so common so we'll be wasting resources..
+        } else {
+          member = new Member(this.client, value);
+          member.user = this.author.clone();
+          this.client.members.insert(member);
+        }
+      }
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
+    }
+    if (DiscordKeys.MENTION_CHANNELS in data) {
+      const value = data[DiscordKeys.MENTION_CHANNELS];
+      if (value.length) {
+        if (!this._mentionChannels) {
+          this._mentionChannels = new BaseCollection<string, Channel>();
+        }
+        this._mentionChannels.clear();
+        for (let raw of value) {
+          let channel: Channel;
+          if (this.isClone) {
+            channel = createChannelFromData(this.client, raw, this.isClone);
+          } else {
+            if (this.client.channels.has(raw.id)) {
+              channel = this.client.channels.get(raw.id)!;
+              channel.merge(raw);
+            } else {
+              raw[DiscordKeys.IS_PARTIAL] = true;
+              channel = createChannelFromData(this.client, raw);
+            }
+          }
+          this._mentionChannels.set(channel.id, channel);
+        }
+      } else {
+        if (this._mentionChannels) {
+          this._mentionChannels.clear();
+          this._mentionChannels = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.MENTION_EVERYONE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MENTION_EVERYONE]] = data[DiscordKeys.MENTION_EVERYONE];
+    }
+    if (DiscordKeys.MENTION_ROLES in data) {
+      const value = data[DiscordKeys.MENTION_ROLES];
+      if (value.length) {
+        if (!this._mentionRoles) {
+          this._mentionRoles = new BaseCollection<string, null | Role>();
+        }
+        this._mentionRoles.clear();
+
+        const guild = this.guild;
+        for (let roleId of value) {
+          this._mentionRoles.set(roleId, (guild) ? guild.roles.get(roleId) || null : null);
+        }
+      } else {
+        if (this._mentionRoles) {
+          this._mentionRoles.clear();
+          this._mentionRoles = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.MESSAGE_REFERENCE in data) {
+      const value = data[DiscordKeys.MESSAGE_REFERENCE];
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE_REFERENCE]] = new MessageReference(this, value);
+    }
+    if (DiscordKeys.NONCE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NONCE]] = data[DiscordKeys.NONCE];
+    }
+    if (DiscordKeys.PINNED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PINNED]] = data[DiscordKeys.PINNED];
+    }
+    if (DiscordKeys.REACTIONS in data) {
+      const value = data[DiscordKeys.REACTIONS];
+      if (value.length) {
+        if (!this._reactions) {
+          this._reactions = new BaseCollection<string, Reaction>();
+        }
+        this._reactions.clear();
+        for (let raw of value) {
+          raw.channel_id = this.channelId;
+          raw.guild_id = this.guildId;
+          raw.message_id = this.id;
+
+          const emojiId = raw.emoji.id || raw.emoji.name;
+          this.reactions.set(emojiId, new Reaction(this.client, raw));
+        }
+      } else {
+        if (this._reactions) {
+          this._reactions.clear();
+          this._reactions = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.REFERENCED_MESSAGE in data) {
+      const value = data[DiscordKeys.REFERENCED_MESSAGE];
+      if (value) {
+        let message: Message;
+        if (this.isClone) {
+          message = new Message(this.client, value, this.isClone);
+        } else {
+          if (this.client.messages.has(value.id)) {
+            message = this.client.messages.get(value.id)!;
+            message.merge(value);
+          } else {
+            message = new Message(this.client, value);
+          }
+        }
+        (this as any)[DetritusKeys[DiscordKeys.REFERENCED_MESSAGE]] = message;
+      } else {
+        (this as any)[DetritusKeys[DiscordKeys.REFERENCED_MESSAGE]] = value;
+      }
+    }
+    if (DiscordKeys.STICKERS in data) {
+      const value = data[DiscordKeys.STICKERS];
+      if (value.length) {
+        if (!this._stickers) {
+          this._stickers = new BaseCollection<string, Sticker>();
+        }
+        this._stickers.clear();
+        for (let raw of value) {
+          const guildId = raw.guild_id;
+
+          let sticker: Sticker;
+          if (guildId && this.client.stickers.has(guildId, raw.id)) {
+            sticker = this.client.stickers.get(guildId, raw.id)!;
+            sticker.merge(raw);
+          } else {
+            sticker = new Sticker(this.client, raw);
+          }
+          this.stickers.set(sticker.id, sticker);
+        }
+      } else {
+        if (this._stickers) {
+          this._stickers.clear();
+          this._stickers = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.STICKER_ITEMS in data) {
+      const value = data[DiscordKeys.STICKER_ITEMS];
+      if (value.length) {
+        if (!this._stickerItems) {
+          this._stickerItems = new BaseCollection<string, StickerItem>();
+        }
+        this._stickerItems.clear();
+        for (let raw of value) {
+          const sticker = new StickerItem(this.client, raw);
+          this.stickerItems.set(sticker.id, sticker);
+        }
+      } else {
+        if (this._stickerItems) {
+          this._stickerItems.clear();
+          this._stickerItems = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.THREAD in data) {
+      // maybe put it in cache?
+      const channel = createChannelFromData(this.client, data[DiscordKeys.THREAD]);
+      (this as any)[DetritusKeys[DiscordKeys.THREAD]] = channel;
+    }
+    if (DiscordKeys.TIMESTAMP in data) {
+      const value = data[DiscordKeys.TIMESTAMP];
+      this.timestampUnix = Date.parse(value);
+    }
+    if (DiscordKeys.TTS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TTS]] = data[DiscordKeys.TTS];
     }
   }
 
@@ -1004,6 +1057,25 @@ export class MessageActivity extends BaseStructure {
     }
     return group;
   }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.COVER_IMAGE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.COVER_IMAGE]] = data[DiscordKeys.COVER_IMAGE];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.PARTY_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PARTY_ID]] = data[DiscordKeys.PARTY_ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+  }
 }
 
 
@@ -1022,7 +1094,7 @@ export class MessageCall extends BaseStructure {
   readonly _keys = keysMessageCall;
   readonly message: Message;
 
-  endedTimestamp: Date | null = null;
+  endedTimestampUnix: number = 0;
   participants: Array<string> = [];
 
   constructor(message: Message, data: BaseStructureData) {
@@ -1033,26 +1105,35 @@ export class MessageCall extends BaseStructure {
   }
 
   get duration(): number {
-    if (this.endedTimestamp) {
-      return Math.max(Date.now() - this.endedTimestamp.getTime(), 0);
+    if (this.endedTimestampUnix) {
+      // i dont think this is correct, maybe base it off message creation
+      return Math.max(Date.now() - this.endedTimestampUnix, 0);
     }
     return 0;
   }
 
-  get isEnded(): boolean {
-    return !!this.endedTimestamp;
+  get endedTimestamp(): Date | null {
+    if (this.endedTimestampUnix) {
+      return new Date(this.endedTimestampUnix);
+    }
+    return null;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case 'ended_timestamp': {
-          if (value) {
-            value = new Date(value);
-          }
-        }; break;
-      }
-      return super.mergeValue(key, value);
+  get isEnded(): boolean {
+    return !!this.endedTimestampUnix;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ENDED_TIMESTAMP in data) {
+      const value = data[DiscordKeys.ENDED_TIMESTAMP];
+      this.endedTimestampUnix = (value) ? Date.parse(value) : 0;
+    }
+    if (DiscordKeys.PARTICIPANTS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PARTICIPANTS]] = data[DiscordKeys.PARTICIPANTS];
     }
   }
 }
@@ -1086,22 +1167,32 @@ export class MessageInteraction extends BaseStructure {
     Object.defineProperty(this, 'message', {enumerable: false});
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.client.users.has(value.id)) {
-            user = this.client.users.get(value.id)!;
-            user.merge(value);
-          } else {
-            user = new User(this.client, value);
-            this.client.users.insert(user);
-          }
-          value = user;
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.client.users.has(value.id)) {
+        user = this.client.users.get(value.id)!;
+        user.merge(value);
+      } else {
+        user = new User(this.client, value);
+        this.client.users.insert(user);
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
   }
 }
@@ -1156,6 +1247,22 @@ export class MessageReference extends BaseStructure {
       return this.client.messages.get(this.messageId) || null;
     }
     return null;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE_ID]] = data[DiscordKeys.MESSAGE_ID];
+    }
   }
 }
 

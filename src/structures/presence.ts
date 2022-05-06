@@ -8,6 +8,7 @@ import {
   ActivityFlags,
   ActivityPlatformTypes,
   ActivityTypes,
+  DetritusKeys,
   DiscordKeys,
   PlatformTypes,
   PresenceStatuses,
@@ -216,117 +217,133 @@ export class Presence extends BaseStructure {
     }
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ACTIVITIES: {
-          const guildId = this.lastGuildId;
-          if (this._activities) {
-            for (let [activityId, activity] of this._activities) {
-              activity._deleteGuildId(guildId);
-            }
-          }
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-          let isNew = false;
-          if (value.length) {
-            if (!this._activities) {
-              this._activities = new BaseCollection<string, PresenceActivity>();
-              isNew = true;
-            }
-            for (let position = 0; position < value.length; position++) {
-              const raw = value[position];
-              raw.position = position;
+    {
+      // merge in guild id first
+      const value = data[DiscordKeys.GUILD_ID] || LOCAL_GUILD_ID;
+      this.lastGuildId = value;
 
-              if (this.isClone) {
-                const activity = new PresenceActivity(this.user, raw);
-                this._activities.set(activity.id, activity);
-              } else {
-                if (this._activities.has(raw.id)) {
-                  const activity = this._activities.get(raw.id) as PresenceActivity;
-                  activity.merge(raw);
-                } else {
-                  const activity = new PresenceActivity(this.user, raw);
-                  this._activities.set(activity.id, activity);
-                }
-              }
-            }
-          }
-
-          if (this._activities && !isNew) {
-            for (let [activityId, activity] of this._activities) {
-              if (activity._shouldDelete) {
-                this._activities.delete(activityId);
-              }
-            }
-            if (!this._activities.length) {
-              this._activities = undefined;
-            }
-          }
-        }; return;
-        case DiscordKeys.CLIENT_STATUS: {
-          if (value && !Object.keys(value).length) {
-            value = undefined;
-          }
-          this.clientStatus = value;
-        }; return;
-        case DiscordKeys.GAME: {
-          // itll always be in the activities array
-        }; return;
-        case DiscordKeys.GUILD_ID: {
-          value = value || LOCAL_GUILD_ID;
-          this.lastGuildId = value;
-
-          // _guildIds will be a string (if its a single guild) or a set (if the presence is for multiple guilds)
-          if (typeof(this._guildIds) === 'string') {
-            if (this._guildIds) {
-              this._guildIds = new BaseSet<string>([this._guildIds, value]);
-            } else {
-              this._guildIds = value;
-            }
-          } else {
-            this._guildIds.add(value);
-          }
-        }; return;
-        case DiscordKeys.GUILD_IDS: {
-          // we just cloned
-          if (value.length) {
-            this._guildIds = new BaseSet<string>(value);
-          } else {
-            this._guildIds = '';
-          }
-        }; return;
-        case DiscordKeys.LAST_MODIFIED: {
-          if (value) {
-            value = parseInt(value);
-          }
-        }; break;
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.isClone) {
-            if (this.user) {
-              user = this.user.clone();
-              user.merge(value);
-            } else {
-              user = new User(this.client, value, this.isClone);
-            }
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id) as User;
-              user.merge(value);
-            } else {
-              if (this.user) {
-                user = this.user;
-                user.merge(value);
-              } else {
-                user = new User(this.client, value);
-                this.client.users.insert(user);
-              }
-            }
-          }
-          value = user;
-        }; break;
+      // _guildIds will be a string (if its a single guild) or a set (if the presence is for multiple guilds)
+      if (typeof(this._guildIds) === 'string') {
+        if (this._guildIds) {
+          this._guildIds = new BaseSet<string>([this._guildIds, value]);
+        } else {
+          this._guildIds = value;
+        }
+      } else {
+        this._guildIds.add(value);
       }
-      super.mergeValue(key, value);
+    }
+
+    // merge user for activities
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.isClone) {
+        if (this.user) {
+          user = this.user.clone();
+          user.merge(value);
+        } else {
+          user = new User(this.client, value, this.isClone);
+        }
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id)!;
+          user.merge(value);
+        } else {
+          if (this.user) {
+            user = this.user;
+            user.merge(value);
+          } else {
+            user = new User(this.client, value);
+            this.client.users.insert(user);
+          }
+        }
+      }
+
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
+    }
+
+    if (DiscordKeys.ACTIVITIES in data) {
+      const value = data[DiscordKeys.ACTIVITIES];
+
+      const guildId = this.lastGuildId;
+      if (this._activities) {
+        for (let [activityId, activity] of this._activities) {
+          activity._deleteGuildId(guildId);
+        }
+      }
+
+      let isNew = false;
+      if (value.length) {
+        if (!this._activities) {
+          this._activities = new BaseCollection<string, PresenceActivity>();
+          isNew = true;
+        }
+        for (let position = 0; position < value.length; position++) {
+          const raw = value[position];
+          raw.position = position;
+
+          if (this.isClone) {
+            const activity = new PresenceActivity(this.user, raw);
+            this._activities.set(activity.id, activity);
+          } else {
+            if (this._activities.has(raw.id)) {
+              const activity = this._activities.get(raw.id) as PresenceActivity;
+              activity.merge(raw);
+            } else {
+              const activity = new PresenceActivity(this.user, raw);
+              this._activities.set(activity.id, activity);
+            }
+          }
+        }
+      }
+
+      if (this._activities && !isNew) {
+        for (let [activityId, activity] of this._activities) {
+          if (activity._shouldDelete) {
+            this._activities.delete(activityId);
+          }
+        }
+        if (!this._activities.length) {
+          this._activities = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.CLIENT_STATUS in data) {
+      let value = data[DiscordKeys.CLIENT_STATUS];
+      if (value && !Object.keys(value).length) {
+        value = undefined;
+      }
+      (this as any)[DetritusKeys[DiscordKeys.CLIENT_STATUS]] = value;
+    }
+    if (DiscordKeys.GAME in data) {
+      // itll always be in the activities array
+    }
+    if (DiscordKeys.GUILD_IDS in data) {
+      // we just cloned
+      const value = data[DiscordKeys.GUILD_ID];
+      if (value.length) {
+        if (value.length === 1) {
+          this._guildIds = value[0];
+        } else {
+          this._guildIds = new BaseSet<string>(value);
+        }
+      } else {
+        this._guildIds = '';
+      }
+    }
+    if (DiscordKeys.LAST_MODIFIED in data) {
+      const value = data[DiscordKeys.LAST_MODIFIED];
+      (this as any)[DetritusKeys[DiscordKeys.LAST_MODIFIED]] = (value) ? parseInt(value) : value;
+    }
+    if (DiscordKeys.STATUS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.STATUS]] = data[DiscordKeys.STATUS];
     }
   }
 
@@ -684,63 +701,98 @@ export class PresenceActivity extends BaseStructure {
     }
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.GUILD_ID: {
-        value = value || LOCAL_GUILD_ID;
-        if (typeof(this._guildIds) === 'string') {
-          if (this._guildIds) {
-            this._guildIds = new BaseSet<string>([this._guildIds, value]);
-          } else {
-            this._guildIds = value;
-          }
-        } else {
-          this._guildIds.add(value);
-        }
-      }; return;
-      case DiscordKeys.GUILD_IDS: {
-        if (value.length) {
-          this._guildIds = new BaseSet<string>(value);
-        } else {
-          this._guildIds = '';
-        }
-      }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
-    if (value !== undefined && value !== null) {
-      // just replace our objects since they're of new values
-      if (typeof(value) === 'object') {
-        if (Object.keys(value).length) {
-          switch (key) {
-            case DiscordKeys.ASSETS: {
-              if (this.assets) {
-                this.assets.merge(value);
-              } else {
-                this.assets = new PresenceActivityAssets(this, value);
-              }
-            }; return;
-            case DiscordKeys.EMOJI: {
-              // reason is that `name` can be spoofed here
-              if (this.emoji) {
-                this.emoji.merge(value);
-              } else {
-                this.emoji = new Emoji(this.client, value);
-              }
-            }; return;
-            case DiscordKeys.TIMESTAMPS: {
-              if (this.timestamps) {
-                this.timestamps.merge(value);
-              } else {
-                this.timestamps = new PresenceActivityTimestamps(this, value);
-              }
-            }; return;
-          }
+
+    {
+      const value = data[DiscordKeys.GUILD_ID] || LOCAL_GUILD_ID;
+      if (typeof(this._guildIds) === 'string') {
+        if (this._guildIds) {
+          this._guildIds = new BaseSet<string>([this._guildIds, value]);
         } else {
-          value = undefined;
+          this._guildIds = value;
         }
-        return this._setFromSnake(key, value);
+      } else {
+        this._guildIds.add(value);
       }
     }
-    return super.mergeValue(key, value);
+
+
+    (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    (this as any)[DetritusKeys[DiscordKeys.BUTTONS]] = data[DiscordKeys.BUTTONS];
+    (this as any)[DetritusKeys[DiscordKeys.CREATED_AT]] = data[DiscordKeys.CREATED_AT];
+    (this as any)[DetritusKeys[DiscordKeys.DETAILS]] = data[DiscordKeys.DETAILS];
+    if (DiscordKeys.GUILD_IDS in data) {
+      const value = data[DiscordKeys.GUILD_IDS];
+      if (value.length) {
+        if (value.length === 1) {
+          this._guildIds = value[0];
+        } else {
+          this._guildIds = new BaseSet<string>(value);
+        }
+      } else {
+        this._guildIds = '';
+      }
+    }
+    (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    (this as any)[DetritusKeys[DiscordKeys.INSTANCE]] = data[DiscordKeys.INSTANCE];
+    (this as any)[DetritusKeys[DiscordKeys.METADATA]] = data[DiscordKeys.METADATA];
+    (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    (this as any)[DetritusKeys[DiscordKeys.PARTY]] = data[DiscordKeys.PARTY];
+    (this as any)[DetritusKeys[DiscordKeys.PLATFORM]] = data[DiscordKeys.PLATFORM];
+    (this as any)[DetritusKeys[DiscordKeys.POSITION]] = data[DiscordKeys.POSITION];
+    (this as any)[DetritusKeys[DiscordKeys.SECRETS]] = data[DiscordKeys.SECRETS];
+    (this as any)[DetritusKeys[DiscordKeys.SESSION_ID]] = data[DiscordKeys.SESSION_ID];
+    (this as any)[DetritusKeys[DiscordKeys.STATE]] = data[DiscordKeys.STATE];
+    (this as any)[DetritusKeys[DiscordKeys.SYNC_ID]] = data[DiscordKeys.SYNC_ID];
+    (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+
+    {
+      const value = data[DiscordKeys.ASSETS];
+
+      let assets: PresenceActivityAssets | undefined;
+      if (value && Object.keys(value).length) {
+        if (this.assets) {
+          assets = this.assets;
+          assets.merge(value);
+        } else {
+          assets = new PresenceActivityAssets(this, value)
+        }
+      }
+      (this as any)[DetritusKeys[DiscordKeys.ASSETS]] = assets;
+    }
+    {
+      const value = data[DiscordKeys.EMOJI];
+
+      let emoji: Emoji | undefined;
+      if (value && Object.keys(value).length) {
+        if (this.emoji) {
+          emoji = this.emoji;
+          emoji.merge(value);
+        } else {
+          // do not use our cache since `name` can be spoofed
+          emoji = new Emoji(this.client, value)
+        }
+      }
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI]] = emoji;
+    }
+    {
+      const value = data[DiscordKeys.TIMESTAMPS];
+
+      let timestamps: PresenceActivityTimestamps | undefined;
+      if (value && Object.keys(value).length) {
+        if (this.timestamps) {
+          timestamps = this.timestamps;
+          timestamps.merge(value);
+        } else {
+          timestamps = new PresenceActivityTimestamps(this, value)
+        }
+      }
+      (this as any)[DetritusKeys[DiscordKeys.TIMESTAMPS]] = timestamps;
+    }
   }
 
   toString(): string {
@@ -756,8 +808,6 @@ const keysPresenceActivityAssets = new BaseSet<string>([
   DiscordKeys.SMALL_TEXT,
 ]);
 
-const keysMergePresenceActivityAssets = keysPresenceActivityAssets;
-
 /**
  * Presence Activity Assets Structure, used in [PresenceActivity]
  * @category Structure
@@ -765,7 +815,6 @@ const keysMergePresenceActivityAssets = keysPresenceActivityAssets;
 export class PresenceActivityAssets extends BaseStructure {
   readonly _uncloneable = true;
   readonly _keys = keysPresenceActivityAssets;
-  readonly _keysMerge = keysMergePresenceActivityAssets;
   readonly activity: PresenceActivity;
 
   largeImage?: string;
@@ -856,8 +905,15 @@ export class PresenceActivityAssets extends BaseStructure {
     return this.imageUrlFormat(format, query, this.smallImage || null);
   }
 
-  mergeValue(key: string, value: any): void {
-    return this._setFromSnake(key, value);
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    (this as any)[DetritusKeys[DiscordKeys.LARGE_IMAGE]] = data[DiscordKeys.LARGE_IMAGE];
+    (this as any)[DetritusKeys[DiscordKeys.LARGE_TEXT]] = data[DiscordKeys.LARGE_TEXT];
+    (this as any)[DetritusKeys[DiscordKeys.SMALL_IMAGE]] = data[DiscordKeys.SMALL_IMAGE];
+    (this as any)[DetritusKeys[DiscordKeys.SMALL_TEXT]] = data[DiscordKeys.SMALL_TEXT];
   }
 }
 
@@ -868,8 +924,6 @@ const keysPresenceActivityTimestamps = new BaseSet<string>([
   DiscordKeys.START,
 ]);
 
-const keysMergePresenceActivityTimestamps = keysPresenceActivityTimestamps;
-
 /**
  * Presence Activity Timestamp Structure
  * used to describe when they started doing an activity and if they ended it or not
@@ -878,7 +932,6 @@ const keysMergePresenceActivityTimestamps = keysPresenceActivityTimestamps;
 export class PresenceActivityTimestamps extends BaseStructure {
   readonly _uncloneable = true;
   readonly _keys = keysPresenceActivityTimestamps;
-  readonly _keysMerge = keysMergePresenceActivityTimestamps;
   readonly activity: PresenceActivity;
 
   end?: number = 0;
@@ -915,7 +968,12 @@ export class PresenceActivityTimestamps extends BaseStructure {
     return 0;
   }
 
-  mergeValue(key: string, value: any): void {
-    return this._setFromSnake(key, value);
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    (this as any)[DetritusKeys[DiscordKeys.END]] = data[DiscordKeys.END];
+    (this as any)[DetritusKeys[DiscordKeys.START]] = data[DiscordKeys.START];
   }
 }

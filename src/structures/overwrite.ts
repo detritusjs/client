@@ -1,7 +1,12 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, OverwriteTypes, Permissions } from '../constants';
+import {
+  DetritusKeys,
+  DiscordKeys,
+  OverwriteTypes,
+  Permissions,
+} from '../constants';
 import { PermissionTools } from '../utils';
 
 import {
@@ -98,15 +103,22 @@ export class Overwrite extends BaseStructure {
     });
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ALLOW:
-        case DiscordKeys.DENY: {
-          value = BigInt(value);
-        }; break;
-      }
-      return super.mergeValue(key, value);
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ALLOW in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ALLOW]] = BigInt(data[DiscordKeys.ALLOW]);
+    }
+    if (DiscordKeys.DENY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DENY]] = BigInt(data[DiscordKeys.DENY]);
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
   }
 }

@@ -2,7 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -24,10 +24,6 @@ const keysReaction = new BaseSet<string>([
   DiscordKeys.ME,
 ]);
 
-const keysMergeReaction = new BaseSet<string>([
-  DiscordKeys.GUILD_ID,
-]);
-
 /**
  * Reaction Structure, used in [Message]
  * we don't store the userIds since we only get them on reaction adds
@@ -35,7 +31,6 @@ const keysMergeReaction = new BaseSet<string>([
  */
 export class Reaction extends BaseStructure {
   readonly _keys = keysReaction;
-  readonly _keysMerge = keysMergeReaction;
 
   channelId: string = '';
   count: number = 0;
@@ -94,22 +89,44 @@ export class Reaction extends BaseStructure {
     return this.client.rest.fetchReactions(this.channelId, this.messageId, this.emoji.endpointFormat, options);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.EMOJI: {
-          const emojiId = value.id || value.name;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-          let emoji: Emoji;
-          if (this.client.emojis.has(this.guildId || null, emojiId)) {
-            emoji = this.client.emojis.get(this.guildId || null, emojiId) as Emoji;
-          } else {
-            emoji = new Emoji(this.client, value);
-          }
-          value = emoji;
-        }; break;
+    // merge guild id first for emojis
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.COUNT]] = data[DiscordKeys.COUNT];
+    }
+    if (DiscordKeys.EMOJI in data) {
+      const value = data[DiscordKeys.EMOJI];
+
+      const emojiId = value.id || value.name;
+      const guildId = this.guildId || null;
+
+      let emoji: Emoji;
+      if (this.client.emojis.has(guildId, emojiId)) {
+        emoji = this.client.emojis.get(guildId, emojiId) as Emoji;
+      } else {
+        emoji = new Emoji(this.client, value);
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI]] = emoji;
+    }
+    if (DiscordKeys.IS_PARTIAL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IS_PARTIAL]] = data[DiscordKeys.IS_PARTIAL];
+    }
+    if (DiscordKeys.MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE_ID]] = data[DiscordKeys.MESSAGE_ID];
+    }
+    if (DiscordKeys.ME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ME]] = data[DiscordKeys.ME];
     }
   }
 }

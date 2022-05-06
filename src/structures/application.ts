@@ -7,6 +7,7 @@ import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  DetritusKeys,
   DiscordKeys,
   Distributors,
   DistributorNames,
@@ -248,47 +249,112 @@ export class Application extends BaseStructure {
     return this.client.rest.joinGuild(this.guildId, options);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ALIASES: {
-          if (this.aliases) {
-            this.aliases.clear();
-            for (let raw of value) {
-              this.aliases.add(raw);
-            }
-          } else {
-            if (value.length) {
-              this.aliases = new BaseSet(value);
-            }
-          }
-        }; return;
-        case DiscordKeys.RPC_ORIGINS: {
-          if (this.rpcOrigins) {
-            this.rpcOrigins.clear();
-            for (let raw of value) {
-              this.rpcOrigins.add(raw);
-            }
-          } else {
-            if (value.length) {
-              this.rpcOrigins = new BaseSet(value);
-            }
-          }
-        }; return;
-        case DiscordKeys.THIRD_PARTY_SKUS: {
-          if (this.thirdPartySkus) {
-            this.thirdPartySkus.clear();
-          } else {
-            this.thirdPartySkus = new BaseCollection<string, ApplicationThirdPartySku>();
-          }
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-          for (let raw of value) {
-            const thirdPartySku = new ApplicationThirdPartySku(this, raw);
-            this.thirdPartySkus.set(thirdPartySku.key, thirdPartySku);
-          }
-        }; return;
+    if (DiscordKeys.ALIASES in data) {
+      const value = data[DiscordKeys.ALIASES];
+      if (this.aliases) {
+        this.aliases.clear();
+        for (let raw of value) {
+          this.aliases.add(raw);
+        }
+      } else {
+        if (value.length) {
+          this.aliases = new BaseSet(value);
+        }
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.BOT_PUBLIC in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BOT_PUBLIC]] = data[DiscordKeys.BOT_PUBLIC];
+    }
+    if (DiscordKeys.BOT_REQUIRE_CODE_GRANT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BOT_REQUIRE_CODE_GRANT]] = data[DiscordKeys.BOT_REQUIRE_CODE_GRANT];
+    }
+    if (DiscordKeys.COVER_IMAGE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.COVER_IMAGE]] = data[DiscordKeys.COVER_IMAGE];
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.DEVELOPERS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEVELOPERS]] = data[DiscordKeys.DEVELOPERS];
+    }
+    if (DiscordKeys.EULA_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EULA_ID]] = data[DiscordKeys.EULA_ID];
+    }
+    if (DiscordKeys.EXECUTABLES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EXECUTABLES]] = data[DiscordKeys.EXECUTABLES];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.HOOK in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HOOK]] = data[DiscordKeys.HOOK];
+    }
+    if (DiscordKeys.ICON in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ICON]] = data[DiscordKeys.ICON];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.OVERLAY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OVERLAY]] = data[DiscordKeys.OVERLAY];
+    }
+    if (DiscordKeys.OVERLAY_COMPATIBILITY_HOOK in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OVERLAY_COMPATIBILITY_HOOK]] = data[DiscordKeys.OVERLAY_COMPATIBILITY_HOOK];
+    }
+    if (DiscordKeys.PRIMARY_SKU_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PRIMARY_SKU_ID]] = data[DiscordKeys.PRIMARY_SKU_ID];
+    }
+    if (DiscordKeys.PUBLISHERS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PUBLISHERS]] = data[DiscordKeys.PUBLISHERS];
+    }
+    if (DiscordKeys.RPC_ORIGINS in data) {
+      const value = data[DiscordKeys.RPC_ORIGINS];
+      if (this.rpcOrigins) {
+        this.rpcOrigins.clear();
+        for (let raw of value) {
+          this.rpcOrigins.add(raw);
+        }
+      } else {
+        if (value.length) {
+          this.rpcOrigins = new BaseSet(value);
+        }
+      }
+    }
+    if (DiscordKeys.SLUG in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SLUG]] = data[DiscordKeys.SLUG];
+    }
+    if (DiscordKeys.SPLASH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SPLASH]] = data[DiscordKeys.SPLASH];
+    }
+    if (DiscordKeys.SUMMARY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SUMMARY]] = data[DiscordKeys.SUMMARY];
+    }
+    if (DiscordKeys.THIRD_PARTY_SKUS in data) {
+      const value = data[DiscordKeys.THIRD_PARTY_SKUS];
+      if (this.thirdPartySkus) {
+        this.thirdPartySkus.clear();
+      } else {
+        this.thirdPartySkus = new BaseCollection<string, ApplicationThirdPartySku>();
+      }
+
+      for (let raw of value) {
+        const thirdPartySku = new ApplicationThirdPartySku(this, raw);
+        this.thirdPartySkus.set(thirdPartySku.key, thirdPartySku);
+      }
+    }
+    if (DiscordKeys.VERIFY_KEY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VERIFY_KEY]] = data[DiscordKeys.VERIFY_KEY];
+    }
+    if (DiscordKeys.YOUTUBE_TRAILER_VIDEO_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.YOUTUBE_TRAILER_VIDEO_ID]] = data[DiscordKeys.YOUTUBE_TRAILER_VIDEO_ID];
     }
   }
 }
@@ -377,5 +443,21 @@ export class ApplicationThirdPartySku extends BaseStructure {
       }
     }
     return null;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.DISTRIBUTOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DISTRIBUTOR]] = data[DiscordKeys.DISTRIBUTOR];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.SKU in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SKU]] = data[DiscordKeys.SKU];
+    }
   }
 }
