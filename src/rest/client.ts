@@ -1026,13 +1026,6 @@ export class RestClient {
     return this.raw.editGuildChannels(guildId, channels, options);
   }
 
-  editGuildEmbed(
-    guildId: string,
-    options: RequestTypes.EditGuildEmbed,
-  ) {
-    return this.raw.editGuildEmbed(guildId, options);
-  }
-
   async editGuildEmoji(
     guildId: string,
     emojiId: string,
@@ -1187,6 +1180,13 @@ export class RestClient {
     options: RequestTypes.EditGuildVoiceState,
   ) {
     return this.raw.editGuildVoiceState(guildId, userId, options);
+  }
+
+  editGuildWidget(
+    guildId: string,
+    options: RequestTypes.EditGuildWidget,
+  ) {
+    return this.raw.editGuildWidget(guildId, options);
   }
 
   editLobby(
@@ -1865,12 +1865,6 @@ export class RestClient {
       collection.set(channel.id, channel);
     }
     return collection;
-  }
-
-  fetchGuildEmbed(
-    guildId: string,
-  ) {
-    return this.raw.fetchGuildEmbed(guildId);
   }
 
   async fetchGuildEmojis(

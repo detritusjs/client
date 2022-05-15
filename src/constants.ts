@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.11',
+  VERSION: '0.17.0-beta.12',
 });
 
 export type Snowflake = number | string;
@@ -273,6 +273,7 @@ export enum AuditLogChangeKeys {
   CODE = 'code',
   COLOR = 'color',
   COMMAND_ID = 'command_id',
+  COMMUNICATION_DISABLED_UNTIL = 'communication_disabled_until',
   DEAF = 'deaf',
   DEFAULT_MESSAGE_NOTIFICATIONS = 'default_message_notifications',
   DENY = 'deny',
@@ -900,6 +901,7 @@ export enum MessageFlags {
   HAS_THREAD = 1 << 5,
   EPHEMERAL = 1 << 6,
   LOADING = 1 << 7,
+  FAILED_TO_MENTION_SOME_ROLES_IN_THREAD = 1 << 8,
 }
 
 
@@ -1677,7 +1679,7 @@ export const DiscordKeys = Object.freeze({
   PREVIEW_VIDEO: 'preview_video',
   PRICE: 'price',
   PRIMARY_SKU_ID: 'primary_sku_id',
-  PRIVACY_LEVEL: 'privacyLevel',
+  PRIVACY_LEVEL: 'privacy_level',
   PROVIDER: 'provider',
   PROXY_ICON_URL: 'proxy_icon_url',
   PROXY_URL: 'proxy_url',

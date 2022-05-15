@@ -290,6 +290,10 @@ export class Message extends BaseStructure {
     return this.hasFlag(MessageFlags.EPHEMERAL);
   }
 
+  get hasFlagFailedToMentionSomeRolesInThread(): boolean {
+    return this.hasFlag(MessageFlags.FAILED_TO_MENTION_SOME_ROLES_IN_THREAD);
+  }
+
   get hasFlagIsCrossposted(): boolean {
     return this.hasFlag(MessageFlags.IS_CROSSPOST);
   }

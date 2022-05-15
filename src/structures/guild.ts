@@ -290,10 +290,6 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.editGuildChannels(this.id, channels, options);
   }
 
-  async editEmbed(options: RequestTypes.EditGuildEmbed) {
-    return this.client.rest.editGuildEmbed(this.id, options);
-  }
-
   async editEmoji(emojiId: string, options: RequestTypes.EditGuildEmoji) {
     return this.client.rest.editGuildEmoji(this.id, emojiId, options);
   }
@@ -334,6 +330,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.editGuildVoiceState(this.id, userId, options);
   }
 
+  async editWidget(options: RequestTypes.EditGuildWidget) {
+    return this.client.rest.editGuildWidget(this.id, options);
+  }
+
 
   async fetchApplications(channelId?: string) {
     return this.client.rest.fetchGuildApplications(this.id, channelId);
@@ -353,10 +353,6 @@ export class BaseGuild extends BaseStructure {
 
   async fetchChannels() {
     return this.client.rest.fetchGuildChannels(this.id);
-  }
-
-  async fetchEmbed() {
-    return this.client.rest.fetchGuildEmbed(this.id);
   }
 
   async fetchEmoji(emojiId: string) {
@@ -657,8 +653,6 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DISCOVERY_SPLASH,
-  DiscordKeys.EMBED_CHANNEL_ID,
-  DiscordKeys.EMBED_ENABLED,
   DiscordKeys.EMOJIS,
   DiscordKeys.EXPLICIT_CONTENT_FILTER,
   DiscordKeys.FEATURES,
@@ -703,14 +697,6 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.WIDGET_ENABLED,
 ]);
 
-const keysMergeGuild = new BaseSet<string>([
-  DiscordKeys.ID,
-  DiscordKeys.JOINED_AT,
-  DiscordKeys.ROLES,
-  DiscordKeys.MEMBERS,
-  DiscordKeys.PRESENCES,
-]);
-
 const keysSkipDifferenceGuild = new BaseSet<string>([
   DiscordKeys.EMOJIS,
   DiscordKeys.MEMBERS,
@@ -725,7 +711,6 @@ const keysSkipDifferenceGuild = new BaseSet<string>([
  */
 export class Guild extends GuildPartial {
   readonly _keys = keysGuild;
-  readonly _keysMerge = keysMergeGuild;
   readonly _keysSkipDifference = keysSkipDifferenceGuild;
   readonly _channelIds = new BaseSet<string>();
   readonly _threadIds = new BaseSet<string>();
@@ -736,8 +721,6 @@ export class Guild extends GuildPartial {
   banner: null | string = null;
   defaultMessageNotifications: number = 0;
   description: null | string = null;
-  embedChannelId: null | string = null;
-  embedEnabled: boolean = false;
   explicitContentFilter: GuildExplicitContentFilterTypes = GuildExplicitContentFilterTypes.DISABLED;
   emojis: BaseCollection<string, Emoji>;
   features = new BaseSet<string>();
@@ -1107,6 +1090,29 @@ export class Guild extends GuildPartial {
       return;
     }
 
+    // merge roles first for members
+    if (DiscordKeys.ROLES in data) {
+      const value = data[DiscordKeys.ROLES];
+      if (this.client.roles.enabled) {
+        const roles: Array<Role> = [];
+        for (let raw of value) {
+          let role: Role;
+          if (this.roles.has(raw.id)) {
+            role = this.roles.get(raw.id)!;
+            role.merge(raw);
+          } else {
+            raw[DiscordKeys.GUILD_ID] = this.id;
+            role = new Role(this.client, raw, this.isClone);
+          }
+          roles.push(role);
+        }
+        this.roles.clear();
+        for (let role of roles) {
+          this.roles.set(role.id, role);
+        }
+      }
+    }
+
     if (DiscordKeys.AFK_CHANNEL_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.AFK_CHANNEL_ID]] = data[DiscordKeys.AFK_CHANNEL_ID];
     }
@@ -1141,12 +1147,6 @@ export class Guild extends GuildPartial {
     }
     if (DiscordKeys.DISCOVERY_SPLASH in data) {
       (this as any)[DetritusKeys[DiscordKeys.DISCOVERY_SPLASH]] = data[DiscordKeys.DISCOVERY_SPLASH];
-    }
-    if (DiscordKeys.EMBED_CHANNEL_ID in data) {
-      (this as any)[DetritusKeys[DiscordKeys.EMBED_CHANNEL_ID]] = data[DiscordKeys.EMBED_CHANNEL_ID];
-    }
-    if (DiscordKeys.EMBED_ENABLED in data) {
-      (this as any)[DetritusKeys[DiscordKeys.EMBED_ENABLED]] = data[DiscordKeys.EMBED_ENABLED];
     }
     if (DiscordKeys.EMOJIS in data) {
       const value = data[DiscordKeys.EMOJIS];
@@ -1215,6 +1215,7 @@ export class Guild extends GuildPartial {
       (this as any)[DetritusKeys[DiscordKeys.MEMBER_COUNT]] = data[DiscordKeys.MEMBER_COUNT];
     }
     if (DiscordKeys.MEMBERS in data) {
+      // merge members before presences
       const value = data[DiscordKeys.MEMBERS];
       this.members.clear();
       for (let raw of value) {
@@ -1289,27 +1290,6 @@ export class Guild extends GuildPartial {
     }
     if (DiscordKeys.REGION in data) {
       (this as any)[DetritusKeys[DiscordKeys.REGION]] = data[DiscordKeys.REGION];
-    }
-    if (DiscordKeys.ROLES in data) {
-      const value = data[DiscordKeys.ROLES];
-      if (this.client.roles.enabled) {
-        const roles: Array<Role> = [];
-        for (let raw of value) {
-          let role: Role;
-          if (this.roles.has(raw.id)) {
-            role = this.roles.get(raw.id)!;
-            role.merge(raw);
-          } else {
-            raw[DiscordKeys.GUILD_ID] = this.id;
-            role = new Role(this.client, raw, this.isClone);
-          }
-          roles.push(role);
-        }
-        this.roles.clear();
-        for (let role of roles) {
-          this.roles.set(role.id, role);
-        }
-      }
     }
     if (DiscordKeys.RULES_CHANNEL_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.RULES_CHANNEL_ID]] = data[DiscordKeys.RULES_CHANNEL_ID];
