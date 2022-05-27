@@ -10,6 +10,16 @@ import {
   ImageFormats,
   IMAGE_FORMATS,
 } from '../constants';
+import {
+  InteractionCommand,
+  InteractionCommandOption,
+  InteractionCommandOptionChoice,
+} from '../interaction';
+import {
+  ApplicationCommand,
+  ApplicationCommandOption,
+  ApplicationCommandOptionChoice,
+} from '../structures/applicationcommand';
 
 
 import * as Markup from './markup';
@@ -331,3 +341,39 @@ export function toCamelCase(value: string): string {
     .join('');
   return value.charAt(0).toLowerCase() + value.slice(1);
 }
+
+
+
+export const KeyGenerator = Object.freeze({
+  ApplicationCommand: (command: ApplicationCommand | InteractionCommand): string => {
+    return [
+      command.name,
+      command.description,
+      command.type,
+      (command.options) ? command.options.map((x) => x.key).join(':') : '',
+      JSON.stringify(command.descriptionLocalizations),
+      JSON.stringify(command.nameLocalizations),
+      command.defaultMemberPermissions,
+      (command.dmPermission === undefined) ? true : !command.dmPermission,
+    ].join('-');
+  },
+  ApplicationCommandOption: (option: ApplicationCommandOption | InteractionCommandOption): string => {
+    return [
+      option.name,
+      option.description,
+      option.type,
+      !!option.required,
+      !!option.autocomplete,
+      (option.options) ? option.options.map((x) => x.key).join(':') : '',
+      (option.choices) ? option.choices.map((x) => x.key).join(':') : '',
+      JSON.stringify(option.descriptionLocalizations),
+      JSON.stringify(option.nameLocalizations),
+      JSON.stringify(option.channelTypes),
+      option.maxValue,
+      option.minValue,
+    ].join('-');
+  },
+  ApplicationCommandOptionChoice: (choice: ApplicationCommandOptionChoice | InteractionCommandOptionChoice): string => {
+    return `${choice.name}-${choice.value}-${typeof(choice.value)}-${JSON.stringify(choice.nameLocalizations)}`;
+  },
+});

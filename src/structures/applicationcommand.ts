@@ -11,6 +11,7 @@ import {
   ApplicationCommandTypes,
   DiscordKeys,
 } from '../constants';
+import { KeyGenerator } from '../utils';
 
 import {
   BaseStructure,
@@ -61,25 +62,12 @@ export class ApplicationCommand extends BaseStructure {
     this.merge(data);
   }
 
-  get _optionsKey(): string {
-    return (this.options) ? this.options.map((x) => x.key).join(':') : '';
-  }
-
   get hash(): string {
     return Crypto.createHash('md5').update(this.key).digest('hex');
   }
 
   get key(): string {
-    return [
-      this.name,
-      this.description,
-      this.type,
-      this._optionsKey,
-      JSON.stringify(this.descriptionLocalizations),
-      JSON.stringify(this.nameLocalizations),
-      this.defaultMemberPermissions,
-      this.dmPermission,
-    ].join('-');
+    return KeyGenerator.ApplicationCommand(this);
   }
 
   edit(options: RequestTypes.EditApplicationCommand | RequestTypes.EditApplicationGuildCommand) {
@@ -166,29 +154,8 @@ export class ApplicationCommandOption extends BaseStructure {
     Object.defineProperty(this, 'command', {enumerable: false});
   }
 
-  get _choicesKey(): string {
-    return (this.choices) ? this.choices.map((x) => x.key).join(':') : '';
-  }
-
-  get _optionsKey(): string {
-    return (this.options) ? this.options.map((x) => x.key).join(':') : '';
-  }
-
   get key(): string {
-    return [
-      this.name,
-      this.description,
-      this.type,
-      !!this.required,
-      !!this.autocomplete,
-      this._optionsKey,
-      this._choicesKey,
-      JSON.stringify(this.descriptionLocalizations),
-      JSON.stringify(this.nameLocalizations),
-      JSON.stringify(this.channelTypes),
-      this.maxValue,
-      this.minValue,
-    ].join('-');
+    return KeyGenerator.ApplicationCommandOption(this);
   }
 
   mergeValue(key: string, value: any): void {
@@ -259,7 +226,7 @@ export class ApplicationCommandOptionChoice extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.name}-${this.value}-${typeof(this.value)}-${JSON.stringify(this.nameLocalizations)}`;
+    return KeyGenerator.ApplicationCommandOptionChoice(this);
   }
 }
 

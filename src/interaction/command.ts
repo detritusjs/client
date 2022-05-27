@@ -10,6 +10,7 @@ import {
   InteractionDataApplicationCommand,
   InteractionDataApplicationCommandOption,
 } from '../structures/interaction';
+import { KeyGenerator } from '../utils';
 
 import { InteractionAutoCompleteContext, InteractionContext } from './context';
 
@@ -399,10 +400,6 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     this.merge(data);
   }
 
-  get _optionsKey(): string {
-    return (this._options) ? this._options.map((x) => x.key).join(':') : '';
-  }
-
   get fullName(): string {
     return this.name;
   }
@@ -449,16 +446,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   }
 
   get key(): string {
-    return [
-      this.name,
-      this.description,
-      this.type,
-      this._optionsKey,
-      JSON.stringify(this.descriptionLocalizations),
-      JSON.stringify(this.nameLocalizations),
-      this.defaultMemberPermissions,
-      this.dmPermission,
-    ].join('-');
+    return KeyGenerator.ApplicationCommand(this);
   }
 
   get length(): number {
@@ -791,14 +779,6 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     this.merge(data);
   }
 
-  get _choicesKey(): string {
-    return (this.choices) ? this.choices.map((x) => x.key).join(':') : '';
-  }
-
-  get _optionsKey(): string {
-    return (this._options) ? this._options.map((x) => x.key).join(':') : '';
-  }
-
   get fullName(): string {
     if (this.parent) {
       return `${this.parent.fullName} ${this.name}`;
@@ -836,20 +816,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get key(): string {
-    return [
-      this.name,
-      this.description,
-      this.type,
-      !!this.required,
-      !!this.autocomplete,
-      this._optionsKey,
-      this._choicesKey,
-      JSON.stringify(this.descriptionLocalizations),
-      JSON.stringify(this.nameLocalizations),
-      JSON.stringify(this.channelTypes),
-      this.maxValue,
-      this.minValue,
-    ].join('-');
+    return KeyGenerator.ApplicationCommandOption(this);
   }
 
   get length(): number {
@@ -1125,7 +1092,7 @@ export class InteractionCommandOptionChoice extends Structure {
   }
 
   get key(): string {
-    return `${this.name}-${this.value}-${typeof(this.value)}-${JSON.stringify(this.nameLocalizations)}`;
+    return KeyGenerator.ApplicationCommandOptionChoice(this);
   }
 
   get length(): number {
