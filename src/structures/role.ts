@@ -99,7 +99,7 @@ export class Role extends BaseStructure {
 
   get isBoosterRole(): boolean {
     if (this.tags) {
-      return this.tags.premiumSubscriber;
+      return !!this.tags.premiumSubscriber;
     }
     return false;
   }
@@ -194,8 +194,14 @@ export class Role extends BaseStructure {
 
     {
       // always merge in tags since it might not appear
+      // we sometimes get `{}`
       const value = data[DiscordKeys.TAGS];
-      (this as any)[DetritusKeys[DiscordKeys.TAGS]] = (value) ? new RoleTags(this.client, value) : null;
+
+      let tags: RoleTags | null = null;
+      if (value && Object.keys(value).length) {
+        tags = new RoleTags(this.client, value);
+      }
+      (this as any)[DetritusKeys[DiscordKeys.TAGS]] = tags;
     }
 
     if (DiscordKeys.COLOR in data) {
@@ -255,7 +261,7 @@ export class RoleTags extends BaseStructure {
 
   botId?: string;
   integrationId?: string;
-  premiumSubscriber: boolean = false;
+  premiumSubscriber?: boolean;
 
   merge(data?: BaseStructureData): void {
     if (!data) {
@@ -264,6 +270,6 @@ export class RoleTags extends BaseStructure {
 
     (this as any)[DetritusKeys[DiscordKeys.BOT_ID]] = data[DiscordKeys.BOT_ID];
     (this as any)[DetritusKeys[DiscordKeys.INTEGRATION_ID]] = data[DiscordKeys.INTEGRATION_ID];
-    (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIBER]] = (DiscordKeys.PREMIUM_SUBSCRIBER in data);
+    (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIBER]] = (DiscordKeys.PREMIUM_SUBSCRIBER in data) || undefined;
   }
 }
