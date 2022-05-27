@@ -26,6 +26,7 @@ import {
   MAX_BITRATE,
   MAX_EMOJI_SLOTS,
   MAX_EMOJI_SLOTS_MORE,
+  PERMISSIONS_ALL,
 } from '../constants';
 import {
   addQuery,
@@ -1018,6 +1019,7 @@ export class Guild extends GuildPartial {
     permissions: PermissionTools.PermissionChecks,
     member?: Member | null,
     options: {
+      channel?: Channel | string,
       ignoreAdministrator?: boolean,
       ignoreOwner?: boolean,
     } = {},
@@ -1044,7 +1046,7 @@ export class Guild extends GuildPartial {
       member = this.me;
     }
     if (member) {
-      const total = member.permissions;
+      const total = this.permissionsFor(member, options.channel);
       if (!ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
         return true;
       }
@@ -1073,6 +1075,26 @@ export class Guild extends GuildPartial {
 
   isOwner(userId: string): boolean {
     return this.ownerId === userId;
+  }
+
+  permissionsFor(member: Member, channel?: Channel | string): bigint {
+    if (this.isOwner(member.user.id)) {
+      return PERMISSIONS_ALL;
+    }
+
+    let permissions = Permissions.NONE;
+    if (member._roles) {
+      for (let roleId of member._roles) {
+        const role = this.roles.get(roleId);
+        if (role) {
+          permissions |= role.permissions;
+        }
+      }
+    }
+    if (channel) {
+      permissions = member.permissionsIn(channel, permissions);
+    }
+    return permissions;
   }
 
   async fetchVoiceRegion(): Promise<VoiceRegion> {

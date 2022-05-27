@@ -115,9 +115,9 @@ export class Attachment extends BaseStructure {
   filename: string = '';
   height: number = 0;
   id: string = '';
-  proxyUrl?: string;
+  proxyUrl: string = '';
   size: number = 0;
-  url?: string;
+  url: string = '';
   width: number = 0;
 
   constructor(

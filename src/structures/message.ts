@@ -639,7 +639,7 @@ export class Message extends BaseStructure {
     }
     // we need mentions and author before content to format it
     if (DiscordKeys.MENTIONS in data) {
-      const value = data[DiscordKeys.AUTHOR];
+      const value = data[DiscordKeys.MENTIONS];
 
       if (value.length) {
         if (!this._mentions) {

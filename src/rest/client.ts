@@ -534,6 +534,7 @@ export class RestClient {
       this.client.gatewayHandler._handlers.modal.insert(listener);
       return rawData;
     } else {
+      // if type is edit message, do not use interactionId (maybe fetch message id if listenerId isnt given)
       const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
       const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
 

@@ -383,32 +383,34 @@ export class Member extends UserMixin {
     return false;
   }
 
-  permissionsIn(channelId: Channel | string): bigint {
+  permissionsIn(channelOrId: Channel | string, startingPermissions?: bigint): bigint {
     let channel: Channel;
-    if (channelId instanceof ChannelBase) {
-      channel = channelId;
+    if (channelOrId instanceof ChannelBase) {
+      channel = channelOrId;
     } else {
-      if (this.client.channels.has(channelId)) {
-        channel = this.client.channels.get(channelId)!;
+      if (this.client.channels.has(channelOrId)) {
+        channel = this.client.channels.get(channelOrId)!;
       } else {
         return Permissions.NONE;
       }
     }
     const guildId = channel.guildId || '';
 
-    let total = this.permissions;
+    let total = (startingPermissions !== undefined) ? startingPermissions : this.permissions;
     if (channel.permissionOverwrites.has(guildId)) {
       const overwrite = channel.permissionOverwrites.get(guildId)!;
       total = (total & ~overwrite.deny) | overwrite.allow;
     }
 
     let allow = Permissions.NONE, deny = Permissions.NONE;
-    for (let [roleId, role] of this.roles) {
-      if (roleId === this.guildId) {continue;}
-      if (channel.permissionOverwrites.has(roleId)) {
-        const overwrite = channel.permissionOverwrites.get(roleId)!;
-        allow |= overwrite.allow;
-        deny |= overwrite.deny;
+    if (this._roles) {
+      for (let roleId of this._roles) {
+        if (roleId === this.guildId) {continue;}
+        if (channel.permissionOverwrites.has(roleId)) {
+          const overwrite = channel.permissionOverwrites.get(roleId)!;
+          allow |= overwrite.allow;
+          deny |= overwrite.deny;
+        }
       }
     }
     total = (total & ~deny) | allow;
