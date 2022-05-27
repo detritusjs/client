@@ -48,7 +48,7 @@ export class ApplicationCommand extends BaseStructure {
   defaultPermission: boolean = true;
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
-  dmPermission: boolean | null = null;
+  dmPermission: boolean = true;
   guildId?: string;
   id: string = '';
   name: string = '';

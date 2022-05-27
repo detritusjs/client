@@ -282,7 +282,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   defaultPermission: boolean = true;
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
-  dmPermission: boolean | null = null;
+  dmPermission: boolean = true;
   ids = new BaseCollection<string, string>();
   global: boolean = true;
   guildIds?: BaseSet<string>;
