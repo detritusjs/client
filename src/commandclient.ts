@@ -412,7 +412,7 @@ export class CommandClient extends EventSpewer {
 					: require(filepath)
 				if (
 					typeof importedCommand === 'object' &&
-					importedCommand.__esModule
+					IS_IMPORT_AVAILABLE
 				) {
 					importedCommand = importedCommand.default
 				}
