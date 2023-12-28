@@ -234,6 +234,30 @@ export namespace GatewayRawEvents {
     role: RawRole,
   }
 
+  export interface GuildScheduledEventCreate extends RawGuildScheduledEvent {
+    
+  }
+
+  export interface GuildScheduledEventDelete extends RawGuildScheduledEvent {
+    
+  }
+
+  export interface GuildScheduledEventUpdate extends RawGuildScheduledEvent {
+    
+  }
+
+  export interface GuildScheduledEventUserAdd {
+    guild_id: string,
+    guild_scheduled_event_id: string,
+    user_id: string,
+  }
+
+  export interface GuildScheduledEventUserRemove {
+    guild_id: string,
+    guild_scheduled_event_id: string,
+    user_id: string,
+  }
+
   export interface GuildStickersUpdate {
     guild_id: string,
     stickers: Array<RawSticker>,
@@ -865,6 +889,27 @@ export namespace GatewayRawEvents {
       id: string,
     },
     member?: RawMember,
+  }
+
+  export interface RawGuildScheduledEvent {
+    channel_id: string | null,
+    creator?: RawUser,
+    creator_id?: string | null,
+    description?: string | null,
+    entity_id: string | null,
+    entity_metadata: {
+      location?: string,
+    },
+    entity_type: number,
+    guild_id: string,
+    id: string,
+    image?: string | null,
+    name: string,
+    privacy_level: number,
+    scheduled_end_time: string | null,
+    scheduled_start_time: string,
+    status: number,
+    user_count?: number,
   }
 
   export interface RawMemberWithoutUser {

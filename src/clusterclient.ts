@@ -495,8 +495,6 @@ export class ClusterClient extends EventSpewer {
   on(event: 'userFeedSettingsUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserFeedSettingsUpdate) => any): this;
   on(event: ClientEvents.USER_GUILD_SETTINGS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserGuildSettingsUpdate) => any): this;
   on(event: 'userGuildSettingsUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserGuildSettingsUpdate) => any): this;
-  on(event: ClientEvents.USER_NOTE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserNoteUpdate) => any): this;
-  on(event: 'userNoteUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserNoteUpdate) => any): this;
   on(event: ClientEvents.USER_PAYMENT_SOURCES_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   on(event: 'userPaymentSourcesUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   on(event: ClientEvents.USER_PAYMENTS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentsUpdate) => any): this;
@@ -711,8 +709,6 @@ export class ClusterClient extends EventSpewer {
   once(event: 'userFeedSettingsUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserFeedSettingsUpdate) => any): this;
   once(event: ClientEvents.USER_GUILD_SETTINGS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserGuildSettingsUpdate) => any): this;
   once(event: 'userGuildSettingsUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserGuildSettingsUpdate) => any): this;
-  once(event: ClientEvents.USER_NOTE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserNoteUpdate) => any): this;
-  once(event: 'userNoteUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserNoteUpdate) => any): this;
   once(event: ClientEvents.USER_PAYMENT_SOURCES_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   once(event: 'userPaymentSourcesUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   once(event: ClientEvents.USER_PAYMENTS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentsUpdate) => any): this;
@@ -927,8 +923,6 @@ export class ClusterClient extends EventSpewer {
   subscribe(event: 'userFeedSettingsUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserFeedSettingsUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.USER_GUILD_SETTINGS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserGuildSettingsUpdate) => any): EventSubscription;
   subscribe(event: 'userGuildSettingsUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserGuildSettingsUpdate) => any): EventSubscription;
-  subscribe(event: ClientEvents.USER_NOTE_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserNoteUpdate) => any): EventSubscription;
-  subscribe(event: 'userNoteUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserNoteUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.USER_PAYMENT_SOURCES_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentSourcesUpdate) => any): EventSubscription;
   subscribe(event: 'userPaymentSourcesUpdate', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentSourcesUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.USER_PAYMENTS_UPDATE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UserPaymentsUpdate) => any): EventSubscription;

@@ -3,6 +3,7 @@ import { RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../../client';
 import { ClusterClient } from '../../clusterclient';
 import { ClusterProcessChild } from '../../cluster/processchild';
+import { MAX_ATTACHMENT_SIZE } from '../../constants';
 import {
   Interaction,
   InteractionDataModal,
@@ -99,10 +100,6 @@ export class InteractionModalContext {
     return this.client.messages;
   }
 
-  get notes() {
-    return this.client.notes;
-  }
-
   get presences() {
     return this.client.presences;
   }
@@ -186,6 +183,18 @@ export class InteractionModalContext {
 
   get interactionId() {
     return this.interaction.id;
+  }
+
+  get locale() {
+    return this.interaction.locale;
+  }
+  
+  get maxAttachmentSize(): number {
+    const guild = this.guild;
+    if (guild) {
+      return guild.maxAttachmentSize;
+    }
+    return MAX_ATTACHMENT_SIZE;
   }
 
   get me() {

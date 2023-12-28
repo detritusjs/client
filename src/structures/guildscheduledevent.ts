@@ -46,6 +46,7 @@ export class GuildScheduledEvent extends BaseStructure {
   channelId: string | null = null;
   creator?: User;
   creatorId?: string;
+  deleted: boolean = false;
   description?: string | null;
   entityId: string | null = null;
   entityMetadata: any;

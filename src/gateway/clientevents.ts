@@ -9,7 +9,9 @@ import {
   ApplicationCommand,
   Channel,
   Emoji,
+  Entitlement,
   Guild,
+  GuildScheduledEvent,
   Interaction,
   Invite,
   Member,
@@ -144,15 +146,15 @@ export namespace GatewayClientEvents {
   }
 
   export interface EntitlementCreate {
-
+    entitlement: Entitlement,
   }
 
   export interface EntitlementDelete {
-
+    entitlement: Entitlement,
   }
 
   export interface EntitlementUpdate {
-
+    entitlement: Entitlement,
   }
 
   export interface FriendSuggestionCreate {
@@ -280,6 +282,26 @@ export namespace GatewayClientEvents {
     guildId: string,
     old: Role | null,
     role: Role,
+  }
+
+  export interface GuildScheduledEventCreate {
+    event: GuildScheduledEvent,
+    guild: Guild | null,
+    guildId: string,
+  }
+
+  export interface GuildScheduledEventDelete {
+    event: GuildScheduledEvent,
+    guild: Guild | null,
+    guildId: string,
+  }
+
+  export interface GuildScheduledEventUpdate {
+    differences: Differences,
+    event: GuildScheduledEvent,
+    guild: Guild | null,
+    guildId: string,
+    old: GuildScheduledEvent | null,
   }
 
   export interface GuildStickersUpdate {
@@ -471,15 +493,21 @@ export namespace GatewayClientEvents {
   }
 
   export interface StageInstanceCreate {
+    guild: Guild | null,
+    guildId: string,
     stageInstance: StageInstance,
   }
 
   export interface StageInstanceDelete {
+    guild: Guild | null,
+    guildId: string,
     stageInstance: StageInstance,
   }
 
   export interface StageInstanceUpdate {
     differences: Differences,
+    guild: Guild | null,
+    guildId: string,
     old: StageInstance | null,
     stageInstance: StageInstance,
   }
@@ -568,12 +596,6 @@ export namespace GatewayClientEvents {
 
   export interface UserGuildSettingsUpdate {
 
-  }
-
-  export interface UserNoteUpdate {
-    note: string,
-    user: null | User,
-    userId: string,
   }
 
   export interface UserPaymentSourcesUpdate {

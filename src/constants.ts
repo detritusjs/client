@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.16',
+  VERSION: '0.17.0-beta.18',
 });
 
 export type Snowflake = number | string;
@@ -68,8 +68,8 @@ export const LOCAL_GUILD_ID = '@me';
 export const MAX_ACTION_ROW_BUTTONS = 5;
 export const MAX_ACTION_ROW_INPUT_TEXTS = 1;
 export const MAX_ACTION_ROW_SELECT_MENUS = 1;
-export const MAX_ATTACHMENT_SIZE = 8 * 1024 * 1024;
-export const MAX_ATTACHMENT_SIZE_PREMIUM = 50 * 1024 * 1024;
+export const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
+export const MAX_ATTACHMENT_SIZE_PREMIUM = 200 * 1024 * 1024;
 export const MAX_BITRATE = 96000;
 export const MAX_EMOJI_SIZE = 256000;
 export const MAX_EMOJI_SLOTS = 50;
@@ -403,6 +403,11 @@ export enum ClientEvents {
   GUILD_ROLE_CREATE = 'guildRoleCreate',
   GUILD_ROLE_DELETE = 'guildRoleDelete',
   GUILD_ROLE_UPDATE = 'guildRoleUpdate',
+  GUILD_SCHEDULED_EVENT_CREATE = 'guildScheduledEventCreate',
+  GUILD_SCHEDULED_EVENT_DELETE = 'guildScheduledEventDelete',
+  GUILD_SCHEDULED_EVENT_UPDATE = 'guildScheduledEventUpdate',
+  GUILD_SCHEDULED_EVENT_USER_ADD = 'guildScheduledEventUserAdd',
+  GUILD_SCHEDULED_EVENT_USER_REMOVE = 'guildScheduledEventUserRemove',
   GUILD_STICKERS_UPDATE = 'guildStickersUpdate',
   GUILD_UPDATE = 'guildUpdate',
   INTERACTION_CREATE = 'interactionCreate',
@@ -460,10 +465,12 @@ export enum ClientEvents {
   USER_SETTINGS_UPDATE = 'userSettingsUpdate',
   USER_SUBSCRIPTIONS_UPDATE = 'userSubscriptionsUpdate',
   USER_UPDATE = 'userUpdate',
-  USERS_UPDATE = 'usersUpdate',
   VOICE_SERVER_UPDATE = 'voiceServerUpdate',
   VOICE_STATE_UPDATE = 'voiceStateUpdate',
   WEBHOOKS_UPDATE = 'webhooksUpdate',
+
+  USERS_UPDATE = 'usersUpdate',
+
   CLUSTER_PROCESS = 'clusterProcess',
   COMMAND_DELETE = 'commandDelete',
   COMMAND_ERROR = 'commandError',
@@ -617,6 +624,8 @@ export enum EntitlementTypes {
   TEST_MODE_PURCHASE = 4,
   FREE_PURCHASE = 5,
   USER_GIFT = 6,
+
+  APPLICATION_SUBSCRIPTION = 8,
 }
 
 
@@ -636,8 +645,10 @@ export enum GuildExplicitContentFilterTypes {
 
 export const GuildFeatures = Tools.normalize({
   ANIMATED_ICON: null,
+  AUTO_MODERATION: null,
   BANNER: null,
   COMMERCE: null,
+  COMMUNITY: null,
   DISCOVERABLE: null,
   ENABLED_DISCOVERABLE_BEFORE: null,
   FEATURABLE: null,
@@ -659,6 +670,7 @@ export const GuildFeatures = Tools.normalize({
   PUBLIC_DISABLED: null,
   ROLE_ICONS: null,
   SEVEN_DAY_THREAD_ARCHIVE: null,
+  TEXT_IN_VOICE_ENABLED: null,
   THREADS_ENABLED: null,
   THREADS_ENABLED_TESTING: null,
   THREE_DAY_THREAD_ARCHIVE: null,
@@ -1191,12 +1203,12 @@ export const PremiumGuildLimits = Object.freeze({
     emoji: 100,
   }),
   [PremiumGuildTiers.TIER_2]: Object.freeze({
-    attachment: MAX_ATTACHMENT_SIZE_PREMIUM,
+    attachment: MAX_ATTACHMENT_SIZE * 2,
     bitrate: 256000,
     emoji: 150,
   }),
   [PremiumGuildTiers.TIER_3]: Object.freeze({
-    attachment: MAX_ATTACHMENT_SIZE_PREMIUM * 2,
+    attachment: MAX_ATTACHMENT_SIZE * 4,
     bitrate: 384000,
     emoji: 250,
   }),
@@ -1364,12 +1376,15 @@ export enum UserFlags {
   HYPESQUAD_ONLINE_HOUSE_3 = 1 << 8,
   PREMIUM_EARLY_SUPPORTER = 1 << 9,
   TEAM_USER = 1 << 10,
+
   SYSTEM = 1 << 12,
   HAS_UNREAD_URGENT_MESSAGES = 1 << 13,
   BUG_HUNTER_LEVEL_2 = 1 << 14,
+
   VERIFIED_BOT = 1 << 16,
   VERIFIED_DEVELOPER = 1 << 17,
   DISCORD_CERTIFIED_MODERATOR = 1 << 18,
+  BOT_HTTP_INTERACTIONS = 1 << 19,
 }
 
 // the level of their boost badge
@@ -1497,6 +1512,7 @@ export const DiscordKeys = Object.freeze({
   DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
   DEFAULT_PERMISSION: 'default_permission',
   DELETE_MEMBER_DAYS: 'delete_member_days',
+  DELETED: 'deleted',
   DENY: 'deny',
   DENY_NEW: 'deny_new',
   DEPENDENT_SKU_ID: 'dependent_sku_id',
@@ -1525,6 +1541,7 @@ export const DiscordKeys = Object.freeze({
   END: 'end',
   ENDED: 'ended',
   ENDED_TIMESTAMP: 'ended_timestamp',
+  ENDS_AT: 'ends_at',
   ENTITLEMENT_BRANCH_ID: 'entitlement_branch_id',
   ENTITY_ID: 'entity_id',
   ENTITY_METADATA: 'entity_metadata',
@@ -1735,6 +1752,7 @@ export const DiscordKeys = Object.freeze({
   STAGE_INSTANCES: 'stage_instances',
   START: 'start',
   STARTED: 'started',
+  STARTS_AT: 'starts_at',
   STATE: 'state',
   STATUS: 'status',
   STICKERS: 'stickers',
@@ -1895,6 +1913,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS]: 'defaultMessageNotifications',
   [DiscordKeys.DEFAULT_PERMISSION]: 'defaultPermission',
   [DiscordKeys.DELETE_MEMBER_DAYS]: 'deleteMemberDays',
+  [DiscordKeys.DELETED]: 'deleted',
   [DiscordKeys.DENY]: 'deny',
   [DiscordKeys.DENY_NEW]: 'denyNew',
   [DiscordKeys.DEPENDENT_SKU_ID]: 'dependentSkuId',
@@ -1923,6 +1942,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.END]: 'end',
   [DiscordKeys.ENDED]: 'ended',
   [DiscordKeys.ENDED_TIMESTAMP]: 'endedTimestamp',
+  [DiscordKeys.ENDS_AT]: 'endsAt',
   [DiscordKeys.ENTITLEMENT_BRANCH_ID]: 'entitlementBranchId',
   [DiscordKeys.ENTITY_ID]: 'entityId',
   [DiscordKeys.ENTITY_METADATA]: 'entityMetadata',
@@ -2133,6 +2153,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.STAGE_INSTANCES]: 'stageInstances',
   [DiscordKeys.START]: 'start',
   [DiscordKeys.STARTED]: 'started',
+  [DiscordKeys.STARTS_AT]: 'startsAt',
   [DiscordKeys.STATE]: 'state',
   [DiscordKeys.STATUS]: 'status',
   [DiscordKeys.STICKERS]: 'stickers',

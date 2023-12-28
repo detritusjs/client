@@ -9,7 +9,6 @@ export * from './guildscheduledevents';
 export * from './interactions';
 export * from './members';
 export * from './messages';
-export * from './notes';
 export * from './presences';
 export * from './relationships';
 export * from './roles';

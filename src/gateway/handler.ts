@@ -4,6 +4,7 @@ import { BaseSet } from '../collections/baseset';
 import {
   AuthTypes,
   ClientEvents,
+  DiscordKeys,
   GatewayDispatchEvents,
   GatewayOpCodes,
   InteractionTypes,
@@ -13,12 +14,13 @@ import { GatewayError, GatewayHTTPError } from '../errors';
 
 import {
   ApplicationCommand,
-  createChannelFromData,
   Channel,
   ChannelDM,
   ConnectedAccount,
   Emoji,
+  Entitlement,
   Guild,
+  GuildScheduledEvent,
   Interaction,
   Invite,
   Member,
@@ -36,6 +38,7 @@ import {
   UserMe,
   VoiceCall,
   VoiceState,
+  createChannelFromData,
 } from '../structures';
 
 import { GatewayClientEvents } from './clientevents';
@@ -227,12 +230,6 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (this.client.notes.enabled && data['notes']) {
-      for (let userId in data['notes']) {
-        this.client.notes.insert(userId, data['notes'][userId]);
-      }
-    }
-
     if (this.client.presences.enabled && data['presences']) {
       for (let raw of data['presences']) {
         this.client.presences.insert(raw);
@@ -307,18 +304,6 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GATEWAY_RESUMED, payload);
   }
 
-  [GatewayDispatchEvents.ACTIVITY_JOIN_INVITE](data: GatewayRawEvents.ActivityJoinInvite) {
-
-  }
-
-  [GatewayDispatchEvents.ACTIVITY_JOIN_REQUEST](data: GatewayRawEvents.ActivityJoinRequest) {
-
-  }
-
-  [GatewayDispatchEvents.ACTIVITY_START](data: GatewayRawEvents.ActivityStart) {
-
-  }
-
   [GatewayDispatchEvents.APPLICATION_COMMAND_CREATE](data: GatewayRawEvents.ApplicationCommandCreate) {
     const command = new ApplicationCommand(this.client, data);
     const payload: GatewayClientEvents.ApplicationCommandCreate = {_raw: data, command};
@@ -335,10 +320,6 @@ export class GatewayDispatchHandler {
     const command = new ApplicationCommand(this.client, data);
     const payload: GatewayClientEvents.ApplicationCommandUpdate = {_raw: data, command};
     this.client.emit(ClientEvents.APPLICATION_COMMAND_UPDATE, payload);
-  }
-
-  [GatewayDispatchEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK](data: GatewayRawEvents.BraintreePopupBridgeCallback) {
-
   }
 
   [GatewayDispatchEvents.CALL_CREATE](data: GatewayRawEvents.CallCreate) {
@@ -431,10 +412,6 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.ChannelDelete = {channel};
     this.client.emit(ClientEvents.CHANNEL_DELETE, payload);
-  }
-
-  [GatewayDispatchEvents.CHANNEL_PINS_ACK](data: GatewayRawEvents.ChannelPinsAck) {
-
   }
 
   [GatewayDispatchEvents.CHANNEL_PINS_UPDATE](data: GatewayRawEvents.ChannelPinsUpdate) {
@@ -540,37 +517,24 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.ENTITLEMENT_CREATE](data: GatewayRawEvents.EntitlementCreate) {
+    const entitlement = new Entitlement(this.client, data);
 
+    const payload: GatewayClientEvents.EntitlementCreate = {entitlement};
+    this.client.emit(ClientEvents.ENTITLEMENT_CREATE, payload);
   }
 
   [GatewayDispatchEvents.ENTITLEMENT_DELETE](data: GatewayRawEvents.EntitlementDelete) {
-
+    const entitlement = new Entitlement(this.client, data);
+    
+    const payload: GatewayClientEvents.EntitlementDelete = {entitlement};
+    this.client.emit(ClientEvents.ENTITLEMENT_DELETE, payload);
   }
 
   [GatewayDispatchEvents.ENTITLEMENT_UPDATE](data: GatewayRawEvents.EntitlementUpdate) {
-
-  }
-
-  [GatewayDispatchEvents.FRIEND_SUGGESTION_CREATE](data: GatewayRawEvents.FriendSuggestionCreate) {
-    this.client.emit(ClientEvents.FRIEND_SUGGESTION_CREATE, {
-      reasons: data.reasons.map((reason: any) => {
-        return {name: reason['name'], platformType: reason['platform_type']};
-      }),
-      user: new User(this.client, data['suggested_user']),
-    });
-  }
-
-  [GatewayDispatchEvents.FRIEND_SUGGESTION_DELETE](data: GatewayRawEvents.FriendSuggestionDelete) {
-    this.client.emit(ClientEvents.FRIEND_SUGGESTION_DELETE, {
-      suggestedUserId: data['suggested_user_id'],
-    });
-  }
-
-  [GatewayDispatchEvents.GIFT_CODE_UPDATE](data: GatewayRawEvents.GiftCodeUpdate) {
-    this.client.emit(ClientEvents.GIFT_CODE_UPDATE, {
-      code: data['code'],
-      uses: data['uses'],
-    });
+    const entitlement = new Entitlement(this.client, data);
+    
+    const payload: GatewayClientEvents.EntitlementUpdate = {entitlement};
+    this.client.emit(ClientEvents.ENTITLEMENT_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_BAN_ADD](data: GatewayRawEvents.GuildBanAdd) {
@@ -1149,6 +1113,80 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_ROLE_UPDATE, payload);
   }
 
+  [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_CREATE](data: GatewayRawEvents.GuildScheduledEventCreate) {
+    const guildId = data['guild_id'];
+    const guild = this.client.guilds.get(guildId) || null;
+
+    const event = new GuildScheduledEvent(this.client, data);
+    this.client.guildScheduledEvents.insert(event);
+
+    const payload: GatewayClientEvents.GuildScheduledEventCreate = {event, guild, guildId};
+    this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_DELETE](data: GatewayRawEvents.GuildScheduledEventDelete) {
+    let event: GuildScheduledEvent;
+    let guild: Guild | null = null;
+
+    const guildId = data['guild_id'];
+
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (guild.guildScheduledEvents.has(data['id'])) {
+        event = guild.guildScheduledEvents.get(data['id'])!;
+        event.merge(data);
+      } else {
+        event = new GuildScheduledEvent(this.client, data);
+      }
+      guild.guildScheduledEvents.delete(data['id']);
+    } else {
+      event = new GuildScheduledEvent(this.client, data);
+    }
+    event.deleted = true;
+
+    const payload: GatewayClientEvents.GuildScheduledEventDelete = {event, guild, guildId};
+    this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_UPDATE](data: GatewayRawEvents.GuildScheduledEventUpdate) {
+    let differences: GatewayClientEvents.Differences = null;
+    let event: GuildScheduledEvent;
+    let guild: Guild | null = null;
+    let old: GuildScheduledEvent | null = null;
+
+    const guildId = data['guild_id'];
+    const eventId = data['id'];
+
+    const isListening = this.client.hasEventListener(ClientEvents.GUILD_SCHEDULED_EVENT_UPDATE);
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (guild.guildScheduledEvents.has(eventId)) {
+        event = guild.guildScheduledEvents.get(eventId)!;
+        if (isListening) {
+          differences = event.differences(data);
+          old = event.clone();
+        }
+        event.merge(data);
+      } else {
+        event = new GuildScheduledEvent(this.client, data);
+        this.client.guildScheduledEvents.insert(event);
+      }
+    } else {
+      event = new GuildScheduledEvent(this.client, data);
+    }
+
+    const payload: GatewayClientEvents.GuildScheduledEventUpdate = {differences, event, guild, guildId, old};
+    this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_UPDATE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_USER_ADD](data: GatewayRawEvents.GuildScheduledEventUserAdd) {
+    
+  }
+
+  [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE](data: GatewayRawEvents.GuildScheduledEventUserRemove) {
+    
+  }
+
   [GatewayDispatchEvents.GUILD_STICKERS_UPDATE](data: GatewayRawEvents.GuildStickersUpdate) {
     let differences: {
       created: BaseCollection<string, Sticker>,
@@ -1157,6 +1195,7 @@ export class GatewayDispatchHandler {
     } | null = null;
     let stickers: BaseCollection<string, Sticker>;
     let guild: Guild | null = null;
+
     const guildId = data['guild_id'];
 
     if (this.client.guilds.has(guildId)) {
@@ -1198,7 +1237,7 @@ export class GatewayDispatchHandler {
           guild.stickers.set(stickerId, sticker);
         }
       } else {
-        guild.merge({stickers: data['stickers']});
+        guild.merge({'stickers': data['stickers']});
       }
       stickers = guild.stickers;
     } else {
@@ -1271,50 +1310,6 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.INVITE_DELETE, payload);
   }
 
-  [GatewayDispatchEvents.LIBRARY_APPLICATION_UPDATE](data: GatewayRawEvents.LibraryApplicationUpdate) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_CREATE](data: GatewayRawEvents.LobbyCreate) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_DELETE](data: GatewayRawEvents.LobbyDelete) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_UPDATE](data: GatewayRawEvents.LobbyUpdate) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_MEMBER_CONNECT](data: GatewayRawEvents.LobbyMemberConnect) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_MEMBER_DISCONNECT](data: GatewayRawEvents.LobbyMemberDisconnect) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_MEMBER_UPDATE](data: GatewayRawEvents.LobbyMemberUpdate) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_MESSAGE](data: GatewayRawEvents.LobbyMessage) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_VOICE_SERVER_UPDATE](data: GatewayRawEvents.LobbyVoiceServerUpdate) {
-
-  }
-
-  [GatewayDispatchEvents.LOBBY_VOICE_STATE_UPDATE](data: GatewayRawEvents.LobbyVoiceStateUpdate) {
-
-  }
-
-  [GatewayDispatchEvents.MESSAGE_ACK](data: GatewayRawEvents.MessageAck) {
-
-  }
-
   [GatewayDispatchEvents.MESSAGE_CREATE](data: GatewayRawEvents.MessageCreate) {
     let message: Message;
     let typing: null | Typing = null;
@@ -1329,7 +1324,7 @@ export class GatewayDispatchHandler {
 
     if (this.client.channels.has(message.channelId)) {
       const channel = this.client.channels.get(message.channelId)!;
-      channel.merge({last_message_id: message.id});
+      channel.merge({['last_message_id']: message.id});
     }
 
     if (this.client.typings.has(message.channelId)) {
@@ -1353,9 +1348,10 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_DELETE](data: GatewayRawEvents.MessageDelete) {
+    let message: Message | null = null;
+
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
-    let message: Message | null = null;
     const messageId = data['id'];
 
     if (this.client.messages.has(messageId)) {
@@ -1406,13 +1402,14 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_ADD](data: GatewayRawEvents.MessageReactionAdd) {
-    const channelId = data['channel_id'];
-    const guildId = data['guild_id'];
     let member: Member | null = null;
     let message: Message | null = null;
-    const messageId = data['message_id'];
     let reaction: null | Reaction = null;
     let user: User | null = null;
+
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
+    const messageId = data['message_id'];
     const userId = data['user_id'];
 
     if (this.client.users.has(userId)) {
@@ -1468,12 +1465,13 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE](data: GatewayRawEvents.MessageReactionRemove) {
-    const channelId = data['channel_id'];
-    const guildId = data['guild_id'];
     let message: Message | null = null;
-    const messageId = data['message_id'];
     let reaction: null | Reaction = null;
     let user: User | null = null;
+
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
+    const messageId = data['message_id'];
     const userId = data['user_id'];
 
     if (this.client.users.has(userId)) {
@@ -1517,9 +1515,10 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE_ALL](data: GatewayRawEvents.MessageReactionRemoveAll) {
+    let message: Message | null = null;
+
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
-    let message: Message | null = null;
     const messageId = data['message_id'];
 
     if (this.client.messages.has(messageId)) {
@@ -1540,11 +1539,12 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE_EMOJI](data: GatewayRawEvents.MessageReactionRemoveEmoji) {
+    let message: Message | null = null;
+    let reaction: null | Reaction = null;
+
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
-    let message: Message | null = null;
     const messageId = data['message_id'];
-    let reaction: null | Reaction = null;
 
     const emojiId = data.emoji.id || data.emoji.name;
     if (this.client.messages.has(messageId)) {
@@ -1576,13 +1576,13 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.MESSAGE_UPDATE](data: GatewayRawEvents.MessageUpdate) {
-    let channelId = data['channel_id'];
     let differences: GatewayClientEvents.Differences = null;
-    let guildId = data['guild_id'];
     let isEmbedUpdate: boolean = false;
     let message: Message | null = null;
     let old: Message | null = null;
 
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
     const messageId = data['id'];
 
     if (!data['author']) {
@@ -1617,10 +1617,6 @@ export class GatewayDispatchHandler {
       raw: data,
     };
     this.client.emit(ClientEvents.MESSAGE_UPDATE, payload);
-  }
-
-  [GatewayDispatchEvents.OAUTH2_TOKEN_REMOVE](data: GatewayRawEvents.Oauth2TokenRemove) {
-
   }
 
   [GatewayDispatchEvents.PRESENCE_UPDATE](data: GatewayRawEvents.PresenceUpdate) {
@@ -1698,10 +1694,6 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.PRESENCES_REPLACE, payload);
   }
 
-  [GatewayDispatchEvents.RECENT_MENTION_DELETE](data: GatewayRawEvents.RecentMentionDelete) {
-
-  }
-
   [GatewayDispatchEvents.RELATIONSHIP_ADD](data: GatewayRawEvents.RelationshipAdd) {
     let differences: GatewayClientEvents.Differences = null;
     let relationship: Relationship;
@@ -1739,60 +1731,68 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.RELATIONSHIP_REMOVE, payload);
   }
 
-  [GatewayDispatchEvents.SESSIONS_REPLACE](data: GatewayRawEvents.SessionsReplace) {
-    const old = this.client.sessions.clone();
-
-    // maybe return an array of differences instead?
-    if (this.client.sessions.enabled) {
-      this.client.sessions.clear();
-      for (let raw of data) {
-        this.client.sessions.insert(new Session(this.client, raw));
-      }
-    }
-
-    const payload: GatewayClientEvents.SessionsReplace = {old, raw: data};
-    this.client.emit(ClientEvents.SESSIONS_REPLACE, payload);
-  }
-
   [GatewayDispatchEvents.STAGE_INSTANCE_CREATE](data: GatewayRawEvents.StageInstanceCreate) {
-    const stageInstance = new StageInstance(this.client, data);
+    const guildId = data['guild_id'];
+    const guild = this.client.guilds.get(guildId) || null;
 
-    const payload: GatewayClientEvents.StageInstanceCreate = {stageInstance};
+    const stageInstance = new StageInstance(this.client, data);
+    this.client.stageInstances.insert(stageInstance);
+
+    const payload: GatewayClientEvents.StageInstanceCreate = {guild, guildId, stageInstance};
     this.client.emit(ClientEvents.STAGE_INSTANCE_CREATE, payload);
   }
 
   [GatewayDispatchEvents.STAGE_INSTANCE_DELETE](data: GatewayRawEvents.StageInstanceDelete) {
+    let guild: Guild | null = null;
     let stageInstance: StageInstance;
-    if (this.client.stageInstances.has(data['guild_id'], data['id'])) {
-      stageInstance = this.client.stageInstances.get(data['guild_id'], data['id'])!;
-      this.client.stageInstances.delete(data['guild_id'], data['id']);
+
+    const guildId = data['guild_id'];
+
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (guild.stageInstances.has(data['id'])) {
+        stageInstance = guild.stageInstances.get(data['id'])!;
+        stageInstance.merge(data);
+      } else {
+        stageInstance = new StageInstance(this.client, data);
+      }
+      guild.stageInstances.delete(data['id']);
     } else {
       stageInstance = new StageInstance(this.client, data);
     }
     stageInstance.deleted = true;
 
-    const payload: GatewayClientEvents.StageInstanceDelete = {stageInstance};
+    const payload: GatewayClientEvents.StageInstanceDelete = {guild, guildId, stageInstance};
     this.client.emit(ClientEvents.STAGE_INSTANCE_DELETE, payload);
   }
 
   [GatewayDispatchEvents.STAGE_INSTANCE_UPDATE](data: GatewayRawEvents.StageInstanceUpdate) {
     let differences: GatewayClientEvents.Differences = null;
+    let guild: Guild | null = null;
     let old: StageInstance | null = null;
     let stageInstance: StageInstance;
 
-    if (this.client.stageInstances.has(data['guild_id'], data['id'])) {
-      stageInstance = this.client.stageInstances.get(data['guild_id'], data['id'])!;
-      if (this.client.hasEventListener(ClientEvents.STAGE_INSTANCE_UPDATE)) {
-        differences = stageInstance.differences(data);
-        old = stageInstance.clone();
+    const guildId = data['guild_id'];
+
+    const isListening = this.client.hasEventListener(ClientEvents.STAGE_INSTANCE_UPDATE);
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (guild.stageInstances.has(data['id'])) {
+        stageInstance = guild.stageInstances.get(data['id'])!;
+        if (isListening) {
+          differences = stageInstance.differences(data);
+          old = stageInstance.clone();
+        }
+        stageInstance.merge(data);
+      } else {
+        stageInstance = new StageInstance(this.client, data);
+        this.client.stageInstances.insert(stageInstance);
       }
-      stageInstance.merge(data);
     } else {
       stageInstance = new StageInstance(this.client, data);
-      this.client.stageInstances.insert(stageInstance);
     }
 
-    const payload: GatewayClientEvents.StageInstanceUpdate = {differences, old, stageInstance};
+    const payload: GatewayClientEvents.StageInstanceUpdate = {differences, guild, guildId, old, stageInstance};
     this.client.emit(ClientEvents.STAGE_INSTANCE_UPDATE, payload);
   }
 
@@ -1941,69 +1941,6 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.TypingStart = {channelId, guildId, typing, userId};
     this.client.emit(ClientEvents.TYPING_START, payload);
-  }
-
-  [GatewayDispatchEvents.USER_ACHIEVEMENT_UPDATE](data: GatewayRawEvents.UserAchievementUpdate) {
-
-  }
-
-  async [GatewayDispatchEvents.USER_CONNECTIONS_UPDATE](data: GatewayRawEvents.UserConnectionsUpdate) {
-    // maybe fetch from rest api when this happens to keep cache up to date?
-
-    try {
-      await this.client.connectedAccounts.fill();
-    } catch(error: any) {
-      const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Connected Accounts', error)};
-      this.client.emit(ClientEvents.WARN, payload);
-    }
-
-    const payload: GatewayClientEvents.UserConnectionsUpdate = {};
-    this.client.emit(ClientEvents.USER_CONNECTIONS_UPDATE, payload);
-  }
-
-  [GatewayDispatchEvents.USER_FEED_SETTINGS_UPDATE](data: GatewayRawEvents.UserFeedSettingsUpdate) {
-
-  }
-
-  [GatewayDispatchEvents.USER_GUILD_SETTINGS_UPDATE](data: GatewayRawEvents.UserGuildSettingsUpdate) {
-
-  }
-
-  [GatewayDispatchEvents.USER_NOTE_UPDATE](data: GatewayRawEvents.UserNoteUpdate) {
-    const note = data['note'];
-    let user: null | User = null;
-    const userId = data['id'];
-
-    if (this.client.users.has(userId)) {
-      user = this.client.users.get(userId)!;
-    }
-    this.client.notes.insert(userId, note);
-
-    const payload: GatewayClientEvents.UserNoteUpdate = {note, user, userId};
-    this.client.emit(ClientEvents.USER_NOTE_UPDATE, payload);
-  }
-
-  [GatewayDispatchEvents.USER_PAYMENT_SOURCES_UPDATE](data: GatewayRawEvents.UserPaymentSourcesUpdate) {
-    // maybe fetch from rest api when this happens to keep cache up to date?
-  }
-
-  [GatewayDispatchEvents.USER_PAYMENTS_UPDATE](data: GatewayRawEvents.UserPaymentsUpdate) {
-    // maybe fetch from rest api when this happens to keep cache up to date?
-  }
-
-  [GatewayDispatchEvents.USER_REQUIRED_ACTION_UPDATE](data: GatewayRawEvents.UserRequiredActionUpdate) {
-    const requiredAction = this.client.requiredAction;
-    this.client.requiredAction = data['required_action'];
-
-    const payload: GatewayClientEvents.UserRequiredActionUpdate = {
-      differences: {requiredAction},
-      requiredAction: this.client.requiredAction,
-    };
-    this.client.emit(ClientEvents.USER_REQUIRED_ACTION_UPDATE, payload);
-  }
-
-  [GatewayDispatchEvents.USER_SETTINGS_UPDATE](data: GatewayRawEvents.UserSettingsUpdate) {
-    
   }
 
   [GatewayDispatchEvents.USER_UPDATE](data: GatewayRawEvents.UserUpdate) {

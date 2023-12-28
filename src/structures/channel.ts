@@ -56,6 +56,7 @@ export type ChannelGuildType = (
   ChannelGuildBase |
   ChannelGuildCategory |
   ChannelGuildText |
+  ChannelGuildVoice |
   ChannelGuildStore |
   ChannelGuildThread |
   ChannelGuildStageVoice |
@@ -412,7 +413,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get isText(): boolean {
-    return this.isDm || this.isGuildText || this.isGuildNews || this.isGuildThread;
+    return this.isDm || this.isGuildText || this.isGuildVoice || this.isGuildNews || this.isGuildThread;
   }
 
   get isVoice(): boolean {
@@ -954,7 +955,7 @@ export class ChannelDM extends ChannelBase {
   readonly _keys = keysChannelDm;
   type = ChannelTypes.DM;
 
-  declare lastMessageId?: null | string;
+  declare lastMessageId: null | string;
 
   constructor(
     client: ShardClient,
@@ -1381,7 +1382,7 @@ export class ChannelGuildBase extends ChannelBase {
     memberOrRole?: Member | Role,
     {ignoreAdministrator, ignoreOwner}: {ignoreAdministrator?: boolean, ignoreOwner?: boolean} = {},
   ): boolean {
-    let total = Permissions.NONE;
+    let total: bigint = Permissions.NONE;
     if (memberOrRole instanceof Role) {
       total = memberOrRole.permissions;
       if (!ignoreAdministrator) {
@@ -1531,6 +1532,7 @@ export class ChannelGuildText extends ChannelGuildBase {
   type = ChannelTypes.GUILD_TEXT;
 
   declare lastMessageId: null | string;
+
   topic: null | string = null;
 
   constructor(
@@ -1587,9 +1589,11 @@ export class ChannelGuildText extends ChannelGuildBase {
 }
 
 
+// last_pin_timestamp is missing here
 const keysChannelGuildVoice = new BaseSet<string>([
   ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
+  DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.RTC_REGION,
   DiscordKeys.TOPIC,
   DiscordKeys.USER_LIMIT,
@@ -1604,8 +1608,10 @@ export class ChannelGuildVoice extends ChannelGuildBase {
   readonly _keys = keysChannelGuildVoice;
   type = ChannelTypes.GUILD_VOICE;
 
+  declare lastMessageId: null | string;
+
   bitrate: number = 64000;
-  rtcRegion: string | null = null;
+  rtcRegion: null | string = null;
   userLimit: number = 0;
   videoQualityMode: ChannelVideoQualityModes = ChannelVideoQualityModes.AUTO;
 
@@ -1662,6 +1668,9 @@ export class ChannelGuildVoice extends ChannelGuildBase {
 
     if (DiscordKeys.BITRATE in data) {
       (this as any)[DetritusKeys[DiscordKeys.BITRATE]] = data[DiscordKeys.BITRATE];
+    }
+    if (DiscordKeys.LAST_MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
     }
     if (DiscordKeys.REGION in data) {
       (this as any)[DetritusKeys[DiscordKeys.REGION]] = data[DiscordKeys.REGION];

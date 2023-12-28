@@ -111,7 +111,7 @@ const defaultCodestringFilter: MarkupFilter = Object.freeze(Object.assign({}, de
 }));
 
 export function codestring(text: string, options: MarkupFilterOptions = {}): string {
-  let wrap = Strings.CODESTRING;
+  let wrap: string = Strings.CODESTRING;
   if (text.includes(Strings.CODESTRING)) {
     options = Object.assign({
       limit: 1995,

@@ -24,6 +24,7 @@ import {
   ChannelGuildThread,
   ConnectedAccount,
   Emoji,
+  Entitlement,
   Gift,
   Guild,
   GuildBan,

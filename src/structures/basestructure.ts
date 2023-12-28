@@ -8,7 +8,7 @@ import { toCamelCase } from '../utils';
 
 export function convertKey(snake: string): string {
   if (snake in DetritusKeys) {
-    return DetritusKeys[snake];
+    return (DetritusKeys as any)[snake];
   }
   return toCamelCase(snake);
 }

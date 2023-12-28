@@ -850,19 +850,32 @@ export class CommandClient extends EventSpewer {
 
       let timeout: Timers.Timeout | null = null;
       try {
-        if (command.triggerTypingAfter !== -1) {
+        const shouldTriggerLoading = command.triggerTypingAfter !== undefined && 0 <= command.triggerTypingAfter;
+        if (shouldTriggerLoading) {
           if (command.triggerTypingAfter) {
             timeout = new Timers.Timeout();
             Object.defineProperty(context, 'typingTimeout', {value: timeout});
             timeout.start(command.triggerTypingAfter, async () => {
               try {
-                await context.triggerTyping();
-              } catch(error: any) {
+                if (typeof(command.onTypingTrigger) === 'function') {
+                  await Promise.resolve(command.onTypingTrigger(context));
+                } else {
+                  await context.triggerTyping();
+                }
+              } catch(error) {
                 // do something maybe?
               }
             });
           } else {
-            await context.triggerTyping();
+            try {
+              if (typeof(command.onTypingTrigger) === 'function') {
+                await Promise.resolve(command.onTypingTrigger(context));
+              } else {
+                await context.triggerTyping();
+              }
+            } catch(error) {
+              // do something maybe?
+            }
           }
         }
 

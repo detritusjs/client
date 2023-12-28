@@ -311,9 +311,9 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
   onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
   onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
-  run?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
-  onRunError?(context: InteractionContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
-  onSuccess?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
+  run?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
+  onRunError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
+  onSuccess?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
   onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): Promise<any> | any;
 
   constructor(data: InteractionCommandOptions = {}) {
@@ -682,9 +682,9 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
   onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
   onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
-  run?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
-  onRunError?(context: InteractionContext, args: ParsedArgsFinished, error: any): Promise<any> | any;
-  onSuccess?(context: InteractionContext, args: ParsedArgsFinished): Promise<any> | any;
+  run?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
+  onRunError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
+  onSuccess?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
   onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): Promise<any> | any;
 
   constructor(data: InteractionCommandOptionOptions = {}) {

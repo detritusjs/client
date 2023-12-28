@@ -78,6 +78,12 @@ export type CommandCallbackRunError = (context: Context, args: ParsedArgs, error
 export type CommandCallbackTypeError = (context: Context, args: ParsedArgs, errors: ParsedErrors) => Promise<any | Message> | any | Message;
 
 /**
+ * @category Command
+ */
+export type CommandCallbackTypingTrigger = (context: Context) => Promise<any> | any;
+
+
+/**
  * Command Options
  * @category Command Options
  */
@@ -110,6 +116,7 @@ export interface CommandOptions extends ArgumentOptions {
   onRunError?: CommandCallbackRunError,
   onSuccess?: CommandCallbackSuccess,
   onTypeError?: CommandCallbackTypeError,
+  onTypingTrigger?: CommandCallbackTypingTrigger,
 }
 
 
@@ -148,6 +155,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   onRunError?(context: Context, args: ParsedArgsFinished, error: any): Promise<any | Message> | any | Message;
   onSuccess?(context: Context, args: ParsedArgsFinished): Promise<any> | any;
   onTypeError?(context: Context, args: ParsedArgs, errors: ParsedErrors): Promise<any | Message> | any | Message;
+  onTypingTrigger?(context: Context): Promise<any> | any;
 
   constructor(
     commandClient: CommandClient,
@@ -211,6 +219,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.onRunError = options.onRunError || this.onRunError;
     this.onSuccess = options.onSuccess || this.onSuccess;
     this.onTypeError = options.onTypeError || this.onTypeError;
+    this.onTypingTrigger = options.onTypingTrigger || this.onTypingTrigger;
   }
 
   get aliases(): Array<string> {

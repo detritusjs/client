@@ -204,10 +204,6 @@ export class User extends BaseStructure {
     return [this.username];
   }
 
-  get note(): string {
-    return this.client.notes.get(this.id) || '';
-  }
-
   get presence(): null | Presence {
     return this.client.presences.get(this.id) || null;
   }
@@ -733,10 +729,6 @@ export class UserMixin extends BaseStructure {
 
   get names(): Array<string> {
     return this.user.names;
-  }
-
-  get note(): string {
-    return this.user.note;
   }
 
   get presence(): null | Presence {

@@ -122,6 +122,10 @@ export class BaseGuild extends BaseStructure {
     return this.hasFeature(GuildFeatures.COMMERCE);
   }
 
+  get canHaveTextInVoice(): boolean {
+    return this.hasFeature(GuildFeatures.TEXT_IN_VOICE_ENABLED);
+  }
+
   get canHaveVanityUrl(): boolean {
     return this.hasFeature(GuildFeatures.VANITY_URL);
   }
@@ -1082,7 +1086,7 @@ export class Guild extends GuildPartial {
       return PERMISSIONS_ALL;
     }
 
-    let permissions = Permissions.NONE;
+    let permissions: bigint = Permissions.NONE;
     if (member._roles) {
       for (let roleId of member._roles) {
         const role = this.roles.get(roleId);

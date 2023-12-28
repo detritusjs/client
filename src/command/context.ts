@@ -134,10 +134,6 @@ export class Context {
     return this.client.messages;
   }
 
-  get notes() {
-    return this.client.notes;
-  }
-
   get presences() {
     return this.client.presences;
   }

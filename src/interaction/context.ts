@@ -121,10 +121,6 @@ export class InteractionContextBase {
     return this.client.messages;
   }
 
-  get notes() {
-    return this.client.notes;
-  }
-
   get presences() {
     return this.client.presences;
   }

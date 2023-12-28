@@ -40,8 +40,6 @@ import {
   MembersOptions,
   Messages,
   MessagesOptions,
-  Notes,
-  NotesOptions,
   Presences,
   PresencesOptions,
   Relationships,
@@ -101,7 +99,6 @@ export interface ShardClientCacheOptions {
   interactions?: InteractionsOptions | boolean,
   members?: MembersOptions | boolean,
   messages?: MessagesOptions | boolean,
-  notes?: NotesOptions | boolean,
   presences?: PresencesOptions | boolean,
   relationships?: RelationshipsOptions | boolean,
   roles?: RolesOptions | boolean,
@@ -128,7 +125,6 @@ export interface ShardClientPassOptions {
   interactions?: Interactions,
   members?: Members,
   messages?: Messages,
-  notes?: Notes,
   presences?: Presences,
   relationships?: Relationships,
   roles?: Roles,
@@ -225,7 +221,6 @@ export class ShardClient extends EventSpewer {
   readonly interactions: Interactions;
   readonly members: Members;
   readonly messages: Messages;
-  readonly notes: Notes;
   readonly presences: Presences;
   readonly relationships: Relationships;
   readonly roles: Roles;
@@ -300,7 +295,6 @@ export class ShardClient extends EventSpewer {
         interactions: {enabled},
         members: {enabled},
         messages: {enabled},
-        notes: {enabled},
         presences: {enabled},
         relationships: {enabled},
         roles: {enabled},
@@ -324,7 +318,6 @@ export class ShardClient extends EventSpewer {
     this.interactions = options.pass.interactions || new Interactions(this, options.cache.interactions);
     this.members = options.pass.members || new Members(this, options.cache.members);
     this.messages = options.pass.messages || new Messages(this, options.cache.messages);
-    this.notes = options.pass.notes || new Notes(this, options.cache.notes);
     this.presences = options.pass.presences || new Presences(this, options.cache.presences);
     this.relationships = options.pass.relationships || new Relationships(this, options.cache.relationships);
     this.roles = options.pass.roles || new Roles(this, options.cache.roles);
@@ -530,7 +523,6 @@ export class ShardClient extends EventSpewer {
     this.interactions.clear();
     this.members.clear();
     this.messages.clear();
-    this.notes.clear();
     this.presences.clear();
     this.relationships.clear();
     this.roles.clear();
@@ -807,8 +799,6 @@ export class ShardClient extends EventSpewer {
   on(event: 'userFeedSettingsUpdate', listener: (payload: GatewayClientEvents.UserFeedSettingsUpdate) => any): this;
   on(event: ClientEvents.USER_GUILD_SETTINGS_UPDATE, listener: (payload: GatewayClientEvents.UserGuildSettingsUpdate) => any): this;
   on(event: 'userGuildSettingsUpdate', listener: (payload: GatewayClientEvents.UserGuildSettingsUpdate) => any): this;
-  on(event: ClientEvents.USER_NOTE_UPDATE, listener: (payload: GatewayClientEvents.UserNoteUpdate) => any): this;
-  on(event: 'userNoteUpdate', listener: (payload: GatewayClientEvents.UserNoteUpdate) => any): this;
   on(event: ClientEvents.USER_PAYMENT_SOURCES_UPDATE, listener: (payload: GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   on(event: 'userPaymentSourcesUpdate', listener: (payload: GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   on(event: ClientEvents.USER_PAYMENTS_UPDATE, listener: (payload: GatewayClientEvents.UserPaymentsUpdate) => any): this;
@@ -1019,8 +1009,6 @@ export class ShardClient extends EventSpewer {
   once(event: 'userFeedSettingsUpdate', listener: (payload: GatewayClientEvents.UserFeedSettingsUpdate) => any): this;
   once(event: ClientEvents.USER_GUILD_SETTINGS_UPDATE, listener: (payload: GatewayClientEvents.UserGuildSettingsUpdate) => any): this;
   once(event: 'userGuildSettingsUpdate', listener: (payload: GatewayClientEvents.UserGuildSettingsUpdate) => any): this;
-  once(event: ClientEvents.USER_NOTE_UPDATE, listener: (payload: GatewayClientEvents.UserNoteUpdate) => any): this;
-  once(event: 'userNoteUpdate', listener: (payload: GatewayClientEvents.UserNoteUpdate) => any): this;
   once(event: ClientEvents.USER_PAYMENT_SOURCES_UPDATE, listener: (payload: GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   once(event: 'userPaymentSourcesUpdate', listener: (payload: GatewayClientEvents.UserPaymentSourcesUpdate) => any): this;
   once(event: ClientEvents.USER_PAYMENTS_UPDATE, listener: (payload: GatewayClientEvents.UserPaymentsUpdate) => any): this;
@@ -1231,8 +1219,6 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'userFeedSettingsUpdate', listener: (payload: GatewayClientEvents.UserFeedSettingsUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.USER_GUILD_SETTINGS_UPDATE, listener: (payload: GatewayClientEvents.UserGuildSettingsUpdate) => any): EventSubscription;
   subscribe(event: 'userGuildSettingsUpdate', listener: (payload: GatewayClientEvents.UserGuildSettingsUpdate) => any): EventSubscription;
-  subscribe(event: ClientEvents.USER_NOTE_UPDATE, listener: (payload: GatewayClientEvents.UserNoteUpdate) => any): EventSubscription;
-  subscribe(event: 'userNoteUpdate', listener: (payload: GatewayClientEvents.UserNoteUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.USER_PAYMENT_SOURCES_UPDATE, listener: (payload: GatewayClientEvents.UserPaymentSourcesUpdate) => any): EventSubscription;
   subscribe(event: 'userPaymentSourcesUpdate', listener: (payload: GatewayClientEvents.UserPaymentSourcesUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.USER_PAYMENTS_UPDATE, listener: (payload: GatewayClientEvents.UserPaymentsUpdate) => any): EventSubscription;

@@ -8,6 +8,7 @@ export * from './channel';
 export * from './components';
 export * from './connectedaccount';
 export * from './emoji';
+export * from './entitlement';
 export * from './gift';
 export * from './guild';
 export * from './guildban';
