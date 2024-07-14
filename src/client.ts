@@ -70,8 +70,8 @@ import {
 } from './media/voiceconnection';
 
 import {
+  Application,
   Member,
-  Oauth2Application,
   Presence,
   User,
   UserMe,
@@ -176,7 +176,7 @@ export class ShardClient extends EventSpewer {
   _isBot: boolean = true;
   _killed: boolean = false;
 
-  application: Oauth2Application | null = null;
+  application: Application | null = null;
   cluster: ClusterClient | null = null;
   commandClient: CommandClient | null = null;
   interactionCommandClient: InteractionCommandClient | null = null;
@@ -366,24 +366,24 @@ export class ShardClient extends EventSpewer {
   }
 
   _mergeOauth2Application(data: any) {
-    let oauth2Application: Oauth2Application;
+    let application: Application;
     if (this.application) {
-      oauth2Application = this.application;
-      oauth2Application.merge(data);
+      application = this.application;
+      application.merge(data);
     } else {
-      oauth2Application = new Oauth2Application(this, data);
-      this.application = oauth2Application;
+      application = new Application(this, data);
+      this.application = application;
     }
-    if (oauth2Application.owner) {
+    if (application.owner) {
       this.owners.clear();
-      this.owners.set(oauth2Application.owner.id, oauth2Application.owner);
-      if (oauth2Application.team) {
-        for (let [userId, member] of oauth2Application.team.members) {
+      this.owners.set(application.owner.id, application.owner);
+      if (application.team) {
+        for (let [userId, member] of application.team.members) {
           this.owners.set(userId, member.user);
         }
       }
     }
-    return oauth2Application;
+    return application;
   }
 
   hookComponents(

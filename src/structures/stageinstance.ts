@@ -87,15 +87,15 @@ export class StageInstance extends BaseStructure {
     return emptyBaseCollection;
   }
 
-  edit(options: RequestTypes.EditStageInstance = {}) {
+  async edit(options: RequestTypes.EditStageInstance = {}) {
     return this.client.rest.editStageInstance(this.channelId, options);
   }
 
-  fetch() {
+  async fetch() {
     return this.client.rest.fetchStageInstance(this.channelId);
   }
 
-  delete() {
+  async delete() {
     return this.client.rest.deleteStageInstance(this.channelId);
   }
 }

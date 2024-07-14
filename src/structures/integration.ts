@@ -1,24 +1,30 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DiscordKeys, IntegrationExpireBehaviors, Oauth2Scopes } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
+import { Application } from './application';
 import { User } from './user';
 
 
 const keysIntegration = new BaseSet<string>([
   DiscordKeys.ACCOUNT,
+  DiscordKeys.APPLICATION,
   DiscordKeys.ENABLED,
+  DiscordKeys.ENABLE_EMOTICONS,
   DiscordKeys.EXPIRE_BEHAVIOR,
   DiscordKeys.EXPIRE_GRACE_PERIOD,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.NAME,
+  DiscordKeys.REVOKED,
   DiscordKeys.ROLE_ID,
+  DiscordKeys.SCOPES,
+  DiscordKeys.SUBSCRIBER_COUNT,
   DiscordKeys.SYNCED_AT,
   DiscordKeys.SYNCING,
   DiscordKeys.TYPE,
@@ -33,17 +39,22 @@ export class Integration extends BaseStructure {
   readonly _keys = keysIntegration;
 
   account!: IntegrationAccount;
+  application?: Application;
   enabled: boolean = false;
-  expireBehavior: number = 0;
-  expireGracePeriod: number = 0;
+  enableEmoticons?: boolean;
+  expireBehavior?: IntegrationExpireBehaviors;
+  expireGracePeriod?: number;
   guildId: string = '';
   id: string = '';
   name: string = '';
-  roleId: string = '';
-  syncedAt!: Date;
-  syncing: boolean = false;
+  scopes?: Array<Oauth2Scopes>;
+  revoked?: boolean;
+  roleId?: string;
+  subscriberCount?: number;
+  syncedAt?: Date;
+  syncing?: boolean;
   type: string = '';
-  user!: User;
+  user?: User;
 
   constructor(
     client: ShardClient,
@@ -67,6 +78,10 @@ export class Integration extends BaseStructure {
       switch (key) {
         case DiscordKeys.ACCOUNT: {
           value = new IntegrationAccount(this, value);
+        }; break;
+        case DiscordKeys.APPLICATION: {
+          // todo: maybe use our own application object if its ours?
+          value = new Application(this.client, value);
         }; break;
         case DiscordKeys.SYNCED_AT: {
           value = new Date(value);

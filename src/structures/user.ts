@@ -78,6 +78,9 @@ export class User extends BaseStructure {
   }
 
   get defaultAvatarUrl(): string {
+    if (this.discriminator === '0') {
+      return Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DEFAULT_ID(this.id);
+    }
     return Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DEFAULT(this.discriminator);
   }
 

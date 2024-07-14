@@ -8,6 +8,11 @@ import {
 
 
 export namespace RestResponses {
+  export interface BulkGuildBan {
+    bannedUsers: Array<string>,
+    failedUsers: Array<string>,
+  }
+
   export interface FetchChannelThreadsActive {
     hasMore: boolean,
     members: BaseCollection<string, BaseCollection<string, ThreadMember>>,

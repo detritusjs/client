@@ -16,6 +16,7 @@ import {
   createChannelFromData,
 } from './channel';
 import { GuildPartial } from './guild';
+import { GuildScheduledEvent } from './guildscheduledevent';
 import { User } from './user';
 
 
@@ -27,6 +28,7 @@ const keysInvite = new BaseSet<string>([
   DiscordKeys.CREATED_AT,
   DiscordKeys.EXPIRES_AT,
   DiscordKeys.GUILD,
+  DiscordKeys.GUILD_SCHEDULED_EVENT,
   DiscordKeys.INVITER,
   DiscordKeys.MAX_AGE,
   DiscordKeys.MAX_USES,
@@ -57,6 +59,7 @@ export class Invite extends BaseStructure {
   createdAt?: Date;
   expiresAt?: Date;
   guild?: GuildPartial;
+  guildScheduledEvent?: GuildScheduledEvent;
   inviter?: User;
   maxAge?: number;
   maxUses?: number;
@@ -153,6 +156,9 @@ export class Invite extends BaseStructure {
         }; break;
         case DiscordKeys.GUILD: {
           value = new GuildPartial(this.client, value);
+        }; break;
+        case DiscordKeys.GUILD_SCHEDULED_EVENT: {
+          value = new GuildScheduledEvent(this.client, value);
         }; break;
         case DiscordKeys.INVITER: {
           let inviter: User;

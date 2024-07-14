@@ -16,6 +16,7 @@ import {
   BaseStructureData,
 } from './basestructure';
 import { Application } from './application';
+import { Sku } from './sku';
 
 
 const keysStore = new BaseSet<string>([
@@ -131,106 +132,6 @@ export class StoreListingAsset extends BaseStructure {
     this.storeListing = storeListing;
     this.merge(data);
     Object.defineProperty(this, 'storeListing', {enumerable: false, writable: false});
-  }
-}
-
-
-const keysSku = new BaseSet<string>([
-  DiscordKeys.ACCESS_TYPE,
-  DiscordKeys.APPLICATION,
-  DiscordKeys.APPLICATION_ID,
-  DiscordKeys.CONTENT_RATING,
-  DiscordKeys.CONTENT_RATING_AGENCY,
-  DiscordKeys.DEPENDENT_SKU_ID,
-  DiscordKeys.FEATURES,
-  DiscordKeys.FLAGS,
-  DiscordKeys.GENRES,
-  DiscordKeys.ID,
-  DiscordKeys.LEGAL_NOTICE,
-  DiscordKeys.LOCALES,
-  DiscordKeys.MANIFEST_LABELS,
-  DiscordKeys.NAME,
-  DiscordKeys.PREMIUM,
-  DiscordKeys.PRICE,
-  DiscordKeys.RELEASE_DATE,
-  DiscordKeys.SHOW_AGE_GATE,
-  DiscordKeys.SLUG,
-  DiscordKeys.SYSTEM_REQUIREMENTS,
-  DiscordKeys.TYPE,
-]);
-
-/**
- * Sku Structure, used in [Gift] and [StoreListing]
- * @category Structure
- */
-export class Sku extends BaseStructure {
-  readonly _keys = keysSku;
-
-  accessType: number = 0;
-  application?: Application;
-  applicationId: string = '';
-  contentRating?: {descriptors: Array<number>, rating: number};
-  contentRatingAgency: number = 0;
-  dependentSkuId: null | string = null;
-  features?: Array<number>;
-  flags: number = 0;
-  genres?: Array<number>;
-  id: string = '';
-  legalNotice: string = '';
-  locales?: Array<string>;
-  manifestLabels?: Array<any> | null;
-  name: string = '';
-  premium?: null;
-  price?: {amount: number, currency: string};
-  releaseDate?: null | string;
-  showAgeGate: boolean = false;
-  systemRequirements?: {[key: string]: {recommended: any, minimum: any}};
-  slug: string = '';
-  type: SkuTypes = SkuTypes.BASE;
-
-  constructor(
-    client: ShardClient,
-    data?: BaseStructureData,
-    isClone?: boolean,
-  ) {
-    super(client, undefined, isClone);
-    this.merge(data);
-  }
-
-  get url(): string {
-    return Endpoints.Routes.URL + Endpoints.Routes.APPLICATION_STORE_LISTING_SKU(this.id, this.slug);
-  }
-
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.APPLICATION_ID: {
-          if (!this.application) {
-            if (this.client.applications.has(value)) {
-              this.application = this.client.applications.get(value) as Application;
-              if (this.isClone) {
-                this.application = this.application.clone();
-              }
-            }
-          }
-        }; break;
-        case DiscordKeys.APPLICATION: {
-          let application: Application;
-          if (this.isClone) {
-            application = new Application(this.client, value, this.isClone);
-          } else {
-            if (this.client.applications.has(value.id)) {
-              application = this.client.applications.get(value.id) as Application;
-              application.merge(value);
-            } else {
-              application = new Application(this.client, value);
-            }
-          }
-          value = application;
-        }; break;
-      }
-      return super.mergeValue(key, value);
-    }
   }
 }
 

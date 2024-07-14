@@ -453,6 +453,9 @@ export class InteractionCommandClient extends EventSpewer {
         const localCommand = localCommands.find((cmd) => cmd.name === command.name && cmd.type === command.type);
         if (localCommand) {
           localCommand.ids.set(guildId, command.id);
+          if (localCommand.integrationTypes === undefined) {
+            localCommand.integrationTypes = command.integrationTypes;
+          }
           if (matches && localCommand.hash !== command.hash) {
             matches = false;
           }
@@ -757,7 +760,7 @@ export class InteractionCommandClient extends EventSpewer {
           if (typeof(this.onInteractionCancel) === 'function') {
             return await Promise.resolve(this.onInteractionCancel(context));
           }
-          return
+          return;
         }
       } catch(error: any) {
         const payload: InteractionCommandEvents.CommandError = {command, context, error};

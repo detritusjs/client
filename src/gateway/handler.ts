@@ -14,6 +14,7 @@ import { GatewayError, GatewayHTTPError } from '../errors';
 
 import {
   ApplicationCommand,
+  AuditLog,
   Channel,
   ChannelDM,
   ConnectedAccount,
@@ -21,6 +22,7 @@ import {
   Entitlement,
   Guild,
   GuildScheduledEvent,
+  Integration,
   Interaction,
   Invite,
   Member,
@@ -537,6 +539,19 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.ENTITLEMENT_UPDATE, payload);
   }
 
+  [GatewayDispatchEvents.GUILD_AUDIT_LOG_ENTRY_CREATE](data: GatewayRawEvents.GuildAuditLogEntryCreate) {
+    const auditLog = new AuditLog(this.client, data);
+    const guildId = data['guild_id'];
+
+    let guild: Guild | null = null;
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+    }
+
+    const payload: GatewayClientEvents.GuildAuditLogEntryCreate = {auditLog, guild, guildId};
+    this.client.emit(ClientEvents.GUILD_AUDIT_LOG_ENTRY_CREATE, payload);
+  }
+
   [GatewayDispatchEvents.GUILD_BAN_ADD](data: GatewayRawEvents.GuildBanAdd) {
     const guild = this.client.guilds.get(data['guild_id']);
     const guildId = data['guild_id'];
@@ -549,11 +564,8 @@ export class GatewayDispatchHandler {
       user = new User(this.client, data['user']);
     }
 
-    this.client.emit(ClientEvents.GUILD_BAN_ADD, {
-      guild,
-      guildId,
-      user,
-    });
+    const payload: GatewayClientEvents.GuildBanAdd = {guild, guildId, user};
+    this.client.emit(ClientEvents.GUILD_BAN_ADD, payload);
   }
 
   [GatewayDispatchEvents.GUILD_BAN_REMOVE](data: GatewayRawEvents.GuildBanRemove) {
@@ -568,11 +580,8 @@ export class GatewayDispatchHandler {
       user = new User(this.client, data['user'])
     }
 
-    this.client.emit(ClientEvents.GUILD_BAN_REMOVE, {
-      guild,
-      guildId,
-      user,
-    });
+    const payload: GatewayClientEvents.GuildBanRemove = {guild, guildId, user};
+    this.client.emit(ClientEvents.GUILD_BAN_REMOVE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_CREATE](data: GatewayRawEvents.GuildCreate) {
@@ -1180,11 +1189,43 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_USER_ADD](data: GatewayRawEvents.GuildScheduledEventUserAdd) {
-    
+    let guild: Guild | null = null;
+    let user: User | null = null;
+
+    const guildId = data['guild_id'];
+    const guildScheduledEventId = data['guild_scheduled_event_id'];
+    const userId = data['user_id'];
+
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+    }
+
+    if (this.client.users.has(userId)) {
+      user = this.client.users.get(userId)!;
+    }
+
+    const payload: GatewayClientEvents.GuildScheduledEventUserAdd = {guild, guildId, guildScheduledEventId, user, userId};
+    this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_USER_ADD, payload);
   }
 
   [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE](data: GatewayRawEvents.GuildScheduledEventUserRemove) {
+    let guild: Guild | null = null;
+    let user: User | null = null;
     
+    const guildId = data['guild_id'];
+    const guildScheduledEventId = data['guild_scheduled_event_id'];
+    const userId = data['user_id'];
+
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+    }
+    
+    if (this.client.users.has(userId)) {
+      user = this.client.users.get(userId)!;
+    }
+    
+    const payload: GatewayClientEvents.GuildScheduledEventUserRemove = {guild, guildId, guildScheduledEventId, user, userId};
+    this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_STICKERS_UPDATE](data: GatewayRawEvents.GuildStickersUpdate) {
@@ -1273,6 +1314,41 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.GuildUpdate = {differences, guild, old};
     this.client.emit(ClientEvents.GUILD_UPDATE, payload);
+  }
+
+  [GatewayDispatchEvents.INTEGRATION_CREATE](data: GatewayRawEvents.IntegrationCreate) {
+    const guildId = data['guild_id'];
+    const integration = new Integration(this.client, data);
+
+    let guild: Guild | null = null;
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+    }
+
+    const payload: GatewayClientEvents.IntegrationCreate = {guild, guildId, integration};
+    this.client.emit(ClientEvents.INTEGRATION_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.INTEGRATION_DELETE](data: GatewayRawEvents.IntegrationDelete) {
+    const applicationId = data['application_id'];
+    const guildId = data['guild_id'];
+    const id = data['id'];
+
+    const payload: GatewayClientEvents.IntegrationDelete = {applicationId, guildId, id};
+    this.client.emit(ClientEvents.INTEGRATION_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.INTEGRATION_UPDATE](data: GatewayRawEvents.IntegrationUpdate) {
+    const guildId = data['guild_id'];
+    const integration = new Integration(this.client, data);
+
+    let guild: Guild | null = null;
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+    }
+
+    const payload: GatewayClientEvents.IntegrationUpdate = {guild, guildId, integration};
+    this.client.emit(ClientEvents.INTEGRATION_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.INTERACTION_CREATE](data: GatewayRawEvents.InteractionCreate) {
@@ -1399,6 +1475,28 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.MessageDeleteBulk = {amount, channelId, guildId, messages, raw: data};
     this.client.emit(ClientEvents.MESSAGE_DELETE_BULK, payload);
+  }
+
+  [GatewayDispatchEvents.MESSAGE_POLL_VOTE_ADD](data: GatewayRawEvents.MessagePollVoteAdd) {
+    const answerId = data['answer_id'];
+    const channelId = data['channel_id'];
+    const messageId = data['message_id'];
+    const guildId = data['guild_id'];
+    const userId = data['user_id'];
+  
+    const payload: GatewayClientEvents.MessagePollVoteAdd = {answerId, channelId, messageId, guildId, userId};
+    this.client.emit(ClientEvents.MESSAGE_POLL_VOTE_ADD, payload);
+  }
+
+  [GatewayDispatchEvents.MESSAGE_POLL_VOTE_REMOVE](data: GatewayRawEvents.MessagePollVoteRemove) {
+    const answerId = data['answer_id'];
+    const channelId = data['channel_id'];
+    const messageId = data['message_id'];
+    const guildId = data['guild_id'];
+    const userId = data['user_id'];
+  
+    const payload: GatewayClientEvents.MessagePollVoteRemove = {answerId, channelId, messageId, guildId, userId};
+    this.client.emit(ClientEvents.MESSAGE_POLL_VOTE_REMOVE, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_ADD](data: GatewayRawEvents.MessageReactionAdd) {

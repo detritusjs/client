@@ -1,3 +1,5 @@
+import { RequestTypes } from 'detritus-client-rest';
+
 import { BaseSet } from '../collections/baseset';
 import { ShardClient } from '../client';
 import {
@@ -14,6 +16,7 @@ import {
   BaseStructureData,
 } from './basestructure';
 import { Guild } from './guild';
+import { Member } from './member';
 import { User } from './user';
 
 
@@ -99,6 +102,18 @@ export class GuildScheduledEvent extends BaseStructure {
     return new Date(this.scheduledStartTimeUnix);
   }
 
+  async delete(options: RequestTypes.DeleteGuildScheduledEvent = {}) {
+    return this.client.rest.deleteGuildScheduledEvent(this.guildId, this.id, options);
+  }
+
+  async edit(options: RequestTypes.EditGuildScheduledEvent = {}) {
+    return this.client.rest.editGuildScheduledEvent(this.guildId, this.id, options);
+  }
+
+  async fetchUsers(options: RequestTypes.FetchGuildScheduledEventUsers = {}) {
+    return this.client.rest.fetchGuildScheduledEventUsers(this.guildId, this.id, options);
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
@@ -165,6 +180,72 @@ export class GuildScheduledEvent extends BaseStructure {
     }
     if (DiscordKeys.USER_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.USER_COUNT]] = data[DiscordKeys.USER_COUNT];
+    }
+  }
+}
+
+
+
+const keysGuildScheduledEventUser = new BaseSet<string>([
+  DiscordKeys.GUILD_SCHEDULED_EVENT_ID,
+  DiscordKeys.MEMBER,
+  DiscordKeys.USER,
+]);
+
+/**
+ * Guild Scheduled Event User Structure
+ * @category Structure
+ */
+export class GuildScheduledEventUser extends BaseStructure {
+  readonly _keys = keysGuildScheduledEventUser;
+
+  guildScheduledEventId: string = '';
+  member?: Member;
+  user!: User;
+
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  get id(): string {
+    return this.user.id;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.GUILD_SCHEDULED_EVENT_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_SCHEDULED_EVENT_ID]] = data[DiscordKeys.GUILD_SCHEDULED_EVENT_ID];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.client.users.has(value.id)) {
+        user = this.client.users.get(value.id)!;
+        user.merge(value);
+      } else {
+        user = new User(this.client, value);
+        // maybe insert?
+      }
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
+    }
+    if (DiscordKeys.MEMBER in data) {
+      const value = data[DiscordKeys.MEMBER];
+      const guildId = value[DiscordKeys.GUILD_ID];
+
+      let member: Member;
+      if (this.client.members.has(guildId, value.user.id)) {
+        member = this.client.members.get(guildId, value.user.id)!;
+        member.merge(value);
+      } else {
+        member = new Member(this.client, value);
+        member.user = this.user;
+      }
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
     }
   }
 }

@@ -6,8 +6,11 @@ import { BaseSet } from '../collections/baseset';
 import {
   ApplicationCommandOptionTypes,
   ApplicationCommandTypes,
+  ApplicationIntegrationTypes,
+  DetritusKeys,
   DiscordKeys,
   InteractionCallbackTypes,
+  InteractionContextTypes,
   InteractionTypes,
   MessageComponentTypes,
   INTERACTION_TIMEOUT,
@@ -21,6 +24,7 @@ import {
 import { Attachment } from './attachment';
 import { Channel, createChannelFromData } from './channel';
 import { ComponentActionRow } from './components';
+import { Entitlement } from './entitlement';
 import { Guild } from './guild';
 import { Member } from './member';
 import { Message } from './message';
@@ -37,8 +41,11 @@ const DEFERRED_TYPES = Object.freeze([
 
 const keysInteraction = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
+  DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS,
   DiscordKeys.CHANNEL_ID,
+  DiscordKeys.CONTEXT,
   DiscordKeys.DATA,
+  DiscordKeys.ENTITLEMENTS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.GUILD_LOCALE,
   DiscordKeys.ID,
@@ -51,24 +58,20 @@ const keysInteraction = new BaseSet<string>([
   DiscordKeys.VERSION,
 ]);
 
-const keysMergeInteraction = new BaseSet<string>([
-  DiscordKeys.GUILD_ID,
-  DiscordKeys.MEMBER,
-  DiscordKeys.TYPE,
-]);
-
 /**
  * Interaction Structure
  * @category Structure
  */
 export class Interaction extends BaseStructure {
   readonly _keys = keysInteraction;
-  readonly _keysMerge = keysMergeInteraction;
   readonly _deleted: boolean = false;
+  _entitlements?: BaseCollection<string, Entitlement>;
   _responding: Promise<boolean> | null = null;
 
   applicationId: string = '';
+  authorizingIntegrationOwners: Partial<Record<ApplicationIntegrationTypes, string>> = {};
   channelId?: string;
+  context?: InteractionContextTypes;
   data?: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
   guildId?: string;
   guildLocale?: string;
@@ -91,6 +94,10 @@ export class Interaction extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+    Object.defineProperties(this, {
+      _entitlements: {enumerable: false, writable: true},
+      _responding: {enumerable: false, writable: true},
+    });
   }
 
   get channel(): Channel | null {
@@ -119,6 +126,13 @@ export class Interaction extends BaseStructure {
     return this._deleted;
   }
 
+  get entitlements(): BaseCollection<string, Entitlement> {
+    if (this._entitlements) {
+      return this._entitlements;
+    }
+    return emptyBaseCollection;
+  }
+
   get guild(): Guild | null {
     if (this.guildId) {
       return this.client.guilds.get(this.guildId) || null;
@@ -127,7 +141,15 @@ export class Interaction extends BaseStructure {
   }
 
   get inDm(): boolean {
-    return !this.member;
+    return this.inDmWithBot || this.inDmWithUsers;
+  }
+
+  get inDmWithBot(): boolean {
+    return this.context === InteractionContextTypes.BOT_DM;
+  }
+
+  get inDmWithUsers(): boolean {
+    return this.context === InteractionContextTypes.PRIVATE_CHANNEL;
   }
 
   get isFromApplicationCommand() {
@@ -255,41 +277,99 @@ export class Interaction extends BaseStructure {
     return this.createResponse(options, data);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.DATA: {
-          switch (this.type) {
-            case InteractionTypes.PING: {
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-            }; break;
-            case InteractionTypes.APPLICATION_COMMAND: {
-              value = new InteractionDataApplicationCommand(this, value);
-            }; break;
-            case InteractionTypes.MESSAGE_COMPONENT: {
-              value = new InteractionDataComponent(this, value);
-            }; break;
-            case InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE: {
-              value = new InteractionDataApplicationCommand(this, value);
-            }; break;
-            case InteractionTypes.MODAL_SUBMIT: {
-              value = new InteractionDataModal(this, value);
-            }; break;
-          }
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS]] = data[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS];
+    }
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.CONTEXT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONTEXT]] = data[DiscordKeys.CONTEXT];
+    }
+    if (DiscordKeys.ENTITLEMENTS in data) {
+      const value = data[DiscordKeys.ENTITLEMENTS];
+      if (value.length) {
+        if (!this._entitlements) {
+          this._entitlements = new BaseCollection<string, Entitlement>();
+        }
+        this._entitlements.clear();
+        for (let raw of value) {
+          this._entitlements.set(raw.id, new Entitlement(this.client, raw, this.isClone));
+        }
+      } else {
+        if (this._entitlements) {
+          this._entitlements.clear();
+          this._entitlements = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.GUILD_LOCALE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_LOCALE]] = data[DiscordKeys.GUILD_LOCALE];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.LOCALE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LOCALE]] = data[DiscordKeys.LOCALE];
+    }
+    if (DiscordKeys.MESSAGE in data) {
+      const value = data[DiscordKeys.MESSAGE];
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE]] = new Message(this.client, value, true);
+    }
+    if (DiscordKeys.TOKEN in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOKEN]] = data[DiscordKeys.TOKEN];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.VERSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VERSION]] = data[DiscordKeys.VERSION];
+    }
+
+    if (DiscordKeys.MEMBER in data) {
+      const value = data[DiscordKeys.MEMBER];
+      value[DiscordKeys.GUILD_ID] = this.guildId!;
+
+      const member = new Member(this.client, value, true);
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = member.user;
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = new User(this.client, value, true);
+    }
+
+    if (DiscordKeys.DATA in data) {
+      let value = data[DiscordKeys.DATA];
+      switch (this.type) {
+        case InteractionTypes.PING: {
+          
         }; break;
-        case DiscordKeys.MEMBER: {
-          value.guild_id = this.guildId as string;
-          value = new Member(this.client, value, true);
-          this.user = value.user;
+        case InteractionTypes.APPLICATION_COMMAND: {
+          value = new InteractionDataApplicationCommand(this, value);
         }; break;
-        case DiscordKeys.MESSAGE: {
-          value = new Message(this.client, value, true);
+        case InteractionTypes.MESSAGE_COMPONENT: {
+          value = new InteractionDataComponent(this, value);
         }; break;
-        case DiscordKeys.USER: {
-          value = new User(this.client, value, true);
+        case InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE: {
+          value = new InteractionDataApplicationCommand(this, value);
+        }; break;
+        case InteractionTypes.MODAL_SUBMIT: {
+          value = new InteractionDataModal(this, value);
         }; break;
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.DATA]] = value;
     }
   }
 }
@@ -515,15 +595,9 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
           }
           this.channels.clear();
           for (let channelId in value) {
-            let channel: Channel;
-            if (this.client.channels.has(channelId)) {
-              channel = this.client.channels.get(channelId)!;
-              // do we want to just create it like below? or merge the values?
-              // not sure if discord verifies the data
-            } else {
-              value[channelId][DiscordKeys.GUILD_ID] = this.guildId;
-              channel = createChannelFromData(this.client, value[channelId]);
-            }
+            // always create it cause of the 'permissions' field sent in
+            value[channelId][DiscordKeys.GUILD_ID] = this.guildId;
+            const channel = createChannelFromData(this.client, value[channelId]);
             this.channels.set(channelId, channel);
           }
         }; return;

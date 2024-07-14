@@ -140,21 +140,21 @@ export class Sticker extends StickerItem {
     return null;
   }
 
-  delete() {
+  async delete() {
     if (!this.guildId) {
       throw new Error('Can\'t delete a global sticker!');
     }
     return this.client.rest.deleteGuildSticker(this.guildId, this.id);
   }
 
-  edit() {
+  async edit() {
     if (!this.guildId) {
       throw new Error('Can\'t edit a global sticker!');
     }
     return this.client.rest.editGuildSticker(this.guildId, this.id);
   }
 
-  fetch() {
+  async fetch() {
     if (!this.guildId) {
       throw new Error('Can\'t edit a global sticker!');
     }

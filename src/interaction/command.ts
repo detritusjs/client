@@ -1,7 +1,14 @@
 import * as Crypto from 'crypto';
 
 import { CommandRatelimit, CommandRatelimitItem, CommandRatelimitOptions } from '../commandratelimit';
-import { ApplicationCommandOptionTypes, ApplicationCommandTypes, DetritusKeys, DiscordKeys } from '../constants';
+import {
+  ApplicationCommandOptionTypes,
+  ApplicationCommandTypes,
+  ApplicationIntegrationTypes,
+  InteractionContextTypes,
+  DetritusKeys,
+  DiscordKeys,
+} from '../constants';
 
 import { BaseSet } from '../collections/baseset';
 import { BaseCollection } from '../collections/basecollection';
@@ -165,6 +172,7 @@ export interface InteractionCommandOptions {
   name?: string,
   name_localizations?: Record<string, string | undefined>,
   nameLocalizations?: Record<string, string | undefined>,
+  nsfw?: boolean,
   options?: Array<InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption>,
   type?: ApplicationCommandTypes,
 
@@ -255,14 +263,17 @@ export interface InteractionCommandOptionChoiceOptions {
 }
 
 const keysInteractionCommand = new BaseSet<string>([
+  DiscordKeys.CONTEXTS,
   DiscordKeys.DEFAULT_MEMBER_PERMISSIONS,
   DiscordKeys.DEFAULT_PERMISSION,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DESCRIPTION_LOCALIZATIONS,
   DiscordKeys.DM_PERMISSION,
   DiscordKeys.IDS,
+  DiscordKeys.INTEGRATION_TYPES,
   DiscordKeys.NAME,
   DiscordKeys.NAME_LOCALIZATIONS,
+  DiscordKeys.NSFW,
   DiscordKeys.OPTIONS,
   DiscordKeys.TYPE,
 ]);
@@ -278,16 +289,19 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   readonly _keysSkipDifference = keysSkipDifferenceInteractionCommand;
   _options?: BaseCollection<string, InteractionCommandOption>;
 
+  contexts: Array<InteractionContextTypes> | null = null;
   defaultMemberPermissions: bigint | null = null;
   defaultPermission: boolean = true;
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
   dmPermission: boolean = true;
   ids = new BaseCollection<string, string>();
+  integrationTypes?: Array<ApplicationIntegrationTypes>;
   global: boolean = true;
   guildIds?: BaseSet<string>;
   name: string = '';
   nameLocalizations: Record<string, string | undefined> | null = null;
+  nsfw: boolean = false;
   type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
 
   disableDm?: boolean;
@@ -329,6 +343,9 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     }
     if (DetritusKeys[DiscordKeys.DM_PERMISSION] in data) {
       (data as any)[DiscordKeys.DM_PERMISSION] = (data as any)[DetritusKeys[DiscordKeys.DM_PERMISSION]];
+    }
+    if (DetritusKeys[DiscordKeys.INTEGRATION_TYPES] in data) {
+      (data as any)[DiscordKeys.INTEGRATION_TYPES] = (data as any)[DetritusKeys[DiscordKeys.INTEGRATION_TYPES]];
     }
     if (DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS] in data) {
       (data as any)[DiscordKeys.NAME_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS]];

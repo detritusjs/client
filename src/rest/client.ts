@@ -17,7 +17,9 @@ import {
   ApplicationCommand,
   ApplicationCommandPermissions,
   ApplicationNews,
+  ApplicationRoleConnectionMetadata,
   AuditLog,
+  AutoModerationRule,
   Channel,
   ChannelDM,
   ChannelDMGroup,
@@ -29,12 +31,12 @@ import {
   Guild,
   GuildBan,
   GuildMe,
+  GuildScheduledEvent,
+  GuildScheduledEventUser,
   Integration,
   Invite,
   Member,
   Message,
-  Oauth2Application,
-  Oauth2ApplicationAsset,
   PremiumSubscription,
   Profile,
   Role,
@@ -279,6 +281,17 @@ export class RestClient {
     return this.raw.bulkDeleteMessages(channelId, messageIds);
   }
 
+  async bulkGuildBan(
+    guildId: string,
+    options: RequestTypes.BulkGuildBan,
+  ): Promise<RestResponses.BulkGuildBan> {
+    const data = await this.raw.bulkGuildBan(guildId, options);
+    return {
+      bannedUsers: data.banned_users,
+      failedUsers: data.failed_users,
+    };
+  }
+
   async bulkOverwriteApplicationCommands(
     applicationId: string,
     commands: Array<RequestTypes.CreateApplicationCommand>,
@@ -323,6 +336,22 @@ export class RestClient {
     return collection;
   }
 
+  async bulkOverwriteApplicationRoleConnectionsMetadata(
+    applicationId: string,
+    metadata: Array<
+      RequestTypes.BulkOverwriteApplicationRoleConnectionsMetadataRecord |
+      RequestTypes.toJSON<RequestTypes.BulkOverwriteApplicationRoleConnectionsMetadataRecordData>
+    >,
+  ): Promise<BaseCollection<string, ApplicationRoleConnectionMetadata>> {
+    const data = await this.raw.bulkOverwriteApplicationRoleConnectionsMetadata(applicationId, metadata);
+    const collection = new BaseCollection<string, ApplicationRoleConnectionMetadata>();
+    for (let raw of data) {
+      const record = new ApplicationRoleConnectionMetadata(this.client, raw);
+      collection.set(record.key, record);
+    }
+    return collection;
+  }
+
   connectionCallback(
     platform: string,
     options: RequestTypes.ConnectionCallback,
@@ -330,11 +359,25 @@ export class RestClient {
     return this.raw.connectionCallback(platform, options);
   }
 
+  consumeApplicationEntitlement(
+    applicationId: string,
+    entitlementId: string,
+  ) {
+    return this.raw.consumeApplicationEntitlement(applicationId, entitlementId);
+  }
+
   createApplicationCommand(
     applicationId: string,
     options: RequestTypes.CreateApplicationCommand,
   ) {
     return this.raw.createApplicationCommand(applicationId, options);
+  }
+
+  createApplicationEntitlement(
+    applicationId: string,
+    options: RequestTypes.CreateApplicationEntitlement,
+  ) {
+    return this.raw.createApplicationEntitlement(applicationId, options);
   }
 
   createApplicationGuildCommand(
@@ -432,6 +475,15 @@ export class RestClient {
     return guild;
   }
 
+  async createGuildAutoModerationRule(
+    guildId: string,
+    options: RequestTypes.CreateGuildAutoModerationRule,
+  ): Promise<AutoModerationRule> {
+    const data = await this.raw.createGuildAutoModerationRule(guildId, options);
+    data.guild_id = guildId;
+    return new AutoModerationRule(this.client, data);
+  }
+
   createGuildBan(
     guildId: string,
     userId: string,
@@ -476,6 +528,14 @@ export class RestClient {
       this.client.emojis.insert(emoji);
     }
     return emoji;
+  }
+
+  async createGuildScheduledEvent(
+    guildId: string,
+    options: RequestTypes.CreateGuildScheduledEvent,
+  ): Promise<GuildScheduledEvent> {
+    const data = await this.raw.createGuildScheduledEvent(guildId, options);
+    return new GuildScheduledEvent(this.client, data);
   }
 
   async createGuildSticker(
@@ -611,15 +671,6 @@ export class RestClient {
     return this.raw.createOauth2Application(options);
   }
 
-  async createOauth2ApplicationAsset(
-    applicationId: string,
-    options: RequestTypes.CreateOauth2ApplicationAsset,
-  ): Promise<Oauth2ApplicationAsset> {
-    const data = await this.raw.createOauth2ApplicationAsset(applicationId, options);
-    data.application_id = applicationId;
-    return new Oauth2ApplicationAsset(this.client, data);
-  }
-
   createOauth2ApplicationBot(
     applicationId: string,
   ) {
@@ -694,6 +745,13 @@ export class RestClient {
     return this.raw.deleteApplicationCommand(applicationId, commandId);
   }
 
+  deleteApplicationEntitlement(
+    applicationId: string,
+    entitlementId: string,
+  ) {
+    return this.raw.deleteApplicationEntitlement(applicationId, entitlementId);
+  }
+
   deleteApplicationGuildCommand(
     applicationId: string,
     guildId: string,
@@ -742,6 +800,14 @@ export class RestClient {
     return this.raw.deleteGuild(guildId, options);
   }
 
+  deleteGuildAutoModerationRule(
+    guildId: string,
+    autoModerationRuleId: string,
+    options: RequestTypes.DeleteGuildAutoModerationRule = {},
+  ) {
+    return this.raw.deleteGuildAutoModerationRule(guildId, autoModerationRuleId, options);
+  }
+
   deleteGuildEmoji(
     guildId: string,
     emojiId: string,
@@ -771,6 +837,14 @@ export class RestClient {
     options: RequestTypes.DeleteGuildRole = {},
   ) {
     return this.raw.deleteGuildRole(guildId, roleId, options);
+  }
+
+  deleteGuildScheduledEvent(
+    guildId: string,
+    scheduledEventId: string,
+    options: RequestTypes.DeleteGuildScheduledEvent = {},
+  ) {
+    return this.raw.deleteGuildScheduledEvent(guildId, scheduledEventId, options);
   }
 
   deleteGuildSticker(
@@ -833,13 +907,6 @@ export class RestClient {
     options: RequestTypes.DeleteOauth2Application = {},
   ) {
     return this.raw.deleteOauth2Application(applicationId, options);
-  }
-
-  deleteOauth2ApplicationAsset(
-    applicationId: string,
-    assetId: string,
-  ) {
-    return this.raw.deleteOauth2ApplicationAsset(applicationId, assetId);
   }
 
   deletePinnedMessage(
@@ -1020,6 +1087,16 @@ export class RestClient {
     return guild;
   }
 
+  async editGuildAutoModerationRule(
+    guildId: string,
+    autoModerationRuleId: string,
+    options: RequestTypes.EditGuildAutoModerationRule,
+  ): Promise<AutoModerationRule> {
+    const data = await this.raw.editGuildAutoModerationRule(guildId, autoModerationRuleId, options);
+    data.guild_id = guildId;
+    return new AutoModerationRule(this.client, data);
+  }
+
   editGuildChannels(
     guildId: string,
     channels: RequestTypes.EditGuildChannels,
@@ -1147,6 +1224,16 @@ export class RestClient {
       }
     }
     return collection;
+  }
+
+  async editGuildScheduledEvent(
+    guildId: string,
+    scheduledEventId: string,
+    options: RequestTypes.EditGuildScheduledEvent,
+  ): Promise<GuildScheduledEvent> {
+    const data = await this.raw.editGuildScheduledEvent(guildId, scheduledEventId, options);
+    data.guild_id = guildId;
+    return new GuildScheduledEvent(this.client, data);
   }
 
   async editGuildSticker(
@@ -1369,16 +1456,17 @@ export class RestClient {
     return message;
   }
 
-  enableOauth2ApplicationAssets(
-    applicationId: string,
-  ) {
-    return this.raw.enableOauth2ApplicationAssets(applicationId);
-  }
-
   enableOauth2ApplicationRpc(
     applicationId: string,
   ) {
     return this.raw.enableOauth2ApplicationRpc(applicationId);
+  }
+
+  endChannelPoll(
+    channelId: string,
+    messageId: string,
+  ) {
+    return this.raw.endChannelPoll(channelId, messageId);
   }
 
   async executeWebhook(
@@ -1443,6 +1531,20 @@ export class RestClient {
   ): Promise<ApplicationCommand>{
     const data = await this.raw.fetchApplicationCommand(applicationId, commandId);
     return new ApplicationCommand(this.client, data);
+  }
+
+  async fetchApplicationEntitlements(
+    applicationId: string,
+    options: RequestTypes.FetchApplicationEntitlements = {},
+  ): Promise<BaseCollection<string, Entitlement>> {
+    const data = await this.raw.fetchApplicationEntitlements(applicationId, options);
+    const collection = new BaseCollection<string, Entitlement>();
+
+    for (let raw of data) {
+      const entitlement = new Entitlement(this.client, raw);
+      collection.set(entitlement.id, entitlement);
+    }
+    return collection;
   }
 
   async fetchApplicationGuildCommands(
@@ -1519,6 +1621,18 @@ export class RestClient {
     return new Application(this.client, data);
   }
 
+  async fetchApplicationRoleConnectionsMetadata(
+    applicationId: string,
+  ): Promise<BaseCollection<string, ApplicationRoleConnectionMetadata>> {
+    const data = await this.raw.fetchApplicationRoleConnectionsMetadata(applicationId);
+    const collection = new BaseCollection<string, ApplicationRoleConnectionMetadata>();
+    for (let raw of data) {
+      const record = new ApplicationRoleConnectionMetadata(this.client, raw);
+      collection.set(record.key, record);
+    }
+    return collection;
+  }
+
   async fetchApplicationsDetectable(): Promise<BaseCollection<string, Application>> {
     const data = await this.raw.fetchApplicationsDetectable.call(this);
     const collection = new BaseCollection<string, Application>();
@@ -1569,6 +1683,28 @@ export class RestClient {
     for (let raw of data) {
       const invite = new Invite(this.client, raw);
       collection.set(invite.code, invite);
+    }
+    return collection;
+  }
+
+  async fetchChannelPollAnswerVoters(
+    channelId: string,
+    messageId: string,
+    answerId: string,
+    options: RequestTypes.FetchChannelPollAnswerVoters = {},
+  ): Promise<BaseCollection<string, User>> {
+    const data = await this.raw.fetchChannelPollAnswerVoters(channelId, messageId, answerId, options);
+    const collection = new BaseCollection<string, User>();
+
+    for (let raw of data) {
+      let user: User;
+      if (this.client.users.has(raw.id)) {
+        user = this.client.users.get(raw.id)!;
+        user.merge(raw);
+      } else {
+        user = new User(this.client, raw);
+      }
+      collection.set(user.id, user);
     }
     return collection;
   }
@@ -1790,39 +1926,115 @@ export class RestClient {
     options: RequestTypes.FetchGuildAuditLogs = {},
   ): Promise<BaseCollection<string, AuditLog>> {
     const data = await this.raw.fetchGuildAuditLogs(guildId, options);
+
+    const applicationCommands = new BaseCollection<string, ApplicationCommand>();
+    const autoModerationRules = new BaseCollection<string, AutoModerationRule>();
+    const guildScheduledEvents = new BaseCollection<string, GuildScheduledEvent>();
+    const integrations = new BaseCollection<string, Integration>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
+    const users = new BaseCollection<string, User>();
+    const webhooks = new BaseCollection<string, Webhook>();
+
+    for (let raw of data.application_commands) {
+      const value = new ApplicationCommand(this.client, raw);
+      applicationCommands.set(value.id, value);
+    }
+    for (let raw of data.auto_moderation_rules) {
+      raw.guild_id = guildId;
+      const value = new AutoModerationRule(this.client, raw);
+      autoModerationRules.set(value.id, value);
+    }
+    for (let raw of data.guild_scheduled_events) {
+      raw.guild_id = guildId;
+      const value = new GuildScheduledEvent(this.client, raw);
+      guildScheduledEvents.set(value.id, value);
+    }
+    for (let raw of data.integrations) {
+      raw.guild_id = guildId;
+      const value = new Integration(this.client, raw);
+      integrations.set(value.id, value);
+    }
+    for (let raw of data.threads) {
+      raw.guild_id = guildId;
+      let value: ChannelGuildThread;
+      if (this.client.channels.has(raw.id)) {
+        value = this.client.channels.get(raw.id) as ChannelGuildThread;
+        // value.merge(raw);
+      } else {
+        value = new ChannelGuildThread(this.client, raw);
+      }
+      threads.set(value.id, value);
+    }
+    for (let raw of data.users) {
+      let value: User;
+      if (this.client.users.has(raw.id)) {
+        value = this.client.users.get(raw.id)!;
+        value.merge(raw);
+      } else {
+        value = new User(this.client, raw);
+      }
+      users.set(value.id, value);
+    }
+    for (let raw of data.webhooks) {
+      const value = new Webhook(this.client, raw);
+      webhooks.set(value.id, value);
+    }
+
     const collection = new BaseCollection<string, AuditLog>();
     for (let raw of data.audit_log_entries) {
-      let target: null | User | Webhook = null;
-      if (this.client.users.has(raw.target_id)) {
-        target = this.client.users.get(raw.target_id)!;
-        // target.merge(data.users.find((user) => user.id === raw.target_id));
-      } else {
-        let rawTarget = data.users.find((user: any) => user.id === raw.target_id);
-        if (rawTarget !== undefined) {
-          target = new User(this.client, rawTarget);
-        } else {
-          rawTarget = data.webhooks.find((webhook: any) => webhook.id === raw.target_id);
-          if (rawTarget !== undefined) {
-            target = new Webhook(this.client, rawTarget);
-          }
-        }
-      }
-
-      let user: null | User = null;
-      if (this.client.users.has(raw.user_id)) {
-        user = this.client.users.get(raw.user_id)!;
-      } else {
-        const rawUser = data.users.find((u: any) => u.id === raw.user_id);
-        if (rawUser !== undefined) {
-          user = new User(this.client, rawUser);
-        }
+      let target: (
+        ApplicationCommand | AutoModerationRule | GuildScheduledEvent |
+        Integration | ChannelGuildThread | User |
+        Webhook | undefined
+      ) = undefined;
+      if (applicationCommands.has(raw.target_id)) {
+        target = applicationCommands.get(raw.target_id)!;
+      } else if (autoModerationRules.has(raw.target_id)) {
+        target = autoModerationRules.get(raw.target_id)!;
+      } else if (guildScheduledEvents.has(raw.target_id)) {
+        target = guildScheduledEvents.get(raw.target_id)!;
+      } else if (integrations.has(raw.target_id)) {
+        target = integrations.get(raw.target_id)!;
+      } else if (threads.has(raw.target_id)) {
+        target = threads.get(raw.target_id)!;
+      } else if (users.has(raw.target_id)) {
+        target = users.get(raw.target_id)!;
+      } else if (webhooks.has(raw.target_id)) {
+        target = webhooks.get(raw.target_id)!;
       }
 
       raw.guild_id = guildId;
       raw.target = target;
-      raw.user = user;
+      if (raw.user_id) {
+        raw.user = users.get(raw.user_id) || this.client.users.get(raw.user_id);
+      }
+
       const auditLog = new AuditLog(this.client, raw);
       collection.set(auditLog.id, auditLog);
+    }
+    return collection;
+  }
+
+  async fetchGuildAutoModerationRule(
+    guildId: string,
+    autoModerationRuleId: string,
+  ): Promise<AutoModerationRule> {
+    const data = await this.raw.fetchGuildAutoModerationRule(guildId, autoModerationRuleId);
+    data[DiscordKeys.GUILD_ID] = guildId;
+    return new AutoModerationRule(this.client, data);
+  }
+
+  async fetchGuildAutoModerationRules(
+    guildId: string,
+  ): Promise<BaseCollection<string, AutoModerationRule>> {
+    const data = await this.raw.fetchGuildAutoModerationRules(guildId);
+    const collection = new BaseCollection<string, AutoModerationRule>();
+
+    for (let raw of data) {
+      raw[DiscordKeys.GUILD_ID] = guildId;
+
+      const rule = new AutoModerationRule(this.client, raw);
+      collection.set(rule.id, rule);
     }
     return collection;
   }
@@ -1838,12 +2050,14 @@ export class RestClient {
 
   async fetchGuildBans(
     guildId: string,
+    options: RequestTypes.FetchGuildBans = {},
   ): Promise<BaseCollection<string, GuildBan>> {
-    const data = await this.raw.fetchGuildBans(guildId);
+    const data = await this.raw.fetchGuildBans(guildId, options);
 
     const collection = new BaseCollection<string, GuildBan>();
     for (let raw of data) {
       raw[DiscordKeys.GUILD_ID] = guildId;
+
       const ban = new GuildBan(this.client, raw);
       collection.set(ban.user.id, ban);
     }
@@ -2064,6 +2278,51 @@ export class RestClient {
         collection.set(role.id, role);
       }
     }
+    return collection;
+  }
+
+  async fetchGuildScheduledEvent(
+    guildId: string,
+    scheduledEventId: string,
+  ): Promise<GuildScheduledEvent> {
+    const data = await this.raw.fetchGuildScheduledEvent(guildId, scheduledEventId);
+    data[DiscordKeys.GUILD_ID] = guildId;
+    return new GuildScheduledEvent(this.client, data);
+  }
+
+  async fetchGuildScheduledEvents(
+    guildId: string,
+    options: RequestTypes.FetchGuildScheduledEvents = {},
+  ): Promise<BaseCollection<string, GuildScheduledEvent>> {
+    const data = await this.raw.fetchGuildScheduledEvents(guildId, options);
+    const collection = new BaseCollection<string, GuildScheduledEvent>();
+
+    for (let raw of data) {
+      raw[DiscordKeys.GUILD_ID] = guildId;
+
+      const rule = new GuildScheduledEvent(this.client, raw);
+      collection.set(rule.id, rule);
+    }
+
+    return collection;
+  }
+
+  async fetchGuildScheduledEventUsers(
+    guildId: string,
+    scheduledEventId: string,
+    options: RequestTypes.FetchGuildScheduledEventUsers = {},
+  ): Promise<BaseCollection<string, GuildScheduledEventUser>> {
+    const data = await this.raw.fetchGuildScheduledEvents(guildId);
+    const collection = new BaseCollection<string, GuildScheduledEventUser>();
+  
+    for (let raw of data) {
+      if (raw[DiscordKeys.MEMBER]) {
+        raw[DiscordKeys.MEMBER][DiscordKeys.GUILD_ID] = guildId;
+      }
+      const user = new GuildScheduledEventUser(this.client, raw);
+      collection.set(user.id, user);
+    }
+  
     return collection;
   }
 
@@ -2333,43 +2592,29 @@ export class RestClient {
     return collection;
   }
 
-  async fetchOauth2Applications(): Promise<BaseCollection<string, Oauth2Application>> {
+  async fetchOauth2Applications(): Promise<BaseCollection<string, Application>> {
     const data = await this.raw.fetchOauth2Applications.call(this);
 
-    const collection = new BaseCollection<string, Oauth2Application>();
+    const collection = new BaseCollection<string, Application>();
     for (let raw of data) {
-      const oauth2Application = new Oauth2Application(this.client, raw);
-      collection.set(oauth2Application.id, oauth2Application);
+      const application = new Application(this.client, raw);
+      collection.set(application.id, application);
     }
     return collection;
   }
 
   async fetchOauth2Application(
     userId: string = '@me',
-  ): Promise<Oauth2Application> {
+  ): Promise<Application> {
     const data = await this.raw.fetchOauth2Application(userId);
 
-    let oauth2Application: Oauth2Application;
+    let application: Application;
     if (userId === '@me') {
-      oauth2Application = this.client._mergeOauth2Application(data);
+      application = this.client._mergeOauth2Application(data);
     } else {
-      oauth2Application = new Oauth2Application(this.client, data);
+      application = new Application(this.client, data);
     }
-    return oauth2Application;
-  }
-
-  async fetchOauth2ApplicationAssets(
-    applicationId: string,
-  ): Promise<BaseCollection<string, Oauth2ApplicationAsset>> {
-    const data = await this.raw.fetchOauth2ApplicationAssets(applicationId);
-
-    const collection = new BaseCollection<string, Oauth2ApplicationAsset>();
-    for (let raw of data) {
-      raw.application_id = applicationId;
-      const asset = new Oauth2ApplicationAsset(this.client, raw);
-      collection.set(asset.id, asset);
-    }
-    return collection;
+    return application;
   }
 
   fetchOauth2ApplicationWhitelist(

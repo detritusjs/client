@@ -136,16 +136,22 @@ const keysMergeChannelBase = new BaseSet<string>();
 export class ChannelBase extends BaseStructure {
   readonly _keys = keysChannelBase;
   readonly _keysMerge = keysMergeChannelBase;
+  _appliedTags?: BaseSet<string>;
   _availableTags?: BaseCollection<string, ChannelAvailableTag>;
   _name: string = '';
   _nicks?: BaseCollection<string, string>;
   _nsfw?: boolean;
+  _permissions?: bigint;
   _permissionOverwrites?: BaseCollection<string, Overwrite>;
   _recipients?: BaseCollection<string, User>;
 
   applicationId?: string;
   bitrate?: number;
   defaultAutoArchiveDuration?: number;
+  defaultForumLayout?: number;
+  defaultReactionEmoji?: ChannelDefaultReactionEmoji;
+  defaultSortOrder?: number | null;
+  defaultThreadRateLimitPerUser?: number;
   deleted: boolean = false;
   flags?: number;
   guildId?: string;
@@ -163,6 +169,7 @@ export class ChannelBase extends BaseStructure {
   rateLimitPerUser?: number;
   rtcRegion?: null | string;
   template?: string;
+  totalMessageSent?: number;
   threadMetadata?: ThreadMetadata;
   topic: null | string = null;
   type: ChannelTypes = ChannelTypes.BASE;
@@ -483,6 +490,13 @@ export class ChannelBase extends BaseStructure {
     return null;
   }
 
+  get permissions(): bigint {
+    if (this._permissions) {
+      return this._permissions;
+    }
+    return 0n;
+  }
+
   get permissionOverwrites(): BaseCollection<string, Overwrite> {
     if (this._permissionOverwrites) {
       return this._permissionOverwrites;
@@ -680,7 +694,7 @@ export class ChannelBase extends BaseStructure {
     return this.client.rest.deleteStageInstance(this.id);
   }
 
-  edit(options: RequestTypes.EditChannel = {}) {
+  async edit(options: RequestTypes.EditChannel = {}) {
     return this.client.rest.editChannel(this.id, options);
   }
 
@@ -1775,6 +1789,7 @@ const keysChannelGuildThread = new BaseSet<string>([
   DiscordKeys.MEMBER_COUNT,
   DiscordKeys.MESSAGE_COUNT,
   DiscordKeys.OWNER_ID,
+  DiscordKeys.TOTAL_MESSAGE_COUNT,
   DiscordKeys.THREAD_METADATA,
 ].sort());
 
@@ -1836,6 +1851,9 @@ export class ChannelGuildThread extends ChannelGuildBase {
     if (DiscordKeys.OWNER_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.OWNER_ID]] = data[DiscordKeys.OWNER_ID];
     }
+    if (DiscordKeys.TOTAL_MESSAGE_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOTAL_MESSAGE_COUNT]] = data[DiscordKeys.TOTAL_MESSAGE_COUNT];
+    }
     if (DiscordKeys.THREAD_METADATA in data) {
       const value = data[DiscordKeys.THREAD_METADATA];
       (this as any)[DetritusKeys[DiscordKeys.THREAD_METADATA]] = new ThreadMetadata(this, value);
@@ -1872,8 +1890,12 @@ export class ChannelGuildDirectory extends ChannelGuildBase {
 
 const keysChannelGuildForum = new BaseSet<string>([
   ...keysChannelGuildBase,
+  DiscordKeys.APPLIED_TAGS,
   DiscordKeys.AVAILABLE_TAGS,
   DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION,
+  DiscordKeys.DEFAULT_FORUM_LAYOUT,
+  DiscordKeys.DEFAULT_REACTION_EMOJI,
+  DiscordKeys.DEFAULT_SORT_ORDER,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.TEMPLATE,
 ].sort());
@@ -1905,6 +1927,16 @@ export class ChannelGuildForum extends ChannelGuildBase {
       return;
     }
 
+    if (DiscordKeys.APPLIED_TAGS in data) {
+      if (this._appliedTags) {
+        this._appliedTags.clear();
+        for (let raw of data[DiscordKeys.APPLIED_TAGS]) {
+          this._appliedTags.add(raw);
+        }
+      } else {
+        this._appliedTags = new BaseSet<string>(data[DiscordKeys.APPLIED_TAGS]);
+      }
+    }
     if (DiscordKeys.AVAILABLE_TAGS in data) {
       const value = data[DiscordKeys.AVAILABLE_TAGS];
       if (value.length) {
@@ -1926,6 +1958,16 @@ export class ChannelGuildForum extends ChannelGuildBase {
     if (DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION in data) {
       (this as any)[DetritusKeys[DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION]] = data[DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION];
     }
+    if (DiscordKeys.DEFAULT_FORUM_LAYOUT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_FORUM_LAYOUT]] = data[DiscordKeys.DEFAULT_FORUM_LAYOUT];
+    }
+    if (DiscordKeys.DEFAULT_REACTION_EMOJI in data) {
+      const value = new ChannelDefaultReactionEmoji(this.client, data[DiscordKeys.DEFAULT_REACTION_EMOJI]);
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_REACTION_EMOJI]] = value;
+    }
+    if (DiscordKeys.DEFAULT_SORT_ORDER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_SORT_ORDER]] = data[DiscordKeys.DEFAULT_SORT_ORDER];
+    }
     if (DiscordKeys.LAST_MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
     }
@@ -1936,12 +1978,37 @@ export class ChannelGuildForum extends ChannelGuildBase {
 }
 
 
+const keysChannelGuildMedia = new BaseSet<string>([
+  ...keysChannelGuildForum,
+].sort());
+
+
+/**
+ * Guild Media Channel
+ * @category Structure
+ */
+export class ChannelGuildMedia extends ChannelGuildForum {
+  readonly _keys = keysChannelGuildMedia;
+  type = ChannelTypes.GUILD_MEDIA;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+}
+
+
 
 const keysChannelAvailableTag = new BaseSet<string>([
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.EMOJI_ID,
   DiscordKeys.EMOJI_NAME,
   DiscordKeys.ID,
+  DiscordKeys.MODERATED,
   DiscordKeys.NAME,
 ]);
 
@@ -1956,6 +2023,7 @@ export class ChannelAvailableTag extends BaseStructure {
   emojiId: string | null = null;
   emojiName: string = '';
   id: string = '';
+  moderated: boolean = false;
   name: string = '';
 
   merge(data?: BaseStructureData): void {
@@ -1976,8 +2044,42 @@ export class ChannelAvailableTag extends BaseStructure {
     if (DiscordKeys.ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
+    if (DiscordKeys.MODERATED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MODERATED]] = data[DiscordKeys.MODERATED];
+    }
     if (DiscordKeys.NAME in data) {
       (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+  }
+}
+
+
+const keysChannelDefaultReactionEmoji = new BaseSet<string>([
+  DiscordKeys.EMOJI_ID,
+  DiscordKeys.EMOJI_NAME,
+]);
+
+/**
+ * Channel Default Reaction Emoji (As seen in [[ChannelGuildForum]])
+ * @category Structure
+ */
+export class ChannelDefaultReactionEmoji extends BaseStructure {
+  readonly _keys = keysChannelDefaultReactionEmoji;
+
+  emojiId: string | null = null;
+  emojiName: string = '';
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.EMOJI_ID in data) {
+      const value = data[DiscordKeys.EMOJI_ID];
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI_ID]] = value || null;
+    }
+    if (DiscordKeys.EMOJI_NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI_NAME]] = data[DiscordKeys.EMOJI_NAME];
     }
   }
 }

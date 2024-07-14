@@ -7,11 +7,13 @@ import { BaseCollection } from '../collections/basecollection';
 import { ChannelTypes, ClientEvents } from '../constants';
 import {
   ApplicationCommand,
+  AuditLog,
   Channel,
   Emoji,
   Entitlement,
   Guild,
   GuildScheduledEvent,
+  Integration,
   Interaction,
   Invite,
   Member,
@@ -182,6 +184,12 @@ export namespace GatewayClientEvents {
     uses: number,
   }
 
+  export interface GuildAuditLogEntryCreate {
+    auditLog: AuditLog,
+    guild: Guild | null,
+    guildId: string,
+  }
+
   export interface GuildBanAdd {
     guild: Guild | undefined,
     guildId: string,
@@ -304,6 +312,22 @@ export namespace GatewayClientEvents {
     old: GuildScheduledEvent | null,
   }
 
+  export interface GuildScheduledEventUserAdd {
+    guild: Guild | null,
+    guildId: string,
+    guildScheduledEventId: string,
+    user: User | null,
+    userId: string,
+  }
+
+  export interface GuildScheduledEventUserRemove {
+    guild: Guild | null,
+    guildId: string,
+    guildScheduledEventId: string,
+    user: User | null,
+    userId: string,
+  }
+
   export interface GuildStickersUpdate {
     differences: {
       created: BaseCollection<string, Sticker>,
@@ -319,6 +343,22 @@ export namespace GatewayClientEvents {
     differences: Differences,
     guild: Guild,
     old: Guild | null,
+  }
+
+  export interface IntegrationCreate {
+    guild: Guild | null,
+    guildId: string,
+    integration: Integration,
+  }
+
+  export interface IntegrationDelete {
+    applicationId?: string,
+    guildId: string,
+    id: string,
+  }
+
+  export interface IntegrationUpdate extends IntegrationCreate {
+    
   }
 
   export interface InteractionCreate {
@@ -401,6 +441,22 @@ export namespace GatewayClientEvents {
     guildId: string | undefined,
     messages: BaseCollection<string, Message | null>,
     raw: GatewayRawEvents.MessageDeleteBulk,
+  }
+
+  export interface MessagePollVoteAdd {
+    answerId: number,
+    channelId: string,
+    guildId: string | undefined,
+    messageId: string,
+    userId: string,
+  }
+
+  export interface MessagePollVoteRemove {
+    answerId: number,
+    channelId: string,
+    guildId: string | undefined,
+    messageId: string,
+    userId: string,
   }
 
   export interface MessageReactionAdd {

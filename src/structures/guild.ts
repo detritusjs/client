@@ -221,6 +221,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.beginGuildPrune(this.id, options);
   }
 
+  async createAutoModerationRule(options: RequestTypes.CreateGuildAutoModerationRule) {
+    return this.client.rest.createGuildAutoModerationRule(this.id, options);
+  }
+
   async createBan(userId: string, options: RequestTypes.CreateGuildBan) {
     return this.client.rest.createGuildBan(this.id, userId, options);
   }
@@ -241,6 +245,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.createGuildRole(this.id, options);
   }
 
+  async createScheduledEvent(options: RequestTypes.CreateGuildScheduledEvent) {
+    return this.client.rest.createGuildScheduledEvent(this.id, options);
+  }
+
   async createSticker(options: RequestTypes.CreateGuildSticker) {
     return this.client.rest.createGuildSticker(this.id, options);
   }
@@ -254,12 +262,20 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.deleteGuild(this.id);
   }
 
+  async deleteAutoModerationRule(autoModerationRuleId: string, options: RequestTypes.DeleteGuildAutoModerationRule) {
+    return this.client.rest.deleteGuildAutoModerationRule(this.id, autoModerationRuleId, options);
+  }
+
   async deleteChannel(channelId: string, options: RequestTypes.DeleteChannel = {}) {
     return this.client.rest.deleteChannel(channelId, options);
   }
 
   async deleteEmoji(emojiId: string, options: RequestTypes.DeleteGuildEmoji = {}) {
     return this.client.rest.deleteGuildEmoji(this.id, emojiId, options);
+  }
+
+  async deleteScheduledEvent(guildScheduledEventId: string) {
+    return this.client.rest.deleteGuildScheduledEvent(this.id, guildScheduledEventId);
   }
 
   async deleteIntegration(integrationId: string, options: RequestTypes.DeleteGuildIntegration = {}) {
@@ -285,6 +301,10 @@ export class BaseGuild extends BaseStructure {
 
   async edit(options: RequestTypes.EditGuild) {
     return this.client.rest.editGuild(this.id, options);
+  }
+
+  async editAutoModerationRule(autoModerationRuleId: string, options: RequestTypes.EditGuildAutoModerationRule) {
+    return this.client.rest.editGuildAutoModerationRule(this.id, autoModerationRuleId, options);
   }
 
   async editChannel(channelId: string, options: RequestTypes.EditChannel) {
@@ -323,6 +343,10 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.editGuildRolePositions(this.id, roles, options);
   }
 
+  async editScheduledEvent(guildScheduledEventId: string, options: RequestTypes.EditGuildScheduledEvent = {}) {
+    return this.client.rest.editGuildScheduledEvent(this.id, guildScheduledEventId, options);
+  }
+
   async editSticker(stickerId: string, options: RequestTypes.EditGuildSticker = {}) {
     return this.client.rest.editGuildSticker(this.id, stickerId, options);
   }
@@ -346,6 +370,14 @@ export class BaseGuild extends BaseStructure {
 
   async fetchAuditLogs(options: RequestTypes.FetchGuildAuditLogs) {
     return this.client.rest.fetchGuildAuditLogs(this.id, options);
+  }
+
+  async fetchAutoModerationRule(autoModerationRuleId: string) {
+    return this.client.rest.fetchGuildAutoModerationRule(this.id, autoModerationRuleId);
+  }
+
+  async fetchAutoModerationRules() {
+    return this.client.rest.fetchGuildAutoModerationRules(this.id);
   }
 
   async fetchBan(userId: string) {
@@ -398,6 +430,18 @@ export class BaseGuild extends BaseStructure {
 
   async fetchRoles() {
     return this.client.rest.fetchGuildRoles(this.id);
+  }
+
+  async fetchScheduledEvent(guildScheduledEventId: string) {
+    return this.client.rest.fetchGuildScheduledEvent(this.id, guildScheduledEventId);
+  }
+
+  async fetchScheduledEvents(options: RequestTypes.FetchGuildScheduledEvents = {}) {
+    return this.client.rest.fetchGuildScheduledEvents(this.id, options);
+  }
+
+  async fetchScheduledEventUsers(guildScheduledEventId: string, options: RequestTypes.FetchGuildScheduledEventUsers) {
+    return this.client.rest.fetchGuildScheduledEventUsers(this.id, guildScheduledEventId, options);
   }
 
   async fetchSticker(stickerId: string) {
@@ -687,6 +731,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.REGION,
   DiscordKeys.ROLES,
   DiscordKeys.RULES_CHANNEL_ID,
+  DiscordKeys.SAFETY_ALERTS_CHANNEL_ID,
   DiscordKeys.SPLASH,
   DiscordKeys.STAGE_INSTANCES,
   DiscordKeys.STICKERS,
@@ -758,6 +803,7 @@ export class Guild extends GuildPartial {
   region: string = '';
   roles: BaseCollection<string, Role>;
   rulesChannelId: null | string = null;
+  safetyAlertsChannelId: null | string = null;
   splash: null | string = null;
   stageInstances: BaseCollection<string, StageInstance>;
   stickers: BaseCollection<string, Sticker>;
@@ -1320,8 +1366,8 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.RULES_CHANNEL_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.RULES_CHANNEL_ID]] = data[DiscordKeys.RULES_CHANNEL_ID];
     }
-    if (DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT in data) {
-      (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT]] = data[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT] || 0;
+    if (DiscordKeys.SAFETY_ALERTS_CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SAFETY_ALERTS_CHANNEL_ID]] = data[DiscordKeys.SAFETY_ALERTS_CHANNEL_ID];
     }
     if (DiscordKeys.STAGE_INSTANCES in data) {
       const value = data[DiscordKeys.STAGE_INSTANCES];

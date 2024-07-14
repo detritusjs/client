@@ -145,6 +145,17 @@ export namespace GatewayRawEvents {
     uses: number,
   }
 
+  export interface GuildAuditLogEntryCreate {
+    action_type: number,
+    changes?: Array<{key: string, new_value?: string, old_value?: string}>,
+    guild_id: string,
+    id: string,
+    options?: Record<string, string>,
+    reason?: string,
+    target_id: string,
+    user_id: string | null,
+  }
+
   export interface GuildBanAdd {
     guild_id: string,
     user: RawUser,
@@ -265,6 +276,36 @@ export namespace GatewayRawEvents {
 
   export interface GuildUpdate extends RawGuild {
 
+  }
+
+  export interface IntegrationCreate {
+    account: {id: string, name: string},
+    application?: RawApplication,
+    enable_emoticons?: boolean,
+    enabled: boolean,
+    expire_behavior?: number,
+    expire_grace_period?: number,
+    guild_id: string,
+    id: string,
+    name: string,
+    revoked?: boolean,
+    role_id?: string,
+    scopes?: Array<string>,
+    subscriber_count?: number,
+    synced_at?: string,
+    syncing?: boolean,
+    type: string,
+    user?: RawUser,
+  }
+
+  export interface IntegrationDelete {
+    application_id?: string,
+    guild_id: string,
+    id: string,
+  }
+
+  export interface IntegrationUpdate extends IntegrationCreate {
+    
   }
 
   export interface InteractionCreate {
@@ -441,6 +482,22 @@ export namespace GatewayRawEvents {
     channel_id: string,
     guild_id?: string,
     ids: Array<string>,
+  }
+
+  export interface MessagePollVoteAdd {
+    answer_id: number,
+    channel_id: string,
+    guild_id?: string,
+    message_id: string,
+    user_id: string,
+  }
+
+  export interface MessagePollVoteRemove {
+    answer_id: number,
+    channel_id: string,
+    guild_id?: string,
+    message_id: string,
+    user_id: string,
   }
 
   export interface MessageReactionAdd {

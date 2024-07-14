@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.18',
+  VERSION: '0.17.0-beta.22',
 });
 
 export type Snowflake = number | string;
@@ -93,6 +93,22 @@ export const INTERACTION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 export const TYPING_TIMEOUT = 10 * 1000; // 10 seconds
 
 
+export enum ActivityPartyPrivacy {
+  PRIVATE = 0,
+  PUBLIC = 1,
+}
+
+
+export enum ActivityPlatformTypes {
+  ANDROID = 'android',
+  DESKTOP = 'desktop',
+  EMBEDDED = 'embedded',
+  IOS = 'ios',
+  SAMSUNG = 'samsung',
+  XBOX = 'xbox',
+}
+
+
 export enum ApplicationCommandTypes {
   CHAT_INPUT = 1,
   USER = 2,
@@ -127,6 +143,8 @@ export enum ApplicationFlags {
 
   GROUP_DM_CREATE = 1 << 4,
 
+  APPLICATION_AUTO_MODERATION_RULE_CREATE_BADGE = 1 << 6,
+
   RPC_HAS_CONNECTED = 1 << 11,
   GATEWAY_PRESENCE = 1 << 12,
   GATEWAY_PRESENCE_LIMITED = 1 << 13,
@@ -136,6 +154,14 @@ export enum ApplicationFlags {
   EMBEDDED = 1 << 17,
   GATEWAY_MESSAGE_CONTENT = 1 << 18,
   GATEWAY_MESSAGE_CONTENT_LIMITED = 1 << 19,
+
+  APPLICATION_COMMAND_BADGE = 1 << 23,
+}
+
+
+export enum ApplicationIntegrationTypes {
+  GUILD_INSTALL = 0,
+  USER_INSTALL = 1,
 }
 
 
@@ -145,25 +171,21 @@ export enum ApplicationNewsFlags {
 }
 
 
+export enum ApplicationRoleConnectionMetadataTypes {
+  INTEGER_LESS_THAN_OR_EQUAL = 1,
+  INTEGER_GREATER_THAN_OR_EQUAL = 2,
+  INTEGER_EQUAL = 3,
+  INTEGER_NOT_EQUAL = 4,
+  DATETIME_LESS_THAN_OR_EQUAL = 5,
+  DATETIME_GREATER_THAN_OR_EQUAL = 6,
+  BOOLEAN_EQUAL = 7,
+  BOOLEAN_NOT_EQUAL = 8,
+}
+
+
 export enum ApplicationTypes {
   GAME = 1,
   MUSIC = 2,
-}
-
-
-export enum ActivityPartyPrivacy {
-  PRIVATE = 0,
-  PUBLIC = 1,
-}
-
-
-export enum ActivityPlatformTypes {
-  ANDROID = 'android',
-  DESKTOP = 'desktop',
-  EMBEDDED = 'embedded',
-  IOS = 'ios',
-  SAMSUNG = 'samsung',
-  XBOX = 'xbox',
 }
 
 
@@ -228,6 +250,16 @@ export enum AuditLogActions {
   THREAD_DELETE = 112,
 
   APPLICATION_COMMAND_PERMISSION_UPDATE = 121,
+
+  AUTO_MODERATION_RULE_CREATE = 140,
+  AUTO_MODERATION_RULE_UPDATE = 141,
+  AUTO_MODERATION_RULE_DELETE = 142,
+  AUTO_MODERATION_BLOCK_MESSAGE = 143,
+  AUTO_MODERATION_FLAG_TO_CHANNEL = 144,
+  AUTO_MODERATION_USER_COMMUNICATION_DISABLED = 145,
+
+  CREATOR_MONETIZATION_REQUEST_CREATED = 150,
+  CREATOR_MONETIZATION_TERMS_ACCEPTED = 151,
 }
 
 
@@ -325,6 +357,33 @@ export enum AuditLogChangeKeys {
 }
 
 
+export enum AutoModerationRuleActionTypes {
+  BLOCK_MESSAGE = 1,
+  SEND_ALERT_MESSAGE = 2,
+  TIMEOUT = 3,
+}
+
+
+export enum AutoModerationRuleEventTypes {
+  MESSAGE_SEND = 1,
+}
+
+
+export enum AutoModerationRuleKeywordPresetTypes {
+  PROFANITY = 1,
+  SEXUAL_CONTENT = 2,
+  SLURS = 3,
+}
+
+export enum AutoModerationRuleTriggerTypes {
+  KEYWORD = 1,
+
+  SPAM = 3,
+  KEYWORD_PRESET = 4,
+  MENTION_SPAM = 5,
+}
+
+
 export enum CarouselMediaTypes {
   IMAGE = 1,
   YOUTUBE_VIDEO = 2,
@@ -333,8 +392,12 @@ export enum CarouselMediaTypes {
 
 
 export enum ChannelFlags {
-  GUILD_FEED_REMOVED = 1,
-  PINNED = 2,
+  GUILD_FEED_REMOVED = 1 << 0,
+  PINNED = 1 << 1,
+
+  REQUIRE_TAG = 1 << 4,
+
+  HIDE_MEDIA_DOWNLOAD_OPTIONS = 1 << 15,
 }
 
 
@@ -354,6 +417,7 @@ export enum ChannelTypes {
   GUILD_STAGE_VOICE = 13,
   GUILD_DIRECTORY = 14,
   GUILD_FORUM = 15,
+  GUILD_MEDIA = 16,
 }
 
 
@@ -371,6 +435,10 @@ export enum ClientEvents {
   APPLICATION_COMMAND_DELETE = 'applicationCommandDelete',
   APPLICATION_COMMAND_UPDATE = 'applicationCommandUpdate',
   APPLICATION_COMMAND_PERMISSIONS_UPDATE = 'applicationCommandPermissionsUpdate',
+  AUTO_MODERATION_ACTION_EXECUTION = 'autoModerationActionExecution',
+  AUTO_MODERATION_RULE_CREATE = 'autoModerationRuleCreate',
+  AUTO_MODERATION_RULE_DELETE = 'autoModerationRuleDelete',
+  AUTO_MODERATION_RULE_UPDATE = 'autoModerationRuleUpdate',
   BRAINTREE_POPUP_BRIDGE_CALLBACK = 'braintreePopupBridgeCallback',
   CALL_CREATE = 'callCreate',
   CALL_DELETE = 'callDelete',
@@ -388,6 +456,7 @@ export enum ClientEvents {
   FRIEND_SUGGESTION_CREATE = 'friendSuggestionCreate',
   FRIEND_SUGGESTION_DELETE = 'friendSuggestionDelete',
   GIFT_CODE_UPDATE = 'giftCodeUpdate',
+  GUILD_AUDIT_LOG_ENTRY_CREATE = 'guildAuditLogEntryCreate',
   GUILD_BAN_ADD = 'guildBanAdd',
   GUILD_BAN_REMOVE = 'guildBanRemove',
   GUILD_CREATE = 'guildCreate',
@@ -410,6 +479,9 @@ export enum ClientEvents {
   GUILD_SCHEDULED_EVENT_USER_REMOVE = 'guildScheduledEventUserRemove',
   GUILD_STICKERS_UPDATE = 'guildStickersUpdate',
   GUILD_UPDATE = 'guildUpdate',
+  INTEGRATION_CREATE = 'integrationCreate',
+  INTEGRATION_DELETE = 'integrationDelete',
+  INTEGRATION_UPDATE = 'integrationUpdate',
   INTERACTION_CREATE = 'interactionCreate',
   INVITE_CREATE = 'inviteCreate',
   INVITE_DELETE = 'inviteDelete',
@@ -427,6 +499,8 @@ export enum ClientEvents {
   MESSAGE_CREATE = 'messageCreate',
   MESSAGE_DELETE = 'messageDelete',
   MESSAGE_DELETE_BULK = 'messageDeleteBulk',
+  MESSAGE_POLL_VOTE_ADD = 'messagePollVoteAdd',
+  MESSAGE_POLL_VOTE_REMOVE = 'messagePollVoteRemove',
   MESSAGE_REACTION_ADD = 'messageReactionAdd',
   MESSAGE_REACTION_REMOVE = 'messageReactionRemove',
   MESSAGE_REACTION_REMOVE_ALL = 'messageReactionRemoveAll',
@@ -532,6 +606,12 @@ export enum CommandRatelimitTypes {
 }
 
 
+export enum ConnectedAccountVisibilityTypes {
+  NONE = 0,
+  EVERYONE = 1,
+}
+
+
 export enum DiscordOpusFormat {
   CHANNELS = 2,
   SAMPLE_RATE = 48000,
@@ -624,7 +704,7 @@ export enum EntitlementTypes {
   TEST_MODE_PURCHASE = 4,
   FREE_PURCHASE = 5,
   USER_GIFT = 6,
-
+  PREMIUM_PURCHASE = 7,
   APPLICATION_SUBSCRIPTION = 8,
 }
 
@@ -644,15 +724,21 @@ export enum GuildExplicitContentFilterTypes {
 
 
 export const GuildFeatures = Tools.normalize({
+  ANIMATED_BANNER: null,
   ANIMATED_ICON: null,
+  APPLICATION_COMMAND_PERMISSIONS_V2: null,
   AUTO_MODERATION: null,
   BANNER: null,
   COMMERCE: null,
   COMMUNITY: null,
+  CREATOR_MONETIZABLE_PROVISIONAL: null,
+  CREATOR_STORE_PAGE: null,
+  DEVELOPER_SUPPORT_SERVER: null,
   DISCOVERABLE: null,
   ENABLED_DISCOVERABLE_BEFORE: null,
   FEATURABLE: null,
   HUB: null,
+  INVITES_DISABLED: null,
   INVITE_SPLASH: null,
   LURKABLE: null,
   MEMBER_LIST_DISABLED: null,
@@ -668,7 +754,10 @@ export const GuildFeatures = Tools.normalize({
   PRIVATE_THREADS: null,
   PUBLIC: null,
   PUBLIC_DISABLED: null,
+  RAID_ALERTS_DISABLED: null,
   ROLE_ICONS: null,
+  ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE: null,
+  ROLE_SUBSCRIPTIONS_ENABLED: null,
   SEVEN_DAY_THREAD_ARCHIVE: null,
   TEXT_IN_VOICE_ENABLED: null,
   THREADS_ENABLED: null,
@@ -683,7 +772,10 @@ export const GuildFeatures = Tools.normalize({
 
 
 export enum GuildMemberFlags {
-  DID_REJOIN = 1,
+  DID_REJOIN = 1 << 0,
+  COMPLETED_ONBOARDING = 1 << 1,
+  BYPASSES_VERIFICATION = 1 << 2,
+  STARTED_ONBOARDING = 1 << 3,
 }
 
 
@@ -738,6 +830,12 @@ export enum ImageFormats {
 }
 
 
+export enum IntegrationExpireBehaviors {
+  REMOVE_ROLE = 0,
+  KICK = 1,
+}
+
+
 export enum InteractionCallbackTypes {
   PONG = 1,
 
@@ -747,6 +845,14 @@ export enum InteractionCallbackTypes {
   UPDATE_MESSAGE = 7,
   APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8,
   MODAL = 9,
+  PREMIUM_REQUIRED = 10,
+}
+
+
+export enum InteractionContextTypes {
+  GUILD = 0,
+  BOT_DM = 1,
+  PRIVATE_CHANNEL = 2,
 }
 
 
@@ -888,6 +994,10 @@ export enum MessageComponentTypes {
   BUTTON = 2,
   SELECT_MENU = 3,
   INPUT_TEXT = 4,
+  USER_SELECT = 5,
+  ROLE_SELECT = 6,
+  MENTIONABLE_SELECT = 7,
+  CHANNEL_SELECT = 8,
 }
 
 
@@ -914,6 +1024,14 @@ export enum MessageFlags {
   EPHEMERAL = 1 << 6,
   LOADING = 1 << 7,
   FAILED_TO_MENTION_SOME_ROLES_IN_THREAD = 1 << 8,
+
+  SUPPRESS_NOTIFICATIONS = 1 << 12,
+  IS_VOICE_MESSAGE = 1 << 13,
+}
+
+
+export enum MessagePollLayoutTypes {
+  DEFAULT = 0,
 }
 
 
@@ -943,6 +1061,15 @@ export enum MessageTypes {
   THREAD_STARTER_MESSAGE = 21,
   GUILD_INVITE_REMINDER = 22,
   CONTEXT_MENU_COMMAND = 23,
+  AUTO_MODERATION_ACTION = 24,
+  ROLE_SUBSCRIPTION_PURCHASE = 25,
+  INTERACTION_PREMIUM_UPSELL = 26,
+  STAGE_START = 27,
+  STAGE_END = 28,
+  STAGE_SPEAKER = 29,
+
+  STAGE_TOPIC = 31,
+  GUILD_APPLICATION_PREMIUM_SUBSCRIPTION = 32,
 }
 
 export const MessageTypesDeletable = Object.freeze({
@@ -971,6 +1098,15 @@ export const MessageTypesDeletable = Object.freeze({
   [MessageTypes.THREAD_STARTER_MESSAGE]: false,
   [MessageTypes.GUILD_INVITE_REMINDER]: true,
   [MessageTypes.CONTEXT_MENU_COMMAND]: true,
+  [MessageTypes.AUTO_MODERATION_ACTION]: true,
+  [MessageTypes.ROLE_SUBSCRIPTION_PURCHASE]: true,
+  [MessageTypes.INTERACTION_PREMIUM_UPSELL]: true,
+  [MessageTypes.STAGE_START]: true,
+  [MessageTypes.STAGE_END]: true,
+  [MessageTypes.STAGE_SPEAKER]: true,
+
+  [MessageTypes.STAGE_TOPIC]: true,
+  [MessageTypes.GUILD_APPLICATION_PREMIUM_SUBSCRIPTION]: false,
 });
 
 
@@ -989,22 +1125,31 @@ export enum Oauth2AssetTypes {
 export enum Oauth2Scopes {
   ACTIVITIES_READ = 'activities.read',
   ACTIVITIES_WRITE = 'activities.write',
-  APPLICATIONS_BUILDS_UPLOAD = 'applications.builds.upload',
   APPLICATIONS_BUILDS_READ = 'applications.builds.read',
+  APPLICATIONS_BUILDS_UPLOAD = 'applications.builds.upload',
+  APPLICATIONS_COMMANDS = 'applications.commands',
+  APPLICATIONS_COMMANDS_PERMISSIONS_UPDATE = 'applications.commands.permissions.update',
+  APPLICATIONS_COMMANDS_UPDATE = 'applications.commands.update',
   APPLICATIONS_ENTITLEMENTS = 'applications.entitlements',
   APPLICATIONS_STORE_UPDATE = 'applications.store.update',
   BOT = 'bot',
   CONNECTIONS = 'connections',
+  DM_CHANNELS_READ = 'dm_channels.read',
   EMAIL = 'email',
   GDM_JOIN = 'gdm.join',
   GUILDS = 'guilds',
   GUILDS_JOIN = 'guilds.join',
+  GUILDS_MEMBERS_READ = 'guilds.members.read',
   IDENTIFY = 'identify',
   MESSAGES_READ = 'messages.read',
   RELATIONSHIPS_READ = 'relationships.read',
+  ROLE_CONNECTIONS_WRITE = 'role_connections.write',
   RPC = 'rpc',
   RPC_API = 'rpc.api',
   RPC_NOTIFICATIONS_READ = 'rpc.notifications.read',
+  RPC_VOICE_READ = 'rpc.voice.read',
+  RPC_VOICE_WRITE = 'rpc.voice.write',
+  VOICE = 'voice',
   WEBHOOK_INCOMING = 'webhook.incoming',
 }
 
@@ -1152,21 +1297,28 @@ export const PERMISSIONS_FOR_CHANNEL_VOICE = [
 
 export enum PlatformTypes {
   BATTLENET = 'battlenet',
+  BUNGIE = 'bungie',
   CONTACTS = 'contacts',
+  EBAY = 'ebay',
+  EPICGAMES = 'epicgames',
   FACEBOOK = 'facebook',
   GITHUB = 'github',
   INSTAGRAM = 'instagram',
   LEAGUE_OF_LEGENDS = 'leagueoflegends',
+  PAYPAL = 'paypal',
+  PLAYSTATION = 'playstation',
   REDDIT = 'reddit',
+  RIOTGAMES = 'riotgames',
   SAMSUNG = 'samsung',
   SKYPE = 'skype',
   SOUNDCLOUD = 'soundcloud',
   SPOTIFY = 'spotify',
   STEAM = 'steam',
+  TIKTOK = 'tiktok',
   TWITCH = 'twitch',
   TWITTER = 'twitter',
-  YOUTUBE = 'youtube',
   XBOX = 'xbox',
+  YOUTUBE = 'youtube',
 }
 
 
@@ -1257,16 +1409,20 @@ export enum SkuFlags {
   AVAILABLE = 1 << 2,
   PREMIUM_AND_DISTRIBUTION = 1 << 3,
   STICKER_PACK = 1 << 4,
+
+  GUILD_SUBSCRIPTION = 1 << 7,
+  USER_SUBSCRIPTION = 1 << 8,
 }
 
 
 export enum SkuTypes {
   BASE = 0,
   GAME = 1,
-  DLC = 2,
+  DURABLE = 2,
   CONSUMABLE = 3,
   BUNDLE = 4,
   SUBSCRIPTION = 5,
+  SUBSCRIPTION_GROUP = 6,
 }
 
 
@@ -1306,6 +1462,10 @@ export enum StickerExtensions {
 export enum SystemChannelFlags {
   SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0,
   SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1,
+  SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = 1 << 2,
+  SUPPRESS_JOIN_NOTIFICATION_REPLIES = 1 << 3,
+  SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATIONS = 1 << 4,
+  SUPPRESS_ROLE_SUBSCRIPTION_PURCHASE_NOTIFICATION_REPLIES = 1 << 5,
 }
 
 
@@ -1385,7 +1545,18 @@ export enum UserFlags {
   VERIFIED_DEVELOPER = 1 << 17,
   DISCORD_CERTIFIED_MODERATOR = 1 << 18,
   BOT_HTTP_INTERACTIONS = 1 << 19,
+
+  ACTIVE_DEVELOPER = 1 << 22,
 }
+
+
+export enum UserPremiumTypes {
+  NONE = 0,
+  NITRO_CLASSIC = 1,
+  NITRO = 2,
+  NITRO_BASIC = 3,
+}
+
 
 // the level of their boost badge
 export enum UserPremiumGuildSubscriptionLevels {
@@ -1434,8 +1605,10 @@ export enum WebhookTypes {
 
 export const DiscordKeys = Object.freeze({
   ACCENT_COLOR: 'accent_color',
+  ACCESS_TOKEN: 'access_token',
   ACCESS_TYPE: 'access_type',
   ACCOUNT: 'account',
+  ACTIONS: 'actions',
   ACTION_TYPE: 'action_type',
   ACTIVE: 'active',
   ACTIVITIES: 'activities',
@@ -1444,12 +1617,18 @@ export const DiscordKeys = Object.freeze({
   AFK_TIMEOUT: 'afk_timeout',
   ALIASES: 'aliases',
   ALLOW: 'allow',
+  ALLOW_LIST: 'allow_list',
+  ALLOW_MULTISELECT: 'allow_multiselect',
   ALLOW_NEW: 'allow_new',
   ANALYTICS_TOKEN: 'analytics_token',
   ANIMATED: 'animated',
+  ANSWER_ID: 'answer_id',
+  ANSWERS: 'answers',
   APPLICATION: 'application',
   APPLICATION_COMMAND_COUNT: 'application_command_count',
   APPLICATION_ID: 'application_id',
+  APPLIED_TAGS: 'applied_tags',
+  APPROXIMATE_GUILD_COUNT: 'approximate_guild_count',
   APPROXIMATE_MEMBER_COUNT: 'approximate_member_count',
   APPROXIMATE_PRESENCE_COUNT: 'approximate_presence_count',
   ARCHIVE_TIMESTAMP: 'archive_timestamp',
@@ -1459,7 +1638,10 @@ export const DiscordKeys = Object.freeze({
   ASSETS: 'assets',
   ATTACHMENTS: 'attachments',
   AUTHOR: 'author',
+  AUTHORIZING_INTEGRATION_OWNERS: 'authorizing_integration_owners',
   AUTO_ARCHIVE_DURATION: 'auto_archive_duration',
+  AUTO_MODERATION_RULE_NAME: 'auto_moderation_rule_name',
+  AUTO_MODERATION_RULE_TRIGGER_TYPE: 'auto_moderation_rule_trigger_type',
   AUTOCOMPLETE: 'autocomplete',
   AVAILABLE: 'available',
   AVAILABLE_TAGS: 'available_tags',
@@ -1492,10 +1674,13 @@ export const DiscordKeys = Object.freeze({
   COMPONENT_TYPE: 'component_type',
   COMPONENTS: 'components',
   CONNECTED_ACCOUNTS: 'connected_accounts',
+  CONSUMED: 'consumed',
   CONTENT: 'content',
   CONTENT_RATING: 'content_rating',
   CONTENT_RATING_AGENCY: 'content_rating_agency',
   CONTENT_TYPE: 'content_type',
+  CONTEXT: 'context',
+  CONTEXTS: 'contexts',
   COUNT: 'count',
   COVER_IMAGE: 'cover_image',
   CREATED_AT: 'created_at',
@@ -1504,13 +1689,18 @@ export const DiscordKeys = Object.freeze({
   CURRENCY: 'currency',
   CUSTOM: 'custom',
   CUSTOM_ID: 'custom_id',
+  CUSTOM_MESSAGE: 'custom_message',
+  CUSTOM_INSTALL_URL: 'custom_install_url',
   DATA: 'data',
   DEAF: 'deaf',
   DEFAULT: 'default',
   DEFAULT_AUTO_ARCHIVE_DURATION: 'default_auto_archive_duration',
+  DEFAULT_FORUM_LAYOUT: 'default_forum_layout',
   DEFAULT_MEMBER_PERMISSIONS: 'default_member_permissions',
   DEFAULT_MESSAGE_NOTIFICATIONS: 'default_message_notifications',
   DEFAULT_PERMISSION: 'default_permission',
+  DEFAULT_REACTION_EMOJI: 'default_reaction_emoji',
+  DEFAULT_SORT_ORDER: 'default_sort_order',
   DELETE_MEMBER_DAYS: 'delete_member_days',
   DELETED: 'deleted',
   DENY: 'deny',
@@ -1528,6 +1718,8 @@ export const DiscordKeys = Object.freeze({
   DISCRIMINATOR: 'discriminator',
   DISTRIBUTOR: 'distributor',
   DM_PERMISSION: 'dm_permission',
+  DURATION: 'duration',
+  DURATION_SECONDS: 'duration_seconds',
   EDITED_TIMESTAMP: 'edited_timestamp',
   EMAIL: 'email',
   EMBEDS: 'embeds',
@@ -1537,18 +1729,23 @@ export const DiscordKeys = Object.freeze({
   EMOJIS: 'emojis',
   EMOJI_ID: 'emoji_id',
   EMOJI_NAME: 'emoji_name',
+  ENABLE_EMOTICONS: 'enable_emoticons',
   ENABLED: 'enabled',
   END: 'end',
   ENDED: 'ended',
   ENDED_TIMESTAMP: 'ended_timestamp',
   ENDS_AT: 'ends_at',
   ENTITLEMENT_BRANCH_ID: 'entitlement_branch_id',
+  ENTITLEMENTS: 'entitlements',
   ENTITY_ID: 'entity_id',
   ENTITY_METADATA: 'entity_metadata',
   ENTITY_TYPE: 'entity_type',
   EPHEMERAL: 'ephemeral',
   EULA_ID: 'eula_id',
+  EVENT_TYPE: 'event_type',
   EXECUTABLES: 'executables',
+  EXEMPT_CHANNELS: 'exempt_channels',
+  EXEMPT_ROLES: 'exempt_roles',
   EXPIRES_AT: 'expires_at',
   EXPIRE_BEHAVIOR: 'expire_behavior',
   EXPIRE_GRACE_PERIOD: 'expire_grace_period',
@@ -1568,6 +1765,7 @@ export const DiscordKeys = Object.freeze({
   GUILD_ID: 'guild_id',
   GUILD_IDS: 'guild_ids',
   GUILD_LOCALE: 'guild_locale',
+  GUILD_SCHEDULED_EVENT: 'guild_scheduled_event',
   GUILD_SCHEDULED_EVENTS: 'guild_scheduled_events',
   GUILD_SCHEDULED_EVENT_ID: 'guild_scheduled_event_id',
   HEADER_BACKGROUND: 'header_background',
@@ -1587,19 +1785,28 @@ export const DiscordKeys = Object.freeze({
   INLINE: 'inline',
   INSTANCE: 'instance',
   INTEGRATION_ID: 'integration_id',
+  INTEGRATION_TYPE: 'integration_type',
+  INTEGRATION_TYPES: 'integration_types',
+  INTEGRATION_TYPES_CONFIG: 'integration_types_config',
   INTEGRATIONS: 'integrations',
+  INTERACTED_MESSAGE_ID: 'interacted_message_id',
   INTERACTION: 'interaction',
+  INTERACTION_METADATA: 'interaction_metadata',
+  INTERACTIONS_ENDPOINT_URL: 'interactions_endpoint_url',
   INTERVAL: 'interval',
   INTERVAL_COUNT: 'interval_count',
+  INSTALL_PARAMS: 'install_params',
   INVITE_CODE: 'invite_code',
   INVITER: 'inviter',
   IS_DIRTY: 'is_dirty',
   IS_PARTIAL: 'is_partial',
   IS_PENDING: 'is_pending',
+  IS_RENEWAL: 'is_renewal',
   JOIN: 'join',
   JOIN_TIMESTAMP: 'join_timestamp',
   JOINED_AT: 'joined_at',
   KEY: 'key',
+  KEYWORD_FILTER: 'keyword_filter',
   LABEL: 'label',
   LARGE: 'large',
   LARGE_IMAGE: 'large_image',
@@ -1607,6 +1814,7 @@ export const DiscordKeys = Object.freeze({
   LAST_MESSAGE_ID: 'last_message_id',
   LAST_MODIFIED: 'last_modified',
   LAST_PIN_TIMESTAMP: 'last_pin_timestamp',
+  LAYOUT_TYPE: 'layout_type',
   LAZY: 'lazy',
   LEGAL_NOTICE: 'legal_notice',
   LOCALE: 'locale',
@@ -1633,7 +1841,9 @@ export const DiscordKeys = Object.freeze({
   MENTIONS: 'mentions',
   MENTION_CHANNELS: 'mention_channels',
   MENTION_EVERYONE: 'mention_everyone',
+  MENTION_RAID_PROTECTION_ENABLED: 'mention_raid_protection_enabled',
   MENTION_ROLES: 'mention_roles',
+  MENTION_TOTAL_LIMIT: 'mention_total_limit',
   MESSAGE: 'message',
   MESSAGES: 'messages',
   MESSAGE_COUNT: 'message_count',
@@ -1647,6 +1857,7 @@ export const DiscordKeys = Object.freeze({
   MIN_VALUE: 'min_value',
   MIN_VALUES: 'min_values',
   MOBILE: 'mobile',
+  MODERATED: 'moderated',
   MUTE: 'mute',
   MUTUAL_GUILDS: 'mutual_guilds',
   NAME: 'name',
@@ -1657,9 +1868,11 @@ export const DiscordKeys = Object.freeze({
   NONCE: 'nonce',
   NSFW: 'nsfw',
   NSFW_LEVEL: 'nsfw_level',
+  OAUTH2_INSTALL_PARAMS: 'oauth2_install_params',
   OLD_VALUE: 'old_value',
   OPTIMAL: 'optimal',
   OPTIONS: 'options',
+  ORIGINAL_RESPONSE_MESSAGE_ID: 'original_response_message_id',
   OS: 'os',
   OVERLAY: 'overlay',
   OVERLAY_COMPATIBILITY_HOOK: 'overlay_compatibility_hook',
@@ -1681,12 +1894,14 @@ export const DiscordKeys = Object.freeze({
   PINNED: 'pinned',
   PLACEHOLDER: 'placeholder',
   PLATFORM: 'platform',
+  POLL: 'poll',
+  POLL_MEDIA: 'poll_media',
   POSITION: 'position',
   PREFERRED_LOCALE: 'preferred_locale',
   PREMIUM: 'premium',
   PREMIUM_GUILD_SINCE: 'premium_guild_since',
-  PREMIUM_PROGRESS_BAR_ENABLED: 'premium_progress_bar_enabled',
   PREMIUM_SINCE: 'premium_since',
+  PREMIUM_PROGRESS_BAR_ENABLED: 'premium_progress_bar_enabled',
   PREMIUM_SUBSCRIBER: 'premium_subscriber',
   PREMIUM_SUBSCRIPTION_COUNT: 'premium_subscription_count',
   PREMIUM_TIER: 'premium_tier',
@@ -1694,15 +1909,18 @@ export const DiscordKeys = Object.freeze({
   PRESENCES: 'presences',
   PREVIEW_ASSET: 'preview_asset',
   PREVIEW_VIDEO: 'preview_video',
+  PRESETS: 'presets',
   PRICE: 'price',
   PRIMARY_SKU_ID: 'primary_sku_id',
   PRIVACY_LEVEL: 'privacy_level',
+  PRIVACY_POLICY_URL: 'privacy_policy_url',
   PROVIDER: 'provider',
   PROXY_ICON_URL: 'proxy_icon_url',
   PROXY_URL: 'proxy_url',
   PUBLIC_FLAGS: 'public_flags',
   PUBLIC_UPDATES_CHANNEL_ID: 'public_updates_channel_id',
   PUBLISHERS: 'publishers',
+  QUESTION: 'question',
   RATE_LIMIT_PER_USER: 'rate_limit_per_user',
   REACTIONS: 'reactions',
   REASON: 'reason',
@@ -1711,6 +1929,7 @@ export const DiscordKeys = Object.freeze({
   REDIRECT_URIS: 'redirect_uris',
   REFERENCE_ID: 'reference_id',
   REFERENCED_MESSAGE: 'referenced_message',
+  REGEX_PATTERNS: 'regex_patterns',
   REGION: 'region',
   RELEASE_DATE: 'release_date',
   REQUEST_TO_SPEAK_TIMESTAMP: 'request_to_speak_timestamp',
@@ -1720,13 +1939,21 @@ export const DiscordKeys = Object.freeze({
   REVOKED: 'revoked',
   RINGING: 'ringing',
   ROLES: 'roles',
+  ROLE_CONNECTIONS_VERIFY_URL: 'role_connections_verify_url',
   ROLE_ID: 'role_id',
+  ROLE_NAME: 'role_name',
+  ROLE_SUBSCRIPTION_DATA: 'role_subscription_data',
+  ROLE_SUBSCRIPTION_LISTING_ID: 'role_subscription_listing_id',
+  ROLE_TYPE: 'role_type',
   RPC_APPLICATION_STATE: 'rpc_application_state',
   RPC_ORIGINS: 'rpc_origins',
   RTC_REGION: 'rtc_region',
   RULES_CHANNEL_ID: 'rules_channel_id',
+  SAFETY_ALERTS_CHANNEL_ID: 'safety_alerts_channel_id',
   SCHEDULED_END_TIME: 'scheduled_end_time',
   SCHEDULED_START_TIME: 'scheduled_start_time',
+  SCOPE: 'scope',
+  SCOPES: 'scopes',
   SECRET: 'secret',
   SECRETS: 'secrets',
   SELF_DEAF: 'self_deaf',
@@ -1761,6 +1988,7 @@ export const DiscordKeys = Object.freeze({
   STORE_APPLICATION_STATE: 'store_application_state',
   STORE_LISTING: 'store_listing',
   STYLE: 'style',
+  SUBSCRIBER_COUNT: 'subscriber_count',
   SUBSCRIPTION_PLAN: 'subscription_plan',
   SUBSCRIPTION_PLAN_ID: 'subscription_plan_id',
   SUBTARGET: 'subtarget',
@@ -1785,19 +2013,27 @@ export const DiscordKeys = Object.freeze({
   TEAM_ID: 'team_id',
   TEMPLATE: 'template',
   TEMPORARY: 'temporary',
+  TERMS_OF_SERVICE_URL: 'terms_of_service_url',
   TEXT: 'text',
   THIRD_PARTY_SKUS: 'third_party_skus',
   THREAD: 'thread',
   THREAD_METADATA: 'thread_metadata',
   THREADS: 'threads',
   THUMBNAIL: 'thumbnail',
+  TIER_NAME: 'tier_name',
   TIMEOUT: 'timeout',
   TIMESTAMP: 'timestamp',
   TIMESTAMPS: 'timestamps',
   TITLE: 'title',
   TOKEN: 'token',
   TOPIC: 'topic',
+  TOTAL_MESSAGE_COUNT: 'total_message_count',
+  TOTAL_MONTHS_SUBSCRIBED: 'total_months_subscribed',
+  TRIGGER_METADATA: 'trigger_metadata',
+  TRIGGER_TYPE: 'trigger_type',
+  TRIGGERING_INTERACTION_METADATA: 'triggering_interaction_metadata',
   TTS: 'tts',
+  TWO_WAY_LINK: 'two_way_link',
   TYPE: 'type',
   UNAVAILABLE: 'unavailable',
   UNICODE_EMOJI: 'unicode_emoji',
@@ -1835,8 +2071,10 @@ export const DiscordKeys = Object.freeze({
 
 export const DetritusKeys = Object.freeze({
   [DiscordKeys.ACCENT_COLOR]: 'accentColor',
+  [DiscordKeys.ACCESS_TOKEN]: 'accessToken',
   [DiscordKeys.ACCESS_TYPE]: 'accessType',
   [DiscordKeys.ACCOUNT]: 'account',
+  [DiscordKeys.ACTIONS]: 'actions',
   [DiscordKeys.ACTION_TYPE]: 'actionType',
   [DiscordKeys.ACTIVE]: 'active',
   [DiscordKeys.ACTIVITIES]: 'activities',
@@ -1845,12 +2083,18 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.AFK_TIMEOUT]: 'afkTimeout',
   [DiscordKeys.ALIASES]: 'aliases',
   [DiscordKeys.ALLOW]: 'allow',
+  [DiscordKeys.ALLOW_LIST]: 'allowList',
+  [DiscordKeys.ALLOW_MULTISELECT]: 'allowMultiselect',
   [DiscordKeys.ALLOW_NEW]: 'allowNew',
   [DiscordKeys.ANALYTICS_TOKEN]: 'analyticsToken',
   [DiscordKeys.ANIMATED]: 'animated',
+  [DiscordKeys.ANSWER_ID]: 'answerId',
+  [DiscordKeys.ANSWERS]: 'answers',
   [DiscordKeys.APPLICATION]: 'application',
   [DiscordKeys.APPLICATION_COMMAND_COUNT]: 'applicationCommandCount',
   [DiscordKeys.APPLICATION_ID]: 'applicationId',
+  [DiscordKeys.APPLIED_TAGS]: 'appliedTags',
+  [DiscordKeys.APPROXIMATE_GUILD_COUNT]: 'approximateGuildCount',
   [DiscordKeys.APPROXIMATE_MEMBER_COUNT]: 'approximateMemberCount',
   [DiscordKeys.APPROXIMATE_PRESENCE_COUNT]: 'approximatePresenceCount',
   [DiscordKeys.ARCHIVE_TIMESTAMP]: 'archiveTimestamp',
@@ -1860,7 +2104,10 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ASSETS]: 'assets',
   [DiscordKeys.ATTACHMENTS]: 'attachments',
   [DiscordKeys.AUTHOR]: 'author',
+  [DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS]: 'authorizingIntegrationOwners',
   [DiscordKeys.AUTO_ARCHIVE_DURATION]: 'autoArchiveDuration',
+  [DiscordKeys.AUTO_MODERATION_RULE_NAME]: 'autoModerationRuleName',
+  [DiscordKeys.AUTO_MODERATION_RULE_TRIGGER_TYPE]: 'autoModerationRuleTriggerType',
   [DiscordKeys.AUTOCOMPLETE]: 'autocomplete',
   [DiscordKeys.AVAILABLE]: 'available',
   [DiscordKeys.AVAILABLE_TAGS]: 'availableTags',
@@ -1893,10 +2140,13 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.COMPONENT_TYPE]: 'componentType',
   [DiscordKeys.COMPONENTS]: 'components',
   [DiscordKeys.CONNECTED_ACCOUNTS]: 'connectedAccounts',
+  [DiscordKeys.CONSUMED]: 'consumed',
   [DiscordKeys.CONTENT]: 'content',
   [DiscordKeys.CONTENT_RATING]: 'contentRating',
   [DiscordKeys.CONTENT_RATING_AGENCY]: 'contentRatingAgency',
   [DiscordKeys.CONTENT_TYPE]: 'contentType',
+  [DiscordKeys.CONTEXT]: 'context',
+  [DiscordKeys.CONTEXTS]: 'contexts',
   [DiscordKeys.COUNT]: 'count',
   [DiscordKeys.COVER_IMAGE]: 'coverImage',
   [DiscordKeys.CREATED_AT]: 'createdAt',
@@ -1905,13 +2155,18 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.CURRENCY]: 'currency',
   [DiscordKeys.CUSTOM]: 'custom',
   [DiscordKeys.CUSTOM_ID]: 'customId',
+  [DiscordKeys.CUSTOM_MESSAGE]: 'customMessage',
+  [DiscordKeys.CUSTOM_INSTALL_URL]: 'customInstallUrl',
   [DiscordKeys.DATA]: 'data',
   [DiscordKeys.DEAF]: 'deaf',
   [DiscordKeys.DEFAULT]: 'default',
   [DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION]: 'defaultAutoArchiveDuration',
+  [DiscordKeys.DEFAULT_FORUM_LAYOUT]: 'defaultForumLayout',
   [DiscordKeys.DEFAULT_MEMBER_PERMISSIONS]: 'defaultMemberPermissions',
   [DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS]: 'defaultMessageNotifications',
   [DiscordKeys.DEFAULT_PERMISSION]: 'defaultPermission',
+  [DiscordKeys.DEFAULT_REACTION_EMOJI]: 'defaultReactionEmoji',
+  [DiscordKeys.DEFAULT_SORT_ORDER]: 'defaultSortOrder',
   [DiscordKeys.DELETE_MEMBER_DAYS]: 'deleteMemberDays',
   [DiscordKeys.DELETED]: 'deleted',
   [DiscordKeys.DENY]: 'deny',
@@ -1929,6 +2184,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DISCRIMINATOR]: 'discriminator',
   [DiscordKeys.DISTRIBUTOR]: 'distributor',
   [DiscordKeys.DM_PERMISSION]: 'dmPermission',
+  [DiscordKeys.DURATION]: 'duration',
+  [DiscordKeys.DURATION_SECONDS]: 'durationSeconds',
   [DiscordKeys.EDITED_TIMESTAMP]: 'editedTimestamp',
   [DiscordKeys.EMAIL]: 'email',
   [DiscordKeys.EMBEDS]: 'embeds',
@@ -1938,18 +2195,23 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.EMOJIS]: 'emojis',
   [DiscordKeys.EMOJI_ID]: 'emojiId',
   [DiscordKeys.EMOJI_NAME]: 'emojiName',
+  [DiscordKeys.ENABLE_EMOTICONS]: 'enableEmoticons',
   [DiscordKeys.ENABLED]: 'enabled',
   [DiscordKeys.END]: 'end',
   [DiscordKeys.ENDED]: 'ended',
   [DiscordKeys.ENDED_TIMESTAMP]: 'endedTimestamp',
   [DiscordKeys.ENDS_AT]: 'endsAt',
   [DiscordKeys.ENTITLEMENT_BRANCH_ID]: 'entitlementBranchId',
+  [DiscordKeys.ENTITLEMENTS]: 'entitlements',
   [DiscordKeys.ENTITY_ID]: 'entityId',
   [DiscordKeys.ENTITY_METADATA]: 'entityMetadata',
   [DiscordKeys.ENTITY_TYPE]: 'entityType',
   [DiscordKeys.EPHEMERAL]: 'ephemeral',
   [DiscordKeys.EULA_ID]: 'eulaId',
+  [DiscordKeys.EVENT_TYPE]: 'eventType',
   [DiscordKeys.EXECUTABLES]: 'executables',
+  [DiscordKeys.EXEMPT_CHANNELS]: 'exemptChannels',
+  [DiscordKeys.EXEMPT_ROLES]: 'exemptRoles',
   [DiscordKeys.EXPIRES_AT]: 'expiresAt',
   [DiscordKeys.EXPIRE_BEHAVIOR]: 'expireBehavior',
   [DiscordKeys.EXPIRE_GRACE_PERIOD]: 'expireGracePeriod',
@@ -1969,6 +2231,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.GUILD_ID]: 'guildId',
   [DiscordKeys.GUILD_IDS]: 'guildIds',
   [DiscordKeys.GUILD_LOCALE]: 'guildLocale',
+  [DiscordKeys.GUILD_SCHEDULED_EVENT]: 'guildScheduledEvent',
   [DiscordKeys.GUILD_SCHEDULED_EVENTS]: 'guildScheduledEvents',
   [DiscordKeys.GUILD_SCHEDULED_EVENT_ID]: 'guildScheduledEventId',
   [DiscordKeys.HEADER_BACKGROUND]: 'headerBackground',
@@ -1988,19 +2251,28 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.INLINE]: 'inline',
   [DiscordKeys.INSTANCE]: 'instance',
   [DiscordKeys.INTEGRATION_ID]: 'integrationId',
+  [DiscordKeys.INTEGRATION_TYPE]: 'integrationType',
+  [DiscordKeys.INTEGRATION_TYPES]: 'integrationTypes',
+  [DiscordKeys.INTEGRATION_TYPES_CONFIG]: 'integrationTypesConfig',
   [DiscordKeys.INTEGRATIONS]: 'integrations',
+  [DiscordKeys.INTERACTED_MESSAGE_ID]: 'interactedMessageId',
   [DiscordKeys.INTERACTION]: 'interaction',
+  [DiscordKeys.INTERACTION_METADATA]: 'interactionMetadata',
+  [DiscordKeys.INTERACTIONS_ENDPOINT_URL]: 'interactionsEndpointUrl',
   [DiscordKeys.INTERVAL]: 'interval',
   [DiscordKeys.INTERVAL_COUNT]: 'intervalCount',
+  [DiscordKeys.INSTALL_PARAMS]: 'installParams',
   [DiscordKeys.INVITE_CODE]: 'inviteCode',
   [DiscordKeys.INVITER]: 'inviter',
   [DiscordKeys.IS_DIRTY]: 'isDirty',
   [DiscordKeys.IS_PARTIAL]: 'isPartial',
   [DiscordKeys.IS_PENDING]: 'isPending',
+  [DiscordKeys.IS_RENEWAL]: 'isRenewal',
   [DiscordKeys.JOIN]: 'join',
   [DiscordKeys.JOIN_TIMESTAMP]: 'joinTimestamp',
   [DiscordKeys.JOINED_AT]: 'joinedAt',
   [DiscordKeys.KEY]: 'key',
+  [DiscordKeys.KEYWORD_FILTER]: 'keywordFilter',
   [DiscordKeys.LABEL]: 'label',
   [DiscordKeys.LARGE]: 'large',
   [DiscordKeys.LARGE_IMAGE]: 'largeImage',
@@ -2008,6 +2280,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.LAST_MESSAGE_ID]: 'lastMessageId',
   [DiscordKeys.LAST_MODIFIED]: 'lastModified',
   [DiscordKeys.LAST_PIN_TIMESTAMP]: 'lastPinTimestamp',
+  [DiscordKeys.LAYOUT_TYPE]: 'layoutType',
   [DiscordKeys.LAZY]: 'lazy',
   [DiscordKeys.LEGAL_NOTICE]: 'legalNotice',
   [DiscordKeys.LOCALE]: 'locale',
@@ -2034,7 +2307,9 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MENTIONS]: 'mentions',
   [DiscordKeys.MENTION_CHANNELS]: 'mentionChannels',
   [DiscordKeys.MENTION_EVERYONE]: 'mentionEveryone',
+  [DiscordKeys.MENTION_RAID_PROTECTION_ENABLED]: 'mentionRaidProtectionEnabled',
   [DiscordKeys.MENTION_ROLES]: 'mentionRoles',
+  [DiscordKeys.MENTION_TOTAL_LIMIT]: 'mentionTotalLimit',
   [DiscordKeys.MESSAGE]: 'message',
   [DiscordKeys.MESSAGES]: 'messages',
   [DiscordKeys.MESSAGE_COUNT]: 'messageCount',
@@ -2048,6 +2323,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MIN_VALUE]: 'minValue',
   [DiscordKeys.MIN_VALUES]: 'minValues',
   [DiscordKeys.MOBILE]: 'mobile',
+  [DiscordKeys.MODERATED]: 'moderated',
   [DiscordKeys.MUTE]: 'mute',
   [DiscordKeys.MUTUAL_GUILDS]: 'mutualGuilds',
   [DiscordKeys.NAME]: 'name',
@@ -2058,9 +2334,11 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.NONCE]: 'nonce',
   [DiscordKeys.NSFW]: 'nsfw',
   [DiscordKeys.NSFW_LEVEL]: 'nsfwLevel',
+  [DiscordKeys.OAUTH2_INSTALL_PARAMS]: 'oauth2InstallParams',
   [DiscordKeys.OLD_VALUE]: 'oldValue',
   [DiscordKeys.OPTIMAL]: 'optimal',
   [DiscordKeys.OPTIONS]: 'options',
+  [DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID]: 'originalResponseMessageId',
   [DiscordKeys.OS]: 'os',
   [DiscordKeys.OVERLAY]: 'overlay',
   [DiscordKeys.OVERLAY_COMPATIBILITY_HOOK]: 'overlayCompatibilityHook',
@@ -2082,6 +2360,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PINNED]: 'pinned',
   [DiscordKeys.PLACEHOLDER]: 'placeholder',
   [DiscordKeys.PLATFORM]: 'platform',
+  [DiscordKeys.POLL]: 'poll',
+  [DiscordKeys.POLL_MEDIA]: 'pollMedia',
   [DiscordKeys.POSITION]: 'position',
   [DiscordKeys.PREFERRED_LOCALE]: 'preferredLocale',
   [DiscordKeys.PREMIUM]: 'premium',
@@ -2095,15 +2375,18 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PRESENCES]: 'presences',
   [DiscordKeys.PREVIEW_ASSET]: 'previewAsset',
   [DiscordKeys.PREVIEW_VIDEO]: 'previewVideo',
+  [DiscordKeys.PRESETS]: 'presets',
   [DiscordKeys.PRICE]: 'price',
   [DiscordKeys.PRIMARY_SKU_ID]: 'primarySkuId',
   [DiscordKeys.PRIVACY_LEVEL]: 'privacyLevel',
+  [DiscordKeys.PRIVACY_POLICY_URL]: 'privacyPolicyUrl',
   [DiscordKeys.PROVIDER]: 'provider',
   [DiscordKeys.PROXY_ICON_URL]: 'proxyIconUrl',
   [DiscordKeys.PROXY_URL]: 'proxyUrl',
   [DiscordKeys.PUBLIC_FLAGS]: 'publicFlags',
   [DiscordKeys.PUBLIC_UPDATES_CHANNEL_ID]: 'publicUpdatesChannelId',
   [DiscordKeys.PUBLISHERS]: 'publishers',
+  [DiscordKeys.QUESTION]: 'question',
   [DiscordKeys.RATE_LIMIT_PER_USER]: 'rateLimitPerUser',
   [DiscordKeys.REACTIONS]: 'reactions',
   [DiscordKeys.REASON]: 'reason',
@@ -2112,6 +2395,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.REDIRECT_URIS]: 'redirectUris',
   [DiscordKeys.REFERENCE_ID]: 'referenceId',
   [DiscordKeys.REFERENCED_MESSAGE]: 'referencedMessage',
+  [DiscordKeys.REGEX_PATTERNS]: 'regexPatterns',
   [DiscordKeys.REGION]: 'region',
   [DiscordKeys.RELEASE_DATE]: 'releaseDate',
   [DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP]: 'requestToSpeakTimestamp',
@@ -2121,13 +2405,21 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.REVOKED]: 'revoked',
   [DiscordKeys.RINGING]: 'ringing',
   [DiscordKeys.ROLES]: 'roles',
+  [DiscordKeys.ROLE_CONNECTIONS_VERIFY_URL]: 'roleConnectionsVerifyUrl',
   [DiscordKeys.ROLE_ID]: 'roleId',
+  [DiscordKeys.ROLE_NAME]: 'roleName',
+  [DiscordKeys.ROLE_SUBSCRIPTION_DATA]: 'roleSubscriptionData',
+  [DiscordKeys.ROLE_SUBSCRIPTION_LISTING_ID]: 'roleSubscriptionListingId',
+  [DiscordKeys.ROLE_TYPE]: 'roleType',
   [DiscordKeys.RPC_APPLICATION_STATE]: 'rpcApplicationState',
   [DiscordKeys.RPC_ORIGINS]: 'rpcOrigins',
   [DiscordKeys.RTC_REGION]: 'rtcRegion',
   [DiscordKeys.RULES_CHANNEL_ID]: 'rulesChannelId',
+  [DiscordKeys.SAFETY_ALERTS_CHANNEL_ID]: 'safetyAlertsChannelId',
   [DiscordKeys.SCHEDULED_END_TIME]: 'scheduledEndTime',
   [DiscordKeys.SCHEDULED_START_TIME]: 'scheduledStartTime',
+  [DiscordKeys.SCOPE]: 'scope',
+  [DiscordKeys.SCOPES]: 'scopes',
   [DiscordKeys.SECRET]: 'secret',
   [DiscordKeys.SECRETS]: 'secrets',
   [DiscordKeys.SELF_DEAF]: 'selfDeaf',
@@ -2162,6 +2454,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.STORE_APPLICATION_STATE]: 'storeApplicationState',
   [DiscordKeys.STORE_LISTING]: 'storeListing',
   [DiscordKeys.STYLE]: 'style',
+  [DiscordKeys.SUBSCRIBER_COUNT]: 'subscriberCount',
   [DiscordKeys.SUBSCRIPTION_PLAN]: 'subscriptionPlan',
   [DiscordKeys.SUBSCRIPTION_PLAN_ID]: 'subscriptionPlanId',
   [DiscordKeys.SUBTARGET]: 'subtarget',
@@ -2186,19 +2479,27 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.TEAM_ID]: 'teamId',
   [DiscordKeys.TEMPLATE]: 'template',
   [DiscordKeys.TEMPORARY]: 'temporary',
+  [DiscordKeys.TERMS_OF_SERVICE_URL]: 'termsOfServiceUrl',
   [DiscordKeys.TEXT]: 'text',
   [DiscordKeys.THIRD_PARTY_SKUS]: 'thirdPartySkus',
   [DiscordKeys.THREAD]: 'thread',
   [DiscordKeys.THREAD_METADATA]: 'threadMetadata',
   [DiscordKeys.THREADS]: 'threads',
   [DiscordKeys.THUMBNAIL]: 'thumbnail',
+  [DiscordKeys.TIER_NAME]: 'tierName',
   [DiscordKeys.TIMEOUT]: 'timeout',
   [DiscordKeys.TIMESTAMP]: 'timestamp',
   [DiscordKeys.TIMESTAMPS]: 'timestamps',
   [DiscordKeys.TITLE]: 'title',
   [DiscordKeys.TOKEN]: 'token',
   [DiscordKeys.TOPIC]: 'topic',
+  [DiscordKeys.TOTAL_MESSAGE_COUNT]: 'totalMessageCount',
+  [DiscordKeys.TOTAL_MONTHS_SUBSCRIBED]: 'totalMonthsSubscribed',
+  [DiscordKeys.TRIGGER_METADATA]: 'triggerMetadata',
+  [DiscordKeys.TRIGGER_TYPE]: 'triggerType',
+  [DiscordKeys.TRIGGERING_INTERACTION_METADATA]: 'triggeringInteractionMetadata',
   [DiscordKeys.TTS]: 'tts',
+  [DiscordKeys.TWO_WAY_LINK]: 'twoWayLink',
   [DiscordKeys.TYPE]: 'type',
   [DiscordKeys.UNAVAILABLE]: 'unavailable',
   [DiscordKeys.UNICODE_EMOJI]: 'unicodeEmoji',

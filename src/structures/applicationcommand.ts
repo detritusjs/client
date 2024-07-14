@@ -9,7 +9,11 @@ import {
   ApplicationCommandOptionTypes,
   ApplicationCommandPermissionTypes,
   ApplicationCommandTypes,
+  ApplicationIntegrationTypes,
+  ChannelTypes,
+  DetritusKeys,
   DiscordKeys,
+  InteractionContextTypes,
 } from '../constants';
 import { KeyGenerator } from '../utils';
 
@@ -22,6 +26,7 @@ import { User } from './user';
 
 const keysApplicationCommand = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
+  DiscordKeys.CONTEXTS,
   DiscordKeys.DEFAULT_MEMBER_PERMISSIONS,
   DiscordKeys.DEFAULT_PERMISSION,
   DiscordKeys.DESCRIPTION,
@@ -29,8 +34,10 @@ const keysApplicationCommand = new BaseSet<string>([
   DiscordKeys.DM_PERMISSION,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
+  DiscordKeys.INTEGRATION_TYPES,
   DiscordKeys.NAME,
   DiscordKeys.NAME_LOCALIZATIONS,
+  DiscordKeys.NSFW,
   DiscordKeys.OPTIONS,
   DiscordKeys.TYPE,
   DiscordKeys.VERSION,
@@ -44,6 +51,7 @@ export class ApplicationCommand extends BaseStructure {
   readonly _keys = keysApplicationCommand;
 
   applicationId: string = '';
+  contexts?: Array<InteractionContextTypes> | null;
   defaultMemberPermissions: bigint | null = null;
   defaultPermission: boolean = true;
   description: string = '';
@@ -51,8 +59,10 @@ export class ApplicationCommand extends BaseStructure {
   dmPermission: boolean = true;
   guildId?: string;
   id: string = '';
+  integrationTypes?: Array<ApplicationIntegrationTypes>;
   name: string = '';
   nameLocalizations: Record<string, string | undefined> | null = null;
+  nsfw?: boolean;
   options?: BaseCollection<string, ApplicationCommandOption>;
   type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
   version: string = '';
@@ -84,29 +94,71 @@ export class ApplicationCommand extends BaseStructure {
     return this.client.rest.deleteApplicationCommand(this.client.clientId, this.id);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.DEFAULT_MEMBER_PERMISSIONS: {
-        if (value) {
-          value = BigInt(value);
-        }
-      }; break;
-      case DiscordKeys.OPTIONS: {
-        if (value) {
-          if (!this.options) {
-            this.options = new BaseCollection();
-          }
-          this.options.clear();
-          for (let raw of value) {
-            const option = new ApplicationCommandOption(this, raw, this.isClone);
-            this.options.set(option.name, option);
-          }
-        } else {
-          this.options = undefined;
-        }
-      }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
-    super.mergeValue(key, value);
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.CONTEXTS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONTEXTS]] = data[DiscordKeys.CONTEXTS];
+    }
+    if (DiscordKeys.DEFAULT_MEMBER_PERMISSIONS in data) {
+      const value = data[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS];
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_MEMBER_PERMISSIONS]] = (value) ? BigInt(value) : value;
+    }
+    if (DiscordKeys.DEFAULT_PERMISSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_PERMISSION]] = data[DiscordKeys.DEFAULT_PERMISSION];
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.DESCRIPTION_LOCALIZATIONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS]] = data[DiscordKeys.DESCRIPTION_LOCALIZATIONS];
+    }
+    if (DiscordKeys.DM_PERMISSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DM_PERMISSION]] = data[DiscordKeys.DM_PERMISSION];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.INTEGRATION_TYPES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INTEGRATION_TYPES]] = data[DiscordKeys.INTEGRATION_TYPES];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.NAME_LOCALIZATIONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS]] = data[DiscordKeys.NAME_LOCALIZATIONS];
+    }
+    if (DiscordKeys.NSFW in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NSFW]] = data[DiscordKeys.NSFW];
+    }
+    if (DiscordKeys.OPTIONS in data) {
+      const value = data[DiscordKeys.OPTIONS];
+      if (value) {
+        if (!this.options) {
+          this.options = new BaseCollection();
+        }
+        this.options.clear();
+        for (let raw of value) {
+          const option = new ApplicationCommandOption(this, raw, this.isClone);
+          this.options.set(option.name, option);
+        }
+      } else {
+        this.options = undefined;
+      }
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.VERSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VERSION]] = data[DiscordKeys.VERSION];
+    }
   }
 }
 
@@ -135,7 +187,7 @@ export class ApplicationCommandOption extends BaseStructure {
   readonly command: ApplicationCommand;
 
   autocomplete?: boolean;
-  channelTypes?: Array<number>;
+  channelTypes?: Array<ChannelTypes | number>;
   choices?: BaseCollection<string, ApplicationCommandOptionChoice>;
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;

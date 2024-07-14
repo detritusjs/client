@@ -16,8 +16,12 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
-import { ChannelGuildBase } from './channel';
+import { ApplicationCommand } from './applicationcommand';
+import { AutoModerationRule } from './automoderationrule';
+import { ChannelGuildThread } from './channel';
 import { Guild } from './guild';
+import { GuildScheduledEvent } from './guildscheduledevent';
+import { Integration } from './integration';
 import { Role } from './role';
 import { User } from './user';
 import { Webhook } from './webhook';
@@ -50,7 +54,7 @@ export class AuditLog extends BaseStructure {
   guildId: string = '';
   options?: AuditLogOptions;
   reason?: string;
-  target?: User | Webhook;
+  target?: ApplicationCommand | AutoModerationRule | GuildScheduledEvent | Integration | ChannelGuildThread | User | Webhook;
   targetId?: string;
   user?: User;
   userId?: string;
@@ -122,13 +126,17 @@ export class AuditLogChange extends BaseStructure {
 
 
 const keysAuditLogOptions = new BaseSet<string>([
-  DiscordKeys.CHANNEL,
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.AUTO_MODERATION_RULE_NAME,
+  DiscordKeys.AUTO_MODERATION_RULE_TRIGGER_TYPE,
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.COUNT,
   DiscordKeys.DELETE_MEMBER_DAYS,
   DiscordKeys.ID,
+  DiscordKeys.INTEGRATION_TYPE,
   DiscordKeys.MEMBERS_REMOVED,
-  DiscordKeys.SUBTARGET,
+  DiscordKeys.MESSAGE_ID,
+  DiscordKeys.ROLE_NAME,
   DiscordKeys.TYPE,
 ]);
 
@@ -142,14 +150,18 @@ export class AuditLogOptions extends BaseStructure {
 
   readonly log: AuditLog;
 
-  channel?: ChannelGuildBase;
+  applicationId?: string;
+  autoModerationRuleName?: string;
+  autoModerationRuleTriggerType?: string;
   channelId?: string;
   count?: number;
   deleteMemberDays?: number;
   id?: string;
+  integrationType?: string;
   membersRemoved?: number;
-  subtarget?: Role | User;
-  type?: number;
+  messageId?: string;
+  roleName?: string;
+  type?: string;
 
   constructor(log: AuditLog, data: BaseStructureData) {
     super(log.client, undefined, log._clone);

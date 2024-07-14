@@ -7,12 +7,14 @@ import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  ApplicationIntegrationTypes,
   DetritusKeys,
   DiscordKeys,
   DiscordRegex,
   DiscordRegexNames,
   InteractionTypes,
   MessageFlags,
+  MessagePollLayoutTypes,
   MessageTypes,
   MessageTypesDeletable,
   PremiumGuildTiers,
@@ -29,6 +31,7 @@ import { Application } from './application';
 import { Attachment } from './attachment';
 import { Channel, ChannelGuildThread, ChannelTextType, createChannelFromData } from './channel';
 import { ComponentActionRow } from './components';
+import { Emoji } from './emoji';
 import { Guild } from './guild';
 import { Member } from './member';
 import { MessageEmbed } from './messageembed';
@@ -59,6 +62,7 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.INTERACTION,
+  DiscordKeys.INTERACTION_METADATA,
   DiscordKeys.MEMBER,
   DiscordKeys.MENTIONS,
   DiscordKeys.MENTION_CHANNELS,
@@ -67,8 +71,12 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.MESSAGE_REFERENCE,
   DiscordKeys.NONCE,
   DiscordKeys.PINNED,
+  DiscordKeys.POLL,
+  DiscordKeys.POSITION,
   DiscordKeys.REACTIONS,
   DiscordKeys.REFERENCED_MESSAGE,
+  DiscordKeys.RESOLVED,
+  DiscordKeys.ROLE_SUBSCRIPTION_DATA,
   DiscordKeys.STICKERS,
   DiscordKeys.STICKER_ITEMS,
   DiscordKeys.THREAD,
@@ -116,12 +124,17 @@ export class Message extends BaseStructure {
   guildId?: string;
   id: string = '';
   interaction?: MessageInteraction;
+  interactionMetadata?: MessageInteractionMetadata;
   member?: Member;
   mentionEveryone: boolean = false;
   messageReference?: MessageReference;
   nonce?: string;
   pinned: boolean = false;
+  poll?: MessagePoll;
+  position?: number;
   referencedMessage: Message | null = null;
+  resolved?: MessageResolvedData;
+  roleSubscriptionData?: MessageRoleSubscriptionData;
   thread?: ChannelGuildThread;
   timestampUnix: number = 0;
   tts: boolean = false;
@@ -754,8 +767,8 @@ export class Message extends BaseStructure {
       }
     }
     if (DiscordKeys.CALL in data) {
-      const value = data[DiscordKeys.CALL];
-      (this as any)[DetritusKeys[DiscordKeys.CALL]] = new MessageCall(this, value);
+      const value = new MessageCall(this, data[DiscordKeys.CALL]);
+      (this as any)[DetritusKeys[DiscordKeys.CALL]] = value;
     }
     if (DiscordKeys.COMPONENTS in data) {
       const value = data[DiscordKeys.COMPONENTS];
@@ -902,6 +915,13 @@ export class Message extends BaseStructure {
     if (DiscordKeys.PINNED in data) {
       (this as any)[DetritusKeys[DiscordKeys.PINNED]] = data[DiscordKeys.PINNED];
     }
+    if (DiscordKeys.POLL in data) {
+      const value = new MessagePoll(this, data[DiscordKeys.POLL]);
+      (this as any)[DetritusKeys[DiscordKeys.POLL]] = value;
+    }
+    if (DiscordKeys.POSITION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.POSITION]] = data[DiscordKeys.POSITION];
+    }
     if (DiscordKeys.REACTIONS in data) {
       const value = data[DiscordKeys.REACTIONS];
       if (value.length) {
@@ -942,6 +962,14 @@ export class Message extends BaseStructure {
       } else {
         (this as any)[DetritusKeys[DiscordKeys.REFERENCED_MESSAGE]] = value;
       }
+    }
+    if (DiscordKeys.RESOLVED in data) {
+      const value = new MessageResolvedData(this, data[DiscordKeys.RESOLVED]);
+      (this as any)[DetritusKeys[DiscordKeys.RESOLVED]] = value;
+    }
+    if (DiscordKeys.ROLE_SUBSCRIPTION_DATA in data) {
+      const value = new MessageRoleSubscriptionData(this, data[DiscordKeys.ROLE_SUBSCRIPTION_DATA]);
+      (this as any)[DetritusKeys[DiscordKeys.ROLE_SUBSCRIPTION_DATA]] = value;
     }
     if (DiscordKeys.STICKERS in data) {
       const value = data[DiscordKeys.STICKERS];
@@ -1202,6 +1230,278 @@ export class MessageInteraction extends BaseStructure {
 }
 
 
+const keysMessageInteractionMetadata = new BaseSet<string>([
+  DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS,
+  DiscordKeys.ID,
+  DiscordKeys.INTERACTED_MESSAGE_ID,
+  DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID,
+  DiscordKeys.TRIGGERING_INTERACTION_METADATA,
+  DiscordKeys.TYPE,
+  DiscordKeys.USER,
+]);
+
+/**
+ * Channel Message Interaction Metadata Structure
+ * @category Structure
+ */
+export class MessageInteractionMetadata extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageInteractionMetadata;
+  readonly message: Message;
+
+  authorizingIntegrationOwners?: Record<ApplicationIntegrationTypes, string>;
+  id: string = '';
+  interactedMessageId?: string;
+  originalResponseMessageId?: string;
+  triggeringInteractionMetadata?: MessageInteractionMetadata;
+  type: InteractionTypes = InteractionTypes.PING;
+  user!: User;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get interactedMessage(): Message | null {
+    if (this.interactedMessageId && this.client.messages.has(this.interactedMessageId)) {
+      return this.client.messages.get(this.interactedMessageId)!;
+    }
+    return null;
+  }
+
+  get originalResponseMessage(): Message | null {
+    if (this.originalResponseMessageId && this.client.messages.has(this.originalResponseMessageId)) {
+      return this.client.messages.get(this.originalResponseMessageId)!;
+    }
+    return null;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS]] = data[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.INTERACTED_MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INTERACTED_MESSAGE_ID]] = data[DiscordKeys.INTERACTED_MESSAGE_ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID]] = data[DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID];
+    }
+    if (DiscordKeys.TRIGGERING_INTERACTION_METADATA in data) {
+      const value = new MessageInteractionMetadata(this.message, data[DiscordKeys.TRIGGERING_INTERACTION_METADATA]);
+      (this as any)[DetritusKeys[DiscordKeys.TRIGGERING_INTERACTION_METADATA]] = value;
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.client.users.has(value.id)) {
+        user = this.client.users.get(value.id)!;
+        user.merge(value);
+      } else {
+        user = new User(this.client, value);
+        this.client.users.insert(user);
+      }
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
+    }
+  }
+}
+
+
+const keysMessagePoll = new BaseSet<string>([
+  DiscordKeys.ALLOW_MULTISELECT,
+  DiscordKeys.ANSWERS,
+  DiscordKeys.DURATION,
+  DiscordKeys.LAYOUT_TYPE,
+  DiscordKeys.QUESTION,
+]);
+
+/**
+ * Channel Message Poll Structure
+ * @category Structure
+ */
+export class MessagePoll extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessagePoll;
+  readonly message: Message;
+  _answers?: BaseCollection<number, MessagePollAnswer>;
+
+  allowMultiselect: boolean = false;
+  duration: number = 0;
+  layoutType?: MessagePollLayoutTypes;
+  question!: MessagePollMedia;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get answers(): BaseCollection<number, MessagePollAnswer> {
+    if (this._answers) {
+      return this._answers;
+    }
+    return emptyBaseCollection;
+  }
+
+  get channelId(): string {
+    return this.message.channelId;
+  }
+
+  get messageId(): string {
+    return this.message.id;
+  }
+
+  async end() {
+    return this.client.rest.endChannelPoll(this.channelId, this.messageId);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ALLOW_MULTISELECT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ALLOW_MULTISELECT]] = data[DiscordKeys.ALLOW_MULTISELECT];
+    }
+    if (DiscordKeys.ANSWERS in data) {
+      const value = data[DiscordKeys.ANSWERS];
+      if (value.length) {
+        if (!this._answers) {
+          this._answers = new BaseCollection<number, MessagePollAnswer>();
+        }
+        this._answers.clear();
+        for (let i = 0; i < value.length; i++) {
+          this._answers.set(i, new MessagePollAnswer(this, value[i]));
+        }
+      } else {
+        if (this._answers) {
+          this._answers.clear();
+          this._answers = undefined;
+        }
+      }
+    }
+    if (DiscordKeys.DURATION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DURATION]] = data[DiscordKeys.DURATION];
+    }
+    if (DiscordKeys.LAYOUT_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LAYOUT_TYPE]] = data[DiscordKeys.LAYOUT_TYPE];
+    }
+    if (DiscordKeys.QUESTION in data) {
+      const value = new MessagePollMedia(this, data[DiscordKeys.QUESTION]);
+      (this as any)[DetritusKeys[DiscordKeys.QUESTION]] = value;
+    }
+  }
+}
+
+
+const keysMessagePollAnswer = new BaseSet<string>([
+  DiscordKeys.ANSWER_ID,
+  DiscordKeys.POLL_MEDIA,
+]);
+
+/**
+ * Channel Message Poll Media Structure
+ * @category Structure
+ */
+export class MessagePollAnswer extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessagePollAnswer;
+  readonly poll: MessagePoll;
+
+  answerId: string = '';
+  pollMedia!: MessagePollMedia;
+
+  constructor(poll: MessagePoll, data: BaseStructureData) {
+    super(poll.client, undefined, poll._clone);
+    this.poll = poll;
+    this.merge(data);
+    Object.defineProperty(this, 'poll', {enumerable: false});
+  }
+
+  get channelId(): string {
+    return this.poll.message.channelId;
+  }
+
+  get messageId(): string {
+    return this.poll.message.id;
+  }
+
+  async fetchVoters(options: RequestTypes.FetchChannelPollAnswerVoters = {}) {
+    return this.client.rest.fetchChannelPollAnswerVoters(this.channelId, this.messageId, this.answerId, options);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ANSWER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ANSWER_ID]] = data[DiscordKeys.ANSWER_ID];
+    }
+    if (DiscordKeys.POLL_MEDIA in data) {
+      const value = new MessagePollMedia(this.poll, data[DiscordKeys.POLL_MEDIA]);
+      (this as any)[DetritusKeys[DiscordKeys.POLL_MEDIA]] = value;
+    }
+  }
+}
+
+
+const keysMessagePollMedia = new BaseSet<string>([
+  DiscordKeys.EMOJI,
+  DiscordKeys.TEXT,
+]);
+
+/**
+ * Channel Message Poll Media Structure
+ * @category Structure
+ */
+export class MessagePollMedia extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessagePollMedia;
+  readonly poll: MessagePoll;
+
+  emoji?: Emoji;
+  text?: string;
+
+  constructor(poll: MessagePoll, data: BaseStructureData) {
+    super(poll.client, undefined, poll._clone);
+    this.poll = poll;
+    this.merge(data);
+    Object.defineProperty(this, 'poll', {enumerable: false});
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.EMOJI in data) {
+      const value = new Emoji(this.client, data[DiscordKeys.EMOJI]);
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI]] = value;
+    }
+    if (DiscordKeys.TEXT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TEXT]] = data[DiscordKeys.TEXT];
+    }
+  }
+}
+
+
 const keysMessageReference = new BaseSet<string>([
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.GUILD_ID,
@@ -1266,6 +1566,186 @@ export class MessageReference extends BaseStructure {
     }
     if (DiscordKeys.MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.MESSAGE_ID]] = data[DiscordKeys.MESSAGE_ID];
+    }
+  }
+}
+
+
+const keysMessageResolvedData = new BaseSet<string>([
+  DiscordKeys.ATTACHMENTS,
+  DiscordKeys.CHANNELS,
+  DiscordKeys.MEMBERS,
+  DiscordKeys.MESSAGES,
+  DiscordKeys.ROLES,
+  DiscordKeys.USERS,
+]);
+
+/**
+ * Channel Message Resolved Data Structure
+ * @category Structure
+ */
+export class MessageResolvedData extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageResolvedData;
+  readonly message: Message;
+
+  attachments?: BaseCollection<string, Attachment>;
+  channels?: BaseCollection<string, Channel>;
+  members?: BaseCollection<string, Member>;
+  messages?: BaseCollection<string, Message>;
+  roles?: BaseCollection<string, Role>;
+  users?: BaseCollection<string, User>;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  get guildId(): null | string {
+    return this.message.guildId || null;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ATTACHMENTS in data) {
+      const value = data[DiscordKeys.ATTACHMENTS];
+
+      if (!this.attachments) {
+        this.attachments = new BaseCollection();
+      }
+      this.attachments.clear();
+      for (let attachmentId in value) {
+        const attachment = new Attachment(this.client, value[attachmentId]);
+        this.attachments.set(attachmentId, attachment);
+      }
+    }
+    if (DiscordKeys.CHANNELS in data) {
+      const value = data[DiscordKeys.CHANNELS];
+
+      if (!this.channels) {
+        this.channels = new BaseCollection();
+      }
+      this.channels.clear();
+      for (let channelId in value) {
+        // always create it cause of the 'permissions' field sent in
+        value[channelId][DiscordKeys.GUILD_ID] = this.guildId;
+        const channel = createChannelFromData(this.client, value[channelId]);
+        this.channels.set(channelId, channel);
+      }
+    }
+    if (DiscordKeys.MEMBERS in data) {
+      const value = data[DiscordKeys.MEMBERS];
+
+      if (!this.members) {
+        this.members = new BaseCollection();
+      }
+      this.members.clear();
+      for (let userId in value) {
+        value[userId][DiscordKeys.GUILD_ID] = this.guildId;
+        const member = new Member(this.client, value[userId], true);
+        if (!member.user) {
+          member.user = (this.users) ? this.users.get(userId)! : this.client.users.get(userId)!;
+        }
+        this.members.set(userId, member);
+      }
+    }
+    if (DiscordKeys.MESSAGES in data) {
+      const value = data[DiscordKeys.MESSAGES];
+
+      if (!this.messages) {
+        this.messages = new BaseCollection();
+      }
+      this.messages.clear();
+      for (let messageId in value) {
+        value[messageId][DiscordKeys.GUILD_ID] = this.guildId;
+        const message = new Message(this.client, value[messageId], true);
+        this.messages.set(messageId, message);
+      }
+    }
+    if (DiscordKeys.ROLES in data) {
+      const value = data[DiscordKeys.ROLES];
+
+      if (!this.roles) {
+        this.roles = new BaseCollection();
+      }
+      this.roles.clear();
+      for (let roleId in value) {
+        value[roleId][DiscordKeys.GUILD_ID] = this.guildId;
+        const role = new Role(this.client, value[roleId]);
+        this.roles.set(roleId, role);
+      }
+    }
+    if (DiscordKeys.USERS in data) {
+      const value = data[DiscordKeys.USERS];
+
+      if (!this.users) {
+        this.users = new BaseCollection();
+      }
+      this.users.clear();
+      for (let userId in value) {
+        let user: User;
+        if (this.client.users.has(userId)) {
+          user = this.client.users.get(userId)!;
+          user.merge(value[userId]);
+        } else {
+          user = new User(this.client, value[userId]);
+        }
+        this.users.set(userId, user);
+      }
+    }
+  }
+}
+
+
+const keysMessageRoleSubscriptionData = new BaseSet<string>([
+  DiscordKeys.IS_RENEWAL,
+  DiscordKeys.ROLE_SUBSCRIPTION_LISTING_ID,
+  DiscordKeys.TIER_NAME,
+  DiscordKeys.TOTAL_MONTHS_SUBSCRIBED,
+]);
+
+/**
+ * Channel Message Role Subscription Data Structure
+ * @category Structure
+ */
+export class MessageRoleSubscriptionData extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageRoleSubscriptionData;
+  readonly message: Message;
+
+  isRenewal: boolean = false;
+  roleSubscriptionListingId: string = '';
+  tierName: string = '';
+  totalMonthsSubscribed: number = 0;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.message = message;
+    this.merge(data);
+    Object.defineProperty(this, 'message', {enumerable: false});
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.IS_RENEWAL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IS_RENEWAL]] = data[DiscordKeys.IS_RENEWAL];
+    }
+    if (DiscordKeys.ROLE_SUBSCRIPTION_LISTING_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ROLE_SUBSCRIPTION_LISTING_ID]] = data[DiscordKeys.ROLE_SUBSCRIPTION_LISTING_ID];
+    }
+    if (DiscordKeys.TIER_NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TIER_NAME]] = data[DiscordKeys.TIER_NAME];
+    }
+    if (DiscordKeys.TOTAL_MONTHS_SUBSCRIBED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOTAL_MONTHS_SUBSCRIBED]] = data[DiscordKeys.TOTAL_MONTHS_SUBSCRIBED];
     }
   }
 }

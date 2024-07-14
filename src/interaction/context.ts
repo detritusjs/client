@@ -202,6 +202,14 @@ export class InteractionContextBase {
     return this.interaction.inDm;
   }
 
+  get inDmWithBot() {
+    return this.interaction.inDmWithBot;
+  }
+
+  get inDmWithUsers() {
+    return this.interaction.inDmWithUsers;
+  }
+
   get interactionId() {
     return this.interaction.id;
   }

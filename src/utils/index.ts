@@ -355,6 +355,9 @@ export const KeyGenerator = Object.freeze({
       JSON.stringify(command.nameLocalizations),
       command.defaultMemberPermissions,
       (command.dmPermission === undefined) ? true : !command.dmPermission,
+      command.contexts || null,
+      (command.integrationTypes) ? command.integrationTypes.sort() : null,
+      Boolean(command.nsfw),
     ].join('-');
   },
   ApplicationCommandOption: (option: ApplicationCommandOption | InteractionCommandOption): string => {

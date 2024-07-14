@@ -17,10 +17,12 @@ import { User } from './user';
 
 const keysEntitlement = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
+  DiscordKeys.CONSUMED,
   DiscordKeys.DELETED,
   DiscordKeys.ENDS_AT,
   DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
+  DiscordKeys.SKU_ID,
   DiscordKeys.STARTS_AT,
   DiscordKeys.TYPE,
   DiscordKeys.USER_ID,
@@ -34,10 +36,12 @@ export class Entitlement extends BaseStructure {
   readonly _keys = keysEntitlement;
 
   applicationId: string = '';
+  consumed?: boolean;
   deleted: boolean = false;
   endsAtUnix: number = 0;
   guildId?: string;
   id: string = '';
+  skuId: string = '';
   startsAtUnix: number = 0;
   type: number = EntitlementTypes.APPLICATION_SUBSCRIPTION;
   userId?: string;
@@ -69,11 +73,11 @@ export class Entitlement extends BaseStructure {
     return false;;
   }
 
-  get endsAt(): Date | null {
+  get endsAt(): Date | undefined {
     if (this.endsAtUnix) {
       return new Date(this.endsAtUnix);
     }
-    return null;
+    return undefined;
   }
 
   get guild(): Guild | null {
@@ -90,11 +94,11 @@ export class Entitlement extends BaseStructure {
     return true;
   }
 
-  get startsAt(): Date | null {
+  get startsAt(): Date | undefined {
     if (this.startsAtUnix) {
       return new Date(this.startsAtUnix);
     }
-    return null;
+    return undefined;
   }
 
   get user(): User | null {
@@ -104,6 +108,14 @@ export class Entitlement extends BaseStructure {
     return null;
   }
 
+  async consume() {
+    return this.client.rest.consumeApplicationEntitlement(this.applicationId, this.id);
+  }
+
+  async delete() {
+    return this.client.rest.deleteApplicationEntitlement(this.applicationId, this.id);
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
@@ -111,6 +123,10 @@ export class Entitlement extends BaseStructure {
 
     if (DiscordKeys.APPLICATION_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+
+    if (DiscordKeys.CONSUMED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONSUMED]] = !!data[DiscordKeys.CONSUMED];
     }
 
     (this as any)[DetritusKeys[DiscordKeys.DELETED]] = !!data[DiscordKeys.DELETED];
@@ -124,6 +140,10 @@ export class Entitlement extends BaseStructure {
 
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+
+    if (DiscordKeys.SKU_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SKU_ID]] = data[DiscordKeys.SKU_ID];
     }
 
     if (DiscordKeys.STARTS_AT in data) {
