@@ -42,12 +42,14 @@ const DEFERRED_TYPES = Object.freeze([
 const keysInteraction = new BaseSet<string>([
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS,
+  DiscordKeys.CHANNEL,
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.CONTEXT,
   DiscordKeys.DATA,
   DiscordKeys.ENTITLEMENTS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.GUILD_LOCALE,
+  DiscordKeys.GUILD_PARTIAL,
   DiscordKeys.ID,
   DiscordKeys.LOCALE,
   DiscordKeys.MEMBER,
@@ -65,6 +67,7 @@ const keysInteraction = new BaseSet<string>([
 export class Interaction extends BaseStructure {
   readonly _keys = keysInteraction;
   readonly _deleted: boolean = false;
+  _channel?: Channel;
   _entitlements?: BaseCollection<string, Entitlement>;
   _responding: Promise<boolean> | null = null;
 
@@ -75,6 +78,7 @@ export class Interaction extends BaseStructure {
   data?: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
   guildId?: string;
   guildLocale?: string;
+  guildPartial?: {features: Array<string>, id: string, locale: string};
   id: string = '';
   locale?: string;
   member?: Member;
@@ -101,7 +105,9 @@ export class Interaction extends BaseStructure {
   }
 
   get channel(): Channel | null {
-    if (this.channelId) {
+    if (this._channel) {
+      return this._channel;
+    } else if (this.channelId) {
       return this.client.channels.get(this.channelId) || null;
     }
     return null;
@@ -138,6 +144,21 @@ export class Interaction extends BaseStructure {
       return this.client.guilds.get(this.guildId) || null;
     }
     return null;
+  }
+
+  get hasServerPermissions(): boolean {
+    switch (this.context) {
+      case InteractionContextTypes.GUILD: {
+        return ApplicationIntegrationTypes.GUILD_INSTALL in this.authorizingIntegrationOwners;
+      };
+      case InteractionContextTypes.BOT_DM: {
+        return true;
+      };
+      case InteractionContextTypes.PRIVATE_CHANNEL: {
+        return false;
+      };
+    }
+    return false;
   }
 
   get inDm(): boolean {
@@ -286,7 +307,21 @@ export class Interaction extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
     }
     if (DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS in data) {
-      (this as any)[DetritusKeys[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS]] = data[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS];
+      const value = data[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS];
+      (this as any)[DetritusKeys[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS]] = value;
+    }
+    if (DiscordKeys.CHANNEL in data) {
+      const value = data[DiscordKeys.CHANNEL];
+      if (value) {
+        if (this.client.channels.has(value.id)) {
+          this._channel = this.client.channels.get(value.id)!;
+          this._channel.merge(value);
+        } else {
+          this._channel = createChannelFromData(this.client, value);
+        }
+      } else {
+        this._channel = undefined;
+      }
     }
     if (DiscordKeys.CHANNEL_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
@@ -310,6 +345,9 @@ export class Interaction extends BaseStructure {
           this._entitlements = undefined;
         }
       }
+    }
+    if (DiscordKeys.GUILD in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_PARTIAL]] = data[DiscordKeys.GUILD];
     }
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];

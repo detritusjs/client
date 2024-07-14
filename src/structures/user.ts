@@ -33,8 +33,11 @@ import { Presence } from './presence';
 
 const keysUser = new BaseSet<string>([
   DiscordKeys.AVATAR,
+  DiscordKeys.AVATAR_DECORATION_DATA,
   DiscordKeys.BOT,
+  DiscordKeys.CLAN,
   DiscordKeys.DISCRIMINATOR,
+  DiscordKeys.GLOBAL_NAME,
   DiscordKeys.ID,
   DiscordKeys.PUBLIC_FLAGS,
   DiscordKeys.SYSTEM,
@@ -49,8 +52,11 @@ export class User extends BaseStructure {
   readonly _keys = keysUser;
 
   avatar: null | string = null;
+  avatarDecorationData: null | UserAvatarDecorationData = null;
   bot: boolean = false;
+  clan: null | string = null;
   discriminator: string = '0000';
+  globalName: null | string = null;
   id: string = '';
   publicFlags: number = 0;
   system?: boolean;
@@ -295,11 +301,21 @@ export class User extends BaseStructure {
     if (DiscordKeys.AVATAR in data) {
       (this as any)[DetritusKeys[DiscordKeys.AVATAR]] = data[DiscordKeys.AVATAR];
     }
+    if (DiscordKeys.AVATAR_DECORATION_DATA in data) {
+      const value = new UserAvatarDecorationData(this.client, data[DiscordKeys.AVATAR_DECORATION_DATA], this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.AVATAR_DECORATION_DATA]] = value;
+    }
     if (DiscordKeys.BOT in data) {
       (this as any)[DetritusKeys[DiscordKeys.BOT]] = data[DiscordKeys.BOT];
     }
+    if (DiscordKeys.CLAN in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CLAN]] = data[DiscordKeys.CLAN];
+    }
     if (DiscordKeys.DISCRIMINATOR in data) {
       (this as any)[DetritusKeys[DiscordKeys.DISCRIMINATOR]] = data[DiscordKeys.DISCRIMINATOR];
+    }
+    if (DiscordKeys.GLOBAL_NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GLOBAL_NAME]] = data[DiscordKeys.GLOBAL_NAME];
     }
     if (DiscordKeys.ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
@@ -602,8 +618,16 @@ export class UserMixin extends BaseStructure {
     return this.avatarUrlFormat();
   }
 
+  get avatarDecorationData(): null | UserAvatarDecorationData {
+    return this.user.avatarDecorationData;
+  }
+
   get bot(): boolean {
     return this.user.bot;
+  }
+
+  get clan(): null | string {
+    return this.user.clan;
   }
 
   get createdAt(): Date {
@@ -624,6 +648,10 @@ export class UserMixin extends BaseStructure {
 
   get dm(): Channel | null {
     return this.user.dm;
+  }
+
+  get globalName(): null | string {
+    return this.user.globalName;
   }
 
   get guilds(): BaseCollection<string, Guild> {
@@ -812,5 +840,46 @@ export class UserMixin extends BaseStructure {
 
   toString(): string {
     return this.user.toString();
+  }
+}
+
+
+
+const keysUserAvatarDecorationData = new BaseSet<string>([
+  DiscordKeys.ASSET,
+  DiscordKeys.SKU_ID,
+]);
+
+/**
+ * User Avatar Decoration Data Structure
+ * @category Structure
+ */
+ export class UserAvatarDecorationData extends BaseStructure {
+  readonly _keys = keysUserAvatarDecorationData;
+
+  asset: string = '';
+  skuId: string = '';
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ASSET in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ASSET]] = data[DiscordKeys.ASSET];
+    }
+    if (DiscordKeys.SKU_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SKU_ID]] = data[DiscordKeys.SKU_ID];
+    }
   }
 }

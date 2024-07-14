@@ -671,6 +671,8 @@ export class ShardClient extends EventSpewer {
   on(event: 'gatewayResumed', listener: (payload: GatewayClientEvents.GatewayResumed) => any): this;
   on(event: ClientEvents.GIFT_CODE_UPDATE, listener: (payload: GatewayClientEvents.GiftCodeUpdate) => any): this;
   on(event: 'giftCodeUpdate', listener: (payload: GatewayClientEvents.GiftCodeUpdate) => any): this;
+  on(event: ClientEvents.GUILD_AUDIT_LOG_ENTRY_CREATE, listener: (payload: GatewayClientEvents.GuildAuditLogEntryCreate) => any): this;
+  on(event: 'guildAuditLogEntryCreate', listener: (payload: GatewayClientEvents.GuildAuditLogEntryCreate) => any): this;
   on(event: ClientEvents.GUILD_BAN_ADD, listener: (payload: GatewayClientEvents.GuildBanAdd) => any): this;
   on(event: 'guildBanAdd', listener: (payload: GatewayClientEvents.GuildBanAdd) => any): this;
   on(event: ClientEvents.GUILD_BAN_REMOVE, listener: (payload: GatewayClientEvents.GuildBanRemove) => any): this;
@@ -701,6 +703,10 @@ export class ShardClient extends EventSpewer {
   on(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.GuildRoleDelete) => any): this;
   on(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
   on(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
+  on(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_ADD, listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): this;
+  on(event: 'guildScheduledEventUserAdd', listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): this;
+  on(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE, listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): this;
+  on(event: 'guildScheduledEventUserRemove', listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): this;
   on(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   on(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   on(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
@@ -883,6 +889,8 @@ export class ShardClient extends EventSpewer {
   once(event: 'gatewayResumed', listener: (payload: GatewayClientEvents.GatewayResumed) => any): this;
   once(event: ClientEvents.GIFT_CODE_UPDATE, listener: (payload: GatewayClientEvents.GiftCodeUpdate) => any): this;
   once(event: 'giftCodeUpdate', listener: (payload: GatewayClientEvents.GiftCodeUpdate) => any): this;
+  once(event: ClientEvents.GUILD_AUDIT_LOG_ENTRY_CREATE, listener: (payload: GatewayClientEvents.GuildAuditLogEntryCreate) => any): this;
+  once(event: 'guildAuditLogEntryCreate', listener: (payload: GatewayClientEvents.GuildAuditLogEntryCreate) => any): this;
   once(event: ClientEvents.GUILD_BAN_ADD, listener: (payload: GatewayClientEvents.GuildBanAdd) => any): this;
   once(event: 'guildBanAdd', listener: (payload: GatewayClientEvents.GuildBanAdd) => any): this;
   once(event: ClientEvents.GUILD_BAN_REMOVE, listener: (payload: GatewayClientEvents.GuildBanRemove) => any): this;
@@ -913,6 +921,10 @@ export class ShardClient extends EventSpewer {
   once(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.GuildRoleDelete) => any): this;
   once(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
   once(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): this;
+  once(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_ADD, listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): this;
+  once(event: 'guildScheduledEventUserAdd', listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): this;
+  once(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE, listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): this;
+  once(event: 'guildScheduledEventUserRemove', listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): this;
   once(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   once(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   once(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
@@ -1093,6 +1105,8 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'gatewayResumed', listener: (payload: GatewayClientEvents.GatewayResumed) => any): EventSubscription;
   subscribe(event: ClientEvents.GIFT_CODE_UPDATE, listener: (payload: GatewayClientEvents.GiftCodeUpdate) => any): EventSubscription;
   subscribe(event: 'giftCodeUpdate', listener: (payload: GatewayClientEvents.GiftCodeUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_AUDIT_LOG_ENTRY_CREATE, listener: (payload: GatewayClientEvents.GuildAuditLogEntryCreate) => any): EventSubscription;
+  subscribe(event: 'guildAuditLogEntryCreate', listener: (payload: GatewayClientEvents.GuildAuditLogEntryCreate) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_BAN_ADD, listener: (payload: GatewayClientEvents.GuildBanAdd) => any): EventSubscription;
   subscribe(event: 'guildBanAdd', listener: (payload: GatewayClientEvents.GuildBanAdd) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_BAN_REMOVE, listener: (payload: GatewayClientEvents.GuildBanRemove) => any): EventSubscription;
@@ -1123,6 +1137,10 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'guildRoleDelete', listener: (payload: GatewayClientEvents.GuildRoleDelete) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_ROLE_UPDATE, listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): EventSubscription;
   subscribe(event: 'guildRoleUpdate', listener: (payload: GatewayClientEvents.GuildRoleUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_ADD, listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): EventSubscription;
+  subscribe(event: 'guildScheduledEventUserAdd', listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE, listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): EventSubscription;
+  subscribe(event: 'guildScheduledEventUserRemove', listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
   subscribe(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): EventSubscription;

@@ -194,6 +194,14 @@ export class InteractionContextBase {
     return this.interaction.guildLocale;
   }
 
+  get guildPartial() {
+    return this.interaction.guildPartial;
+  }
+
+  get hasServerPermissions() {
+    return this.interaction.hasServerPermissions;
+  }
+
   get id() {
     return this.interaction.id;
   }

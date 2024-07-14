@@ -231,6 +231,10 @@ export class Context {
     return this.message.guildId;
   }
 
+  get hasServerPermissions() {
+    return true;
+  }
+
   get inDm() {
     return this.message.inDm;
   }
