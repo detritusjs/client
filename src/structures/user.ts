@@ -302,8 +302,10 @@ export class User extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.AVATAR]] = data[DiscordKeys.AVATAR];
     }
     if (DiscordKeys.AVATAR_DECORATION_DATA in data) {
-      const value = new UserAvatarDecorationData(this.client, data[DiscordKeys.AVATAR_DECORATION_DATA], this.isClone);
-      (this as any)[DetritusKeys[DiscordKeys.AVATAR_DECORATION_DATA]] = value;
+      const value = data[DiscordKeys.AVATAR_DECORATION_DATA];
+
+      const avatarDecorationData = (value) ? new UserAvatarDecorationData(this.client, value, this.isClone) : null;
+      (this as any)[DetritusKeys[DiscordKeys.AVATAR_DECORATION_DATA]] = avatarDecorationData;
     }
     if (DiscordKeys.BOT in data) {
       (this as any)[DetritusKeys[DiscordKeys.BOT]] = data[DiscordKeys.BOT];

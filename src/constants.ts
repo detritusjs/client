@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.26',
+  VERSION: '0.17.0-beta.27',
 });
 
 export type Snowflake = number | string;
@@ -1001,6 +1001,13 @@ export enum MessageComponentTypes {
 }
 
 
+export enum MessageComponentDefaultValueTypes {
+  CHANNEL = 'channel',
+  ROLE = 'role',
+  USER = 'user',
+}
+
+
 export enum MessageEmbedTypes {
   APPLICATION_NEWS = 'application_news',
   ARTICLE = 'article',
@@ -1703,6 +1710,7 @@ export const DiscordKeys = Object.freeze({
   DEFAULT_PERMISSION: 'default_permission',
   DEFAULT_REACTION_EMOJI: 'default_reaction_emoji',
   DEFAULT_SORT_ORDER: 'default_sort_order',
+  DEFAULT_VALUES: 'default_values',
   DELETE_MEMBER_DAYS: 'delete_member_days',
   DELETED: 'deleted',
   DENY: 'deny',
@@ -2173,6 +2181,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DEFAULT_PERMISSION]: 'defaultPermission',
   [DiscordKeys.DEFAULT_REACTION_EMOJI]: 'defaultReactionEmoji',
   [DiscordKeys.DEFAULT_SORT_ORDER]: 'defaultSortOrder',
+  [DiscordKeys.DEFAULT_VALUES]: 'defaultValues',
   [DiscordKeys.DELETE_MEMBER_DAYS]: 'deleteMemberDays',
   [DiscordKeys.DELETED]: 'deleted',
   [DiscordKeys.DENY]: 'deny',

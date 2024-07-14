@@ -5,13 +5,20 @@ import {
   DetritusKeys,
   DiscordKeys,
   DiscordRegexNames,
+  ChannelTypes,
+  MessageComponentDefaultValueTypes,
   MessageComponentTypes,
 } from '../../constants';
 import { Structure } from '../../structures/basestructure';
 import { Emoji } from '../../structures/emoji';
 import { regex as discordRegex } from '../../utils';
 
-import { ComponentActionBase, ComponentActionData, ComponentEmojiData } from './actionbase';
+import {
+  ComponentActionBase,
+  ComponentActionData,
+  ComponentEmojiData,
+  ComponentSelectMenuDefaultValueData,
+} from './actionbase';
 
 
 export interface ComponentSelectMenuOptionData {
@@ -23,7 +30,10 @@ export interface ComponentSelectMenuOptionData {
 }
 
 const keysComponentSelectMenu = new BaseSet<string>([
+  DiscordKeys.CHANNEL_TYPES,
   DiscordKeys.CUSTOM_ID,
+  DiscordKeys.DEFAULT_VALUES,
+  DiscordKeys.DISABLED,
   DiscordKeys.MAX_VALUES,
   DiscordKeys.MIN_VALUES,
   DiscordKeys.OPTIONS,
@@ -38,7 +48,10 @@ const keysComponentSelectMenu = new BaseSet<string>([
  export class ComponentSelectMenu extends ComponentActionBase {
   readonly _keys = keysComponentSelectMenu;
 
+  channelTypes?: null | Array<ChannelTypes>;
   customId: string = '';
+  defaultValues?: Array<ComponentSelectMenuDefaultValue> = [];
+  disabled?: boolean;
   maxValues?: null | number;
   minValues?: null | number;
   options: Array<ComponentSelectMenuOption> = [];
@@ -48,7 +61,15 @@ const keysComponentSelectMenu = new BaseSet<string>([
   constructor(data: ComponentActionData = {}) {
     super(data);
     Object.assign(data, {
+      [DiscordKeys.CHANNEL_TYPES]: (
+        (data as any)[DetritusKeys[DiscordKeys.CHANNEL_TYPES]] ||
+        (data as any)[DiscordKeys.CHANNEL_TYPES]
+      ),
       [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
+      [DiscordKeys.DEFAULT_VALUES]: (
+        (data as any)[DetritusKeys[DiscordKeys.DEFAULT_VALUES]] ||
+        (data as any)[DiscordKeys.DEFAULT_VALUES]
+      ),
       [DiscordKeys.MAX_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MAX_VALUES]] || (data as any)[DiscordKeys.MAX_VALUES],
       [DiscordKeys.MIN_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MIN_VALUES]] || (data as any)[DiscordKeys.MIN_VALUES],
     });
@@ -56,15 +77,44 @@ const keysComponentSelectMenu = new BaseSet<string>([
     this.type = MessageComponentTypes.SELECT_MENU;
   }
 
+  addChannelType(channelType: ChannelTypes): this {
+    if (this.channelTypes) {
+      this.channelTypes.push(channelType);
+    } else {
+      this.channelTypes = [channelType];
+    }
+    return this;
+  }
+
+  addDefaultValue(defaultValue: ComponentSelectMenuDefaultValue): this {
+    if (this.defaultValues) {
+      this.defaultValues.push(defaultValue);
+    } else {
+      this.defaultValues = [defaultValue];
+    }
+    return this;
+  }
+
   addOption(option: ComponentSelectMenuOption): this {
     this.options.push(option);
     return this;
+  }
+
+  createDefaultValue(data: ComponentSelectMenuDefaultValueData): ComponentSelectMenuDefaultValue {
+    const defaultValue = new ComponentSelectMenuDefaultValue(data);
+    this.addDefaultValue(defaultValue);
+    return defaultValue;
   }
 
   createOption(data: ComponentSelectMenuOptionData = {}): ComponentSelectMenuOption {
     const option = new ComponentSelectMenuOption(data);
     this.addOption(option);
     return option;
+  }
+
+  setChannelTypes(channelTypes: Array<ChannelTypes> = []): this {
+    this.merge({channel_types: channelTypes});
+    return this;
   }
 
   setCustomId(customId: string): this {
@@ -89,6 +139,16 @@ const keysComponentSelectMenu = new BaseSet<string>([
 
   mergeValue(key: string, value: any): void {
     switch (key) {
+      case DiscordKeys.DEFAULT_VALUES: {
+        if (!this.defaultValues) {
+          this.defaultValues = [];
+        }
+        this.defaultValues.length = 0;
+        for (let raw of value) {
+          const defaultValue = new ComponentSelectMenuDefaultValue(raw);
+          this.defaultValues.push(defaultValue);
+        }
+      }; return;
       case DiscordKeys.OPTIONS: {
         this.options.length = 0;
         for (let raw of value) {
@@ -98,6 +158,38 @@ const keysComponentSelectMenu = new BaseSet<string>([
       }; return;
     }
     return super.mergeValue(key, value);
+  }
+}
+
+
+const keysComponentSelectMenuDefaultValue = new BaseSet<string>([
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
+]);
+
+/**
+ * Utils Component Select Menu Option Structure
+ * @category Utils
+ */
+ export class ComponentSelectMenuDefaultValue extends Structure {
+  readonly _keys = keysComponentSelectMenuDefaultValue;
+
+  id: string = '';
+  type!: MessageComponentDefaultValueTypes;
+
+  constructor(data: ComponentSelectMenuDefaultValueData) {
+    super();
+    this.merge(data);
+  }
+
+  setId(id: string): this {
+    this.merge({id});
+    return this;
+  }
+
+  setType(type: MessageComponentDefaultValueTypes): this {
+    this.merge({type});
+    return this;
   }
 }
 

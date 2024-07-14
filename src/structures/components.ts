@@ -10,7 +10,9 @@ import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  ChannelTypes,
   MessageComponentButtonStyles,
+  MessageComponentDefaultValueTypes,
   MessageComponentTypes,
 } from '../constants';
 
@@ -159,7 +161,10 @@ export class ComponentButton extends BaseStructure {
 
 
 const keysMessageComponentSelectMenu = new BaseSet<string>([
+  DiscordKeys.CHANNEL_TYPES,
   DiscordKeys.CUSTOM_ID,
+  DiscordKeys.DEFAULT_VALUES,
+  DiscordKeys.DISABLED,
   DiscordKeys.MAX_VALUES,
   DiscordKeys.MIN_VALUES,
   DiscordKeys.OPTIONS,
@@ -176,7 +181,10 @@ export class ComponentSelectMenu extends BaseStructure {
   readonly _keys = keysMessageComponentSelectMenu;
   readonly actionRow: ComponentActionRow;
 
+  channelTypes?: Array<ChannelTypes>;
   customId: string = '';
+  defaultValues?: BaseCollection<string, ComponentSelectMenuDefaultValue>;
+  disabled?: boolean;
   maxValues: number = 1;
   minValues: number = 1;
   options = new BaseCollection<string, ComponentSelectMenuOption>();
@@ -197,6 +205,23 @@ export class ComponentSelectMenu extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case DiscordKeys.DEFAULT_VALUES: {
+          if (value) {
+            if (!this.defaultValues) {
+              this.defaultValues = new BaseCollection<string, ComponentSelectMenuDefaultValue>();
+            }
+            this.defaultValues.clear();
+            for (let raw of value) {
+              const defaultValue = new ComponentSelectMenuDefaultValue(this, raw);
+              this.defaultValues.set(defaultValue.key, defaultValue);
+            }
+          } else {
+            if (this.defaultValues) {
+              this.defaultValues.clear();
+              this.defaultValues = undefined;
+            }
+          }
+        }; return;
         case DiscordKeys.OPTIONS: {
           this.options.clear();
           for (let raw of value) {
@@ -207,6 +232,36 @@ export class ComponentSelectMenu extends BaseStructure {
       }
       return super.mergeValue(key, value);
     }
+  }
+}
+
+
+const keysComponentSelectMenuDefaultValue = new BaseSet<string>([
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
+]);
+
+/**
+ * Component Select Menu Default Value Structure
+ * @category Structure
+ */
+export class ComponentSelectMenuDefaultValue extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysComponentSelectMenuDefaultValue;
+  readonly selectMenu: ComponentSelectMenu;
+
+  id: string = '';
+  type!: MessageComponentDefaultValueTypes;
+
+  get key(): string {
+    return `${this.id}-${this.type}`;
+  }
+
+  constructor(selectMenu: ComponentSelectMenu, data: BaseStructureData) {
+    super(selectMenu.client, undefined, selectMenu._clone);
+    this.selectMenu = selectMenu;
+    this.merge(data);
+    Object.defineProperty(this, 'selectMenu', {enumerable: false});
   }
 }
 

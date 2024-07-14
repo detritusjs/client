@@ -2,7 +2,13 @@ import { RequestTypes } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
 
 import { BaseSet } from '../../collections/baseset';
-import { DetritusKeys, DiscordKeys, MessageComponentTypes } from '../../constants';
+import {
+  ChannelTypes,
+  DetritusKeys,
+  DiscordKeys,
+  MessageComponentDefaultValueTypes,
+  MessageComponentTypes,
+} from '../../constants';
 import { Structure } from '../../structures/basestructure';
 import { Emoji } from '../../structures/emoji';
 
@@ -13,9 +19,18 @@ import { ComponentSelectMenuOptionData } from './selectmenu';
 
 export type ComponentEmojiData = {animated?: boolean, id?: null | string, name: string} | string | Emoji;
 
+export interface ComponentSelectMenuDefaultValueData {
+  id: string,
+  type: MessageComponentDefaultValueTypes,
+}
+
 export interface ComponentActionData {
+  channel_types?: Array<ChannelTypes>,
+  channelTypes?: Array<ChannelTypes>,
   custom_id?: string,
   customId?: string,
+  default_values?: Array<ComponentSelectMenuDefaultValueData>,
+  defaultValues?: Array<ComponentSelectMenuDefaultValueData>,
   disabled?: boolean,
   emoji?: ComponentEmojiData,
   label?: string,
