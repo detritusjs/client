@@ -871,6 +871,15 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
     this.merge(data);
   }
 
+  get url(): string {
+    return this.urlFormat();
+  }
+
+  urlFormat(query?: number | UrlQuery): string {
+    query = getQueryForImage(query);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DECORATION(this.asset), query);
+  }
+
   merge(data?: BaseStructureData): void {
     super.merge(data);
     if (!data) {

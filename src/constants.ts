@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.27',
+  VERSION: '0.17.0-beta.29',
 });
 
 export type Snowflake = number | string;
@@ -1771,7 +1771,7 @@ export const DiscordKeys = Object.freeze({
   GAME: 'game',
   GAME_ID: 'game_id',
   GENRES: 'genres',
-  GLOBAL_NAME: 'globalName',
+  GLOBAL_NAME: 'global_name',
   GUILD: 'guild',
   GUILD_ID: 'guild_id',
   GUILD_IDS: 'guild_ids',

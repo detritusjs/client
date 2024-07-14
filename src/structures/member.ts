@@ -30,6 +30,7 @@ export type MemberOrUser = Member | User;
 
 const keysMember = new BaseSet<string>([
   DiscordKeys.AVATAR,
+  DiscordKeys.BANNER,
   DiscordKeys.COMMUNICATION_DISABLED_UNTIL,
   DiscordKeys.DEAF,
   DiscordKeys.FLAGS,
@@ -59,6 +60,7 @@ export class Member extends UserMixin {
   readonly _keys = keysMember;
   readonly _keysSkipDifference = keysSkipDifferenceMember;
   _avatar: null | string = null;
+  _banner: null | string = null;
   _roles?: Array<string>;
   _permissions?: bigint = 0n;
 
@@ -89,6 +91,10 @@ export class Member extends UserMixin {
 
   get avatar(): null | string {
     return this._avatar;
+  }
+
+  get banner(): null | string {
+    return this._banner;
   }
 
   get canAdministrator(): boolean {
@@ -324,6 +330,7 @@ export class Member extends UserMixin {
     if (!this.avatar) {
       return this.user.avatarUrlFormat(format, query);
     }
+
     const hash = this.avatar;
     if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
       query = format;
@@ -332,6 +339,21 @@ export class Member extends UserMixin {
     query = getQueryForImage(query);
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_USER_AVATAR(this.guildId, this.id, hash, format), query);
+  }
+
+  bannerUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
+    if (!this.banner) {
+      return null;
+    }
+
+    const hash = this.banner;
+    if ((format && typeof(format) === 'object') || typeof(format) === 'number') {
+      query = format;
+      format = null;
+    }
+    query = getQueryForImage(query);
+    format = getFormatFromHash(hash, format, this.client.imageFormat);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_USER_BANNER(this.guildId, this.id, hash, format), query);
   }
 
   can(
@@ -521,6 +543,9 @@ export class Member extends UserMixin {
 
     if (DiscordKeys.AVATAR in data) {
       this._avatar = data[DiscordKeys.AVATAR];
+    }
+    if (DiscordKeys.BANNER in data) {
+      this._banner = data[DiscordKeys.BANNER];
     }
     if (DiscordKeys.COMMUNICATION_DISABLED_UNTIL in data) {
       const value = data[DiscordKeys.COMMUNICATION_DISABLED_UNTIL];
