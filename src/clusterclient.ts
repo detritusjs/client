@@ -194,7 +194,7 @@ export class ClusterClient extends EventSpewer {
       let data: {items: Array<any>};
       if (this.manager && this.manager.hasMultipleClusters) {
         data = await this.manager.sendRestRequest('fetchApplicationEmojis', [applicationId]);
-        this.manager.sendIPC(ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS, {data});
+        this.manager.sendIPC(ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS, {data});
       } else {
         data = await this.rest.fetchApplicationEmojis(applicationId);
       }

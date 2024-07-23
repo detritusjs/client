@@ -102,6 +102,10 @@ export class Context {
   }
 
   /* Client Collections */
+  get applicationEmojis() {
+    return this.client.applicationEmojis;
+  }
+
   get applications() {
     return this.client.applications;
   }

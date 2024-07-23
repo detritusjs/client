@@ -279,20 +279,20 @@ export class GatewayDispatchHandler {
         const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch OAuth2 Application Information', error)};
         this.client.emit(ClientEvents.WARN, payload);
       }
+
+      try {
+        if (this.client.cluster) {
+          await this.client.cluster.fillApplicationEmojis();
+        } else {
+          await this.client.applicationEmojis.fill();
+        }
+      } catch(error: any) {
+        const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Application Emojis', error)};
+        this.client.emit(ClientEvents.WARN, payload);
+      }
     } else {
       this.client.owners.set(me.id, me);
       this.client.requiredAction = data['required_action'];
-    }
-
-    try {
-      if (this.client.cluster) {
-        await this.client.cluster.fillApplicationEmojis();
-      } else {
-        await this.client.applicationEmojis.fill();
-      }
-    } catch(error: any) {
-      const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Application Emojis', error)};
-      this.client.emit(ClientEvents.WARN, payload);
     }
 
     try {

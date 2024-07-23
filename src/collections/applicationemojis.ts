@@ -47,7 +47,7 @@ export class ApplicationEmojis extends BaseClientCollection<string, Emoji> {
             'fetchApplicationEmojis',
             [applicationId],
           ) as {items: Array<any>};
-          this.client.cluster.manager.sendIPC(ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS, {data});
+          this.client.cluster.manager.sendIPC(ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS, {data});
         } else {
           data = await this.client.rest.raw.fetchApplicationEmojis(applicationId) as {items: Array<any>};
           if (this.client.cluster) {
