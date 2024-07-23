@@ -146,18 +146,30 @@ export class Emoji extends BaseStructure {
     );
   }
 
-  async edit(options: RequestTypes.EditGuildEmoji) {
-    if (!this.id || !this.guildId) {
+  async edit(options: RequestTypes.EditApplicationEmoji | RequestTypes.EditGuildEmoji = {}) {
+    if (!this.id) {
       throw new Error('Cannot edit a standard Emoji.');
     }
-    return this.client.rest.editGuildEmoji(this.guildId, this.id, options);
+    if (this.guildId) {
+      return this.client.rest.editGuildEmoji(this.guildId, this.id, options);
+    } else if (this.client.isBot) {
+      return this.client.rest.editApplicationEmoji(this.client.applicationId, this.id, options);
+    } else {
+      throw new Error('Unknown Origins of Emoji');
+    }
   }
 
   async delete(options: RequestTypes.DeleteGuildEmoji = {}) {
-    if (!this.id || !this.guildId) {
+    if (!this.id) {
       throw new Error('Cannot delete a standard Emoji.');
     }
-    return this.client.rest.deleteGuildEmoji(this.guildId, this.id, options);
+    if (this.guildId) {
+      return this.client.rest.deleteGuildEmoji(this.guildId, this.id, options);
+    }
+    if (this.client.isBot) {
+      return this.client.rest.deleteApplicationEmoji(this.client.applicationId, this.id);
+    }
+    throw new Error('Unknown Origins of Emoji');
   }
 
   async fetchData(

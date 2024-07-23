@@ -316,8 +316,24 @@ export class Application extends BaseStructure {
     return this.client.rest.createApplicationEntitlement(this.id, options);
   }
 
+  async deleteEmoji(emojiId: string) {
+    return this.client.rest.deleteApplicationEmoji(this.id, emojiId);
+  }
+
   async deleteEntitlement(entitlementId: string) {
     return this.client.rest.deleteApplicationEntitlement(this.id, entitlementId);
+  }
+
+  async editEmoji(emojiId: string, options: RequestTypes.EditApplicationEmoji = {}) {
+    return this.client.rest.editApplicationEmoji(this.id, emojiId, options);
+  }
+
+  async fetchEmojis() {
+    return this.client.rest.fetchApplicationEmojis(this.id);
+  }
+
+  async fetchEmoji(emojiId: string) {
+    return this.client.rest.fetchApplicationEmoji(this.id, emojiId);
   }
 
   async fetchEntitlements(options: RequestTypes.FetchApplicationEntitlements = {}) {

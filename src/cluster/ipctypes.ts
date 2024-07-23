@@ -32,6 +32,10 @@ export namespace ClusterIPCTypes {
     results?: Array<[any, boolean]>,
   }
 
+  export interface FillApplicationEmojis {
+    data: {items: Array<any>},
+  }
+
   export interface FillInteractionCommands {
     data: Array<any>,
   }

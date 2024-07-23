@@ -286,6 +286,17 @@ export class GatewayDispatchHandler {
 
     try {
       if (this.client.cluster) {
+        await this.client.cluster.fillApplicationEmojis();
+      } else {
+        await this.client.applicationEmojis.fill();
+      }
+    } catch(error: any) {
+      const payload: GatewayClientEvents.Warn = {error: new GatewayHTTPError('Failed to fetch Application Emojis', error)};
+      this.client.emit(ClientEvents.WARN, payload);
+    }
+
+    try {
+      if (this.client.cluster) {
         await this.client.cluster.fillApplications();
       } else {
         await this.client.applications.fill();

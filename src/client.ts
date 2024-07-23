@@ -22,6 +22,8 @@ import { GatewayClientEvents } from './gateway/clientevents';
 import { BaseCollection } from './collections/basecollection';
 import { BaseSet } from './collections/baseset';
 import {
+  ApplicationEmojis,
+  ApplicationEmojisOptions,
   Applications,
   ApplicationsOptions,
   Channels,
@@ -90,6 +92,7 @@ interface GatewayOptions extends Gateway.SocketOptions, GatewayHandlerOptions {
 }
 
 export interface ShardClientCacheOptions {
+  applicationEmojis?: ApplicationEmojisOptions | boolean,
   applications?: ApplicationsOptions | boolean,
   channels?: ChannelsOptions | boolean,
   connectedAccounts?: ConnectedAccountsOptions | boolean,
@@ -116,6 +119,7 @@ export interface ShardClientPassOptions {
   cluster?: ClusterClient,
   commandClient?: CommandClient,
   interactionCommandClient?: InteractionCommandClient,
+  applicationEmojis?: ApplicationEmojis,
   applications?: Applications,
   channels?: Channels,
   connectedAccounts?: ConnectedAccounts,
@@ -212,6 +216,7 @@ export class ShardClient extends EventSpewer {
   /** Us, only fills once we received the Ready payload from the gateway */
   user: null | UserMe = null;
 
+  readonly applicationEmojis: ApplicationEmojis;
   readonly applications: Applications;
   readonly channels: Channels;
   readonly connectedAccounts: ConnectedAccounts;
@@ -286,6 +291,7 @@ export class ShardClient extends EventSpewer {
     if (typeof(options.cache) === 'boolean') {
       const enabled = options.cache;
       options.cache = {
+        applicationEmojis: {enabled},
         applications: {enabled},
         channels: {enabled},
         connectedAccounts: {enabled},
@@ -309,6 +315,7 @@ export class ShardClient extends EventSpewer {
       };
     }
 
+    this.applicationEmojis = options.pass.applicationEmojis || new ApplicationEmojis(this, options.cache.applicationEmojis);
     this.applications = options.pass.applications || new Applications(this, options.cache.applications);
     this.channels = options.pass.channels || new Channels(this, options.cache.channels);
     this.connectedAccounts = options.pass.connectedAccounts || new ConnectedAccounts(this, options.cache.connectedAccounts);
@@ -511,9 +518,12 @@ export class ShardClient extends EventSpewer {
     });
   }
 
-  reset(applications: boolean = true): void {
+  reset(applications: boolean = true, applicationEmojis: boolean = true): void {
     if (applications) {
       this.applications.clear();
+    }
+    if (applicationEmojis) {
+      this.applicationEmojis.clear();
     }
     this.channels.clear();
     this.connectedAccounts.clear();

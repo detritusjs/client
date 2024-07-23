@@ -373,6 +373,16 @@ export class RestClient {
     return this.raw.createApplicationCommand(applicationId, options);
   }
 
+  async createApplicationEmoji(
+    applicationId: string,
+    options: RequestTypes.CreateApplicationEmoji,
+  ): Promise<Emoji> {
+    const data = await this.raw.createApplicationEmoji(applicationId, options);
+    const emoji = new Emoji(this.client, data);
+    this.client.applicationEmojis.insert(emoji);
+    return emoji;
+  }
+
   createApplicationEntitlement(
     applicationId: string,
     options: RequestTypes.CreateApplicationEntitlement,
@@ -745,6 +755,15 @@ export class RestClient {
     return this.raw.deleteApplicationCommand(applicationId, commandId);
   }
 
+  async deleteApplicationEmoji(
+    applicationId: string,
+    emojiId: string,
+  ) {
+    const data = await this.raw.deleteApplicationEmoji(applicationId, emojiId);
+    this.client.applicationEmojis.delete(emojiId);
+    return data;
+  }
+
   deleteApplicationEntitlement(
     applicationId: string,
     entitlementId: string,
@@ -1008,6 +1027,23 @@ export class RestClient {
   ): Promise<ApplicationCommand>{
     const data = await this.raw.editApplicationCommand(applicationId, commandId, options);
     return new ApplicationCommand(this.client, data);
+  }
+
+  async editApplicationEmoji(
+    applicationId: string,
+    emojiId: string,
+    options: RequestTypes.EditApplicationEmoji = {},
+  ): Promise<Emoji>{
+    const data = await this.raw.editApplicationEmoji(applicationId, emojiId, options);
+
+    let emoji: Emoji;
+    if (this.client.applicationEmojis.has(data.id)) {
+      emoji = this.client.applicationEmojis.get(data.id)!;
+      emoji.merge(data);
+    } else {
+      emoji = new Emoji(this.client, data);
+    }
+    return emoji;
   }
 
   async editApplicationGuildCommand(
@@ -1531,6 +1567,27 @@ export class RestClient {
   ): Promise<ApplicationCommand>{
     const data = await this.raw.fetchApplicationCommand(applicationId, commandId);
     return new ApplicationCommand(this.client, data);
+  }
+
+  async fetchApplicationEmojis(
+    applicationId: string,
+  ): Promise<{items: BaseCollection<string, Emoji>}>{
+    const data = await this.raw.fetchApplicationEmojis(applicationId);
+    const collection = new BaseCollection<string, Emoji>();
+
+    for (let raw of data.items) {
+      const emoji = new Emoji(this.client, raw);
+      collection.set(emoji.id!, emoji);
+    }
+    return {items: collection};
+  }
+
+  async fetchApplicationEmoji(
+    applicationId: string,
+    emojiId: string,
+  ): Promise<Emoji>{
+    const data = await this.raw.fetchApplicationEmoji(applicationId, emojiId);
+    return new Emoji(this.client, data);
   }
 
   async fetchApplicationEntitlements(

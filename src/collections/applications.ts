@@ -36,7 +36,9 @@ export class Applications extends BaseClientCollection<string, Application> {
           return;
         }
         if (this.client.cluster && this.client.cluster.manager && this.client.cluster.manager.hasMultipleClusters) {
-          applications = await this.client.cluster.manager.sendRestRequest('fetchApplicationsDetectable') as Array<any>;
+          applications = await this.client.cluster.manager.sendRestRequest(
+            'fetchApplicationsDetectable',
+          ) as Array<any>;
         } else {
           applications = await this.client.rest.raw.fetchApplicationsDetectable() as Array<any>;
         }

@@ -107,6 +107,12 @@ export class ClusterProcessChild extends EventSpewer {
             }
           }
         }; return;
+        case ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS: {
+          const { data }: ClusterIPCTypes.FillApplicationEmojis = message.data;
+          for (let [shardId, shard] of this.cluster.shards) {
+            await shard.applicationEmojis.fill(data);
+          }
+        }; return;
         case ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS: {
           const { data }: ClusterIPCTypes.FillInteractionCommands = message.data;
           if (this.cluster.interactionCommandClient) {

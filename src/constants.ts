@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.30',
+  VERSION: '0.17.0-beta.32',
 });
 
 export type Snowflake = number | string;
@@ -578,6 +578,7 @@ export enum ClusterIPCOpCodes {
   IDENTIFY_REQUEST = 5,
   REST_REQUEST = 6,
   FILL_INTERACTION_COMMANDS = 7,
+  FILL_APPLICATION_EMOJIS = 8,
 }
 
 
@@ -1456,6 +1457,7 @@ export enum StickerFormats {
   PNG = 1,
   APNG = 2,
   LOTTIE = 3,
+  GIF = 4,
 }
 
 
@@ -1463,6 +1465,7 @@ export enum StickerExtensions {
   PNG = 'png',
   APNG = 'png',
   LOTTIE = 'json',
+  GIF = 'gif',
 }
 
 

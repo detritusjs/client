@@ -58,6 +58,7 @@ export class StickerItem extends BaseStructure {
       case StickerFormats.PNG: return StickerExtensions.PNG;
       case StickerFormats.APNG: return StickerExtensions.APNG;
       case StickerFormats.LOTTIE: return StickerExtensions.LOTTIE;
+      case StickerFormats.GIF: return StickerExtensions.GIF;
       default: {
         throw new Error(`Unexpected format type: ${this.formatType}`);
       };

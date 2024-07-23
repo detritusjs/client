@@ -12,7 +12,7 @@ import {
 import { ClusterProcessChild } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import { CommandClient } from './commandclient';
-import { AuthTypes, ClientEvents, SocketStates, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
+import { AuthTypes, ClientEvents, ClusterIPCOpCodes, SocketStates, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { InteractionCommandClient } from './interactioncommandclient';
 
@@ -31,6 +31,7 @@ export interface ClusterClientRunOptions extends ShardClientRunOptions {
 
 export class ClusterClient extends EventSpewer {
   readonly _refresh = {
+    applicationEmojis: {last: 0, time: 4 * (60 * 60) * 1000},
     applications: {last: 0, time: 4 * (60 * 60) * 1000},
     oauth2Application: {last: 0, time: 4 * (60 * 60) * 1000},
   };
@@ -177,6 +178,30 @@ export class ClusterClient extends EventSpewer {
       }
     }
     return super.emit.call(shard, name, event);
+  }
+
+  async fillApplicationEmojis(force: boolean = false): Promise<void> {
+    const refresh = this._refresh.applicationEmojis;
+    if (!force && Date.now() - refresh.last < refresh.time) {
+      return;
+    }
+    const firstShard = this.shards.first();
+    const enabled = (firstShard) ? firstShard.applicationEmojis.enabled : false;
+    const applicationId = (firstShard && firstShard.isBot) ? firstShard.applicationId : null;
+    if (enabled && applicationId) {
+      refresh.last = Date.now();
+
+      let data: {items: Array<any>};
+      if (this.manager && this.manager.hasMultipleClusters) {
+        data = await this.manager.sendRestRequest('fetchApplicationEmojis', [applicationId]);
+        this.manager.sendIPC(ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS, {data});
+      } else {
+        data = await this.rest.fetchApplicationEmojis(applicationId);
+      }
+      for (let [shardId, shard] of this.shards) {
+        shard.applicationEmojis.fill(data);
+      }
+    }
   }
 
   async fillApplications(): Promise<void> {
