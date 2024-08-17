@@ -60,6 +60,7 @@ export interface ApplicationPublisher {
 const keysApplication = new BaseSet<string>([
   DiscordKeys.ALIASES,
   DiscordKeys.APPROXIMATE_GUILD_COUNT,
+  DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT,
   DiscordKeys.BOT,
   DiscordKeys.BOT_PUBLIC,
   DiscordKeys.BOT_REQUIRE_CODE_GRANT,
@@ -108,6 +109,7 @@ export class Application extends BaseStructure {
 
   aliases?: BaseSet<string>;
   approximateGuildCount?: number;
+  approximateUserInstallCount?: number;
   bot?: UserWithToken;
   botPublic?: boolean;
   botRequireCodeGrant?: boolean;

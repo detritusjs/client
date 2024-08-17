@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.33',
+  VERSION: '0.17.0-beta.34',
 });
 
 export type Snowflake = number | string;
@@ -1641,6 +1641,7 @@ export const DiscordKeys = Object.freeze({
   APPROXIMATE_GUILD_COUNT: 'approximate_guild_count',
   APPROXIMATE_MEMBER_COUNT: 'approximate_member_count',
   APPROXIMATE_PRESENCE_COUNT: 'approximate_presence_count',
+  APPROXIMATE_USER_INSTALL_COUNT: 'approximate_user_install_count',
   ARCHIVE_TIMESTAMP: 'archive_timestamp',
   ARCHIVED: 'archived',
   ARCHIVER_ID: 'archiver_id',
@@ -2112,6 +2113,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.APPROXIMATE_GUILD_COUNT]: 'approximateGuildCount',
   [DiscordKeys.APPROXIMATE_MEMBER_COUNT]: 'approximateMemberCount',
   [DiscordKeys.APPROXIMATE_PRESENCE_COUNT]: 'approximatePresenceCount',
+  [DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT]: 'approximateUserInstallCount',
   [DiscordKeys.ARCHIVE_TIMESTAMP]: 'archiveTimestamp',
   [DiscordKeys.ARCHIVED]: 'archived',
   [DiscordKeys.ARCHIVER_ID]: 'archiverId',
