@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.34',
+  VERSION: '0.17.0-beta.36',
 });
 
 export type Snowflake = number | string;
@@ -162,6 +162,15 @@ export enum ApplicationFlags {
 export enum ApplicationIntegrationTypes {
   GUILD_INSTALL = 0,
   USER_INSTALL = 1,
+}
+
+
+export enum ApplicationMonetizationStates {
+  DISABLED = 1,
+  PROVISONAL = 2,
+  REJECTED = 3,
+  APPROVED = 4,
+  BLOCKED = 5,
 }
 
 
@@ -1469,6 +1478,15 @@ export enum StickerExtensions {
 }
 
 
+export enum StoreApplicationApprovalStates {
+  NONE = 1,
+  PAID = 2,
+  SUBMITTED = 3,
+  APPROVED = 4,
+  REJECTED = 5,  
+}
+
+
 export enum SystemChannelFlags {
   SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0,
   SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1,
@@ -1815,9 +1833,11 @@ export const DiscordKeys = Object.freeze({
   INVITE_CODE: 'invite_code',
   INVITER: 'inviter',
   IS_DIRTY: 'is_dirty',
+  IS_MONETIZED: 'is_monetized',
   IS_PARTIAL: 'is_partial',
   IS_PENDING: 'is_pending',
   IS_RENEWAL: 'is_renewal',
+  IS_VERIFIED: 'is_verified',
   JOIN: 'join',
   JOIN_TIMESTAMP: 'join_timestamp',
   JOINED_AT: 'joined_at',
@@ -1874,6 +1894,7 @@ export const DiscordKeys = Object.freeze({
   MIN_VALUES: 'min_values',
   MOBILE: 'mobile',
   MODERATED: 'moderated',
+  MONETIZATION_STATE: 'monetization_state',
   MUTE: 'mute',
   MUTUAL_GUILDS: 'mutual_guilds',
   NAME: 'name',
@@ -2287,9 +2308,11 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.INVITE_CODE]: 'inviteCode',
   [DiscordKeys.INVITER]: 'inviter',
   [DiscordKeys.IS_DIRTY]: 'isDirty',
+  [DiscordKeys.IS_MONETIZED]: 'isMonetized',
   [DiscordKeys.IS_PARTIAL]: 'isPartial',
   [DiscordKeys.IS_PENDING]: 'isPending',
   [DiscordKeys.IS_RENEWAL]: 'isRenewal',
+  [DiscordKeys.IS_VERIFIED]: 'isVerified',
   [DiscordKeys.JOIN]: 'join',
   [DiscordKeys.JOIN_TIMESTAMP]: 'joinTimestamp',
   [DiscordKeys.JOINED_AT]: 'joinedAt',
@@ -2346,6 +2369,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MIN_VALUES]: 'minValues',
   [DiscordKeys.MOBILE]: 'mobile',
   [DiscordKeys.MODERATED]: 'moderated',
+  [DiscordKeys.MONETIZATION_STATE]: 'monetizationState',
   [DiscordKeys.MUTE]: 'mute',
   [DiscordKeys.MUTUAL_GUILDS]: 'mutualGuilds',
   [DiscordKeys.NAME]: 'name',

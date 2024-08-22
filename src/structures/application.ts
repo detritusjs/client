@@ -8,6 +8,7 @@ import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
   ApplicationFlags,
+  ApplicationMonetizationStates,
   ApplicationIntegrationTypes,
   DetritusKeys,
   DiscordKeys,
@@ -15,6 +16,7 @@ import {
   DistributorNames,
   DistributorUrls,
   SpecialUrls,
+  StoreApplicationApprovalStates,
 } from '../constants';
 import {
   addQuery,
@@ -78,6 +80,9 @@ const keysApplication = new BaseSet<string>([
   DiscordKeys.INSTALL_PARAMS,
   DiscordKeys.INTEGRATION_TYPES_CONFIG,
   DiscordKeys.INTERACTIONS_ENDPOINT_URL,
+  DiscordKeys.IS_MONETIZED,
+  DiscordKeys.IS_VERIFIED,
+  DiscordKeys.MONETIZATION_STATE,
   DiscordKeys.NAME,
   DiscordKeys.OVERLAY,
   DiscordKeys.OVERLAY_COMPATIBILITY_HOOK,
@@ -127,6 +132,9 @@ export class Application extends BaseStructure {
   installParams?: ApplicationInstallParams;
   integrationTypesConfig?: BaseCollection<ApplicationIntegrationTypes, ApplicationIntegrationTypeConfiguration>;
   interactionsEndpointUrl?: string;
+  isMonetized?: boolean;
+  isVerified?: boolean;
+  monetizationState?: ApplicationMonetizationStates;
   name: string = '';
   overlay?: boolean;
   overlayCompatibilityHook?: boolean;
@@ -141,7 +149,7 @@ export class Application extends BaseStructure {
   secret?: string;
   slug?: string;
   splash?: string;
-  storeApplicationState?: number;
+  storeApplicationState?: StoreApplicationApprovalStates;
   summary: string = '';
   tags?: Array<string>;
   team?: Team;
@@ -374,6 +382,9 @@ export class Application extends BaseStructure {
     if (DiscordKeys.APPROXIMATE_GUILD_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_GUILD_COUNT]] = data[DiscordKeys.APPROXIMATE_GUILD_COUNT];
     }
+    if (DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT]] = data[DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT];
+    }
     if (DiscordKeys.BOT in data) {
       const value = new UserWithToken(this.client, data[DiscordKeys.BOT], this._clone);
       (this as any)[DetritusKeys[DiscordKeys.BOT]] = value;
@@ -431,6 +442,15 @@ export class Application extends BaseStructure {
     }
     if (DiscordKeys.INTERACTIONS_ENDPOINT_URL in data) {
       (this as any)[DetritusKeys[DiscordKeys.INTERACTIONS_ENDPOINT_URL]] = data[DiscordKeys.INTERACTIONS_ENDPOINT_URL];
+    }
+    if (DiscordKeys.IS_MONETIZED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IS_MONETIZED]] = data[DiscordKeys.IS_MONETIZED];
+    }
+    if (DiscordKeys.IS_VERIFIED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IS_VERIFIED]] = data[DiscordKeys.IS_VERIFIED];
+    }
+    if (DiscordKeys.MONETIZATION_STATE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MONETIZATION_STATE]] = data[DiscordKeys.MONETIZATION_STATE];
     }
     if (DiscordKeys.NAME in data) {
       (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
@@ -535,7 +555,7 @@ export class Application extends BaseStructure {
 
 const keysApplicationInstallParams = new BaseSet<string>([
   DiscordKeys.PERMISSIONS,
-  DiscordKeys.SCOPE,
+  DiscordKeys.SCOPES,
 ]);
 
 export class ApplicationInstallParams extends BaseStructure {
