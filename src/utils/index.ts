@@ -278,9 +278,9 @@ export function regex(
     const result: DiscordRegexMatch = {matched: match[0]};
     switch (type) {
       case DiscordRegexNames.EMOJI: {
-        result.name = match[1] as string;
-        result.id = match[2] as string;
-        result.animated = content.startsWith('<a:');
+        result.animated = !!match[1];
+        result.name = match[2] as string;
+        result.id = match[3] as string;
       }; break;
       case DiscordRegexNames.JUMP_CHANNEL: {
         result.guildId = match[1] as string;

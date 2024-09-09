@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.39',
+  VERSION: '0.17.0-beta.40',
 });
 
 export type Snowflake = number | string;
@@ -648,7 +648,7 @@ export enum DiscordRegexNames {
 
 
 export const DiscordRegex = Object.freeze({
-  [DiscordRegexNames.EMOJI]: /<a?:(\w+):(\d+)>/g,
+  [DiscordRegexNames.EMOJI]: /<(a?):(\w+):(\d+)>/g,
   [DiscordRegexNames.JUMP_CHANNEL]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)$/g,
   [DiscordRegexNames.JUMP_CHANNEL_MESSAGE]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)\/(\d+)$/g,
   [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/g,
