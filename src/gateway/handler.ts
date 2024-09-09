@@ -9,6 +9,7 @@ import {
   GatewayOpCodes,
   InteractionTypes,
   PresenceStatuses,
+  ReactionTypes,
 } from '../constants';
 import { GatewayError, GatewayHTTPError } from '../errors';
 
@@ -1516,9 +1517,13 @@ export class GatewayDispatchHandler {
     let reaction: null | Reaction = null;
     let user: User | null = null;
 
+    const burst = data['burst'];
+    const burstColors = data['burst_colors'];
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
+    const messageAuthorId = data['message_author_id'];
     const messageId = data['message_id'];
+    const type = data['type'];
     const userId = data['user_id'];
 
     if (this.client.users.has(userId)) {
@@ -1557,15 +1562,30 @@ export class GatewayDispatchHandler {
     }
 
     reaction.count += 1;
-    reaction.me = (userId === this.client.userId) || reaction.me;
+
+    switch (type) {
+      case ReactionTypes.NORMAL: {
+        reaction.countDetails.normal += 1;
+        reaction.me = (userId === this.client.userId) || reaction.me;
+      }; break;
+      case ReactionTypes.BURST: {
+        reaction.countDetails.burst += 1;
+        reaction.burstCount += 1;
+        reaction.meBurst = (userId === this.client.userId) || reaction.meBurst;
+      }; break;
+    }
 
     const payload: GatewayClientEvents.MessageReactionAdd = {
+      burst,
+      burstColors,
       channelId,
       guildId,
       member,
       message,
+      messageAuthorId,
       messageId,
       reaction,
+      type,
       user,
       userId,
       raw: data,
@@ -1578,9 +1598,11 @@ export class GatewayDispatchHandler {
     let reaction: null | Reaction = null;
     let user: User | null = null;
 
+    const burst = data['burst'];
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
     const messageId = data['message_id'];
+    const type = data['type'];
     const userId = data['user_id'];
 
     if (this.client.users.has(userId)) {
@@ -1610,12 +1632,26 @@ export class GatewayDispatchHandler {
       reaction = new Reaction(this.client, data);
     }
 
+    switch (type) {
+      case ReactionTypes.NORMAL: {
+        reaction.countDetails.normal = Math.max(reaction.countDetails.normal - 1, 0);
+        reaction.me = reaction.me && userId !== this.client.userId;
+      }; break;
+      case ReactionTypes.BURST: {
+        reaction.countDetails.burst = Math.max(reaction.countDetails.burst - 1, 0);
+        reaction.burstCount = Math.max(reaction.burstCount - 1, 0);
+        reaction.meBurst = reaction.meBurst && userId !== this.client.userId;
+      }; break;
+    }
+
     const payload: GatewayClientEvents.MessageReactionRemove = {
+      burst,
       channelId,
       guildId,
       message,
       messageId,
       reaction,
+      type,
       user,
       userId,
       raw: data,
@@ -1694,11 +1730,6 @@ export class GatewayDispatchHandler {
     const guildId = data['guild_id'];
     const messageId = data['id'];
 
-    if (!data['author']) {
-      // an embed update from Discord (URL was unfurled for example)
-      isEmbedUpdate = true;
-    }
-
     const isListening = this.client.hasEventListener(ClientEvents.MESSAGE_UPDATE);
     if (this.client.messages.has(messageId)) {
       message = this.client.messages.get(messageId)!;
@@ -1706,13 +1737,12 @@ export class GatewayDispatchHandler {
         differences = message.differences(data);
         old = message.clone();
       }
+      const editedTimestampUnixOld = message.editedTimestampUnix;
       message.merge(data);
+      isEmbedUpdate = (editedTimestampUnixOld === message.editedTimestampUnix);
     } else {
-      if (!isEmbedUpdate) {
-        // we cannot create a message object from an embed update
-        message = new Message(this.client, data);
-        this.client.messages.insert(message);
-      }
+      message = new Message(this.client, data);
+      this.client.messages.insert(message);
     }
 
     const payload: GatewayClientEvents.MessageUpdate = {

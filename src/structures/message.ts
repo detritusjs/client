@@ -15,6 +15,7 @@ import {
   InteractionTypes,
   MessageFlags,
   MessagePollLayoutTypes,
+  MessageReferenceTypes,
   MessageTypes,
   MessageTypesDeletable,
   PremiumGuildTiers,
@@ -69,6 +70,7 @@ const keysMessage = new BaseSet<string>([
   DiscordKeys.MENTION_EVERYONE,
   DiscordKeys.MENTION_ROLES,
   DiscordKeys.MESSAGE_REFERENCE,
+  DiscordKeys.MESSAGE_SNAPSHOTS,
   DiscordKeys.NONCE,
   DiscordKeys.PINNED,
   DiscordKeys.POLL,
@@ -108,6 +110,7 @@ export class Message extends BaseStructure {
   _mentions?: BaseCollection<string, Member | User>;
   _mentionChannels?: BaseCollection<string, Channel>;
   _mentionRoles?: BaseCollection<string, null | Role>;
+  _messageSnapshots?: BaseCollection<number, MessageSnapshot>;
   _reactions?: BaseCollection<string, Reaction>;
   _stickers?: BaseCollection<string, Sticker>;
   _stickerItems?: BaseCollection<string, StickerItem>;
@@ -369,6 +372,13 @@ export class Message extends BaseStructure {
   get mentionRoles(): BaseCollection<string, null | Role> {
     if (this._mentionRoles) {
       return this._mentionRoles;
+    }
+    return emptyBaseCollection;
+  }
+
+  get messageSnapshots(): BaseCollection<number, MessageSnapshot> {
+    if (this._messageSnapshots) {
+      return this._messageSnapshots;
     }
     return emptyBaseCollection;
   }
@@ -908,6 +918,30 @@ export class Message extends BaseStructure {
     if (DiscordKeys.MESSAGE_REFERENCE in data) {
       const value = data[DiscordKeys.MESSAGE_REFERENCE];
       (this as any)[DetritusKeys[DiscordKeys.MESSAGE_REFERENCE]] = new MessageReference(this, value);
+    }
+    if (DiscordKeys.MESSAGE_SNAPSHOTS in data) {
+      const value = data[DiscordKeys.MESSAGE_SNAPSHOTS];
+      if (value.length) {
+        if (!this._messageSnapshots) {
+          this._messageSnapshots = new BaseCollection<number, MessageSnapshot>();
+        }
+        this._messageSnapshots.clear();
+        for (let i = 0; i < value.length; i++) {
+          const raw = value[i];
+          if (this.messageReference) {
+            // right now its only one snapshot per message
+            raw[DiscordKeys.ID] = this.messageReference.messageId;
+            raw[DiscordKeys.CHANNEL_ID] = this.messageReference.channelId;
+            raw[DiscordKeys.GUILD_ID] = this.messageReference.guildId;
+          }
+          this._messageSnapshots.set(i, new MessageSnapshot(this, raw));
+        }
+      } else {
+        if (this._messageSnapshots) {
+          this._messageSnapshots.clear();
+          this._messageSnapshots = undefined;
+        }
+      }
     }
     if (DiscordKeys.NONCE in data) {
       (this as any)[DetritusKeys[DiscordKeys.NONCE]] = data[DiscordKeys.NONCE];
@@ -1506,10 +1540,11 @@ const keysMessageReference = new BaseSet<string>([
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.GUILD_ID,
   DiscordKeys.MESSAGE_ID,
+  DiscordKeys.TYPE,
 ]);
 
 /**
- * Channel Message Reference Structure, used to tell the client that this is from a server webhook or a reply
+ * Channel Message Reference Structure, used to tell the client that this is from a server webhook, a reply, or a forward
  * Used for crossposts
  * @category Structure
  */
@@ -1521,6 +1556,7 @@ export class MessageReference extends BaseStructure {
   channelId: string = '';
   guildId?: string = '';
   messageId?: string = '';
+  type?: MessageReferenceTypes;
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
@@ -1566,6 +1602,9 @@ export class MessageReference extends BaseStructure {
     }
     if (DiscordKeys.MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.MESSAGE_ID]] = data[DiscordKeys.MESSAGE_ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
   }
 }
@@ -1746,6 +1785,42 @@ export class MessageRoleSubscriptionData extends BaseStructure {
     }
     if (DiscordKeys.TOTAL_MONTHS_SUBSCRIBED in data) {
       (this as any)[DetritusKeys[DiscordKeys.TOTAL_MONTHS_SUBSCRIBED]] = data[DiscordKeys.TOTAL_MONTHS_SUBSCRIBED];
+    }
+  }
+}
+
+
+const keysMessageSnapshot = new BaseSet<string>([
+  DiscordKeys.MESSAGE,
+]);
+
+/**
+ * Channel Message Snapshot Structure
+ * @category Structure
+ */
+export class MessageSnapshot extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageSnapshot;
+  readonly parent: Message;
+
+  message!: Message;
+
+  constructor(message: Message, data: BaseStructureData) {
+    super(message.client, undefined, message._clone);
+    this.parent = message;
+    this.merge(data);
+    Object.defineProperty(this, 'parent', {enumerable: false});
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.MESSAGE in data) {
+      // this data is partial, do not store it in cache
+      const value = data[DiscordKeys.MESSAGE];
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE]] = new Message(this.client, value);
     }
   }
 }

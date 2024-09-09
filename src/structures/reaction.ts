@@ -15,13 +15,17 @@ import { Message } from './message';
 
 
 const keysReaction = new BaseSet<string>([
+  DiscordKeys.BURST_COLORS,
+  DiscordKeys.BURST_COUNT,
   DiscordKeys.CHANNEL_ID,
   DiscordKeys.COUNT,
+  DiscordKeys.COUNT_DETAILS,
   DiscordKeys.EMOJI,
   DiscordKeys.GUILD_ID,
   DiscordKeys.IS_PARTIAL,
   DiscordKeys.MESSAGE_ID,
   DiscordKeys.ME,
+  DiscordKeys.ME_BURST,
 ]);
 
 /**
@@ -32,13 +36,17 @@ const keysReaction = new BaseSet<string>([
 export class Reaction extends BaseStructure {
   readonly _keys = keysReaction;
 
+  burstColors!: BaseSet<string>;
+  burstCount: number = 0;
   channelId: string = '';
   count: number = 0;
+  countDetails!: {burst: number, normal: number};
   emoji!: Emoji;
   guildId?: string;
   isPartial: boolean = false;
   messageId: string = '';
   me: boolean = false;
+  meBurst: boolean = false;
 
   constructor(
     client: ShardClient,
@@ -99,11 +107,20 @@ export class Reaction extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
     }
 
+    if (DiscordKeys.BURST_COLORS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BURST_COLORS]] = new BaseSet(data[DiscordKeys.BURST_COLORS]);
+    }
+    if (DiscordKeys.BURST_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BURST_COUNT]] = data[DiscordKeys.BURST_COUNT];
+    }
     if (DiscordKeys.CHANNEL_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
     }
     if (DiscordKeys.COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.COUNT]] = data[DiscordKeys.COUNT];
+    }
+    if (DiscordKeys.COUNT_DETAILS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.COUNT_DETAILS]] = data[DiscordKeys.COUNT_DETAILS];
     }
     if (DiscordKeys.EMOJI in data) {
       const value = data[DiscordKeys.EMOJI];
@@ -127,6 +144,9 @@ export class Reaction extends BaseStructure {
     }
     if (DiscordKeys.ME in data) {
       (this as any)[DetritusKeys[DiscordKeys.ME]] = data[DiscordKeys.ME];
+    }
+    if (DiscordKeys.ME_BURST in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ME_BURST]] = data[DiscordKeys.ME_BURST];
     }
   }
 }

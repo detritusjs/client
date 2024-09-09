@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.36',
+  VERSION: '0.17.0-beta.37',
 });
 
 export type Snowflake = number | string;
@@ -1052,6 +1052,12 @@ export enum MessagePollLayoutTypes {
 }
 
 
+export enum MessageReferenceTypes {
+  DEFAULT = 0,
+  FORWARD = 1,
+}
+
+
 export enum MessageTypes {
   BASE = -1,
   DEFAULT = 0,
@@ -1403,6 +1409,12 @@ export const PremiumUserLimits = Object.freeze({
 });
 
 
+export enum ReactionTypes {
+  NORMAL = 0,
+  BURST = 1,
+}
+
+
 export enum RelationshipTypes {
   NONE = 0,
   FRIEND = 1,
@@ -1685,6 +1697,8 @@ export const DiscordKeys = Object.freeze({
   BOT_PUBLIC: 'bot_public',
   BOT_REQUIRE_CODE_GRANT: 'bot_require_code_grant',
   BOX_ART: 'box_art',
+  BURST_COLORS: 'burst_colors',
+  BURST_COUNT: 'burst_count',
   BUTTONS: 'buttons',
   CALL: 'call',
   CAROUSEL_ITEMS: 'carousel_items',
@@ -1713,6 +1727,7 @@ export const DiscordKeys = Object.freeze({
   CONTEXT: 'context',
   CONTEXTS: 'contexts',
   COUNT: 'count',
+  COUNT_DETAILS: 'countDetails',
   COVER_IMAGE: 'cover_image',
   CREATED_AT: 'created_at',
   CREATOR: 'creator',
@@ -1868,6 +1883,7 @@ export const DiscordKeys = Object.freeze({
   MAX_VALUES: 'max_values',
   MAX_VIDEO_CHANNEL_USERS: 'max_video_channel_users',
   ME: 'me',
+  ME_BURST: 'me_burst',
   MEMBER: 'member',
   MEMBERS: 'members',
   MEMBERSHIP_STATE: 'membership_state',
@@ -1885,6 +1901,7 @@ export const DiscordKeys = Object.freeze({
   MESSAGE_COUNT: 'message_count',
   MESSAGE_ID: 'message_id',
   MESSAGE_REFERENCE: 'message_reference',
+  MESSAGE_SNAPSHOTS: 'message_snapshots',
   METADATA: 'metadata',
   MFA_ENABLED: 'mfa_enabled',
   MFA_LEVEL: 'mfa_level',
@@ -2160,6 +2177,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.BOT_PUBLIC]: 'botPublic',
   [DiscordKeys.BOT_REQUIRE_CODE_GRANT]: 'botRequireCodeGrant',
   [DiscordKeys.BOX_ART]: 'boxArt',
+  [DiscordKeys.BURST_COLORS]: 'burstColors',
+  [DiscordKeys.BURST_COUNT]: 'burstCount',
   [DiscordKeys.BUTTONS]: 'buttons',
   [DiscordKeys.CALL]: 'call',
   [DiscordKeys.CAROUSEL_ITEMS]: 'carouselItems',
@@ -2188,6 +2207,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.CONTEXT]: 'context',
   [DiscordKeys.CONTEXTS]: 'contexts',
   [DiscordKeys.COUNT]: 'count',
+  [DiscordKeys.COUNT_DETAILS]: 'countDetails',
   [DiscordKeys.COVER_IMAGE]: 'coverImage',
   [DiscordKeys.CREATED_AT]: 'createdAt',
   [DiscordKeys.CREATOR]: 'creator',
@@ -2343,6 +2363,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MAX_VALUES]: 'maxValues',
   [DiscordKeys.MAX_VIDEO_CHANNEL_USERS]: 'maxVideoChannelUsers',
   [DiscordKeys.ME]: 'me',
+  [DiscordKeys.ME_BURST]: 'meBurst',
   [DiscordKeys.MEMBER]: 'member',
   [DiscordKeys.MEMBERS]: 'members',
   [DiscordKeys.MEMBERSHIP_STATE]: 'membershipState',
@@ -2360,6 +2381,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MESSAGE_COUNT]: 'messageCount',
   [DiscordKeys.MESSAGE_ID]: 'messageId',
   [DiscordKeys.MESSAGE_REFERENCE]: 'messageReference',
+  [DiscordKeys.MESSAGE_SNAPSHOTS]: 'messageSnapshots',
   [DiscordKeys.METADATA]: 'metadata',
   [DiscordKeys.MFA_ENABLED]: 'mfaEnabled',
   [DiscordKeys.MFA_LEVEL]: 'mfaLevel',

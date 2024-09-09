@@ -4,7 +4,7 @@ import { GatewayRawEvents } from './rawevents';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ChannelTypes, ClientEvents } from '../constants';
+import { ChannelTypes, ClientEvents, ReactionTypes } from '../constants';
 import {
   ApplicationCommand,
   AuditLog,
@@ -460,24 +460,30 @@ export namespace GatewayClientEvents {
   }
 
   export interface MessageReactionAdd {
+    burst: boolean,
+    burstColors?: Array<string>,
     channelId: string,
     guildId: string | undefined,
     member: Member | null,
     message: Message | null,
+    messageAuthorId?: string,
     messageId: string,
     raw: GatewayRawEvents.MessageReactionAdd,
     reaction: Reaction,
+    type: ReactionTypes,
     user: null | User,
     userId: string,
   }
 
   export interface MessageReactionRemove {
+    burst: boolean,
     channelId: string,
     guildId: string | undefined,
     message: Message | null,
     messageId: string,
     raw: GatewayRawEvents.MessageReactionRemove,
     reaction: Reaction,
+    type: ReactionTypes,
     user: null | User,
     userId: string,
   }

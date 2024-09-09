@@ -501,19 +501,25 @@ export namespace GatewayRawEvents {
   }
 
   export interface MessageReactionAdd {
+    burst: boolean,
+    burst_colors?: Array<string>,
     channel_id: string,
     emoji: RawEmojiPartial,
     guild_id?: string,
+    message_author_id?: string,
     message_id: string,
     member?: RawMember,
+    type: number,
     user_id: string,
   }
 
-  export interface MessageReactionRemove extends MessageReactionAdd {
+  export interface MessageReactionRemove {
+    burst: boolean,
     channel_id: string,
     emoji: RawEmojiPartial,
     guild_id?: string,
     message_id: string,
+    type: number,
     user_id: string,
   }
 

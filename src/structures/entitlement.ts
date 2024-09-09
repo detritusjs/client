@@ -70,7 +70,7 @@ export class Entitlement extends BaseStructure {
     if (this.endsAtUnix) {
       return this.endsAtUnix <= Date.now();
     }
-    return false;;
+    return false;
   }
 
   get endsAt(): Date | undefined {
