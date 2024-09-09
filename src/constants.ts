@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.37',
+  VERSION: '0.17.0-beta.38',
 });
 
 export type Snowflake = number | string;
@@ -856,6 +856,8 @@ export enum InteractionCallbackTypes {
   APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8,
   MODAL = 9,
   PREMIUM_REQUIRED = 10,
+
+  LAUNCH_ACTIVITY = 12,
 }
 
 

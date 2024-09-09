@@ -603,15 +603,16 @@ export class RestClient {
       const listener = options.data;
       const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
       this.client.gatewayHandler._handlers.modal.insert(listener);
+      if (rawData) {
+        // return InteractionCallbackResponse
+      }
       return rawData;
     } else {
       // if type is edit message, do not use interactionId (maybe fetch message id if listenerId isnt given)
       const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
       const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
-
       if (listenerData) {
         const [lId, listener] = listenerData;
-
         const listenerId = lId || interactionId;
         if (listener) {
           listener.id = listenerId;
@@ -619,6 +620,9 @@ export class RestClient {
         } else {
           this.client.gatewayHandler._handlers.component.delete(listenerId);
         }
+      }
+      if (rawData) {
+        // return InteractionCallbackResponse
       }
       return rawData;
     }
