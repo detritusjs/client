@@ -268,11 +268,17 @@ export class Message extends BaseStructure {
   }
 
   get fromBot(): boolean {
-    return this.author.bot;
+    if (this.author) {
+      return this.author.bot;
+    }
+    return false;
   }
 
   get fromMe(): boolean {
-    return this.author.isMe;
+    if (this.author) {
+      return this.author.isMe;
+    }
+    return false;
   }
 
   get fromSystem(): boolean {
@@ -659,6 +665,12 @@ export class Message extends BaseStructure {
         }
       }
       (this as any)[DetritusKeys[DiscordKeys.AUTHOR]] = user;
+    } else {
+      // give a dummy author
+      if (!this.author) {
+        const user = new User(this.client, {}, this.isClone);
+        (this as any)[DetritusKeys[DiscordKeys.AUTHOR]] = user;
+      }
     }
     // we need mentions and author before content to format it
     if (DiscordKeys.MENTIONS in data) {
@@ -928,11 +940,11 @@ export class Message extends BaseStructure {
         this._messageSnapshots.clear();
         for (let i = 0; i < value.length; i++) {
           const raw = value[i];
-          if (this.messageReference) {
+          if (raw[DiscordKeys.MESSAGE] && this.messageReference) {
             // right now its only one snapshot per message
-            raw[DiscordKeys.ID] = this.messageReference.messageId;
-            raw[DiscordKeys.CHANNEL_ID] = this.messageReference.channelId;
-            raw[DiscordKeys.GUILD_ID] = this.messageReference.guildId;
+            raw[DiscordKeys.MESSAGE][DiscordKeys.ID] = this.messageReference.messageId;
+            raw[DiscordKeys.MESSAGE][DiscordKeys.CHANNEL_ID] = this.messageReference.channelId;
+            raw[DiscordKeys.MESSAGE][DiscordKeys.GUILD_ID] = this.messageReference.guildId;
           }
           this._messageSnapshots.set(i, new MessageSnapshot(this, raw));
         }
@@ -1820,7 +1832,16 @@ export class MessageSnapshot extends BaseStructure {
     if (DiscordKeys.MESSAGE in data) {
       // this data is partial, do not store it in cache
       const value = data[DiscordKeys.MESSAGE];
-      (this as any)[DetritusKeys[DiscordKeys.MESSAGE]] = new Message(this.client, value);
+
+      let message: Message;
+      if (value.id && this.client.messages.has(value.id)) {
+        message = this.client.messages.get(value.id)!.clone();
+        // message.merge(value);
+      } else {
+        message = new Message(this.client, value);
+      }
+
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE]] = message;
     }
   }
 }
