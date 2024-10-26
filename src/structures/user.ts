@@ -54,7 +54,7 @@ export class User extends BaseStructure {
   avatar: null | string = null;
   avatarDecorationData: null | UserAvatarDecorationData = null;
   bot: boolean = false;
-  clan: null | string = null;
+  clan: null | UserClan = null;
   discriminator: string = '0000';
   globalName: null | string = null;
   id: string = '';
@@ -311,7 +311,10 @@ export class User extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.BOT]] = data[DiscordKeys.BOT];
     }
     if (DiscordKeys.CLAN in data) {
-      (this as any)[DetritusKeys[DiscordKeys.CLAN]] = data[DiscordKeys.CLAN];
+      const value = data[DiscordKeys.CLAN];
+
+      const clan = (value) ? new UserClan(this.client, value, this.isClone) : null;
+      (this as any)[DetritusKeys[DiscordKeys.CLAN]] = clan;
     }
     if (DiscordKeys.DISCRIMINATOR in data) {
       (this as any)[DetritusKeys[DiscordKeys.DISCRIMINATOR]] = data[DiscordKeys.DISCRIMINATOR];
@@ -628,7 +631,7 @@ export class UserMixin extends BaseStructure {
     return this.user.bot;
   }
 
-  get clan(): null | string {
+  get clan(): null | UserClan {
     return this.user.clan;
   }
 
@@ -891,6 +894,56 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
     }
     if (DiscordKeys.SKU_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.SKU_ID]] = data[DiscordKeys.SKU_ID];
+    }
+  }
+}
+
+
+const keysUserClan = new BaseSet<string>([
+  DiscordKeys.BADGE,
+  DiscordKeys.IDENTITY_ENABLED,
+  DiscordKeys.IDENTITY_GUILD_ID,
+  DiscordKeys.TAG,
+]);
+
+/**
+ * User Clan Structure
+ * @category Structure
+ */
+ export class UserClan extends BaseStructure {
+  readonly _keys = keysUserClan;
+
+  badge: null | string = null;
+  identityEnabled: boolean = false;
+  identityGuildId: null | string = null;
+  tag: null | string = null;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.BADGE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BADGE]] = data[DiscordKeys.BADGE];
+    }
+    if (DiscordKeys.IDENTITY_ENABLED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IDENTITY_ENABLED]] = data[DiscordKeys.IDENTITY_ENABLED];
+    }
+    if (DiscordKeys.IDENTITY_GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IDENTITY_GUILD_ID]] = data[DiscordKeys.IDENTITY_GUILD_ID];
+    }
+    if (DiscordKeys.TAG in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TAG]] = data[DiscordKeys.TAG];
     }
   }
 }

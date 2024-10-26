@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.40',
+  VERSION: '0.17.0-beta.41',
 });
 
 export type Snowflake = number | string;
@@ -1690,6 +1690,7 @@ export const DiscordKeys = Object.freeze({
   AVAILABLE_TAGS: 'available_tags',
   AVATAR: 'avatar',
   AVATAR_DECORATION_DATA: 'avatar_decoration_data',
+  BADGE: 'badge',
   BANNER: 'banner',
   BANNER_COLOR: 'banner_color',
   BIO: 'bio',
@@ -1831,6 +1832,8 @@ export const DiscordKeys = Object.freeze({
   ICON: 'icon',
   ICON_URL: 'icon_url',
   ID: 'id',
+  IDENTITY_ENABLED: 'identity_enabled',
+  IDENTITY_GUILD_ID: 'identity_guild_id',
   IDS: 'ids',
   IMAGE: 'image',
   INLINE: 'inline',
@@ -2058,6 +2061,7 @@ export const DiscordKeys = Object.freeze({
   SYSTEM_CHANNEL_ID: 'system_channel_id',
   SYSTEM_REQUIREMENTS: 'system_requirements',
   TAGLINE: 'tagline',
+  TAG: 'tag',
   TAGS: 'tags',
   TARGET: 'target',
   TARGET_APPLICATION: 'target_application',
@@ -2170,6 +2174,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.AVAILABLE_TAGS]: 'availableTags',
   [DiscordKeys.AVATAR]: 'avatar',
   [DiscordKeys.AVATAR_DECORATION_DATA]: 'avatarDecorationData',
+  [DiscordKeys.BADGE]: 'badge',
   [DiscordKeys.BANNER]: 'banner',
   [DiscordKeys.BANNER_COLOR]: 'bannerColor',
   [DiscordKeys.BIO]: 'bio',
@@ -2311,6 +2316,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ICON]: 'icon',
   [DiscordKeys.ICON_URL]: 'iconUrl',
   [DiscordKeys.ID]: 'id',
+  [DiscordKeys.IDENTITY_ENABLED]: 'identityEnabled',
+  [DiscordKeys.IDENTITY_GUILD_ID]: 'identityGuildId',
   [DiscordKeys.IDS]: 'ids',
   [DiscordKeys.IMAGE]: 'image',
   [DiscordKeys.INLINE]: 'inline',
@@ -2538,6 +2545,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SYSTEM_CHANNEL_ID]: 'systemChannelId',
   [DiscordKeys.SYSTEM_REQUIREMENTS]: 'systemRequirements',
   [DiscordKeys.TAGLINE]: 'tagline',
+  [DiscordKeys.TAG]: 'tag',
   [DiscordKeys.TAGS]: 'tags',
   [DiscordKeys.TARGET]: 'target',
   [DiscordKeys.TARGET_APPLICATION]: 'targetApplication',
