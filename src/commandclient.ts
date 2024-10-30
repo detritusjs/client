@@ -455,7 +455,7 @@ export class CommandClient extends EventSpewer {
     return null;
   }
 
-  getCommand(attributes: CommandAttributes): Command | null {
+  async getCommand(attributes: CommandAttributes, context: Context): Promise<Command | null> {
     if (attributes.content) {
       const insensitive = attributes.content.toLowerCase();
       for (let command of this.commands) {
@@ -620,7 +620,15 @@ export class CommandClient extends EventSpewer {
       return;
     }
 
-    const command = this.getCommand(attributes);
+    let command: Command | null = null;
+    try {
+      command = await await Promise.resolve(this.getCommand(attributes, context));
+    } catch(error: any) {
+      const payload: CommandEvents.CommandNone = {context, error};
+      this.emit(ClientEvents.COMMAND_ERROR, payload);
+      return;
+    }
+
     if (command) {
       context.command = command;
       if (typeof(this.onCommandCheck) === 'function') {
@@ -851,15 +859,16 @@ export class CommandClient extends EventSpewer {
       let timeout: Timers.Timeout | null = null;
       try {
         const shouldTriggerLoading = command.triggerTypingAfter !== undefined && 0 <= command.triggerTypingAfter;
+        const shouldTriggerOnEdits = !!command.triggerTypingOnEdits;
         if (shouldTriggerLoading) {
           if (command.triggerTypingAfter) {
             timeout = new Timers.Timeout();
             Object.defineProperty(context, 'typingTimeout', {value: timeout});
             timeout.start(command.triggerTypingAfter, async () => {
               try {
-                if (typeof(command.onTypingTrigger) === 'function') {
+                if (command && typeof(command.onTypingTrigger) === 'function') {
                   await Promise.resolve(command.onTypingTrigger(context));
-                } else {
+                } else if (shouldTriggerOnEdits || !this.replies.has(context.messageId)) {
                   await context.triggerTyping();
                 }
               } catch(error) {
@@ -868,9 +877,9 @@ export class CommandClient extends EventSpewer {
             });
           } else {
             try {
-              if (typeof(command.onTypingTrigger) === 'function') {
+              if (command && typeof(command.onTypingTrigger) === 'function') {
                 await Promise.resolve(command.onTypingTrigger(context));
-              } else {
+              } else if (shouldTriggerOnEdits || !this.replies.has(context.messageId)) {
                 await context.triggerTyping();
               }
             } catch(error) {

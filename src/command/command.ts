@@ -102,6 +102,7 @@ export interface CommandOptions extends ArgumentOptions {
   ratelimits?: Array<CommandRatelimitOptions>,
   responseOptional?: boolean,
   triggerTypingAfter?: number,
+  triggerTypingOnEdits?: boolean,
 
   onDmBlocked?: CommandCallbackDmBlocked,
   onBefore?: CommandCallbackBefore,
@@ -141,6 +142,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
   triggerTypingAfter: number = -1;
+  triggerTypingOnEdits: boolean = true;
 
   onDmBlocked?(context: Context): Promise<any | Message> | any | Message;
   onBefore?(context: Context): Promise<boolean> | boolean;
@@ -180,6 +182,10 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
 
     if (options.triggerTypingAfter !== undefined) {
       this.triggerTypingAfter = Math.max(options.triggerTypingAfter, this.triggerTypingAfter);
+    }
+
+    if (options.triggerTypingOnEdits !== undefined) {
+      this.triggerTypingOnEdits = !!options.triggerTypingOnEdits;
     }
 
     if (options._file) {
