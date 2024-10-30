@@ -189,6 +189,10 @@ export function timestamp(timestamp: Date | number | string | null, format?: Mar
   let unixTimestamp: number;
   if (timestamp) {
     if (typeof(timestamp) === 'number' || typeof(timestamp) === 'string') {
+      const timestampNumber = parseInt(timestamp as any);
+      if (!isNaN(timestampNumber)) {
+        timestamp = timestampNumber;
+      }
       timestamp = new Date(timestamp);
     }
     unixTimestamp = Math.floor(timestamp.getTime() / 1000);
