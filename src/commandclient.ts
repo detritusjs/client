@@ -455,7 +455,7 @@ export class CommandClient extends EventSpewer {
     return null;
   }
 
-  async getCommand(attributes: CommandAttributes, context: Context): Promise<Command | null> {
+  async getCommand(attributes: CommandAttributes, context?: Context): Promise<Command | null> {
     if (attributes.content) {
       const insensitive = attributes.content.toLowerCase();
       for (let command of this.commands) {
