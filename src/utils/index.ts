@@ -311,7 +311,7 @@ export function regex(
       case DiscordRegexNames.TEXT_STRIKE:
       case DiscordRegexNames.TEXT_UNDERLINE:
       case DiscordRegexNames.TEXT_URL: {
-        result.text = match[1] as string;
+        result.text = (match[1] || match[2]) as string;
       }; break;
       default: {
         throw new Error(`Unknown regex type: ${type}`);

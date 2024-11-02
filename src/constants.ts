@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.46',
+  VERSION: '0.17.0-beta.47',
 });
 
 export type Snowflake = number | string;
@@ -662,7 +662,7 @@ export const DiscordRegex = Object.freeze({
   [DiscordRegexNames.TEXT_SPOILER]: /\|\|([\s\S]+?)\|\|/g,
   [DiscordRegexNames.TEXT_STRIKE]: /~~([\s\S]+?)~~(?!_)/g,
   [DiscordRegexNames.TEXT_UNDERLINE]: /__([\s\S]+?)__/g,
-  [DiscordRegexNames.TEXT_URL]: /(?:<((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s>])>|((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s]))/g,
+  [DiscordRegexNames.TEXT_URL]: /(?:((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s])|<((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s>])>)/g,
 });
 
 
