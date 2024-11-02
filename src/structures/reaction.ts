@@ -121,6 +121,10 @@ export class Reaction extends BaseStructure {
     }
     if (DiscordKeys.COUNT_DETAILS in data) {
       (this as any)[DetritusKeys[DiscordKeys.COUNT_DETAILS]] = data[DiscordKeys.COUNT_DETAILS];
+    } else {
+      if (!(this as any)[DetritusKeys[DiscordKeys.COUNT_DETAILS]]) {
+        (this as any)[DetritusKeys[DiscordKeys.COUNT_DETAILS]] = {burst: 0, normal: 0};
+      }
     }
     if (DiscordKeys.EMOJI in data) {
       const value = data[DiscordKeys.EMOJI];
