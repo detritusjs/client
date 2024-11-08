@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.47',
+  VERSION: '0.17.0-beta.48',
 });
 
 export type Snowflake = number | string;
@@ -992,6 +992,7 @@ export enum MessageComponentButtonStyles {
   SUCCESS = 3,
   DANGER = 4,
   LINK = 5,
+  PREMIUM = 6,
 }
 
 

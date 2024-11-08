@@ -61,7 +61,6 @@ export function addQuery(url: string, query?: UrlQuery): string {
   return url;
 }
 
-
 export function anyToCamelCase(object: any, skip?: Array<string>): any {
   if (object === null) {
     return object;

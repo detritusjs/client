@@ -16,6 +16,7 @@ const keysComponentButton = new BaseSet<string>([
   DiscordKeys.DISABLED,
   DiscordKeys.EMOJI,
   DiscordKeys.LABEL,
+  DiscordKeys.SKU_ID,
   DiscordKeys.STYLE,
   DiscordKeys.TYPE,
   DiscordKeys.URL,
@@ -33,6 +34,7 @@ const keysComponentButton = new BaseSet<string>([
   disabled?: boolean;
   emoji?: null | ComponentEmojiData;
   label?: null | string;
+  skuId?: null | string;
   style: MessageComponentButtonStyles = MessageComponentButtonStyles.PRIMARY;
   type = MessageComponentTypes.BUTTON;
   url?: null | string;
@@ -63,6 +65,14 @@ const keysComponentButton = new BaseSet<string>([
 
   setLabel(label: null | string): this {
     this.merge({label});
+    return this;
+  }
+
+  setSkuId(skuId: null | string): this {
+    this.merge({skuId});
+    if (skuId) {
+      this.setStyle(MessageComponentButtonStyles.PREMIUM);
+    }
     return this;
   }
 

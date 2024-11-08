@@ -186,6 +186,10 @@ export class InteractionContextBase {
     return this.interaction.channelId;
   }
 
+  get entitlements() {
+    return this.interaction.entitlements;
+  }
+
   get guild() {
     return this.interaction.guild;
   }

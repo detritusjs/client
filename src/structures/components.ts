@@ -110,6 +110,7 @@ const keysComponentButton = new BaseSet<string>([
   DiscordKeys.DISABLED,
   DiscordKeys.EMOJI,
   DiscordKeys.LABEL,
+  DiscordKeys.SKU_ID,
   DiscordKeys.STYLE,
   DiscordKeys.TYPE,
   DiscordKeys.URL,
@@ -128,6 +129,7 @@ export class ComponentButton extends BaseStructure {
   disabled?: boolean;
   emoji?: Emoji;
   label?: string;
+  skuId?: string;
   style?: MessageComponentButtonStyles;
   type: MessageComponentTypes = MessageComponentTypes.BUTTON;
   url?: string;

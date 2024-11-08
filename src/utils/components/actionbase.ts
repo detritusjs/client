@@ -45,6 +45,7 @@ export interface ComponentActionData {
   options?: Array<ComponentSelectMenuOptionData>,
   placeholder?: string,
   required?: boolean,
+  skuId?: string,
   style?: number,
   type?: number,
   url?: string,
