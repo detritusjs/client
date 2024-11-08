@@ -44,6 +44,12 @@ const keysComponentButton = new BaseSet<string>([
     if ((data as any)[DiscordKeys.URL] && ((data as any)[DiscordKeys.CUSTOM_ID] === undefined)) {
       (data as any)[DiscordKeys.CUSTOM_ID] = null;
     }
+    if ((data as any)[DiscordKeys.SKU_ID]) {
+      (data as any)[DiscordKeys.STYLE] = MessageComponentButtonStyles.PREMIUM;
+      if ((data as any)[DiscordKeys.CUSTOM_ID] === undefined) {
+        (data as any)[DiscordKeys.CUSTOM_ID] = null;
+      }
+    }
     this.merge(data);
     this.type = MessageComponentTypes.BUTTON;
   }

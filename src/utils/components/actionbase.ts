@@ -97,7 +97,7 @@ export class ComponentActionBase extends Structure {
     if (data[DiscordKeys.EMOJI] instanceof Emoji) {
       data[DiscordKeys.EMOJI] = {animated: data.emoji.animated, id: data.emoji.id, name: data.emoji.name};
     }
-    if (data[DiscordKeys.URL] && data[DiscordKeys.CUSTOM_ID] !== undefined) {
+    if (data[DiscordKeys.CUSTOM_ID] !== undefined && (data[DiscordKeys.URL] || data[DiscordKeys.SKU_ID])) {
       data[DiscordKeys.CUSTOM_ID] = null;
     }
     return data;

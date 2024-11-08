@@ -142,7 +142,7 @@ export class ComponentButton extends BaseStructure {
   }
 
   get id(): string {
-    return this.url || this.customId || '';
+    return this.url || this.skuId || this.customId || '';
   }
 
   mergeValue(key: string, value: any): void {
