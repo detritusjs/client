@@ -45,6 +45,7 @@ export interface ComponentActionData {
   options?: Array<ComponentSelectMenuOptionData>,
   placeholder?: string,
   required?: boolean,
+  sku_id?: string,
   skuId?: string,
   style?: number,
   type?: number,
@@ -73,6 +74,9 @@ export class ComponentActionBase extends Structure {
     super();
     if (DetritusKeys[DiscordKeys.CUSTOM_ID] in data) {
       (data as any)[DiscordKeys.CUSTOM_ID] = (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]];
+    }
+    if (DetritusKeys[DiscordKeys.SKU_ID] in data) {
+      (data as any)[DiscordKeys.SKU_ID] = (data as any)[DetritusKeys[DiscordKeys.SKU_ID]];
     }
     this.run = data.run || this.run;
     this.onError = data.onError || this.onError;
