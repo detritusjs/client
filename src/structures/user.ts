@@ -210,6 +210,9 @@ export class User extends BaseStructure {
   }
 
   get names(): Array<string> {
+    if (this.globalName) {
+      return [this.globalName, this.username];
+    }
     return [this.username];
   }
 

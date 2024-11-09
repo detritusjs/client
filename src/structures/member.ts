@@ -269,9 +269,12 @@ export class Member extends UserMixin {
 
   get names(): Array<string> {
     if (this.nick) {
+      if (this.globalName) {
+        return [this.nick, this.globalName, this.username];
+      }
       return [this.nick, this.username];
     }
-    return [this.username];
+    return this.user.names;
   }
 
   get permissions(): bigint {
