@@ -88,6 +88,33 @@ export function anyToCamelCase(object: any, skip?: Array<string>): any {
 }
 
 
+// generate a waveform for discord from a mono channel Float32Array
+export function generateWaveform(samples: Float32Array, sampleRate: number = 48000): string {
+  // Calculate number of points (1 points per 100ms, limited to 256 datapoints)
+  const numPoints = Math.min(Math.floor(samples.length / (sampleRate / 10)), 256);
+  const samplesPerPoint = Math.floor(samples.length / numPoints);
+
+  const waveformPoints = new Uint8Array(numPoints);
+  for (let i = 0; i < numPoints; i++) {
+    const startIndex = Math.floor(i * samples.length / numPoints);
+    const endIndex = Math.floor((i + 1) * samples.length / numPoints);
+
+    // Find peak amplitude in this segment
+    let maxAmplitude = 0;
+    for (let j = startIndex; j < endIndex; j++) {
+      const amplitude = Math.abs(samples[j]);
+      if (maxAmplitude < amplitude) {
+        maxAmplitude = amplitude;
+      }
+    }
+
+    // Scale to 0-255
+    waveformPoints[i] = Math.min(255, Math.floor(maxAmplitude * 255));
+  }
+  return Buffer.from(waveformPoints).toString('base64');
+}
+
+
 export function getAcronym(name?: string): string {
   if (name != null) {
     return name.replace(/\w+/g, match => match[0]).replace(/\s/g, '');

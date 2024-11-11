@@ -191,7 +191,7 @@ export class Message extends BaseStructure {
   }
 
   get canEdit(): boolean {
-    if (this.hasFlagEphemeral) {
+    if (this.hasFlagEphemeral || this.hasFlagIsVoiceMessage) {
       return false;
     }
     if (this.fromMe || this.canManage) {
@@ -318,6 +318,10 @@ export class Message extends BaseStructure {
 
   get hasFlagIsCrossposted(): boolean {
     return this.hasFlag(MessageFlags.IS_CROSSPOST);
+  }
+
+  get hasFlagIsVoiceMessage(): boolean {
+    return this.hasFlag(MessageFlags.IS_VOICE_MESSAGE);
   }
 
   get hasFlagLoading(): boolean {

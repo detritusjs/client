@@ -4,7 +4,7 @@
     "url": "https://github.com/detritusjs/client/issues"
   },
   "dependencies": {
-    "detritus-client-rest": "^0.11.0-beta.16",
+    "detritus-client-rest": "^0.11.0-beta.19",
     "detritus-client-socket": "^0.9.0-beta.5",
     "detritus-utils": "^0.4.0"
   },
@@ -53,5 +53,5 @@
     "typedoc": "typedoc"
   },
   "types": "lib/index.d.ts",
-  "version": "0.17.0-beta.51"
+  "version": "0.17.0-beta.54"
 }
