@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.54',
+  VERSION: '0.17.0-beta.56',
 });
 
 export type Snowflake = number | string;
@@ -1771,6 +1771,7 @@ export const DiscordKeys = Object.freeze({
   DM_PERMISSION: 'dm_permission',
   DURATION: 'duration',
   DURATION_SECONDS: 'duration_seconds',
+  DURATION_SECS: 'duration_secs',
   EDITED_TIMESTAMP: 'edited_timestamp',
   EMAIL: 'email',
   EMBEDS: 'embeds',
@@ -2120,6 +2121,7 @@ export const DiscordKeys = Object.freeze({
   VIP: 'vip',
   VISIBILITY: 'visibility',
   VOICE_STATES: 'voice_states',
+  WAVEFORM: 'waveform',
   WEB: 'web',
   WEBHOOK_ID: 'webhook_id',
   WELCOME_CHANNELS: 'welcome_channels',
@@ -2255,6 +2257,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DM_PERMISSION]: 'dmPermission',
   [DiscordKeys.DURATION]: 'duration',
   [DiscordKeys.DURATION_SECONDS]: 'durationSeconds',
+  [DiscordKeys.DURATION_SECS]: 'durationSecs',
   [DiscordKeys.EDITED_TIMESTAMP]: 'editedTimestamp',
   [DiscordKeys.EMAIL]: 'email',
   [DiscordKeys.EMBEDS]: 'embeds',
@@ -2604,6 +2607,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.VIP]: 'vip',
   [DiscordKeys.VISIBILITY]: 'visibility',
   [DiscordKeys.VOICE_STATES]: 'voiceStates',
+  [DiscordKeys.WAVEFORM]: 'waveform',
   [DiscordKeys.WEB]: 'web',
   [DiscordKeys.WEBHOOK_ID]: 'webhookId',
   [DiscordKeys.WELCOME_CHANNELS]: 'welcomeChannels',

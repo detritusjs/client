@@ -187,6 +187,10 @@ export class Context {
     return this.message.canDelete;
   }
 
+  get canEdit() {
+    return this.message.canEdit;
+  }
+
   get canManage() {
     return this.message.canManage;
   }
@@ -308,7 +312,8 @@ export class Context {
       options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
 
       const old = this.commandClient.replies.get(this.messageId)!;
-      if (options.activity || options.applicationId) {
+      if (!old.reply.canEdit || options.activity || options.applicationId) {
+        // maybe add checks for flag IS_VOICE_MESSAGE since you cant edit that flag in
         if (options.delete || options.delete === undefined) {
           await old.reply.delete();
         }

@@ -91,6 +91,7 @@ export const MimeClassTypes: Array<{
 const keysAttachment = new BaseSet<string>([
   DiscordKeys.CONTENT_TYPE,
   DiscordKeys.DESCRIPTION,
+  DiscordKeys.DURATION_SECS,
   DiscordKeys.EPHEMERAL,
   DiscordKeys.FILENAME,
   DiscordKeys.HEIGHT,
@@ -98,6 +99,7 @@ const keysAttachment = new BaseSet<string>([
   DiscordKeys.PROXY_URL,
   DiscordKeys.SIZE,
   DiscordKeys.URL,
+  DiscordKeys.WAVEFORM,
   DiscordKeys.WIDTH,
 ]);
 
@@ -111,6 +113,7 @@ export class Attachment extends BaseStructure {
 
   contentType?: string;
   description?: string;
+  durationSecs?: number;
   ephemeral: boolean = false;
   filename: string = '';
   height: number = 0;
@@ -118,6 +121,7 @@ export class Attachment extends BaseStructure {
   proxyUrl: string = '';
   size: number = 0;
   url: string = '';
+  waveform?: string;
   width: number = 0;
 
   constructor(
@@ -195,6 +199,9 @@ export class Attachment extends BaseStructure {
     if (DiscordKeys.DESCRIPTION in data) {
       (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
     }
+    if (DiscordKeys.DURATION_SECS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DURATION_SECS]] = data[DiscordKeys.DURATION_SECS];
+    }
     if (DiscordKeys.EPHEMERAL in data) {
       (this as any)[DetritusKeys[DiscordKeys.EPHEMERAL]] = data[DiscordKeys.EPHEMERAL];
     }
@@ -215,6 +222,9 @@ export class Attachment extends BaseStructure {
     }
     if (DiscordKeys.URL in data) {
       (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+    }
+    if (DiscordKeys.WAVEFORM in data) {
+      (this as any)[DetritusKeys[DiscordKeys.WAVEFORM]] = data[DiscordKeys.WAVEFORM];
     }
     if (DiscordKeys.WIDTH in data) {
       (this as any)[DetritusKeys[DiscordKeys.WIDTH]] = data[DiscordKeys.WIDTH];
