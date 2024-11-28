@@ -74,7 +74,7 @@ export class StickerItem extends BaseStructure {
     if (!format) {
       format = this.format;
     }
-    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.STICKER(this.id, this.format), query);
+    return addQuery(Endpoints.Urls.MEDIA + Endpoints.CDN.STICKER(this.id, this.format), query);
   }
 
   toString(): string {
