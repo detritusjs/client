@@ -74,7 +74,10 @@ export class StickerItem extends BaseStructure {
     if (!format) {
       format = this.format;
     }
-    return addQuery(Endpoints.Urls.MEDIA.slice(0, -1) + Endpoints.CDN.STICKER(this.id, this.format), query);
+    if (this.formatType === StickerFormats.GIF) {
+      return addQuery(Endpoints.Urls.MEDIA.slice(0, -1) + Endpoints.CDN.STICKER(this.id, this.format), query);
+    }
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.STICKER(this.id, this.format), query);
   }
 
   toString(): string {
