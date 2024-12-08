@@ -13,6 +13,7 @@ import {
   InteractionContextTypes,
   InteractionTypes,
   MessageComponentTypes,
+  Permissions,
   INTERACTION_TIMEOUT,
 } from '../constants';
 import { InteractionModal, Snowflake } from '../utils';
@@ -40,6 +41,7 @@ const DEFERRED_TYPES = Object.freeze([
 ]);
 
 const keysInteraction = new BaseSet<string>([
+  DiscordKeys.APP_PERMISSIONS,
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS,
   DiscordKeys.CHANNEL,
@@ -71,6 +73,7 @@ export class Interaction extends BaseStructure {
   _entitlements?: BaseCollection<string, Entitlement>;
   _responding: Promise<boolean> | null = null;
 
+  appPermissions: bigint = Permissions.NONE;
   applicationId: string = '';
   authorizingIntegrationOwners: Partial<Record<ApplicationIntegrationTypes, string>> = {};
   channelId?: string;
@@ -303,6 +306,10 @@ export class Interaction extends BaseStructure {
       return;
     }
 
+    if (DiscordKeys.APP_PERMISSIONS in data) {
+      const value = data[DiscordKeys.APP_PERMISSIONS];
+      (this as any)[DetritusKeys[DiscordKeys.APP_PERMISSIONS]] = BigInt(value);
+    }
     if (DiscordKeys.APPLICATION_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
     }

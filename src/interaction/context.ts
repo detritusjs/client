@@ -174,6 +174,10 @@ export class InteractionContextBase {
     return this.interaction._responding;
   }
 
+  get appPermissions() {
+    return this.interaction.appPermissions;
+  }
+
   get data() {
     return this.interaction.data as InteractionDataApplicationCommand;
   }
