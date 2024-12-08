@@ -168,17 +168,10 @@ export class Argument {
     const info = {index: -1, name: ''};
 
     for (let name of this.names) {
-      let index = content.indexOf(name);
-      while (index !== -1) {
-        if (index !== -1 && content[index - 1] && !content[index - 1].trim()) {
-          // see if the character before is a whitespace, else continue
-          info.index = index;
-          info.name = name;
-          break;
-        }
-        index = content.indexOf(name, index);
-      }
+      const index = content.indexOf(name);
       if (index !== -1) {
+        info.index = index;
+        info.name = name;
         break;
       }
     }
