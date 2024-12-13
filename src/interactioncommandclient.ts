@@ -601,7 +601,13 @@ export class InteractionCommandClient extends EventSpewer {
                   value = resolved.users.get(value);
                 }
               }; break;
-              case ApplicationCommandOptionTypes.NUMBER: value = BigInt(value); break;
+              case ApplicationCommandOptionTypes.NUMBER: {
+                if ('.' in value) {
+                  value = parseFloat(value);
+                } else {
+                  value = BigInt(value);
+                }
+              }; break;
               case ApplicationCommandOptionTypes.ROLE: {
                 if (resolved.roles) {
                   value = resolved.roles.get(value) || value;
