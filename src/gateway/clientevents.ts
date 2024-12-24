@@ -7,6 +7,7 @@ import { BaseCollection } from '../collections/basecollection';
 import { ChannelTypes, ClientEvents, ReactionTypes } from '../constants';
 import {
   ApplicationCommand,
+  ApplicationCommandPermissions,
   AuditLog,
   Channel,
   Emoji,
@@ -88,6 +89,12 @@ export namespace GatewayClientEvents {
 
   export interface ApplicationCommandUpdate extends ApplicationCommandCreate {
     _raw: GatewayRawEvents.ApplicationCommandUpdate,
+  }
+
+  export interface ApplicationCommandPermissionsUpdate {
+    differences: Differences,
+    permission: ApplicationCommandPermissions,
+    old: ApplicationCommandPermissions | null,
   }
 
   export interface BraintreePopupBridgeCallback {

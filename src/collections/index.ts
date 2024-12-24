@@ -1,3 +1,4 @@
+export * from './applicationcommandpermissions';
 export * from './applicationemojis';
 export * from './applications';
 export * from './basecollection';

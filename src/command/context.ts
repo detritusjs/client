@@ -102,6 +102,10 @@ export class Context {
   }
 
   /* Client Collections */
+  get applicationCommandPermissions() {
+    return this.client.applicationCommandPermissions;
+  }
+
   get applicationEmojis() {
     return this.client.applicationEmojis;
   }
@@ -310,7 +314,6 @@ export class Context {
     let reply: Message;
     if (this.commandClient.replies.has(this.messageId)) {
       options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
-
       const old = this.commandClient.replies.get(this.messageId)!;
       if (!old.reply.canEdit || options.activity || options.applicationId) {
         // maybe add checks for flag IS_VOICE_MESSAGE since you cant edit that flag in

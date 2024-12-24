@@ -21,6 +21,8 @@ import {
   BaseStructure,
   BaseStructureData,
 } from './basestructure';
+import { Channel } from './channel';
+import { Member } from './member';
 import { User } from './user';
 
 
@@ -308,6 +310,59 @@ export class ApplicationCommandPermissions extends BaseStructure {
     this.merge(data);
   }
 
+  get allChannelsId(): string {
+    return String(BigInt(this.guildId) - 1n);
+  }
+
+  isAllowed(channel: Channel, member: Member) {
+    if (member.canAdministrator) {
+      return true;
+    }
+
+    // channel id and role id can be the same for old guilds
+    if (this.permissions.has(channel.id) && !this.permissions.get(channel.id)!.permission) {
+      return false;
+    }
+
+    if (channel.parentId && this.permissions.has(channel.parentId) && !this.permissions.get(channel.parentId)!.permission) {
+      return false;
+    }
+
+    const allChannelsId = this.allChannelsId;
+    if (this.permissions.has(allChannelsId) && !this.permissions.get(allChannelsId)!.permission) {
+      return false;
+    }
+
+    if (this.permissions.has(member.id)) {
+      return this.permissions.get(member.id)!.permission;
+    }
+
+    let isRoleAllowed: boolean | null = null;
+    for (let [commandPermissionId, commandPermission] of this.permissions) {
+      switch (commandPermission.type) {
+        case ApplicationCommandPermissionTypes.ROLE: {
+          if (member.roles.has(commandPermission.id)) {
+            isRoleAllowed = isRoleAllowed || commandPermission.permission;
+          }
+        }; break;
+      }
+      if (isRoleAllowed) {
+        break;
+      }
+    }
+
+    if (isRoleAllowed !== null) {
+      return isRoleAllowed;
+    }
+
+    // channel id and role id can be the same for old guilds
+    if (this.permissions.has(this.guildId)) {
+      return this.permissions.get(this.guildId)!.permission;
+    }
+
+    return true;
+  }
+
   mergeValue(key: string, value: any): void {
     switch (key) {
       case DiscordKeys.PERMISSIONS: {
@@ -346,6 +401,18 @@ export class ApplicationCommandPermission extends BaseStructure {
     this.commandPermissions = commandPermissions;
     this.merge(data);
     Object.defineProperty(this, 'commandPermissions', {enumerable: false});
+  }
+
+  isForAllChannels(): boolean {
+    return this.isChannel && this.id === this.commandPermissions.allChannelsId;
+  }
+
+  isForEveryoneRole(): boolean {
+    return this.isRole && this.id === this.commandPermissions.guildId;
+  }
+
+  get isChannel(): boolean {
+    return this.type === ApplicationCommandPermissionTypes.CHANNEL;
   }
 
   get isRole(): boolean {

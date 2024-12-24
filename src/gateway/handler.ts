@@ -15,6 +15,7 @@ import { GatewayError, GatewayHTTPError } from '../errors';
 
 import {
   ApplicationCommand,
+  ApplicationCommandPermissions,
   AuditLog,
   Channel,
   ChannelDM,
@@ -334,6 +335,33 @@ export class GatewayDispatchHandler {
     const command = new ApplicationCommand(this.client, data);
     const payload: GatewayClientEvents.ApplicationCommandUpdate = {_raw: data, command};
     this.client.emit(ClientEvents.APPLICATION_COMMAND_UPDATE, payload);
+  }
+
+  [GatewayDispatchEvents.APPLICATION_COMMAND_PERMISSIONS_UPDATE](data: GatewayRawEvents.ApplicationCommandPermissionsUpdate) {
+    let permission: ApplicationCommandPermissions;
+    let differences: GatewayClientEvents.Differences = null;
+    let old: ApplicationCommandPermissions | null = null;
+
+    const isListening = this.client.hasEventListener(ClientEvents.APPLICATION_COMMAND_PERMISSIONS_UPDATE);
+    if (this.client.applicationCommandPermissions.has(data['guild_id'], data['id'])) {
+      permission = this.client.applicationCommandPermissions.get(data['guild_id'], data['id'])!;
+      if (isListening) {
+        differences = permission.differences(data);
+        old = permission.clone();
+      }
+      permission.merge(data);
+      if (!permission.permissions.length) {
+        this.client.applicationCommandPermissions.delete(permission.guildId, permission.id);
+      }
+    } else {
+      permission = new ApplicationCommandPermissions(this.client, data);
+      if (this.client.applicationCommandPermissions.has(permission.guildId)) {
+        this.client.applicationCommandPermissions.insert(permission); 
+      }
+    }
+
+    const payload: GatewayClientEvents.ApplicationCommandPermissionsUpdate = {differences, permission, old};
+    this.client.emit(ClientEvents.APPLICATION_COMMAND_PERMISSIONS_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.CALL_CREATE](data: GatewayRawEvents.CallCreate) {

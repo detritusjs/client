@@ -56,6 +56,17 @@ export namespace GatewayRawEvents {
     
   }
 
+  export interface ApplicationCommandPermissionsUpdate {
+    application_id: string,
+    guild_id: string,
+    id: string,
+    permissions: Array<{
+      id: string,
+      permission: boolean,
+      type: number,
+    }>
+  }
+
   export interface BraintreePopupBridgeCallback {
     path: string,
     query: any,

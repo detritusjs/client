@@ -432,7 +432,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     return typeof(this.run) === 'function';
   }
 
-  get invokers(): Array<InteractionCommand | InteractionCommandOptions> {
+  get invokers(): Array<InteractionCommand | InteractionCommandOption> {
     if (this._options && this.isGroup) {
       return this._options.map((option) => option.invokers).flat();
     }

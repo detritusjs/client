@@ -89,6 +89,10 @@ export class InteractionContextBase {
   }
 
   /* Client Collections */
+  get applicationCommandPermissions() {
+    return this.client.applicationCommandPermissions;
+  }
+
   get applicationEmojis() {
     return this.client.applicationEmojis;
   }
