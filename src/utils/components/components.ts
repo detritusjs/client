@@ -87,6 +87,10 @@ export class Components extends Structure {
     return false;
   }
 
+  get length(): number {
+    return this.components.length;
+  }
+
   addActionRow(data: ComponentActionRow | ComponentActionRowData = {}): this {
     if (data instanceof ComponentActionRow) {
       this.components.push(data);

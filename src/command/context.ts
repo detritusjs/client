@@ -5,7 +5,8 @@ import { ShardClient } from '../client';
 import { ClusterClient } from '../clusterclient';
 import { ClusterProcessChild } from '../cluster/processchild';
 import { CommandClient, CommandReply } from '../commandclient';
-import { MAX_ATTACHMENT_SIZE } from '../constants';
+import { MessageFlags, MAX_ATTACHMENT_SIZE } from '../constants';
+import { Components } from '../utils';
 
 import { Message, Typing, MessageReplyOptions } from '../structures';
 
@@ -315,7 +316,33 @@ export class Context {
     if (this.commandClient.replies.has(this.messageId)) {
       options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
       const old = this.commandClient.replies.get(this.messageId)!;
-      if (!old.reply.canEdit || options.activity || options.applicationId) {
+
+      let shouldReplyWithNew = !old.reply.canEdit || options.activity || options.applicationId;
+      if (!shouldReplyWithNew) {
+        // you can edit from non-components-v2 to components-v2, but not the other way around
+        // must have empty embeds and content though if you do
+        if (old.reply.hasFlagComponentsV2) {
+          if (options.content || (options.embeds && options.embeds.length)) {
+            shouldReplyWithNew = true;
+          }
+        } else {
+          if (options.flags && (options.flags & MessageFlags.IS_COMPONENTS_V2)) {
+            // set content and embeds to empty
+            options.content = '';
+            options.embeds = [];
+          } else if (options.components instanceof Components) {
+            if (options.components.isV2) {
+              // set content and embeds to empty
+              options.content = '';
+              options.embeds = [];
+            }
+          } else {
+            // convert options.components to Components object then use `.isV2`
+          }
+        }
+      }
+
+      if (shouldReplyWithNew) {
         // maybe add checks for flag IS_VOICE_MESSAGE since you cant edit that flag in
         if (options.delete || options.delete === undefined) {
           await old.reply.delete();
