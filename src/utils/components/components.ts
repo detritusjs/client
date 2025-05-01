@@ -11,6 +11,7 @@ import { ComponentButton } from './button';
 import { ComponentContext } from './context';
 import { ComponentFile, ComponentFileData } from './file';
 import { ComponentInputText } from './inputtext';
+import { ComponentMediaGallery, ComponentMediaGalleryData } from './mediagallery';
 import { ComponentSection, ComponentSectionData } from './section';
 import { ComponentSelectMenu } from './selectmenu';
 import { ComponentSeparator, ComponentSeparatorData } from './separator';
@@ -26,6 +27,7 @@ export interface ComponentsOptions {
   components?: Array<
     ComponentActionRow | ComponentActionRowData |
     ComponentFile | ComponentFileData |
+    ComponentMediaGallery | ComponentMediaGalleryData |
     ComponentSection | ComponentSectionData |
     ComponentSeparator | ComponentSeparatorData |
     ComponentTextDisplay | ComponentTextDisplayData
@@ -52,7 +54,7 @@ export class Components extends Structure {
   readonly _keys = keysComponents;
   _timeout?: Timers.Timeout;
 
-  components: Array<ComponentActionRow | ComponentFile | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];
+  components: Array<ComponentActionRow | ComponentFile | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];
   id?: string;
   timeout: number = 10 * (60 * 1000); // 10 minutes
 
@@ -73,6 +75,7 @@ export class Components extends Structure {
     for (let component of this.components) {
       switch (component.type) {
         case MessageComponentTypes.FILE: return true;
+        case MessageComponentTypes.MEDIA_GALLERY: return true;
         case MessageComponentTypes.SECTION: return true;
         case MessageComponentTypes.SEPARATOR: return true;
         case MessageComponentTypes.TEXT_DISPLAY: return true;
@@ -115,6 +118,15 @@ export class Components extends Structure {
   addInputText(data: ComponentInputText | ComponentActionData = {}): this {
     const actionRow = this.createActionRow();
     actionRow.addInputText(data);
+    return this;
+  }
+
+  addMediaGallery(data: ComponentMediaGallery | ComponentMediaGalleryData = {}): this {
+    if (data instanceof ComponentMediaGallery) {
+      this.components.push(data);
+    } else {
+      this.createMediaGallery(data);
+    }
     return this;
   }
 
@@ -184,6 +196,12 @@ export class Components extends Structure {
     return actionRow.createInputText(data);
   }
 
+  createMediaGallery(data: ComponentMediaGalleryData = {}): ComponentMediaGallery {
+    const mediaGallery = new ComponentMediaGallery(data);
+    this.components.push(mediaGallery);
+    return mediaGallery;
+  }
+
   createSection(data: ComponentSectionData = {}): ComponentSection {
     const section = new ComponentSection(data);
     this.components.push(section);
@@ -219,8 +237,8 @@ export class Components extends Structure {
       for (let raw of value) {
         if (
           raw instanceof ComponentActionRow || raw instanceof ComponentFile ||
-          raw instanceof ComponentSection || raw instanceof ComponentSeparator ||
-          raw instanceof ComponentTextDisplay
+          raw instanceof ComponentMediaGallery || raw instanceof ComponentSection ||
+          raw instanceof ComponentSeparator || raw instanceof ComponentTextDisplay
         ) {
           this.components.push(raw);
         } else {
@@ -231,6 +249,10 @@ export class Components extends Structure {
             }; break;
             case MessageComponentTypes.FILE: {
               const component = new ComponentFile(raw);
+              this.components.push(component);
+            }; break;
+            case MessageComponentTypes.MEDIA_GALLERY: {
+              const component = new ComponentMediaGallery(raw);
               this.components.push(component);
             }; break;
             case MessageComponentTypes.SECTION: {

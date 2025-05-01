@@ -13,6 +13,7 @@ export * from './components';
 export * from './context';
 export * from './file';
 export * from './inputtext';
+export * from './mediagallery';
 export * from './section';
 export * from './selectmenu';
 export * from './separator';

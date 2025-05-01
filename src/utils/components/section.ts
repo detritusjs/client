@@ -78,6 +78,10 @@ const keysComponentSection = new BaseSet<string>([
     return this;
   }
 
+  clear() {
+    this.components.length = 0;
+  }
+
   createAccessoryButton(data: ComponentActionData = {}): ComponentButton {
     const component = new ComponentButton(data);
     this.setAccessory(component);
@@ -138,7 +142,7 @@ const keysComponentSection = new BaseSet<string>([
     if (DiscordKeys.COMPONENTS in data) {
       const value = data[DiscordKeys.COMPONENTS];
 
-      this.components.length = 0;
+      this.clear();
       for (let raw of value) {
         this.addTextDisplay(raw);
       }
