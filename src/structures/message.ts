@@ -13,6 +13,7 @@ import {
   DiscordRegex,
   DiscordRegexNames,
   InteractionTypes,
+  MessageComponentTypes,
   MessageFlags,
   MessagePollLayoutTypes,
   MessageReferenceTypes,
@@ -31,7 +32,17 @@ import {
 import { Application } from './application';
 import { Attachment } from './attachment';
 import { Channel, ChannelGuildThread, ChannelTextType, createChannelFromData } from './channel';
-import { ComponentActionRow } from './components';
+import {
+  ComponentsTopLevel,
+  ComponentActionRow,
+  ComponentContainer,
+  ComponentFile,
+  ComponentMediaGallery,
+  ComponentSection,
+  ComponentSeparator,
+  ComponentTextDisplay,
+  ComponentUnknown,
+} from './components';
 import { Emoji } from './emoji';
 import { Guild } from './guild';
 import { Member } from './member';
@@ -105,7 +116,7 @@ export class Message extends BaseStructure {
   readonly _keysSkipDifference = keysSkipDifferenceMessage;
   _content = '';
   _attachments?: BaseCollection<string, Attachment>;
-  _components?: BaseCollection<number, ComponentActionRow>;
+  _components?: BaseCollection<number, ComponentsTopLevel>;
   _embeds?: BaseCollection<number, MessageEmbed>;
   _mentions?: BaseCollection<string, Member | User>;
   _mentionChannels?: BaseCollection<string, Channel>;
@@ -230,7 +241,7 @@ export class Message extends BaseStructure {
     return null;
   }
 
-  get components(): BaseCollection<number, ComponentActionRow> {
+  get components(): BaseCollection<number, ComponentsTopLevel> {
     if (this._components) {
       return this._components;
     }
@@ -302,6 +313,10 @@ export class Message extends BaseStructure {
 
   get hasAttachment(): boolean {
     return !!(this.attachments.length || this.embeds.some((embed) => embed.hasAttachment));
+  }
+
+  get hasFlagComponentsV2(): boolean {
+    return this.hasFlag(MessageFlags.IS_COMPONENTS_V2);
   }
 
   get hasFlagCrossposted(): boolean {
@@ -800,11 +815,40 @@ export class Message extends BaseStructure {
       const value = data[DiscordKeys.COMPONENTS];
       if (value.length) {
         if (!this._components) {
-          this._components = new BaseCollection<number, ComponentActionRow>();
+          this._components = new BaseCollection<number, ComponentsTopLevel>();
         }
         this._components.clear();
         for (let i = 0; i < value.length; i++) {
-          this._components.set(i, new ComponentActionRow(this.client, value[i]));
+          const raw = value[i];
+
+          let component: ComponentsTopLevel;
+          switch (raw.type) {
+            case MessageComponentTypes.ACTION_ROW: {
+              component = new ComponentActionRow(this.client, raw, this._clone)
+            }; break;
+            case MessageComponentTypes.CONTAINER: {
+              component = new ComponentContainer(this.client, raw, this._clone)
+            }; break;
+            case MessageComponentTypes.FILE: {
+              component = new ComponentFile(this.client, raw, this._clone)
+            }; break;
+            case MessageComponentTypes.MEDIA_GALLERY: {
+              component = new ComponentMediaGallery(this.client, raw, this._clone)
+            }; break;
+            case MessageComponentTypes.SECTION: {
+              component = new ComponentSection(this.client, raw, this._clone)
+            }; break;
+            case MessageComponentTypes.SEPARATOR: {
+              component = new ComponentSeparator(this.client, raw, this._clone)
+            }; break;
+            case MessageComponentTypes.TEXT_DISPLAY: {
+              component = new ComponentTextDisplay(this.client, raw, this._clone)
+            }; break;
+            default: {
+              component = new ComponentUnknown(this.client, raw, this._clone)
+            };
+          }
+          this._components.set(i, component);
         }
       } else {
         if (this._components) {

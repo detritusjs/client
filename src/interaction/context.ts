@@ -182,6 +182,10 @@ export class InteractionContextBase {
     return this.interaction.appPermissions;
   }
 
+  get attachmentSizeLimit() {
+    return this.interaction.attachmentSizeLimit;
+  }
+
   get data() {
     return this.interaction.data as InteractionDataApplicationCommand;
   }
@@ -243,6 +247,9 @@ export class InteractionContextBase {
   }
 
   get maxAttachmentSize(): number {
+    if (this.attachmentSizeLimit) {
+      return this.attachmentSizeLimit;
+    }
     const guild = this.guild;
     if (guild) {
       return guild.maxAttachmentSize;

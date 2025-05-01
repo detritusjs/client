@@ -43,6 +43,7 @@ const DEFERRED_TYPES = Object.freeze([
 const keysInteraction = new BaseSet<string>([
   DiscordKeys.APP_PERMISSIONS,
   DiscordKeys.APPLICATION_ID,
+  DiscordKeys.ATTACHMENT_SIZE_LIMIT,
   DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS,
   DiscordKeys.CHANNEL,
   DiscordKeys.CHANNEL_ID,
@@ -75,6 +76,7 @@ export class Interaction extends BaseStructure {
 
   appPermissions: bigint = Permissions.NONE;
   applicationId: string = '';
+  attachmentSizeLimit: number = 0;
   authorizingIntegrationOwners: Partial<Record<ApplicationIntegrationTypes, string>> = {};
   channelId?: string;
   context?: InteractionContextTypes;
@@ -312,6 +314,9 @@ export class Interaction extends BaseStructure {
     }
     if (DiscordKeys.APPLICATION_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.ATTACHMENT_SIZE_LIMIT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ATTACHMENT_SIZE_LIMIT]] = data[DiscordKeys.ATTACHMENT_SIZE_LIMIT];
     }
     if (DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS in data) {
       const value = data[DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS];

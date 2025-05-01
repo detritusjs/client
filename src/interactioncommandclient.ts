@@ -602,6 +602,7 @@ export class InteractionCommandClient extends EventSpewer {
                 }
               }; break;
               case ApplicationCommandOptionTypes.NUMBER: {
+                value = String(value);
                 if ('.' in value) {
                   value = parseFloat(value);
                 } else {

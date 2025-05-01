@@ -261,73 +261,104 @@ export function intToRGB(int: number): {
 }
 
 
-export interface DiscordRegexMatch {
-  animated?: boolean,
-  channelId?: string,
-  guildId?: string,
-  id?: string,
-  language?: string,
-  matched: string,
-  mentionType?: string,
-  messageId?: string,
-  name?: string,
-  text?: string,
+export interface DiscordRegexPayloadEmoji {
+  match: {regex: RegExp, type: DiscordRegexNames.EMOJI},
+  matches: Array<{animated: boolean, matched: string, name: string, id: string}>,
 }
 
-export interface DiscordRegexPayload {
-  match: {
-    regex: RegExp,
-    type: string,
-  },
-  matches: Array<DiscordRegexMatch>,
+export interface DiscordRegexPayloadJumpChannel {
+  match: {regex: RegExp, type: DiscordRegexNames.JUMP_CHANNEL},
+  matches: Array<{channelId: string, guildId: string, matched: string}>,
 }
+
+export interface DiscordRegexPayloadJumpChannelMessage {
+  match: {regex: RegExp, type: DiscordRegexNames.JUMP_CHANNEL_MESSAGE},
+  matches: Array<{channelId: string, guildId: string, matched: string, messageId: string}>,
+}
+
+export interface DiscordRegexPayloadMentionChannelOrRole {
+  match: {regex: RegExp, type: DiscordRegexNames.MENTION_CHANNEL | DiscordRegexNames.MENTION_ROLE},
+  matches: Array<{id: string, matched: string}>,
+}
+
+export interface DiscordRegexPayloadMentionUser {
+  match: {regex: RegExp, type: DiscordRegexNames.MENTION_USER},
+  matches: Array<{id: string, matched: string, mentionType: string}>,
+}
+
+export interface DiscordRegexPayloadTextCodeblock {
+  match: {regex: RegExp, type: DiscordRegexNames.TEXT_CODEBLOCK},
+  matches: Array<{language: string, matched: string, text: string}>,
+}
+
+export interface DiscordRegexPayloadTextGeneric {
+  match: {regex: RegExp, type: (
+    DiscordRegexNames.TEXT_BOLD | DiscordRegexNames.TEXT_CODESTRING |
+    DiscordRegexNames.TEXT_ITALICS | DiscordRegexNames.TEXT_SNOWFLAKE |
+    DiscordRegexNames.TEXT_SPOILER | DiscordRegexNames.TEXT_STRIKE |
+    DiscordRegexNames.TEXT_UNDERLINE | DiscordRegexNames.TEXT_URL
+  )},
+  matches: Array<{matched: string, text: string}>,
+}
+
+export interface DiscordRegexPayloadTimestamp {
+  match: {regex: RegExp, type: DiscordRegexNames.TIMESTAMP},
+  matches: Array<{format?: string, matched: string, timestamp: string}>,
+}
+
+export type DiscordRegexPayload = (
+  DiscordRegexPayloadEmoji | DiscordRegexPayloadJumpChannel | DiscordRegexPayloadJumpChannelMessage |
+  DiscordRegexPayloadMentionChannelOrRole | DiscordRegexPayloadMentionUser | DiscordRegexPayloadTextCodeblock |
+  DiscordRegexPayloadTextGeneric | DiscordRegexPayloadTimestamp
+);
+
 
 export function regex(
-  type: string,
+  regexName: string,
   content: string,
   onlyFirst: boolean = false,
 ): DiscordRegexPayload {
-  type = String(type || '').toUpperCase();
-  const regex = (DiscordRegex as any)[type];
+  const type = String(regexName || '').toUpperCase() as DiscordRegexNames;
+  const regex = DiscordRegex[type];
   if (regex === undefined) {
     throw new Error(`Unknown regex type: ${type}`);
   }
   regex.lastIndex = 0;
 
-  const payload: DiscordRegexPayload = {
+  const payload: any = {
     match: {regex, type},
     matches: [],
   };
 
   let match: RegExpExecArray | null = null;
   while (match = regex.exec(content)) {
-    const result: DiscordRegexMatch = {matched: match[0]};
+    const result: any = {matched: match[0]};
     switch (type) {
       case DiscordRegexNames.EMOJI: {
         result.animated = !!match[1];
-        result.name = match[2] as string;
-        result.id = match[3] as string;
+        result.name = match[2]!;
+        result.id = match[3]!;
       }; break;
       case DiscordRegexNames.JUMP_CHANNEL: {
-        result.guildId = match[1] as string;
-        result.channelId = match[2] as string;
+        result.guildId = match[1]!;
+        result.channelId = match[2]!;
       }; break;
       case DiscordRegexNames.JUMP_CHANNEL_MESSAGE: {
-        result.guildId = match[1] as string;
-        result.channelId = match[2] as string;
-        result.messageId = match[3] as string;
+        result.guildId = match[1]!;
+        result.channelId = match[2]!;
+        result.messageId = match[3]!;
       }; break;
       case DiscordRegexNames.MENTION_CHANNEL:
       case DiscordRegexNames.MENTION_ROLE: {
-        result.id = match[1] as string;
+        result.id = match[1]!;
       }; break;
       case DiscordRegexNames.MENTION_USER: {
-        result.id = match[2] as string;
-        result.mentionType = match[1] as string;
+        result.id = match[2]!;
+        result.mentionType = match[1]!;
       }; break;
       case DiscordRegexNames.TEXT_CODEBLOCK: {
-        result.language = match[2] as string;
-        result.text = match[3] as string;
+        result.language = match[2]!;
+        result.text = match[3]!;
       }; break;
       case DiscordRegexNames.TEXT_BOLD:
       case DiscordRegexNames.TEXT_CODESTRING:
@@ -337,7 +368,11 @@ export function regex(
       case DiscordRegexNames.TEXT_STRIKE:
       case DiscordRegexNames.TEXT_UNDERLINE:
       case DiscordRegexNames.TEXT_URL: {
-        result.text = (match[1] || match[2]) as string;
+        result.text = (match[1] || match[2])!;
+      }; break;
+      case DiscordRegexNames.TIMESTAMP: {
+        result.timestamp = match[1]!;
+        result.format = match[2] || undefined;
       }; break;
       default: {
         throw new Error(`Unknown regex type: ${type}`);
