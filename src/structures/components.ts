@@ -978,6 +978,30 @@ export class ComponentUnfurledMedia extends BaseStructure {
     this.merge(data);
   }
 
+  get extension(): string {
+    return this.filename.split('.').pop()!;
+  }
+
+  get filename(): string {
+    return this.url.split('?').shift()!.split('/').pop()!;
+  }
+
+  get isAudio(): boolean {
+    return !!this.contentType && this.contentType.startsWith('audio/');
+  }
+
+  get isImage(): boolean {
+    return !!this.contentType && this.contentType.startsWith('image/');
+  }
+
+  get isText(): boolean {
+    return !!this.contentType && (this.contentType.startsWith('text/') || this.contentType.startsWith('application/json'));
+  }
+
+  get isVideo(): boolean {
+    return !!this.contentType && this.contentType.startsWith('video/');
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;

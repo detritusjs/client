@@ -157,11 +157,7 @@ export class Attachment extends BaseStructure {
   }
 
   get extension(): string {
-    const filename = (this.filename).split('.');
-    if (filename.length) {
-      return <string> filename.pop();
-    }
-    return '';
+    return this.filename.split('.').pop()!;
   }
 
   get hasSpoiler(): boolean {
