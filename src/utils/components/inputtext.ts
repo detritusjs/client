@@ -11,6 +11,7 @@ import { ComponentActionBase, ComponentActionData } from './actionbase';
 
 const keysComponentInputText = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
+  DiscordKeys.ID,
   DiscordKeys.LABEL,
   DiscordKeys.MAX_LENGTH,
   DiscordKeys.MIN_LENGTH,

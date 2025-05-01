@@ -9,7 +9,7 @@ import { Snowflake } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ClientEvents, DiscordKeys, InteractionCallbackTypes } from '../constants';
+import { ClientEvents, DiscordKeys, InteractionCallbackTypes, MessageFlags } from '../constants';
 import { InteractionModal, createComponentListenerOrNone } from '../utils';
 
 import {
@@ -610,6 +610,17 @@ export class RestClient {
     } else {
       // if type is edit message, do not use interactionId (maybe fetch message id if listenerId isnt given)
       const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
+      if (listenerData && listenerData[2]) {
+        if (typeof(data) === 'string') {
+          data = {content: data};
+        }
+        // add checks for options.data.flag
+        if (!data) {
+          data = {};
+        }
+        data.flags = (data.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
+      }
+
       const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
       if (listenerData) {
         const [lId, listener] = listenerData;
@@ -652,6 +663,12 @@ export class RestClient {
     options: RequestTypes.CreateMessage | string = {},
   ): Promise<Message> {
     const listenerData = createComponentListenerOrNone(options);
+    if (listenerData && listenerData[2]) {
+      if (typeof(options) === 'string') {
+        options = {content: options};
+      }
+      options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
+    }
 
     const data = await this.raw.createMessage(channelId, options);
     if (this.client.channels.has(data.channel_id)) {
@@ -1369,6 +1386,12 @@ export class RestClient {
     updateCache: boolean = true,
   ): Promise<Message> {
     const listenerData = createComponentListenerOrNone(options);
+    if (listenerData && listenerData[2]) {
+      if (typeof(options) === 'string') {
+        options = {content: options};
+      }
+      options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
+    }
 
     const data = await this.raw.editMessage(channelId, messageId, options);
     let message: Message;
@@ -1516,6 +1539,13 @@ export class RestClient {
     compatibleType?: string,
   ): Promise<Message | null> {
     const listenerData = createComponentListenerOrNone(options);
+    if (listenerData && listenerData[2]) {
+      if (typeof(options) === 'string') {
+        options = {content: options};
+      }
+      options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
+    }
+
     const data = await this.raw.executeWebhook(webhookId, webhookToken, options, compatibleType);
     if (data) {
       const message = new Message(this.client, data);

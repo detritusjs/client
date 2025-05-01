@@ -2,15 +2,17 @@ import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import { BaseSet } from '../../collections/baseset';
-import { DiscordKeys, MessageComponentTypes } from '../../constants';
-import { Structure } from '../../structures/basestructure';
+import { DetritusKeys, DiscordKeys, MessageComponentTypes } from '../../constants';
+import { BaseStructureData, Structure } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
 import { ComponentActionRowData, ComponentActionRow } from './actionrow';
 import { ComponentButton } from './button';
 import { ComponentContext } from './context';
 import { ComponentInputText } from './inputtext';
+import { ComponentSection, ComponentSectionData } from './section';
 import { ComponentSelectMenu } from './selectmenu';
+import { ComponentTextDisplay, ComponentTextDisplayData } from './textdisplay';
 
 
 export type ComponentOnTimeout = () => Promise<any> | any;
@@ -19,7 +21,7 @@ export type ComponentOnError = (context: ComponentContext, error: Error) => Prom
 
 
 export interface ComponentsOptions {
-  components?: Array<ComponentActionRowData | ComponentActionRow>,
+  components?: Array<ComponentActionRow | ComponentActionRowData | ComponentSection | ComponentSectionData | ComponentTextDisplay | ComponentTextDisplayData>,
   id?: string,
   timeout?: number,
 
@@ -42,7 +44,7 @@ export class Components extends Structure {
   readonly _keys = keysComponents;
   _timeout?: Timers.Timeout;
 
-  components: Array<ComponentActionRow> = [];
+  components: Array<ComponentActionRow | ComponentSection | ComponentTextDisplay> = [];
   id?: string;
   timeout: number = 10 * (60 * 1000); // 10 minutes
 
@@ -58,6 +60,16 @@ export class Components extends Structure {
     this.onTimeout = data.onTimeout || this.onTimeout;
   }
 
+  get isV2(): boolean {
+    for (let component of this.components) {
+      switch (component.type) {
+        case MessageComponentTypes.SECTION: return true;
+        case MessageComponentTypes.TEXT_DISPLAY: return true;
+      }
+    }
+    return false;
+  }
+
   addActionRow(data: ComponentActionRow | ComponentActionRowData = {}): this {
     if (data instanceof ComponentActionRow) {
       this.components.push(data);
@@ -70,7 +82,9 @@ export class Components extends Structure {
   addButton(data: ComponentButton | ComponentActionData = {}, inline = true): this {
     let actionRow: ComponentActionRow;
     if (inline) {
-      actionRow = this.components.find((row) => row.isEmpty || !row.isFull) || this.createActionRow();
+      actionRow = (this.components.find((row) => {
+        return row instanceof ComponentActionRow && (row.isEmpty || !row.isFull);
+      }) as ComponentActionRow | undefined) || this.createActionRow();
     } else {
       actionRow = this.createActionRow();
     }
@@ -84,9 +98,27 @@ export class Components extends Structure {
     return this;
   }
 
+  addSection(data: ComponentSection | ComponentSectionData = {}): this {
+    if (data instanceof ComponentSection) {
+      this.components.push(data);
+    } else {
+      this.createSection(data);
+    }
+    return this;
+  }
+
   addSelectMenu(data: ComponentSelectMenu | ComponentActionData = {}): this {
     const actionRow = this.createActionRow();
     actionRow.addSelectMenu(data);
+    return this;
+  }
+
+  addTextDisplay(data: ComponentTextDisplay | ComponentTextDisplayData = {}): this {
+    if (data instanceof ComponentTextDisplay) {
+      this.components.push(data);
+    } else {
+      this.createTextDisplay(data);
+    }
     return this;
   }
 
@@ -103,7 +135,9 @@ export class Components extends Structure {
   createButton(data: ComponentActionData = {}, inline = true): ComponentButton {
     let actionRow: ComponentActionRow;
     if (inline) {
-      actionRow = this.components.find((row) => row.isEmpty || !row.isFull) || this.createActionRow();
+      actionRow = (this.components.find((row) => {
+        return row instanceof ComponentActionRow && (row.isEmpty || !row.isFull);
+      }) as ComponentActionRow | undefined) || this.createActionRow();
     } else {
       actionRow = this.createActionRow();
     }
@@ -115,33 +149,62 @@ export class Components extends Structure {
     return actionRow.createInputText(data);
   }
 
+  createSection(data: ComponentSectionData = {}): ComponentSection {
+    const section = new ComponentSection(data);
+    this.components.push(section);
+    return section;
+  }
+
   createSelectMenu(data: ComponentActionData = {}): ComponentSelectMenu {
     const actionRow = this.createActionRow();
     return actionRow.createSelectMenu(data);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.COMPONENTS: {
-        this.clear();
-        for (let raw of value) {
-          if (raw instanceof ComponentActionRow) {
-            this.components.push(raw);
-          } else {
-            switch (raw.type) {
-              case MessageComponentTypes.ACTION_ROW: {
-                const component = new ComponentActionRow(raw);
-                this.components.push(component);
-              }; break;
-              default: {
-                throw new Error(`Unknown component type ${raw.type}`);
-              };
-            }
+  createTextDisplay(data: ComponentTextDisplayData = {}): ComponentTextDisplay {
+    const textDisplay = new ComponentTextDisplay(data);
+    this.components.push(textDisplay);
+    return textDisplay;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.COMPONENTS in data) {
+      const value = data[DiscordKeys.COMPONENTS];
+
+      this.clear();
+      for (let raw of value) {
+        if (raw instanceof ComponentActionRow || raw instanceof ComponentSection || raw instanceof ComponentTextDisplay) {
+          this.components.push(raw);
+        } else {
+          switch (raw.type) {
+            case MessageComponentTypes.ACTION_ROW: {
+              const component = new ComponentActionRow(raw);
+              this.components.push(component);
+            }; break;
+            case MessageComponentTypes.SECTION: {
+              const component = new ComponentSection(raw);
+              this.components.push(component);
+            }; break;
+            case MessageComponentTypes.TEXT_DISPLAY: {
+              const component = new ComponentTextDisplay(raw);
+              this.components.push(component);
+            }; break;
+            default: {
+              throw new Error(`Unknown component type ${raw.type}`);
+            };
           }
         }
-      }; return;
+      }
     }
-    return super.mergeValue(key, value);
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.TIMEOUT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TIMEOUT]] = data[DiscordKeys.TIMEOUT];
+    }
   }
 
   toJSON(): Array<RequestTypes.RawChannelMessageComponent> {

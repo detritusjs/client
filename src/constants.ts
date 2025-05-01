@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.76',
+  VERSION: '0.17.0-beta.77',
 });
 
 export type Snowflake = number | string;
@@ -65,12 +65,13 @@ if (IS_TS_NODE) {
 
 export const LOCAL_GUILD_ID = '@me';
 
-export const MAX_ACTION_ROW_BUTTONS = 5;
-export const MAX_ACTION_ROW_INPUT_TEXTS = 1;
-export const MAX_ACTION_ROW_SELECT_MENUS = 1;
 export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 export const MAX_ATTACHMENT_SIZE_PREMIUM = 200 * 1024 * 1024;
 export const MAX_BITRATE = 96000;
+export const MAX_COMPONENTS_ACTION_ROW_BUTTONS = 5;
+export const MAX_COMPONENTS_ACTION_ROW_INPUT_TEXTS = 1;
+export const MAX_COMPONENTS_ACTION_ROW_SELECT_MENUS = 1;
+export const MAX_COMPONENTS_SECTION_TEXT_DISPLAYS = 3;
 export const MAX_EMOJI_SIZE = 256000;
 export const MAX_EMOJI_SLOTS = 50;
 export const MAX_EMOJI_SLOTS_MORE = 200;

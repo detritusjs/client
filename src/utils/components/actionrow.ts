@@ -4,9 +4,9 @@ import { BaseSet } from '../../collections/baseset';
 import {
   DiscordKeys,
   MessageComponentTypes,
-  MAX_ACTION_ROW_BUTTONS,
-  MAX_ACTION_ROW_INPUT_TEXTS,
-  MAX_ACTION_ROW_SELECT_MENUS,
+  MAX_COMPONENTS_ACTION_ROW_BUTTONS,
+  MAX_COMPONENTS_ACTION_ROW_INPUT_TEXTS,
+  MAX_COMPONENTS_ACTION_ROW_SELECT_MENUS,
 } from '../../constants';
 import { Structure } from '../../structures/basestructure';
 
@@ -79,11 +79,11 @@ const keysComponentActionRow = new BaseSet<string>([
 
   get isFull(): boolean {
     if (this.hasSelectMenu) {
-      return MAX_ACTION_ROW_SELECT_MENUS <= this.components.length;
+      return MAX_COMPONENTS_ACTION_ROW_SELECT_MENUS <= this.components.length;
     } else if (this.hasInputText) {
-      return MAX_ACTION_ROW_INPUT_TEXTS <= this.components.length;
+      return MAX_COMPONENTS_ACTION_ROW_INPUT_TEXTS <= this.components.length;
     } else if (this.hasButton) {
-      return MAX_ACTION_ROW_BUTTONS <= this.components.length;
+      return MAX_COMPONENTS_ACTION_ROW_BUTTONS <= this.components.length;
     }
     return false;
   }

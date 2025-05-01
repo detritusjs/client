@@ -15,6 +15,7 @@ const keysComponentButton = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
   DiscordKeys.DISABLED,
   DiscordKeys.EMOJI,
+  DiscordKeys.ID,
   DiscordKeys.LABEL,
   DiscordKeys.SKU_ID,
   DiscordKeys.STYLE,

@@ -31,6 +31,7 @@ export type ComponentsTopLevel = (
 
 const keysComponentActionRow = new BaseSet<string>([
   DiscordKeys.COMPONENTS,
+  DiscordKeys.ID,
   DiscordKeys.TYPE,
 ]);
 
@@ -43,6 +44,7 @@ export class ComponentActionRow extends BaseStructure {
   readonly _keys = keysComponentActionRow;
 
   components = new BaseCollection<number, ComponentUnknown | ComponentButton | ComponentSelectMenu | ComponentInputText>();
+  id?: number;
   type: MessageComponentTypes = MessageComponentTypes.ACTION_ROW;
 
   constructor(
@@ -87,6 +89,9 @@ export class ComponentActionRow extends BaseStructure {
         }
         this.components.set(i, component);
       }
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
     if (DiscordKeys.TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
@@ -139,6 +144,7 @@ const keysComponentButton = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
   DiscordKeys.DISABLED,
   DiscordKeys.EMOJI,
+  DiscordKeys.ID,
   DiscordKeys.LABEL,
   DiscordKeys.SKU_ID,
   DiscordKeys.STYLE,
@@ -157,6 +163,7 @@ export class ComponentButton extends BaseStructure {
   customId?: string;
   disabled?: boolean;
   emoji?: Emoji;
+  id?: number;
   label?: string;
   skuId?: string;
   style?: MessageComponentButtonStyles;
@@ -170,10 +177,6 @@ export class ComponentButton extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
-  }
-
-  get id(): string {
-    return this.url || this.skuId || this.customId || '';
   }
 
   merge(data?: BaseStructureData): void {
@@ -195,6 +198,9 @@ export class ComponentButton extends BaseStructure {
       } else {
         this.emoji = new Emoji(this.client, value);
       }
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
     if (DiscordKeys.LABEL in data) {
       (this as any)[DetritusKeys[DiscordKeys.LABEL]] = data[DiscordKeys.LABEL];
@@ -354,6 +360,7 @@ export class ComponentFile extends BaseStructure {
 
 const keysMessageComponentInputText = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
+  DiscordKeys.ID,
   DiscordKeys.TYPE,
   DiscordKeys.VALUE,
 ]);
@@ -367,6 +374,7 @@ export class ComponentInputText extends BaseStructure {
   readonly _keys = keysMessageComponentInputText;
 
   customId: string = '';
+  id?: number;
   type: MessageComponentTypes.INPUT_TEXT = MessageComponentTypes.INPUT_TEXT;
   value?: string;
 
@@ -379,10 +387,6 @@ export class ComponentInputText extends BaseStructure {
     this.merge(data);
   }
 
-  get id(): string {
-    return this.customId;
-  }
-
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
@@ -390,6 +394,9 @@ export class ComponentInputText extends BaseStructure {
   
     if (DiscordKeys.CUSTOM_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
     if (DiscordKeys.TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
@@ -585,6 +592,7 @@ const keysMessageComponentSelectMenu = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
   DiscordKeys.DEFAULT_VALUES,
   DiscordKeys.DISABLED,
+  DiscordKeys.ID,
   DiscordKeys.MAX_VALUES,
   DiscordKeys.MIN_VALUES,
   DiscordKeys.OPTIONS,
@@ -604,6 +612,7 @@ export class ComponentSelectMenu extends BaseStructure {
   customId: string = '';
   defaultValues?: BaseCollection<string, ComponentSelectMenuDefaultValue>;
   disabled?: boolean;
+  id?: number;
   maxValues: number = 1;
   minValues: number = 1;
   options = new BaseCollection<string, ComponentSelectMenuOption>();
@@ -621,10 +630,6 @@ export class ComponentSelectMenu extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
-  }
-
-  get id(): string {
-    return this.customId;
   }
 
   merge(data?: BaseStructureData): void {
@@ -659,6 +664,9 @@ export class ComponentSelectMenu extends BaseStructure {
     }
     if (DiscordKeys.DISABLED in data) {
       (this as any)[DetritusKeys[DiscordKeys.DISABLED]] = data[DiscordKeys.DISABLED];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
     if (DiscordKeys.MAX_VALUES in data) {
       (this as any)[DetritusKeys[DiscordKeys.MAX_VALUES]] = data[DiscordKeys.MAX_VALUES];

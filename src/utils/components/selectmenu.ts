@@ -25,6 +25,7 @@ export interface ComponentSelectMenuOptionData {
   default?: boolean,
   description?: string,
   emoji?: ComponentEmojiData,
+  id?: number,
   label?: string,
   value?: string,
 }
@@ -34,6 +35,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
   DiscordKeys.DEFAULT_VALUES,
   DiscordKeys.DISABLED,
+  DiscordKeys.ID,
   DiscordKeys.MAX_VALUES,
   DiscordKeys.MIN_VALUES,
   DiscordKeys.OPTIONS,

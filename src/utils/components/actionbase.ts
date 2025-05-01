@@ -33,6 +33,7 @@ export interface ComponentActionData {
   defaultValues?: Array<ComponentSelectMenuDefaultValueData>,
   disabled?: boolean,
   emoji?: ComponentEmojiData,
+  id?: number,
   label?: string,
   max_length?: number,
   maxLength?: number,
@@ -58,6 +59,7 @@ export interface ComponentActionData {
 
 const keysComponentActionBase = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
+  DiscordKeys.ID,
   DiscordKeys.TYPE,
 ]);
 
@@ -65,6 +67,7 @@ export class ComponentActionBase extends Structure {
   readonly _keys = keysComponentActionBase;
 
   customId?: null | string;
+  id?: null | number;
   type: MessageComponentTypes = MessageComponentTypes.BUTTON;
 
   run?(context: ComponentContext): Promise<any> | any;
