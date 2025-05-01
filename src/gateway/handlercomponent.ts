@@ -2,7 +2,15 @@ import { Timers } from 'detritus-utils';
 
 import { BaseCollection } from '../collections';
 import { Interaction, InteractionDataComponent } from '../structures';
-import { Components, ComponentActionBase, ComponentActionRow, ComponentButton, ComponentContext, ComponentSection } from '../utils';
+import {
+  Components,
+  ComponentActionBase,
+  ComponentActionRow,
+  ComponentButton,
+  ComponentContainer,
+  ComponentContext,
+  ComponentSection,
+} from '../utils';
 
 
 export class ComponentHandler {
@@ -51,7 +59,21 @@ export class ComponentHandler {
       for (let topLevel of listener.components) {
         let component: ComponentActionBase | undefined;
         if (topLevel instanceof ComponentActionRow) {
-         component = topLevel.components.find((c) => c.customId === data.customId);
+          component = topLevel.components.find((c) => c.customId === data.customId);
+        } else if (topLevel instanceof ComponentContainer) {
+          for (let c of topLevel.components) {
+            if (c instanceof ComponentActionRow) {
+              component = c.components.find((x) => x.customId === data.customId);
+              if (component) {
+                break;
+              }
+            } else if (c instanceof ComponentSection) {
+              if (c.accessory instanceof ComponentButton && c.accessory.customId === data.customId) {
+                component = c.accessory;
+                break;
+              }
+            }
+          }
         } else if (topLevel instanceof ComponentSection) {
           if (topLevel.accessory instanceof ComponentButton && topLevel.accessory.customId === data.customId) {
             component = topLevel.accessory;
