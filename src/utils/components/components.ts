@@ -9,9 +9,11 @@ import { ComponentActionData } from './actionbase';
 import { ComponentActionRowData, ComponentActionRow } from './actionrow';
 import { ComponentButton } from './button';
 import { ComponentContext } from './context';
+import { ComponentFile, ComponentFileData } from './file';
 import { ComponentInputText } from './inputtext';
 import { ComponentSection, ComponentSectionData } from './section';
 import { ComponentSelectMenu } from './selectmenu';
+import { ComponentSeparator, ComponentSeparatorData } from './separator';
 import { ComponentTextDisplay, ComponentTextDisplayData } from './textdisplay';
 
 
@@ -21,7 +23,13 @@ export type ComponentOnError = (context: ComponentContext, error: Error) => Prom
 
 
 export interface ComponentsOptions {
-  components?: Array<ComponentActionRow | ComponentActionRowData | ComponentSection | ComponentSectionData | ComponentTextDisplay | ComponentTextDisplayData>,
+  components?: Array<
+    ComponentActionRow | ComponentActionRowData |
+    ComponentFile | ComponentFileData |
+    ComponentSection | ComponentSectionData |
+    ComponentSeparator | ComponentSeparatorData |
+    ComponentTextDisplay | ComponentTextDisplayData
+  >,
   id?: string,
   timeout?: number,
 
@@ -44,7 +52,7 @@ export class Components extends Structure {
   readonly _keys = keysComponents;
   _timeout?: Timers.Timeout;
 
-  components: Array<ComponentActionRow | ComponentSection | ComponentTextDisplay> = [];
+  components: Array<ComponentActionRow | ComponentFile | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];
   id?: string;
   timeout: number = 10 * (60 * 1000); // 10 minutes
 
@@ -64,7 +72,9 @@ export class Components extends Structure {
     // add a check to see how many top-level components there are, if more than 5 then it is v2
     for (let component of this.components) {
       switch (component.type) {
+        case MessageComponentTypes.FILE: return true;
         case MessageComponentTypes.SECTION: return true;
+        case MessageComponentTypes.SEPARATOR: return true;
         case MessageComponentTypes.TEXT_DISPLAY: return true;
       }
     }
@@ -93,6 +103,15 @@ export class Components extends Structure {
     return this;
   }
 
+  addFile(data: ComponentFile | ComponentFileData = {}): this {
+    if (data instanceof ComponentFile) {
+      this.components.push(data);
+    } else {
+      this.createFile(data);
+    }
+    return this;
+  }
+
   addInputText(data: ComponentInputText | ComponentActionData = {}): this {
     const actionRow = this.createActionRow();
     actionRow.addInputText(data);
@@ -111,6 +130,15 @@ export class Components extends Structure {
   addSelectMenu(data: ComponentSelectMenu | ComponentActionData = {}): this {
     const actionRow = this.createActionRow();
     actionRow.addSelectMenu(data);
+    return this;
+  }
+
+  addSeparator(data: ComponentSeparator | ComponentSeparatorData = {}): this {
+    if (data instanceof ComponentSeparator) {
+      this.components.push(data);
+    } else {
+      this.createSeparator(data);
+    }
     return this;
   }
 
@@ -145,6 +173,12 @@ export class Components extends Structure {
     return actionRow.createButton(data);
   }
 
+  createFile(data: ComponentFileData = {}): ComponentFile {
+    const file = new ComponentFile(data);
+    this.components.push(file);
+    return file;
+  }
+
   createInputText(data: ComponentActionData = {}): ComponentInputText {
     const actionRow = this.createActionRow();
     return actionRow.createInputText(data);
@@ -159,6 +193,12 @@ export class Components extends Structure {
   createSelectMenu(data: ComponentActionData = {}): ComponentSelectMenu {
     const actionRow = this.createActionRow();
     return actionRow.createSelectMenu(data);
+  }
+
+  createSeparator(data: ComponentSeparatorData = {}): ComponentSeparator {
+    const separator = new ComponentSeparator(data);
+    this.components.push(separator);
+    return separator;
   }
 
   createTextDisplay(data: ComponentTextDisplayData = {}): ComponentTextDisplay {
@@ -177,7 +217,11 @@ export class Components extends Structure {
 
       this.clear();
       for (let raw of value) {
-        if (raw instanceof ComponentActionRow || raw instanceof ComponentSection || raw instanceof ComponentTextDisplay) {
+        if (
+          raw instanceof ComponentActionRow || raw instanceof ComponentFile ||
+          raw instanceof ComponentSection || raw instanceof ComponentSeparator ||
+          raw instanceof ComponentTextDisplay
+        ) {
           this.components.push(raw);
         } else {
           switch (raw.type) {
@@ -185,8 +229,16 @@ export class Components extends Structure {
               const component = new ComponentActionRow(raw);
               this.components.push(component);
             }; break;
+            case MessageComponentTypes.FILE: {
+              const component = new ComponentFile(raw);
+              this.components.push(component);
+            }; break;
             case MessageComponentTypes.SECTION: {
               const component = new ComponentSection(raw);
+              this.components.push(component);
+            }; break;
+            case MessageComponentTypes.SEPARATOR: {
+              const component = new ComponentSeparator(raw);
               this.components.push(component);
             }; break;
             case MessageComponentTypes.TEXT_DISPLAY: {

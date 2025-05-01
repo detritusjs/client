@@ -11,10 +11,13 @@ export * from './actionrow';
 export * from './button';
 export * from './components';
 export * from './context';
+export * from './file';
 export * from './inputtext';
 export * from './section';
 export * from './selectmenu';
+export * from './separator';
 export * from './textdisplay';
+export * from './thumbnail';
 
 
 export interface CreateComponentListenerOrNone {
