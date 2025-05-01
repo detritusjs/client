@@ -44,7 +44,7 @@ const keysComponentSection = new BaseSet<string>([
   constructor(data: ComponentSectionData = {}) {
     super();
     this.merge(data);
-    this.type = MessageComponentTypes.ACTION_ROW;
+    this.type = MessageComponentTypes.SECTION;
   }
 
   get hasButton(): boolean {
@@ -105,6 +105,24 @@ const keysComponentSection = new BaseSet<string>([
           throw new Error('Must specify either button or thumbnail for accessory');
         };
       }
+    }
+    return this;
+  }
+
+  setAccessoryButton(data: ComponentButton | ComponentActionData = {}): this {
+    if (data instanceof ComponentButton) {
+      this.accessory = data;
+    } else {
+      this.accessory = new ComponentButton(data);
+    }
+    return this;
+  }
+
+  setAccessoryThumbnail(data: ComponentThumbnail | ComponentThumbnailData = {}): this {
+    if (data instanceof ComponentThumbnail) {
+      this.accessory = data;
+    } else {
+      this.accessory = new ComponentThumbnail(data);
     }
     return this;
   }

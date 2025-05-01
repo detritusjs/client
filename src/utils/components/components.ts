@@ -61,6 +61,7 @@ export class Components extends Structure {
   }
 
   get isV2(): boolean {
+    // add a check to see how many top-level components there are, if more than 5 then it is v2
     for (let component of this.components) {
       switch (component.type) {
         case MessageComponentTypes.SECTION: return true;

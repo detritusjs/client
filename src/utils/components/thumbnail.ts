@@ -35,12 +35,12 @@ const keysComponentThumbnail = new BaseSet<string>([
   id?: number;
   media = new ComponentUnfurledMedia();
   spoiler?: boolean;
-  type = MessageComponentTypes.TEXT_DISPLAY;
+  type = MessageComponentTypes.THUMBNAIL;
 
   constructor(data: ComponentThumbnailData = {}) {
     super();
     this.merge(data);
-    this.type = MessageComponentTypes.TEXT_DISPLAY;
+    this.type = MessageComponentTypes.THUMBNAIL;
   }
 
   setDescription(description: string): this {
