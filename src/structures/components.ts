@@ -25,7 +25,9 @@ import { Emoji } from './emoji';
 
 
 export type ComponentsTopLevel = (
-  ComponentActionRow | ComponentContainer | ComponentFile | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay | ComponentUnknown
+  ComponentActionRow | ComponentContainer | ComponentFile |
+  ComponentMediaGallery | ComponentSection | ComponentSeparator |
+  ComponentTextDisplay | ComponentUnknown
 );
 
 

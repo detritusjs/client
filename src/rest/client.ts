@@ -1489,6 +1489,13 @@ export class RestClient {
     updateCache: boolean = true,
   ): Promise<Message> {
     const listenerData = createComponentListenerOrNone(options);
+    if (listenerData && listenerData[2]) {
+      if (typeof(options) === 'string') {
+        options = {content: options};
+      }
+      options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
+    }
+
     const data = await this.raw.editWebhookTokenMessage(webhookId, webhookToken, messageId, options);
 
     let message: Message;
