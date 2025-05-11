@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.84',
+  VERSION: '0.17.0-beta.85',
 });
 
 export type Snowflake = number | string;
@@ -66,7 +66,7 @@ if (IS_TS_NODE) {
 export const LOCAL_GUILD_ID = '@me';
 
 export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
-export const MAX_ATTACHMENT_SIZE_PREMIUM = 200 * 1024 * 1024;
+export const MAX_ATTACHMENT_SIZE_PREMIUM = 500 * 1024 * 1024;
 export const MAX_BITRATE = 96000;
 export const MAX_COMPONENTS_ACTION_ROW_BUTTONS = 5;
 export const MAX_COMPONENTS_ACTION_ROW_INPUT_TEXTS = 1;
@@ -75,6 +75,9 @@ export const MAX_COMPONENTS_SECTION_TEXT_DISPLAYS = 3;
 export const MAX_EMOJI_SIZE = 256000;
 export const MAX_EMOJI_SLOTS = 50;
 export const MAX_EMOJI_SLOTS_MORE = 200;
+export const MAX_SOUNDBOARD_SIZE = 8;
+export const MAX_STAGE_SEATS = 50;
+export const MAX_STICKERS_SIZE = 5;
 
 export const MAX_LENGTH_CONTENT = 4000;
 export const MAX_LENGTH_EMBED_AUTHOR_NAME = 256;
@@ -1378,8 +1381,8 @@ export const PremiumGuildTierNames = Object.freeze({
 export const PremiumGuildSubscriptionsRequired = Object.freeze({
   [PremiumGuildTiers.NONE]: 0,
   [PremiumGuildTiers.TIER_1]: 2,
-  [PremiumGuildTiers.TIER_2]: 15,
-  [PremiumGuildTiers.TIER_3]: 30,
+  [PremiumGuildTiers.TIER_2]: 7,
+  [PremiumGuildTiers.TIER_3]: 14,
 });
 
 export const PremiumGuildLimits = Object.freeze({
@@ -1387,21 +1390,33 @@ export const PremiumGuildLimits = Object.freeze({
     attachment: MAX_ATTACHMENT_SIZE,
     bitrate: MAX_BITRATE,
     emoji: MAX_EMOJI_SLOTS,
+    soundboard: MAX_SOUNDBOARD_SIZE,
+    stageSeats: MAX_STAGE_SEATS,
+    stickers: MAX_STICKERS_SIZE,
   }),
   [PremiumGuildTiers.TIER_1]: Object.freeze({
     attachment: MAX_ATTACHMENT_SIZE,
     bitrate: 128000,
     emoji: 100,
+    soundboard: 24,
+    stageSeats: 50,
+    stickers: 15,
   }),
   [PremiumGuildTiers.TIER_2]: Object.freeze({
-    attachment: 25 * 1024 * 1024,
+    attachment: 50 * 1024 * 1024,
     bitrate: 256000,
     emoji: 150,
+    soundboard: 36,
+    stageSeats: 150,
+    stickers: 30,
   }),
   [PremiumGuildTiers.TIER_3]: Object.freeze({
     attachment: 100 * 1024 * 1024,
     bitrate: 384000,
     emoji: 250,
+    soundboard: 48,
+    stageSeats: 300,
+    stickers: 60,
   }),
 });
 
@@ -1417,10 +1432,10 @@ export const PremiumUserLimits = Object.freeze({
     attachment: MAX_ATTACHMENT_SIZE,
   }),
   [PremiumUserTypes.TIER_1]: Object.freeze({
-    attachment: MAX_ATTACHMENT_SIZE_PREMIUM,
+    attachment: 50 * 1024 * 1024,
   }),
   [PremiumUserTypes.TIER_2]: Object.freeze({
-    attachment: MAX_ATTACHMENT_SIZE_PREMIUM * 2,
+    attachment: MAX_ATTACHMENT_SIZE_PREMIUM,
   }),
 });
 
