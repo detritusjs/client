@@ -14,8 +14,9 @@ in this package, `detritus-client`. Low-level wrappers over Discord's REST API a
 are provided through [`detritus-client-rest`](https://github.com/detritusjs/client-rest) and
 [`detritus-client-socket`](https://github.com/detritusjs/client-socket).
 
-- `$ npm i detritus-client`
-- `$ yarn add detritus-client`
+- ```npm install detritus-client```
+- ```yarn add detritus-client```
+- ```pnpm install detritus-client```
 
 ## Usage
 
@@ -44,7 +45,7 @@ const { CommandClient } = require('detritus-client');
 const token = '';
 const commandClient = new CommandClient(token, {
   // Prefix `..`, if you want multiple prefixes pass in `prefixes: ['..', '...']`
-  prefix: '..',
+  prefix: '!',
 });
 
 // Simple ping/pong command
@@ -171,7 +172,7 @@ const { ShardClient } = require('detritus-client');
 //
 // Tokens should be considered secrets and stored in a configuration file that is not
 // part of your version control system, or an environment variable.
-const token = '';
+const token = 'TOKEN_BOT';
 const client = new ShardClient(token, {
   gateway: {
     // This will tell our client to fill our Members cache on any of our guilds that are larger than the large threshold you pass in (default 250)

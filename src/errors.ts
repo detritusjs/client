@@ -56,7 +56,7 @@ export class ImportedCommandsError extends BaseError {
   errors: {[key: string]: Error};
 
   constructor(errors: {[key: string]: Error}) {
-    super('Error while importing multiple commands');
+    super('Error: While importing multiple Comannds.');
     this.errors = errors;
   }
 }

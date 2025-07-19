@@ -8,7 +8,8 @@
     "@types/node-fetch": "^2.5.10",
     "detritus-client-rest": "^0.10.5",
     "detritus-client-socket": "^0.8.3",
-    "detritus-utils": "^0.4.0"
+    "detritus-utils": "^0.4.0",
+    "eslint": "^9.31.0"
   },
   "description": "A Typescript NodeJS library to interact with Discord's API, both Rest and Gateway.",
   "devDependencies": {
