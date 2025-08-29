@@ -603,7 +603,7 @@ export class InteractionCommandClient extends EventSpewer {
               }; break;
               case ApplicationCommandOptionTypes.NUMBER: {
                 value = String(value);
-                if ('.' in value) {
+                if (value.includes('.')) {
                   value = parseFloat(value);
                 } else {
                   value = BigInt(value);

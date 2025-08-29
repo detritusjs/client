@@ -1711,6 +1711,24 @@ export class MessageResolvedData extends BaseStructure {
       return;
     }
 
+    if (DiscordKeys.USERS in data) {
+      const value = data[DiscordKeys.USERS];
+
+      if (!this.users) {
+        this.users = new BaseCollection();
+      }
+      this.users.clear();
+      for (let userId in value) {
+        let user: User;
+        if (this.client.users.has(userId)) {
+          user = this.client.users.get(userId)!;
+          user.merge(value[userId]);
+        } else {
+          user = new User(this.client, value[userId]);
+        }
+        this.users.set(userId, user);
+      }
+    }
     if (DiscordKeys.ATTACHMENTS in data) {
       const value = data[DiscordKeys.ATTACHMENTS];
 
@@ -1777,24 +1795,6 @@ export class MessageResolvedData extends BaseStructure {
         value[roleId][DiscordKeys.GUILD_ID] = this.guildId;
         const role = new Role(this.client, value[roleId]);
         this.roles.set(roleId, role);
-      }
-    }
-    if (DiscordKeys.USERS in data) {
-      const value = data[DiscordKeys.USERS];
-
-      if (!this.users) {
-        this.users = new BaseCollection();
-      }
-      this.users.clear();
-      for (let userId in value) {
-        let user: User;
-        if (this.client.users.has(userId)) {
-          user = this.client.users.get(userId)!;
-          user.merge(value[userId]);
-        } else {
-          user = new User(this.client, value[userId]);
-        }
-        this.users.set(userId, user);
       }
     }
   }

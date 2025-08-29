@@ -486,24 +486,37 @@ export class InteractionDataApplicationCommand extends BaseStructure {
     return this.type === ApplicationCommandTypes.CHAT_INPUT;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.OPTIONS: {
-          if (!this.options) {
-            this.options = new BaseCollection<string, InteractionDataApplicationCommandOption>();
-          }
-          this.options.clear();
-          for (let raw of value) {
-            const option = new InteractionDataApplicationCommandOption(this, raw, this.isClone);
-            this.options.set(option.name, option);
-          }
-        }; return;
-        case DiscordKeys.RESOLVED: {
-          value = new InteractionDataApplicationCommandResolved(this, value, this.isClone);
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.OPTIONS in data) {
+      const value = data[DiscordKeys.OPTIONS];
+      if (!this.options) {
+        this.options = new BaseCollection<string, InteractionDataApplicationCommandOption>();
       }
-      return super.mergeValue(key, value);
+      this.options.clear();
+      for (let raw of value) {
+        const option = new InteractionDataApplicationCommandOption(this, raw, this.isClone);
+        this.options.set(option.name, option);
+      }
+    }
+    if (DiscordKeys.RESOLVED in data) {
+      const value = new InteractionDataApplicationCommandResolved(this, data[DiscordKeys.RESOLVED], this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.RESOLVED]] = value;
+    }
+    if (DiscordKeys.TARGET_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TARGET_ID]] = data[DiscordKeys.TARGET_ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
   }
 
@@ -562,21 +575,33 @@ export class InteractionDataApplicationCommandOption extends BaseStructure {
     return this.type === ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.OPTIONS: {
-          if (!this.options) {
-            this.options = new BaseCollection<string, InteractionDataApplicationCommandOption>();
-          }
-          this.options.clear();
-          for (let raw of value) {
-            const option = new InteractionDataApplicationCommandOption(this.interactionData, raw, this.isClone);
-            this.options.set(option.name, option);
-          }
-        }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.FOCUSED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FOCUSED]] = data[DiscordKeys.FOCUSED];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.OPTIONS in data) {
+      const value = data[DiscordKeys.OPTIONS];
+      if (!this.options) {
+        this.options = new BaseCollection<string, InteractionDataApplicationCommandOption>();
       }
-      return super.mergeValue(key, value);
+      this.options.clear();
+      for (let raw of value) {
+        const option = new InteractionDataApplicationCommandOption(this.interactionData, raw, this.isClone);
+        this.options.set(option.name, option);
+      }
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.VALUE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUE]] = data[DiscordKeys.VALUE];
     }
   }
 }
@@ -591,17 +616,12 @@ const keysInteractionDataApplicationCommandResolved = new BaseSet<string>([
   DiscordKeys.USERS,
 ]);
 
-const keysMergeInteractionDataApplicationCommandResolved = new BaseSet<string>([
-  DiscordKeys.USERS,
-]);
-
 /**
  * Interaction Data Application Command Resolved Structure
  * @category Structure
  */
 export class InteractionDataApplicationCommandResolved extends BaseStructure {
   readonly _keys = keysInteractionDataApplicationCommandResolved;
-  readonly _keysMerge = keysMergeInteractionDataApplicationCommandResolved;
   readonly interactionData: InteractionDataApplicationCommand;
 
   attachments?: BaseCollection<string, Attachment>;
@@ -626,79 +646,83 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
     return this.interactionData.interaction.guildId || null;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ATTACHMENTS: {
-          if (!this.attachments) {
-            this.attachments = new BaseCollection();
-          }
-          this.attachments.clear();
-          for (let attachmentId in value) {
-            const attachment = new Attachment(this.client, value[attachmentId]);
-            this.attachments.set(attachmentId, attachment);
-          }
-        }; return;
-        case DiscordKeys.CHANNELS: {
-          if (!this.channels) {
-            this.channels = new BaseCollection();
-          }
-          this.channels.clear();
-          for (let channelId in value) {
-            // always create it cause of the 'permissions' field sent in
-            value[channelId][DiscordKeys.GUILD_ID] = this.guildId;
-            const channel = createChannelFromData(this.client, value[channelId]);
-            this.channels.set(channelId, channel);
-          }
-        }; return;
-        case DiscordKeys.MEMBERS: {
-          if (!this.members) {
-            this.members = new BaseCollection();
-          }
-          this.members.clear();
-          for (let userId in value) {
-            value[userId][DiscordKeys.GUILD_ID] = this.guildId;
-            const member = new Member(this.client, value[userId], true);
-            if (!member.user) {
-              member.user = (this.users) ? this.users.get(userId)! : this.client.users.get(userId)!;
-            }
-            this.members.set(userId, member);
-          }
-        }; return;
-        case DiscordKeys.MESSAGES: {
-          if (!this.messages) {
-            this.messages = new BaseCollection();
-          }
-          this.messages.clear();
-          for (let messageId in value) {
-            value[messageId][DiscordKeys.GUILD_ID] = this.guildId;
-            const message = new Message(this.client, value[messageId], true);
-            this.messages.set(messageId, message);
-          }
-        }; return;
-        case DiscordKeys.ROLES: {
-          if (!this.roles) {
-            this.roles = new BaseCollection();
-          }
-          this.roles.clear();
-          for (let roleId in value) {
-            value[roleId][DiscordKeys.GUILD_ID] = this.guildId;
-            const role = new Role(this.client, value[roleId]);
-            this.roles.set(roleId, role);
-          }
-        }; return;
-        case DiscordKeys.USERS: {
-          if (!this.users) {
-            this.users = new BaseCollection();
-          }
-          this.users.clear();
-          for (let userId in value) {
-            const user = new User(this.client, value[userId]);
-            this.users.set(userId, user);
-          }
-        }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.USERS in data) {
+      if (!this.users) {
+        this.users = new BaseCollection();
       }
-      return super.mergeValue(key, value);
+      this.users.clear();
+      for (let userId in data[DiscordKeys.USERS]) {
+        const user = new User(this.client, data[DiscordKeys.USERS][userId]);
+        this.users.set(userId, user);
+      }
+    }
+
+    if (DiscordKeys.ATTACHMENTS in data) {
+      if (!this.attachments) {
+        this.attachments = new BaseCollection();
+      }
+      this.attachments.clear();
+      for (let attachmentId in data[DiscordKeys.ATTACHMENTS]) {
+        const attachment = new Attachment(this.client, data[DiscordKeys.ATTACHMENTS][attachmentId]);
+        this.attachments.set(attachmentId, attachment);
+      }
+    }
+
+    if (DiscordKeys.CHANNELS in data) {
+      if (!this.channels) {
+        this.channels = new BaseCollection();
+      }
+      this.channels.clear();
+      for (let channelId in data[DiscordKeys.CHANNELS]) {
+        // always create it cause of the 'permissions' field sent in
+        data[DiscordKeys.CHANNELS][channelId][DiscordKeys.GUILD_ID] = this.guildId;
+        const channel = createChannelFromData(this.client, data[DiscordKeys.CHANNELS][channelId]);
+        this.channels.set(channelId, channel);
+      }
+    }
+
+    if (DiscordKeys.MEMBERS in data) {
+      if (!this.members) {
+        this.members = new BaseCollection();
+      }
+      this.members.clear();
+      for (let userId in data[DiscordKeys.MEMBERS]) {
+        data[DiscordKeys.MEMBERS][userId][DiscordKeys.GUILD_ID] = this.guildId;
+        const member = new Member(this.client, data[DiscordKeys.MEMBERS][userId], true);
+        if (!member.user) {
+          member.user = (this.users) ? this.users.get(userId)! : this.client.users.get(userId)!;
+        }
+        this.members.set(userId, member);
+      }
+    }
+
+    if (DiscordKeys.MESSAGES in data) {
+      if (!this.messages) {
+        this.messages = new BaseCollection();
+      }
+      this.messages.clear();
+      for (let messageId in data[DiscordKeys.MESSAGES]) {
+        data[DiscordKeys.MESSAGES][messageId][DiscordKeys.GUILD_ID] = this.guildId;
+        const message = new Message(this.client, data[DiscordKeys.MESSAGES][messageId], true);
+        this.messages.set(messageId, message);
+      }
+    }
+
+    if (DiscordKeys.ROLES in data) {
+      if (!this.roles) {
+        this.roles = new BaseCollection();
+      }
+      this.roles.clear();
+      for (let roleId in data[DiscordKeys.ROLES]) {
+        data[DiscordKeys.ROLES][roleId][DiscordKeys.GUILD_ID] = this.guildId;
+        const role = new Role(this.client, data[DiscordKeys.ROLES][roleId]);
+        this.roles.set(roleId, role);
+      }
     }
   }
 }
@@ -731,6 +755,22 @@ export class InteractionDataComponent extends BaseStructure {
     this.interaction = interaction;
     this.merge(data);
     Object.defineProperty(this, 'interaction', {enumerable: false});
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.COMPONENT_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.COMPONENT_TYPE]] = data[DiscordKeys.COMPONENT_TYPE];
+    }
+    if (DiscordKeys.CUSTOM_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
+    }
+    if (DiscordKeys.VALUES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUES]] = data[DiscordKeys.VALUES];
+    }
   }
 }
 
@@ -770,27 +810,30 @@ export class InteractionDataModal extends BaseStructure {
     return emptyBaseCollection;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.COMPONENTS: {
-          if (value.length) {
-            if (!this._components) {
-              this._components = new BaseCollection<number, ComponentActionRow>();
-            }
-            this._components.clear();
-            for (let i = 0; i < value.length; i++) {
-              this._components.set(i, new ComponentActionRow(this.client, value[i]));
-            }
-          } else {
-            if (this._components) {
-              this._components.clear();
-              this._components = undefined;
-            }
-          }
-        }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.COMPONENTS in data) {
+      const value = data[DiscordKeys.COMPONENTS];
+      if (value.length) {
+        if (!this._components) {
+          this._components = new BaseCollection<number, ComponentActionRow>();
+        }
+        this._components.clear();
+        for (let i = 0; i < value.length; i++) {
+          this._components.set(i, new ComponentActionRow(this.client, value[i]));
+        }
+      } else {
+        if (this._components) {
+          this._components.clear();
+          this._components = undefined;
+        }
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.CUSTOM_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
     }
   }
 }
