@@ -140,6 +140,9 @@ const keysComponentSelectMenu = new BaseSet<string>([
   }
 
   mergeValue(key: string, value: any): void {
+    if (value === undefined) {
+      return;
+    }
     switch (key) {
       case DiscordKeys.DEFAULT_VALUES: {
         if (!this.defaultValues) {
@@ -248,6 +251,9 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
   }
 
   mergeValue(key: string, value: any): void {
+    if (value === undefined) {
+      return;
+    }
     switch (key) {
       case DiscordKeys.EMOJI: {
         if (value instanceof Emoji) {
