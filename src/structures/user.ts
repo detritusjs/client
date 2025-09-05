@@ -886,6 +886,10 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DECORATION(this.asset), query);
   }
 
+  async fetchStorePublishedListing() {
+    return this.client.rest.fetchStorePublishedListingsSku(this.skuId);
+  }
+
   merge(data?: BaseStructureData): void {
     super.merge(data);
     if (!data) {

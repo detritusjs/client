@@ -20,7 +20,7 @@ import {
 import { Guild } from './guild';
 import { Overwrite } from './overwrite';
 import { Role } from './role';
-import { User, UserMixin } from './user';
+import { User, UserAvatarDecorationData, UserMixin } from './user';
 import { VoiceState } from './voicestate';
 
 
@@ -30,6 +30,7 @@ export type MemberOrUser = Member | User;
 
 const keysMember = new BaseSet<string>([
   DiscordKeys.AVATAR,
+  DiscordKeys.AVATAR_DECORATION_DATA,
   DiscordKeys.BANNER,
   DiscordKeys.COMMUNICATION_DISABLED_UNTIL,
   DiscordKeys.DEAF,
@@ -60,6 +61,7 @@ export class Member extends UserMixin {
   readonly _keys = keysMember;
   readonly _keysSkipDifference = keysSkipDifferenceMember;
   _avatar: null | string = null;
+  _avatarDecorationData: null | UserAvatarDecorationData = null;
   _banner: null | string = null;
   _roles?: Array<string>;
   _permissions?: bigint = 0n;
@@ -91,6 +93,10 @@ export class Member extends UserMixin {
 
   get avatar(): null | string {
     return this._avatar;
+  }
+
+  get avatarDecorationData(): null | UserAvatarDecorationData {
+    return this._avatarDecorationData;
   }
 
   get banner(): null | string {
@@ -203,6 +209,10 @@ export class Member extends UserMixin {
 
   get hasGuildAvatar(): boolean {
     return !!this._avatar;
+  }
+
+  get hasGuildAvatarDecoration(): boolean {
+    return !!this._avatarDecorationData;
   }
 
   get highestRole(): null | Role {
@@ -546,6 +556,10 @@ export class Member extends UserMixin {
 
     if (DiscordKeys.AVATAR in data) {
       this._avatar = data[DiscordKeys.AVATAR];
+    }
+    if (DiscordKeys.AVATAR_DECORATION_DATA in data) {
+      const value = data[DiscordKeys.AVATAR_DECORATION_DATA];
+      this._avatarDecorationData = (value) ? new UserAvatarDecorationData(this.client, value, this.isClone) : null;
     }
     if (DiscordKeys.BANNER in data) {
       this._banner = data[DiscordKeys.BANNER];
