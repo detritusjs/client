@@ -82,7 +82,7 @@ const keysComponentMediaGallery = new BaseSet<string>([
 
 
 export interface ComponentMediaGalleryItemData {
-  description?: number,
+  description?: string,
   media?: ComponentUnfurledMedia | ComponentUnfurledMediaData,
   spoiler?: boolean,
 }
