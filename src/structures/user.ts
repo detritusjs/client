@@ -11,6 +11,8 @@ import {
   DiscordKeys,
   PremiumUserTypes,
   RelationshipTypes,
+  UserDisplayNameEffects,
+  UserDisplayNameFonts,
   UserFlags,
 } from '../constants';
 import {
@@ -36,9 +38,12 @@ const keysUser = new BaseSet<string>([
   DiscordKeys.AVATAR_DECORATION_DATA,
   DiscordKeys.BOT,
   DiscordKeys.CLAN,
+  DiscordKeys.COLLECTIBLES,
   DiscordKeys.DISCRIMINATOR,
+  DiscordKeys.DISPLAY_NAME_STYLES,
   DiscordKeys.GLOBAL_NAME,
   DiscordKeys.ID,
+  DiscordKeys.PRIMARY_GUILD,
   DiscordKeys.PUBLIC_FLAGS,
   DiscordKeys.SYSTEM,
   DiscordKeys.USERNAME,
@@ -55,9 +60,12 @@ export class User extends BaseStructure {
   avatarDecorationData: null | UserAvatarDecorationData = null;
   bot: boolean = false;
   clan: null | UserClan = null;
+  collectibles: null | UserCollectibles = null;
   discriminator: string = '0000';
+  displayNameStyles: null | UserDisplayNameStyles = null;
   globalName: null | string = null;
   id: string = '';
+  primaryGuild: null | UserClan = null;
   publicFlags: number = 0;
   system?: boolean;
   username: string = '';
@@ -319,14 +327,32 @@ export class User extends BaseStructure {
       const clan = (value) ? new UserClan(this.client, value, this.isClone) : null;
       (this as any)[DetritusKeys[DiscordKeys.CLAN]] = clan;
     }
+    if (DiscordKeys.COLLECTIBLES in data) {
+      const value = data[DiscordKeys.COLLECTIBLES];
+
+      const collectibles = (value) ? new UserCollectibles(this.client, value, this.isClone) : null;
+      (this as any)[DetritusKeys[DiscordKeys.COLLECTIBLES]] = collectibles;
+    }
     if (DiscordKeys.DISCRIMINATOR in data) {
       (this as any)[DetritusKeys[DiscordKeys.DISCRIMINATOR]] = data[DiscordKeys.DISCRIMINATOR];
+    }
+    if (DiscordKeys.DISPLAY_NAME_STYLES in data) {
+      const value = data[DiscordKeys.DISPLAY_NAME_STYLES];
+
+      const displayNameStyles = (value) ? new UserDisplayNameStyles(this.client, value, this.isClone) : null;
+      (this as any)[DetritusKeys[DiscordKeys.DISPLAY_NAME_STYLES]] = displayNameStyles;
     }
     if (DiscordKeys.GLOBAL_NAME in data) {
       (this as any)[DetritusKeys[DiscordKeys.GLOBAL_NAME]] = data[DiscordKeys.GLOBAL_NAME];
     }
     if (DiscordKeys.ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.PRIMARY_GUILD in data) {
+      const value = data[DiscordKeys.PRIMARY_GUILD];
+
+      const clan = (value) ? new UserClan(this.client, value, this.isClone) : null;
+      (this as any)[DetritusKeys[DiscordKeys.PRIMARY_GUILD]] = clan;
     }
     if (DiscordKeys.PUBLIC_FLAGS in data) {
       (this as any)[DetritusKeys[DiscordKeys.PUBLIC_FLAGS]] = data[DiscordKeys.PUBLIC_FLAGS];
@@ -638,6 +664,10 @@ export class UserMixin extends BaseStructure {
     return this.user.clan;
   }
 
+  get collectibles(): null | UserCollectibles {
+    return this.user.collectibles;
+  }
+
   get createdAt(): Date {
     return this.user.createdAt;
   }
@@ -652,6 +682,10 @@ export class UserMixin extends BaseStructure {
 
   get discriminator(): string {
     return this.user.discriminator;
+  }
+
+  get displayNameStyles(): null | UserDisplayNameStyles {
+    return this.user.displayNameStyles;
   }
 
   get dm(): Channel | null {
@@ -772,6 +806,10 @@ export class UserMixin extends BaseStructure {
 
   get presence(): null | Presence {
     return this.user.presence;
+  }
+
+  get primaryGuild(): null | UserClan {
+    return this.user.primaryGuild;
   }
 
   get publicFlags(): number {
@@ -951,6 +989,139 @@ const keysUserClan = new BaseSet<string>([
     }
     if (DiscordKeys.TAG in data) {
       (this as any)[DetritusKeys[DiscordKeys.TAG]] = data[DiscordKeys.TAG];
+    }
+  }
+}
+
+
+const keysUserCollectibles = new BaseSet<string>([
+  DiscordKeys.NAMEPLATE,
+]);
+
+/**
+ * User Collectibles Structure
+ * @category Structure
+ */
+ export class UserCollectibles extends BaseStructure {
+  readonly _keys = keysUserCollectibles;
+
+  nameplate?: UserCollectiblesNameplate;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.NAMEPLATE in data) {
+      const value = data[DiscordKeys.NAMEPLATE];
+
+      const nameplate = new UserCollectiblesNameplate(this.client, value, this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.NAMEPLATE]] = nameplate;
+    }
+  }
+}
+
+
+const keysUserCollectiblesNameplate = new BaseSet<string>([
+  DiscordKeys.ASSET,
+  DiscordKeys.LABEL,
+  DiscordKeys.PALETTE,
+  DiscordKeys.SKU_ID,
+]);
+
+/**
+ * User Collectibles Nameplate Structure
+ * @category Structure
+ */
+ export class UserCollectiblesNameplate extends BaseStructure {
+  readonly _keys = keysUserCollectiblesNameplate;
+
+  asset: string = '';
+  label: string = '';
+  palette: string = '';
+  skuId: string = '';
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ASSET in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ASSET]] = data[DiscordKeys.ASSET];
+    }
+    if (DiscordKeys.LABEL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LABEL]] = data[DiscordKeys.LABEL];
+    }
+    if (DiscordKeys.PALETTE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PALETTE]] = data[DiscordKeys.PALETTE];
+    }
+    if (DiscordKeys.SKU_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SKU_ID]] = data[DiscordKeys.SKU_ID];
+    }
+  }
+}
+
+
+const keysUserDisplayNameStyles = new BaseSet<string>([
+  DiscordKeys.COLORS,
+  DiscordKeys.EFFECT_ID,
+  DiscordKeys.FONT_ID,
+]);
+
+/**
+ * User Display Name Styles Structure
+ * @category Structure
+ */
+ export class UserDisplayNameStyles extends BaseStructure {
+  readonly _keys = keysUserDisplayNameStyles;
+
+  colors: Array<number> = [];
+  effectId: UserDisplayNameEffects = UserDisplayNameEffects.UNSPECIFIED;
+  fontId: UserDisplayNameFonts = UserDisplayNameFonts.UNSPECIFIED;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.COLORS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.COLORS]] = data[DiscordKeys.COLORS];
+    }
+    if (DiscordKeys.EFFECT_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EFFECT_ID]] = data[DiscordKeys.EFFECT_ID];
+    }
+    if (DiscordKeys.FONT_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FONT_ID]] = data[DiscordKeys.FONT_ID];
     }
   }
 }

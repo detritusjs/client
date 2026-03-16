@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.89',
+  VERSION: '0.17.0-beta.99',
 });
 
 export type Snowflake = number | string;
@@ -1595,6 +1595,34 @@ export enum TeamPayoutAccountStatuses {
 }
 
 
+export enum UserDisplayNameEffects {
+  UNSPECIFIED = 0,
+  SOLID = 1,
+  GRADIENT = 2,
+  NEON = 3,
+  TOON = 4,
+  POP = 5,
+  GLOW = 6,
+}
+
+
+export enum UserDisplayNameFonts {
+  UNSPECIFIED = 0,
+  BANGERS = 1,
+  BIO_RHYME = 2,
+  CHERRY_BOMB = 3,
+  CHICLE = 4,
+  COMPAGNON = 5,
+  MUSEO_MODERNO = 6,
+  NEO_CASTEL = 7,
+  PIXELIFY = 8,
+  RIBES = 9,
+  SINISTRE = 10,
+  DEFAULT = 11,
+  ZILLA_SLAB = 12,
+}
+
+
 export enum UserFlags {
   STAFF = 1 << 0,
   PARTNER = 1 << 1,
@@ -1750,6 +1778,8 @@ export const DiscordKeys = Object.freeze({
   CLIENT_STATUS: 'client_status',
   CODE: 'code',
   COLOR: 'color',
+  COLORS: 'colors',
+  COLLECTIBLES: 'collectibles',
   COMMUNICATION_DISABLED_UNTIL: 'communication_disabled_until',
   COMPONENT_TYPE: 'component_type',
   COMPONENTS: 'components',
@@ -1798,6 +1828,7 @@ export const DiscordKeys = Object.freeze({
   DISCOVERABLE_DISABLED: 'discoverable_disabled',
   DISCOVERY_SPLASH: 'discovery_splash',
   DISCRIMINATOR: 'discriminator',
+  DISPLAY_NAME_STYLES: 'display_name_styles',
   DISTRIBUTOR: 'distributor',
   DIVIDER: 'divider',
   DM_PERMISSION: 'dm_permission',
@@ -1805,6 +1836,7 @@ export const DiscordKeys = Object.freeze({
   DURATION_SECONDS: 'duration_seconds',
   DURATION_SECS: 'duration_secs',
   EDITED_TIMESTAMP: 'edited_timestamp',
+  EFFECT_ID: 'effect_id',
   EMAIL: 'email',
   EMBEDS: 'embeds',
   EMBED_CHANNEL_ID: 'embed_channel_id',
@@ -1840,6 +1872,7 @@ export const DiscordKeys = Object.freeze({
   FILENAME: 'filename',
   FLAGS: 'flags',
   FOCUSED: 'focused',
+  FONT_ID: 'font_id',
   FOOTER: 'footer',
   FORMAT_TYPE: 'format_type',
   FRIEND_SYNC: 'friend_sync',
@@ -1957,6 +1990,7 @@ export const DiscordKeys = Object.freeze({
   MUTE: 'mute',
   MUTUAL_GUILDS: 'mutual_guilds',
   NAME: 'name',
+  NAMEPLATE: 'nameplate',
   NAME_LOCALIZATIONS: 'name_localizations',
   NEW_VALUE: 'new_value',
   NICK: 'nick',
@@ -1976,6 +2010,7 @@ export const DiscordKeys = Object.freeze({
   OWNER_ID: 'owner_id',
   OWNER_USER_ID: 'owner_user_id',
   PACK_ID: 'pack_id',
+  PALETTE: 'palette',
   PARENT_ID: 'parent_id',
   PARTICIPANTS: 'participants',
   PARTY: 'party',
@@ -2007,6 +2042,7 @@ export const DiscordKeys = Object.freeze({
   PREVIEW_VIDEO: 'preview_video',
   PRESETS: 'presets',
   PRICE: 'price',
+  PRIMARY_GUILD: 'primary_guild',
   PRIMARY_SKU_ID: 'primary_sku_id',
   PRIVACY_LEVEL: 'privacy_level',
   PRIVACY_POLICY_URL: 'privacy_policy_url',
@@ -2137,6 +2173,8 @@ export const DiscordKeys = Object.freeze({
   UNAVAILABLE: 'unavailable',
   UNICODE_EMOJI: 'unicode_emoji',
   UPDATED_AT: 'updated_at',
+  UPLOAD_FILENAME: 'upload_filename',
+  UPLOAD_URL: 'upload_url',
   URL: 'url',
   USAGE_COUNT: 'usage_count',
   USER: 'user',
@@ -2244,7 +2282,9 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.CLIENT_INFO]: 'clientInfo',
   [DiscordKeys.CLIENT_STATUS]: 'clientStatus',
   [DiscordKeys.CODE]: 'code',
+  [DiscordKeys.COLLECTIBLES]: 'collectibles',
   [DiscordKeys.COLOR]: 'color',
+  [DiscordKeys.COLORS]: 'colors',
   [DiscordKeys.COMMUNICATION_DISABLED_UNTIL]: 'communicationDisabledUntil',
   [DiscordKeys.COMPONENT_TYPE]: 'componentType',
   [DiscordKeys.COMPONENTS]: 'components',
@@ -2293,6 +2333,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DISCOVERABLE_DISABLED]: 'discoverableDisabled',
   [DiscordKeys.DISCOVERY_SPLASH]: 'discoverySplash',
   [DiscordKeys.DISCRIMINATOR]: 'discriminator',
+  [DiscordKeys.DISPLAY_NAME_STYLES]: 'displayNameStyles',
   [DiscordKeys.DISTRIBUTOR]: 'distributor',
   [DiscordKeys.DIVIDER]: 'divider',
   [DiscordKeys.DM_PERMISSION]: 'dmPermission',
@@ -2300,6 +2341,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DURATION_SECONDS]: 'durationSeconds',
   [DiscordKeys.DURATION_SECS]: 'durationSecs',
   [DiscordKeys.EDITED_TIMESTAMP]: 'editedTimestamp',
+  [DiscordKeys.EFFECT_ID]: 'effectId',
   [DiscordKeys.EMAIL]: 'email',
   [DiscordKeys.EMBEDS]: 'embeds',
   [DiscordKeys.EMBED_CHANNEL_ID]: 'embedChannelId',
@@ -2335,6 +2377,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.FILENAME]: 'filename',
   [DiscordKeys.FLAGS]: 'flags',
   [DiscordKeys.FOCUSED]: 'focused',
+  [DiscordKeys.FONT_ID]: 'fontId',
   [DiscordKeys.FOOTER]: 'footer',
   [DiscordKeys.FORMAT_TYPE]: 'formatType',
   [DiscordKeys.FRIEND_SYNC]: 'friendSync',
@@ -2452,6 +2495,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.MUTE]: 'mute',
   [DiscordKeys.MUTUAL_GUILDS]: 'mutualGuilds',
   [DiscordKeys.NAME]: 'name',
+  [DiscordKeys.NAMEPLATE]: 'nameplate',
   [DiscordKeys.NAME_LOCALIZATIONS]: 'nameLocalizations',
   [DiscordKeys.NEW_VALUE]: 'newValue',
   [DiscordKeys.NICK]: 'nick',
@@ -2471,6 +2515,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.OWNER_ID]: 'ownerId',
   [DiscordKeys.OWNER_USER_ID]: 'ownerUserId',
   [DiscordKeys.PACK_ID]: 'packId',
+  [DiscordKeys.PALETTE]: 'palette',
   [DiscordKeys.PARENT_ID]: 'parentId',
   [DiscordKeys.PARTICIPANTS]: 'participants',
   [DiscordKeys.PARTY]: 'party',
@@ -2502,6 +2547,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.PREVIEW_VIDEO]: 'previewVideo',
   [DiscordKeys.PRESETS]: 'presets',
   [DiscordKeys.PRICE]: 'price',
+  [DiscordKeys.PRIMARY_GUILD]: 'primaryGuild',
   [DiscordKeys.PRIMARY_SKU_ID]: 'primarySkuId',
   [DiscordKeys.PRIVACY_LEVEL]: 'privacyLevel',
   [DiscordKeys.PRIVACY_POLICY_URL]: 'privacyPolicyUrl',
@@ -2632,6 +2678,8 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.UNAVAILABLE]: 'unavailable',
   [DiscordKeys.UNICODE_EMOJI]: 'unicodeEmoji',
   [DiscordKeys.UPDATED_AT]: 'updatedAt',
+  [DiscordKeys.UPLOAD_FILENAME]: 'uploadFilename',
+  [DiscordKeys.UPLOAD_URL]: 'uploadUrl',
   [DiscordKeys.URL]: 'url',
   [DiscordKeys.USAGE_COUNT]: 'usageCount',
   [DiscordKeys.USER]: 'user',

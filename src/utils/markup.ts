@@ -7,9 +7,13 @@ export const Strings = Object.freeze({
   CODESTRING: '`',
   CODESTRING_DOUBLE: '``',
   ESCAPE: '\\',
+  HEADER: '#',
   ITALICS: '_',
+  LIST: '-',
+  QUOTE: '>',
   SPOILER: '||',
   STRIKE: '~~',
+  SUBTEXT: '-#',
   UNDERLINE: '__',
 });
 
@@ -18,9 +22,13 @@ export const Regexes = Object.freeze({
   [Strings.CODEBLOCK]: new RegExp(Strings.CODEBLOCK, 'g'),
   [Strings.CODESTRING]: new RegExp(Strings.CODESTRING, 'g'),
   [Strings.ESCAPE]: /\\/g,
+  [Strings.HEADER]: /^(\s*)?#/g, // maybe support the other markup types with the spaces?
   [Strings.ITALICS]: /(_|\*)/g,
+  [Strings.LIST]: /(-|\*)/g,
+  [Strings.QUOTE]: />/g,
   [Strings.SPOILER]: /\|\|/g,
   [Strings.STRIKE]: new RegExp(Strings.STRIKE, 'g'),
+  [Strings.SUBTEXT]: /^(\s*)?(-?#)/g, // maybe support the other markup types with the spaces?
   [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
   EVERYONE: /@(everyone|here)/g,
   LINK: /\]\(/g,
@@ -34,9 +42,13 @@ export const Replacements = Object.freeze({
   [Strings.CODEBLOCK]: '``\u200b`',
   [Strings.CODESTRING]: '\\`',
   [Strings.ESCAPE]: '\\\\',
+  [Strings.HEADER]: '$1\\#',
   [Strings.ITALICS]: '\\$1',
+  [Strings.LIST]: '\\$1',
+  [Strings.QUOTE]: '\\>',
   [Strings.SPOILER]: '\\|\\|',
   [Strings.STRIKE]: '\\~\\~',
+  [Strings.SUBTEXT]: '$1\\$2',
   [Strings.UNDERLINE]: '\\_\\_',
   MENTION: '\u200b',
 });
@@ -75,7 +87,7 @@ const defaultBoldFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultM
 
 export function bold(text: string, options: MarkupFilterOptions = {}): string {
   text = escape.bold(text, options);
-  return `**${text}**`;
+  return Strings.BOLD + text + Strings.BOLD;
 }
 
 
@@ -129,6 +141,54 @@ export function codestring(text: string, options: MarkupFilterOptions = {}): str
 }
 
 
+export interface HeaderFilter extends MarkupFilter {
+  multiline?: boolean,
+}
+
+export interface HeaderFilterOptions extends MarkupFilterOptions {
+  multiline?: boolean,
+}
+
+const defaultHeaderFilter: HeaderFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
+  limit: 1998,
+  replacement: Replacements[Strings.HEADER],
+}));
+
+export function headerBig(text: string, options: HeaderFilterOptions = {}): string {
+  text = escape.header(text, options);
+  if (options.multiline) {
+    // todo: include each line to the above limit
+    return text.split('\n').map((x) => {
+      return `${Strings.HEADER} ${x}`;
+    }).join('\n');
+  }
+  return `${Strings.HEADER} ${text}`;
+}
+
+
+export function headerMedium(text: string, options: HeaderFilterOptions = {}): string {
+  text = escape.header(text, Object.assign({limit: 1997}, options));
+  if (options.multiline) {
+    // todo: include each line to the above limit
+    return text.split('\n').map((x) => {
+      return `${Strings.HEADER}${Strings.HEADER} ${x}`;
+    }).join('\n');
+  }
+  return `${Strings.HEADER}${Strings.HEADER} ${text}`;
+}
+
+
+export function headerSmall(text: string, options: HeaderFilterOptions = {}): string {
+  text = escape.header(text, Object.assign({limit: 1996}, options));
+  if (options.multiline) {
+    // todo: include each line to the above limit
+    return text.split('\n').map((x) => {
+      return `${Strings.HEADER}${Strings.HEADER}${Strings.HEADER} ${x}`;
+    }).join('\n');
+  }
+  return `${Strings.HEADER}${Strings.HEADER}${Strings.HEADER} ${text}`;
+}
+
 
 const defaultItalicsFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
   limit: 1998,
@@ -137,7 +197,74 @@ const defaultItalicsFilter: MarkupFilter = Object.freeze(Object.assign({}, defau
 
 export function italics(text: string, options: MarkupFilterOptions = {}): string {
   text = escape.italics(text, options);
-  return `_${text}_`;
+  return Strings.ITALICS + text + Strings.ITALICS;
+}
+
+
+export interface ListFilter extends MarkupFilter {
+  indent?: number,
+  multiline?: boolean,
+  ordered?: boolean | number,
+}
+
+export interface ListFilterOptions extends MarkupFilterOptions {
+  indent?: number,
+  multiline?: boolean,
+  ordered?: boolean | number,
+}
+
+const defaultListFilter: ListFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
+  limit: 1998,
+  replacement: Replacements[Strings.QUOTE],
+}));
+
+export function list(text: string, options: ListFilterOptions = {}): string {
+  text = escape.list(text, options);
+  const indent = (options.indent) ? '  '.repeat(options.indent) : '';
+  if (options.ordered || typeof(options.ordered) === 'number') {
+    const listStart = (typeof(options.ordered) === 'number') ? options.ordered : 1;
+    if (options.multiline) {
+      // todo: include each line to the above limit
+      return text.split('\n').map((x, i) => {
+        return `${indent}${listStart + i}. ${x}`;
+      }).join('\n');
+    }
+    return `${indent}${listStart}. ${text}`;
+  }
+  if (options.multiline) {
+    // todo: include each line to the above limit
+    // apparently you can do `>>>` at the beginning of the text, but the client does not do this
+    return text.split('\n').map((x) => {
+      return `${indent}${Strings.LIST} ${x}`;
+    }).join('\n');
+  }
+  return `${indent}${Strings.LIST} ${text}`;
+}
+
+
+export interface QuoteFilter extends MarkupFilter {
+  multiline?: boolean,
+}
+
+export interface QuoteFilterOptions extends MarkupFilterOptions {
+  multiline?: boolean,
+}
+
+const defaultQuoteFilter: QuoteFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
+  limit: 1998,
+  replacement: Replacements[Strings.QUOTE],
+}));
+
+export function quote(text: string, options: QuoteFilterOptions = {}): string {
+  text = escape.quote(text, options);
+  if (options.multiline) {
+    // todo: include each line to the above limit
+    // apparently you can do `>>>` at the beginning of the text, but the client does not do this
+    return text.split('\n').map((x) => {
+      return `${Strings.QUOTE} ${x}`;
+    }).join('\n');
+  }
+  return `${Strings.QUOTE} ${text}`;
 }
 
 
@@ -148,7 +275,7 @@ const defaultSpoilerFilter: MarkupFilter = Object.freeze(Object.assign({}, defau
 
 export function spoiler(text: string, options: MarkupFilterOptions = {}): string {
   text = escape.spoiler(text, options);
-  return `||${text}||`;
+  return Strings.SPOILER + text + Strings.SPOILER;
 }
 
 
@@ -160,28 +287,32 @@ const defaultStrikeFilter: MarkupFilter = Object.freeze(Object.assign({}, defaul
 
 export function strike(text: string, options: MarkupFilterOptions = {}): string {
   text = escape.strike(text, options);
-  return `~~${text}~~`;
+  return Strings.STRIKE + text + Strings.STRIKE;
 }
 
 
+export interface SubtextFilter extends MarkupFilter {
+  multiline?: boolean,
+}
 
-const defaultUnderlineFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
-  limit: 1996,
-  replacement: Replacements[Strings.UNDERLINE],
+export interface SubtextFilterOptions extends MarkupFilterOptions {
+  multiline?: boolean,
+}
+
+const defaultSubtextFilter: SubtextFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
+  limit: 1998,
+  replacement: Replacements[Strings.SUBTEXT],
 }));
 
-export function underline(text: string, options: MarkupFilterOptions = {}): string {
-  text = escape.underline(text, options);
-  return `__${text}__`;
-}
-
-
-export function url(text: string, url: string, comment?: string): string {
-  url = escape.url(url);
-  if (comment) {
-    return `[${text}](${url} '${comment}')`;
+export function subtext(text: string, options: SubtextFilterOptions = {}): string {
+  text = escape.subtext(text, options);
+  if (options.multiline) {
+    // todo: include each line to the above limit
+    return text.split('\n').map((x) => {
+      return `${Strings.SUBTEXT} ${x}`;
+    }).join('\n');
   }
-  return `[${text}](${url})`;
+  return `${Strings.SUBTEXT} ${text}`;
 }
 
 
@@ -203,6 +334,27 @@ export function timestamp(timestamp: Date | number | string | null, format?: Mar
     return `<t:${unixTimestamp}:${format}>`;
   }
   return `<t:${unixTimestamp}>`;
+}
+
+
+
+const defaultUnderlineFilter: MarkupFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
+  limit: 1996,
+  replacement: Replacements[Strings.UNDERLINE],
+}));
+
+export function underline(text: string, options: MarkupFilterOptions = {}): string {
+  text = escape.underline(text, options);
+  return Strings.UNDERLINE + text + Strings.UNDERLINE;
+}
+
+
+export function url(text: string, url: string, comment?: string): string {
+  url = escape.url(url);
+  if (comment) {
+    return `[${text}](${url} '${comment}')`;
+  }
+  return `[${text}](${url})`;
 }
 
 
@@ -229,6 +381,9 @@ export const escape = Object.freeze({
     text = text.replace(Regexes[Strings.SPOILER], Replacements[Strings.SPOILER]);
     text = text.replace(Regexes[Strings.STRIKE], Replacements[Strings.STRIKE]);
     text = text.replace(Regexes[Strings.UNDERLINE], Replacements[Strings.UNDERLINE]);
+
+    text = text.replace(Regexes[Strings.QUOTE], Replacements[Strings.QUOTE]);
+    text = text.replace(Regexes[Strings.SUBTEXT], Replacements[Strings.SUBTEXT]); // this includes header
 
     if (filter.links) {
       text = escape.links(text, filter.mentionEscapeCharacter);
@@ -268,6 +423,18 @@ export const escape = Object.freeze({
     }
     return trueSlice(text, filter.limit);
   },
+  header: (text: string, options: HeaderFilterOptions = {}): string => {
+    const filter: HeaderFilter = Object.assign({}, defaultHeaderFilter, options);
+
+    text = text.replace(Regexes[Strings.HEADER], filter.replacement);
+    if (!filter.multiline) {
+      text = text.replace(/\n/g, ' ');
+    }
+    if (filter.mentions) {
+      text = escape.mentions(text, filter.mentionEscapeCharacter);
+    }
+    return trueSlice(text, filter.limit);
+  },
   italics: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultItalicsFilter, options);
 
@@ -281,9 +448,33 @@ export const escape = Object.freeze({
     text = text.replace(Regexes.LINK, `]${replacement}(`);
     return text;
   },
+  list: (text: string, options: ListFilterOptions = {}): string => {
+    const filter: ListFilter = Object.assign({}, defaultSubtextFilter, options);
+
+    text = text.replace(Regexes[Strings.LIST], filter.replacement);
+    if (!filter.multiline) {
+      text = text.replace(/\n/g, ' ');
+    }
+    if (filter.mentions) {
+      text = escape.mentions(text, filter.mentionEscapeCharacter);
+    }
+    return trueSlice(text, filter.limit);
+  },
   mentions: (text: string, replacement: string = Replacements.MENTION): string => {
     text = text.replace(Regexes.MENTION_HARDCORE, `@${replacement}`);
     return text;
+  },
+  quote: (text: string, options: QuoteFilterOptions = {}): string => {
+    const filter: QuoteFilter = Object.assign({}, defaultQuoteFilter, options);
+
+    text = text.replace(Regexes[Strings.QUOTE], filter.replacement);
+    if (!filter.multiline) {
+      text = text.replace(/\n/g, ' ');
+    }
+    if (filter.mentions) {
+      text = escape.mentions(text, filter.mentionEscapeCharacter);
+    }
+    return trueSlice(text, filter.limit);
   },
   spoiler: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultSpoilerFilter, options);
@@ -298,6 +489,18 @@ export const escape = Object.freeze({
     const filter: MarkupFilter = Object.assign({}, defaultStrikeFilter, options);
 
     text = text.replace(Regexes[Strings.STRIKE], filter.replacement);
+    if (filter.mentions) {
+      text = escape.mentions(text, filter.mentionEscapeCharacter);
+    }
+    return trueSlice(text, filter.limit);
+  },
+  subtext: (text: string, options: SubtextFilterOptions = {}): string => {
+    const filter: SubtextFilter = Object.assign({}, defaultSubtextFilter, options);
+
+    text = text.replace(Regexes[Strings.SUBTEXT], filter.replacement);
+    if (!filter.multiline) {
+      text = text.replace(/\n/g, ' ');
+    }
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
     }

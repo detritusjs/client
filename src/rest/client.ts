@@ -18,6 +18,7 @@ import {
   ApplicationCommandPermissions,
   ApplicationNews,
   ApplicationRoleConnectionMetadata,
+  AttachmentDeferred,
   AuditLog,
   AutoModerationRule,
   Channel,
@@ -403,6 +404,21 @@ export class RestClient {
   ): Promise<ApplicationNews> {
     const data = await this.raw.createApplicationNews(options);
     return new ApplicationNews(this.client, data);
+  }
+
+  async createChannelAttachments(
+    channelId: string,
+    options: RequestTypes.CreateChannelAttachments,
+  ): Promise<{attachments: BaseCollection<string, AttachmentDeferred>}>  {
+    const data = await this.raw.createChannelAttachments(channelId, options);
+
+    const attachments = new BaseCollection<string, AttachmentDeferred>();
+    for (let raw of data.attachments) {
+      const attachment = new AttachmentDeferred(this.client, raw);
+      attachments.set(attachment.uploadFilename, attachment);
+    }
+
+    return {attachments};
   }
 
   async createChannelInvite(

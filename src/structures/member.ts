@@ -20,7 +20,13 @@ import {
 import { Guild } from './guild';
 import { Overwrite } from './overwrite';
 import { Role } from './role';
-import { User, UserAvatarDecorationData, UserMixin } from './user';
+import {
+  User,
+  UserAvatarDecorationData,
+  UserCollectibles,
+  UserDisplayNameStyles,
+  UserMixin,
+} from './user';
 import { VoiceState } from './voicestate';
 
 
@@ -32,8 +38,10 @@ const keysMember = new BaseSet<string>([
   DiscordKeys.AVATAR,
   DiscordKeys.AVATAR_DECORATION_DATA,
   DiscordKeys.BANNER,
+  DiscordKeys.COLLECTIBLES,
   DiscordKeys.COMMUNICATION_DISABLED_UNTIL,
   DiscordKeys.DEAF,
+  DiscordKeys.DISPLAY_NAME_STYLES,
   DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.HOISTED_ROLE,
@@ -63,6 +71,8 @@ export class Member extends UserMixin {
   _avatar: null | string = null;
   _avatarDecorationData: null | UserAvatarDecorationData = null;
   _banner: null | string = null;
+  _collectibles: null | UserCollectibles = null;
+  _displayNameStyles: null | UserDisplayNameStyles = null;
   _roles?: Array<string>;
   _permissions?: bigint = 0n;
 
@@ -175,6 +185,10 @@ export class Member extends UserMixin {
     return this.can([Permissions.VIEW_AUDIT_LOG]);
   }
 
+  get collectibles(): null | UserCollectibles {
+    return this._collectibles;
+  }
+
   get color(): number {
     const role = this.colorRole;
     return (role) ? role.color : 0;
@@ -201,6 +215,10 @@ export class Member extends UserMixin {
       return new Date(this.communicationDisabledUntilUnix);
     }
     return null;
+  }
+
+  get displayNameStyles(): null | UserDisplayNameStyles {
+    return this._displayNameStyles;
   }
 
   get guild(): Guild | null {
@@ -564,12 +582,20 @@ export class Member extends UserMixin {
     if (DiscordKeys.BANNER in data) {
       this._banner = data[DiscordKeys.BANNER];
     }
+    if (DiscordKeys.COLLECTIBLES in data) {
+      const value = data[DiscordKeys.COLLECTIBLES];
+      this._collectibles = (value) ? new UserCollectibles(this.client, value, this.isClone) : null;
+    }
     if (DiscordKeys.COMMUNICATION_DISABLED_UNTIL in data) {
       const value = data[DiscordKeys.COMMUNICATION_DISABLED_UNTIL];
       this.communicationDisabledUntilUnix = (value) ? Date.parse(value) : 0;
     }
     if (DiscordKeys.DEAF in data) {
       (this as any)[DetritusKeys[DiscordKeys.DEAF]] = data[DiscordKeys.DEAF];
+    }
+    if (DiscordKeys.DISPLAY_NAME_STYLES in data) {
+      const value = data[DiscordKeys.DISPLAY_NAME_STYLES];
+      this._displayNameStyles = (value) ? new UserDisplayNameStyles(this.client, value, this.isClone) : null;
     }
     if (DiscordKeys.FLAGS in data) {
       (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];

@@ -3,6 +3,7 @@ export * from './applicationcommand';
 export * from './applicationnews';
 export * from './applicationroleconnectionmetadata';
 export * from './attachment';
+export * from './attachmentdeferred';
 export * from './auditlog';
 export * from './automoderationrule';
 export * from './basestructure';
