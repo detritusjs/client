@@ -179,8 +179,8 @@ export class ComponentContext {
     return this.interaction.channel;
   }
 
-  get channelId() {
-    return this.interaction.channelId;
+  get channelId(): string {
+    return this.interaction.channelId!;
   }
 
   get customId(): string {

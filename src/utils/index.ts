@@ -4,6 +4,7 @@ import { URLSearchParams } from 'url';
 import { Snowflake } from 'detritus-utils';
 import { guildIdToShardId } from 'detritus-utils/lib/tools';
 
+import { BaseCollection } from '../collections/basecollection';
 import {
   DiscordRegex,
   DiscordRegexNames,
@@ -20,6 +21,13 @@ import {
   ApplicationCommandOption,
   ApplicationCommandOptionChoice,
 } from '../structures/applicationcommand';
+import { Channel } from '../structures/channel';
+import { Guild } from '../structures/guild';
+import { Interaction } from '../structures/interaction';
+import { Member } from '../structures/member';
+import { Message } from '../structures/message';
+import { Role } from '../structures/role';
+import { User } from '../structures/user';
 
 
 import * as Markup from './markup';
@@ -258,6 +266,99 @@ export function intToRGB(int: number): {
     g: (int >> 8) & 0x0ff,
     b: int & 0x0ff,
   };
+}
+
+
+export function parseMentionsInText(
+  context: Interaction | Message,
+  content: string,
+  options: {
+    escapeMentions?: boolean,
+    guildSpecific?: boolean,
+    nick?: boolean,
+    text?: string,
+  } = {},
+): string {
+  const escape = !!(options.escapeMentions || options.escapeMentions === undefined);
+  const guildSpecific = !!(options.guildSpecific || options.guildSpecific === undefined);
+  const nick = !!(options.nick || options.nick === undefined);
+
+  let channels: BaseCollection<string, Channel>;
+  let guild: Guild | null = null;
+  let mentionChannels: BaseCollection<string, Channel> | null = null;
+  let mentions: BaseCollection<string, Member | User> | null = null;
+  let users: BaseCollection<string, User>;
+
+  if (context instanceof Message) {
+    channels = context.client.channels;
+    guild = context.guild;
+    mentionChannels = context.mentionChannels;
+    mentions = context.mentions;
+    users = context.client.users;
+  } else if (context instanceof Interaction) {
+    channels = context.client.channels;
+    guild = context.guild;
+    users = context.client.users;
+  }
+
+  content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_CHANNEL], (match, id) => {
+    if (mentionChannels && mentionChannels.has(id)) {
+      const channel = mentionChannels.get(id)!;
+      return channel.toString();
+    } else {
+      if (channels.has(id)) {
+        const channel = channels.get(id)!;
+        if (guildSpecific && guild) {
+          if (guild.id === channel.guildId) {
+            return channel.toString();
+          }
+        } else {
+          return channel.toString();
+        }
+      }
+    }
+    return '#deleted-channel';
+  });
+
+  content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_ROLE], (match, id) => {
+    if (guild && guild.roles.has(id)) {
+      const role = guild.roles.get(id)!;
+      return `@${role}`;
+    }
+    return '@deleted-role';
+  });
+
+  content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_USER], (match, mentionType, id) => {
+    if (mentions && mentions.has(id)) {
+      const memberOrUser = mentions.get(id)!;
+      if (nick) {
+        return `@${memberOrUser.name}`;
+      }
+      return `@${memberOrUser}`;
+    } else {
+      if (guildSpecific && guild) {
+        if (guild.members.has(id)) {
+          const member = guild.members.get(id)!;
+          if (nick) {
+            return `@${member.name}`;
+          }
+          return `@${member}`;
+        }
+      } else {
+        if (users.has(id)) {
+          const user = users.get(id)!;
+          return `@${user}`;
+        }
+      }
+    }
+    return '@unknown-user'; // return match;
+  });
+
+  if (escape) {
+    content = Markup.escape.mentions(content);
+  }
+
+  return content;
 }
 
 

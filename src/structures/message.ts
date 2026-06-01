@@ -23,7 +23,7 @@ import {
   PremiumGuildTierNames,
   SystemMessages,
 } from '../constants';
-import { Markup, Snowflake } from '../utils';
+import { Markup, Snowflake, parseMentionsInText } from '../utils';
 
 import {
   BaseStructure,
@@ -458,69 +458,8 @@ export class Message extends BaseStructure {
       text?: string,
     } = {},
   ): string {
-    const escape = !!(options.escapeMentions || options.escapeMentions === undefined);
-    const guildSpecific = !!(options.guildSpecific || options.guildSpecific === undefined);
-    const nick = !!(options.nick || options.nick === undefined);
-
     let content = (options.text !== undefined) ? options.text : this.systemContent;
-    content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_CHANNEL], (match, id) => {
-      if (this.mentionChannels.has(id)) {
-        const channel = this.mentionChannels.get(id)!;
-        return channel.toString();
-      } else {
-        if (this.client.channels.has(id)) {
-          const channel = this.client.channels.get(id)!;
-          if (guildSpecific && this.guildId) {
-            if (this.guildId === channel.guildId) {
-              return channel.toString();
-            }
-          } else {
-            return channel.toString();
-          }
-        }
-      }
-      return '#deleted-channel';
-    });
-
-    const guild = this.guild;
-    content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_ROLE], (match, id) => {
-      if (guild && guild.roles.has(id)) {
-        const role = guild.roles.get(id)!;
-        return `@${role}`;
-      }
-      return '@deleted-role';
-    });
-
-    content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_USER], (match, mentionType, id) => {
-      if (this.mentions.has(id)) {
-        const memberOrUser = this.mentions.get(id)!;
-        if (nick) {
-          return `@${memberOrUser.name}`;
-        }
-        return `@${memberOrUser}`;
-      } else {
-        if (guildSpecific && this.guildId) {
-          if (this.client.members.has(this.guildId, id)) {
-            const member = this.client.members.get(this.guildId, id)!;
-            if (nick) {
-              return `@${member.name}`;
-            }
-            return `@${member}`;
-          }
-        } else {
-          if (this.client.users.has(id)) {
-            const user = this.client.users.get(id)!;
-            return `@${user}`;
-          }
-        }
-      }
-      return match;
-    });
-
-    if (escape) {
-      content = Markup.escape.mentions(content);
-    }
-    return content;
+    return parseMentionsInText(this, content, options);
   }
 
   hasFlag(flag: number): boolean {
