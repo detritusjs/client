@@ -214,7 +214,7 @@ export class User extends BaseStructure {
   }
 
   get name(): string {
-    return this.username;
+    return this.globalName || this.username;
   }
 
   get names(): Array<string> {

@@ -331,23 +331,17 @@ export function parseMentionsInText(
   content = content.replace(DiscordRegex[DiscordRegexNames.MENTION_USER], (match, mentionType, id) => {
     if (mentions && mentions.has(id)) {
       const memberOrUser = mentions.get(id)!;
-      if (nick) {
-        return `@${memberOrUser.name}`;
-      }
-      return `@${memberOrUser}`;
+      return `@${memberOrUser.name}`;
     } else {
       if (guildSpecific && guild) {
         if (guild.members.has(id)) {
           const member = guild.members.get(id)!;
-          if (nick) {
-            return `@${member.name}`;
-          }
-          return `@${member}`;
+          return `@${member.name}`;
         }
       } else {
         if (users.has(id)) {
           const user = users.get(id)!;
-          return `@${user}`;
+          return `@${user.name}`;
         }
       }
     }

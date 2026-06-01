@@ -292,7 +292,7 @@ export class Member extends UserMixin {
   }
 
   get name(): string {
-    return this.nick || this.username;
+    return this.nick || this.globalName || this.username;
   }
 
   get names(): Array<string> {
