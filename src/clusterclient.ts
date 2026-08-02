@@ -1,6 +1,9 @@
 import {
   Client as DetritusRestClient,
 } from 'detritus-client-rest';
+import {
+  SocketEvents,
+} from 'detritus-client-socket/lib/constants';
 import { EventSpewer, EventSubscription } from 'detritus-utils';
 
 import { Bucket } from './bucket';
@@ -35,6 +38,7 @@ export class ClusterClient extends EventSpewer {
     applications: {last: 0, time: 4 * (60 * 60) * 1000},
     oauth2Application: {last: 0, time: 4 * (60 * 60) * 1000},
   };
+  readonly _shardsIdentifyAttempt = new BaseCollection<number, number>();
   readonly _shardsWaiting = new BaseCollection<number, {resolve: Function, reject: Function}>();
   readonly token: string;
 
@@ -297,32 +301,57 @@ export class ClusterClient extends EventSpewer {
       });
       this.shards.set(shardId, shard);
       if (!this.manager) {
-        shard.gateway.on('state', ({state}) => {
-          switch (state) {
-            case SocketStates.READY: {
-              const waiting = this._shardsWaiting.get(shardId);
-              if (waiting) {
-                waiting.resolve();
-              }
+        shard.gateway.on(SocketEvents.CLOSE, ({code, reason}) => {
+          const waiting = this._shardsWaiting.get(shardId);
+          if (waiting) {
+            this._shardsWaiting.delete(shardId);
+            waiting.reject(new Error(`closed before ready: ${code} ${reason ?? ''}`));
+          }
+        });
+        shard.gateway.on(SocketEvents.KILLED, ({error}) => {
+          const waiting = this._shardsWaiting.get(shardId);
+          if (waiting) {
+            this._shardsWaiting.delete(shardId);
+            waiting.reject(error || new Error('killed before ready'));
+          }
+        });
+        shard.gateway.on(SocketEvents.STATE, ({state}) => {
+          if (state === SocketStates.READY) {
+            const waiting = this._shardsWaiting.get(shardId);
+            if (waiting) {
               this._shardsWaiting.delete(shardId);
-            }; break;
+              waiting.resolve();
+            }
           }
         });
         shard.gateway.onIdentifyCheck = () => {
           const bucket = this.buckets.get(ratelimitKey);
-          if (bucket) {
-            const waiting = this._shardsWaiting.get(shardId);
-            if (waiting) {
-              shard.gateway.identify();
-            } else {
-              bucket.add(() => {
-                shard.gateway.identify();
-                return new Promise((resolve, reject) => {
-                  this._shardsWaiting.set(shardId, {resolve, reject});
-                });
-              });
-            }
+          if (!bucket) {
+            shard.emit(ClientEvents.WARN, new Error(`no identify bucket for ${ratelimitKey}`));
+            return false;
           }
+
+          const attempt = (this._shardsIdentifyAttempt.get(shardId) || 0) + 1;
+          this._shardsIdentifyAttempt.set(shardId, attempt);
+
+          const waiting = this._shardsWaiting.get(shardId);
+          if (waiting) {
+            shard.gateway.identify();
+            return false;
+          }
+
+          bucket.add(() => {
+            if (this._shardsIdentifyAttempt.get(shardId) !== attempt) {
+              return Promise.resolve();
+            }
+            if (shard.gateway.killed || shard.gateway.state !== SocketStates.OPEN) {
+              return Promise.resolve();
+            }
+            shard.gateway.identify();
+            return new Promise((resolve, reject) => {
+              this._shardsWaiting.set(shardId, {resolve, reject});
+            });
+          });
           return false;
         };
       }

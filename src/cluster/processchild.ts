@@ -1,3 +1,7 @@
+import {
+  SocketCloseCodes,
+  SocketEvents,
+} from 'detritus-client-socket/lib/constants';
 import { EventSpewer } from 'detritus-utils';
 
 import { ClusterClient } from '../clusterclient';
@@ -35,7 +39,7 @@ export class ClusterProcessChild extends EventSpewer {
     process.on('message', this.emit.bind(this, 'ipc'));
     this.cluster.on('ready', () => this.sendIPC(ClusterIPCOpCodes.READY));
     this.cluster.on('shard', ({shard}) => {
-      shard.gateway.on('state', async ({state}) => {
+      shard.gateway.on(SocketEvents.STATE, async ({state}) => {
         const { shardId } = shard;
         if (state === SocketStates.READY) {
           this._shardsIdentifying.delete(shardId);
@@ -43,12 +47,23 @@ export class ClusterProcessChild extends EventSpewer {
         const data: ClusterIPCTypes.ShardState = {shardId, state};
         await this.sendIPCOrWarn(ClusterIPCOpCodes.SHARD_STATE, data, false);
       });
-      shard.gateway.on('close', async (payload: {code: number, reason: string}) => {
+      shard.gateway.on(SocketEvents.CLOSE, async (payload: {code: number, reason: string}) => {
+        const { shardId } = shard;
+        this._shardsIdentifying.delete(shardId);
         const data: ClusterIPCTypes.Close = {
           ...payload,
-          shardId: shard.shardId,
+          shardId,
         };
         await this.sendIPCOrWarn(ClusterIPCOpCodes.CLOSE, data, false);
+      });
+      shard.gateway.on(SocketEvents.KILLED, async () => {
+        const { shardId } = shard;
+        this._shardsIdentifying.delete(shardId);
+        await this.sendIPCOrWarn(ClusterIPCOpCodes.CLOSE, {
+          shardId,
+          code: SocketCloseCodes.NORMAL,
+          reason: 'killed',
+        }, false);
       });
       shard.gateway.onIdentifyCheck = async () => {
         const { shardId } = shard;

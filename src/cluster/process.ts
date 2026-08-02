@@ -70,6 +70,11 @@ export class ClusterProcess extends EventSpewer {
         switch (message.op) {
           case ClusterIPCOpCodes.CLOSE: {
             const data: ClusterIPCTypes.Close = message.data;
+            const waiting = this._shardsWaiting.get(data.shardId);
+            if (waiting) {
+              this._shardsWaiting.delete(data.shardId);
+              waiting.reject(new Error(`shard ${data.shardId} closed before ready: ${data.code}`));
+            }
             this.emit('shardClose', data);
           }; return;
           case ClusterIPCOpCodes.EVAL: {
@@ -103,19 +108,23 @@ export class ClusterProcess extends EventSpewer {
             const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
             const ratelimitKey = this.manager.getRatelimitKey(shardId);
             const bucket = this.manager.buckets.get(ratelimitKey);
-            if (bucket) {
-              // bucket should always be created, error if not?
-              const waiting = this._shardsWaiting.get(shardId);
-              if (waiting) {
-                await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
-              } else {
-                bucket.add(() => {
-                  return new Promise(async (resolve, reject) => {
-                    await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
-                    this._shardsWaiting.set(shardId, {resolve, reject});
+            if (!bucket) {
+              this.emit('warn', new Error(`no identify bucket for ratelimit key ${ratelimitKey} (shard ${shardId})`));
+              return;
+            }
+            const waiting = this._shardsWaiting.get(shardId);
+            if (waiting) {
+              await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
+            } else {
+              bucket.add(() => {
+                return new Promise((resolve, reject) => {
+                  this._shardsWaiting.set(shardId, {resolve, reject});
+                  this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId}).catch((error) => {
+                    this._shardsWaiting.delete(shardId);
+                    reject(error);
                   });
                 });
-              }
+              });
             }
           }; return;
           case ClusterIPCOpCodes.READY: {

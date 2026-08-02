@@ -1211,17 +1211,13 @@ export class ChannelGuildBase extends ChannelBase {
   }
 
   get canAddReactions(): boolean {
-    return this.isText && this.can([
-      Permissions.VIEW_CHANNEL,
-      Permissions.SEND_MESSAGES,
+    return this.isText && this.canMessage && this.can([
       Permissions.ADD_REACTIONS,
     ]);
   }
 
   get canAttachFiles(): boolean {
-    return this.isText && this.can([
-      Permissions.VIEW_CHANNEL,
-      Permissions.SEND_MESSAGES,
+    return this.isText && this.canMessage && this.can([
       Permissions.ATTACH_FILES,
     ]);
   }
@@ -1248,9 +1244,7 @@ export class ChannelGuildBase extends ChannelBase {
   }
 
   get canEmbedLinks(): boolean {
-    return this.isText && this.can([
-      Permissions.VIEW_CHANNEL,
-      Permissions.SEND_MESSAGES,
+    return this.isText && this.canMessage && this.can([
       Permissions.EMBED_LINKS,
     ]);
   }
@@ -1284,18 +1278,30 @@ export class ChannelGuildBase extends ChannelBase {
   }
 
   get canMentionEveryone(): boolean {
-    return this.isText && this.can([
-      Permissions.VIEW_CHANNEL,
-      Permissions.SEND_MESSAGES,
+    return this.isText && this.canMessage && this.can([
       Permissions.MENTION_EVERYONE,
     ]);
   }
 
   get canMessage(): boolean {
-    return this.isText && this.can([
+    const hasSendMessagePermissions = this.isText && this.can([
       Permissions.VIEW_CHANNEL,
       Permissions.SEND_MESSAGES,
     ]);
+    if (
+      hasSendMessagePermissions &&
+      this.client.user &&
+      this.client.members.has(this.guildId, this.client.user.id)
+    ) {
+      const me = this.client.members.get(this.guildId, this.client.user.id)!;
+      if (!me.communicationDisabledUntilUnix || me.communicationDisabledUntilUnix <= Date.now()) {
+        // not timed out
+        return true;
+      }
+      // now check if the user has admin/owner as someone can get timed out then get admin/owner
+      return me.canAdministrator;
+    }
+    return false;
   }
 
   get canMoveMembers(): boolean {
@@ -1320,9 +1326,7 @@ export class ChannelGuildBase extends ChannelBase {
   }
 
   get canSendTTSMessage(): boolean {
-    return this.isText && this.can([
-      Permissions.VIEW_CHANNEL,
-      Permissions.SEND_MESSAGES,
+    return this.isText && this.canMessage && this.can([
       Permissions.SEND_TTS_MESSAGES,
     ]);
   }
@@ -1349,9 +1353,7 @@ export class ChannelGuildBase extends ChannelBase {
   }
 
   get canUseExternalEmojis(): boolean {
-    return this.isText && this.can([
-      Permissions.VIEW_CHANNEL,
-      Permissions.SEND_MESSAGES,
+    return this.isText && this.canMessage && this.can([
       Permissions.USE_EXTERNAL_EMOJIS,
     ]);
   }
@@ -1414,7 +1416,7 @@ export class ChannelGuildBase extends ChannelBase {
         }
         memberOrRole = this.client.members.get(this.guildId, this.client.user.id)!;
       }
-  
+
       if (!ignoreOwner) {
         const guild = this.guild;
         if (guild && guild.isOwner(memberOrRole.id)) {
