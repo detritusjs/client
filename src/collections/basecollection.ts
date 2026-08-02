@@ -68,7 +68,7 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
   forEach(func: (v: V, k: K, map: Map<K, V>) => void, thisArg?: any): void {
     for (let [cacheKey, cache] of this.caches) {
       for (let [k, v] of cache) {
-        func.call(thisArg, v, k, cache);
+        func.call(thisArg, v, k, cache.cache);
       }
     }
   }
@@ -93,6 +93,16 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
       }
     }
     return undefined;
+  }
+
+  getOrInsert(cacheKey: K, key: K, defaultValue: V): V {
+    const cache = this.insertCache(cacheKey);
+    return cache.getOrInsert(key, defaultValue);
+  }
+
+  getOrInsertComputed(cacheKey: K, key: K, func: (key: K) => V): V {
+    const cache = this.insertCache(cacheKey);
+    return cache.getOrInsertComputed(key, func);
   }
 
   has(cacheKey: K): boolean;
@@ -305,7 +315,7 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
     for (let [guildId, guild] of this.guilds) {
       const cache = (guild as any)[this.key] as BaseCollection<K, V>;
       for (let [k, v] of cache) {
-        func.call(thisArg, v, k, cache);
+        func.call(thisArg, v, k, cache.cache);
       }
     }
   }
@@ -327,6 +337,24 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
       }
     }
     return undefined;
+  }
+
+  getOrInsert(guildId: K, key: K, defaultValue: V): V {
+    const guild = this.guilds.get(<string> <unknown> guildId);
+    if (guild) {
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
+      return cache.getOrInsert(key, defaultValue);
+    }
+    return defaultValue;
+  }
+
+  getOrInsertComputed(guildId: K, key: K, func: (key: K) => V): V {
+    const guild = this.guilds.get(<string> <unknown> guildId);
+    if (guild) {
+      const cache = (guild as any)[this.key] as BaseCollection<K, V>;
+      return cache.getOrInsertComputed(key, func);
+    }
+    return func(key);
   }
 
   has(guildId: K | null | undefined, key: K): boolean;
