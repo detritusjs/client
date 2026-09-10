@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.105',
+  VERSION: '0.17.0-beta.106',
 });
 
 export type Snowflake = number | string;
@@ -65,7 +65,7 @@ if (IS_TS_NODE) {
 
 export const LOCAL_GUILD_ID = '@me';
 
-export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
+export const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
 export const MAX_ATTACHMENT_SIZE_PREMIUM = 500 * 1024 * 1024;
 export const MAX_BITRATE = 96000;
 export const MAX_COMPONENTS_ACTION_ROW_BUTTONS = 5;
@@ -276,12 +276,12 @@ export enum AuditLogActions {
 }
 
 
-export const AuditLogActionTypes = Tools.normalize({
-  ALL: null,
-  CREATE: null,
-  UPDATE: null,
-  DELETE: null,
-});
+export enum AuditLogActionTypes {
+  ALL = 'ALL',
+  CREATE = 'CREATE',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+}
 
 
 export const AuditLogSubtargetTypes = Object.freeze({
@@ -290,19 +290,19 @@ export const AuditLogSubtargetTypes = Object.freeze({
 });
 
 
-export const AuditLogTargetTypes = Tools.normalize({
-  ALL: null,
-  CHANNEL: null,
-  CHANNEL_OVERWRITE: null,
-  EMOJI: null,
-  GUILD: null,
-  INTEGRATION: null,
-  INVITE: null,
-  ROLE: null,
-  UNKNOWN: null,
-  USER: null,
-  WEBHOOK: null,
-});
+export enum AuditLogTargetTypes {
+  ALL = 'ALL',
+  CHANNEL = 'CHANNEL',
+  CHANNEL_OVERWRITE = 'CHANNEL_OVERWRITE',
+  EMOJI = 'EMOJI',
+  GUILD = 'GUILD',
+  INTEGRATION = 'INTEGRATION',
+  INVITE = 'INVITE',
+  ROLE = 'ROLE',
+  UNKNOWN = 'UNKNOWN',
+  USER = 'USER',
+  WEBHOOK = 'WEBHOOK',
+}
 
 
 export enum AuditLogChangeKeys {
@@ -411,6 +411,10 @@ export enum ChannelFlags {
   REQUIRE_TAG = 1 << 4,
 
   HIDE_MEDIA_DOWNLOAD_OPTIONS = 1 << 15,
+
+  CHANNEL_OBFUSCATED = 1 << 17,
+
+  IS_SPOILER_CHANNEL = 1 << 21,
 }
 
 
@@ -739,52 +743,53 @@ export enum GuildExplicitContentFilterTypes {
 }
 
 
-export const GuildFeatures = Tools.normalize({
-  ANIMATED_BANNER: null,
-  ANIMATED_ICON: null,
-  APPLICATION_COMMAND_PERMISSIONS_V2: null,
-  AUTO_MODERATION: null,
-  BANNER: null,
-  COMMERCE: null,
-  COMMUNITY: null,
-  CREATOR_MONETIZABLE_PROVISIONAL: null,
-  CREATOR_STORE_PAGE: null,
-  DEVELOPER_SUPPORT_SERVER: null,
-  DISCOVERABLE: null,
-  ENABLED_DISCOVERABLE_BEFORE: null,
-  FEATURABLE: null,
-  HUB: null,
-  INVITES_DISABLED: null,
-  INVITE_SPLASH: null,
-  LURKABLE: null,
-  MEMBER_LIST_DISABLED: null,
-  MEMBER_PROFILES: null,
-  MEMBER_VERIFICATION_GATE_ENABLED: null,
-  MONETIZATION_ENABLED: null,
-  MORE_EMOJI: null,
-  MORE_STICKERS: null,
-  NEWS: null,
-  NEW_THREAD_PERMISSIONS: null,
-  PARTNERED: null,
-  PREVIEW_ENABLED: null,
-  PRIVATE_THREADS: null,
-  PUBLIC: null,
-  PUBLIC_DISABLED: null,
-  RAID_ALERTS_DISABLED: null,
-  ROLE_ICONS: null,
-  ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE: null,
-  ROLE_SUBSCRIPTIONS_ENABLED: null,
-  SEVEN_DAY_THREAD_ARCHIVE: null,
-  TEXT_IN_VOICE_ENABLED: null,
-  THREADS_ENABLED: null,
-  THREADS_ENABLED_TESTING: null,
-  THREE_DAY_THREAD_ARCHIVE: null,
-  TICKETED_EVENTS_ENABLED: null,
-  VANITY_URL: null,
-  VERIFIED: null,
-  VIP_REGIONS: null,
-  WELCOME_SCREEN_ENABLED: null,
-});
+export enum GuildFeatures {
+  ANIMATED_BANNER = 'ANIMATED_BANNER',
+  ANIMATED_ICON = 'ANIMATED_ICON',
+  APPLICATION_COMMAND_PERMISSIONS_V2 = 'APPLICATION_COMMAND_PERMISSIONS_V2',
+  AUTO_MODERATION = 'AUTO_MODERATION',
+  BANNER = 'BANNER',
+  COMMERCE = 'COMMERCE',
+  COMMUNITY = 'COMMUNITY',
+  CREATOR_MONETIZABLE_PROVISIONAL = 'CREATOR_MONETIZABLE_PROVISIONAL',
+  CREATOR_STORE_PAGE = 'CREATOR_STORE_PAGE',
+  DEVELOPER_SUPPORT_SERVER = 'DEVELOPER_SUPPORT_SERVER',
+  DISCOVERABLE = 'DISCOVERABLE',
+  ENABLED_DISCOVERABLE_BEFORE = 'ENABLED_DISCOVERABLE_BEFORE',
+  FEATURABLE = 'FEATURABLE',
+  HUB = 'HUB',
+  INVITES_DISABLED = 'INVITES_DISABLED',
+  INVITE_SPLASH = 'INVITE_SPLASH',
+  LURKABLE = 'LURKABLE',
+  MEMBER_LIST_DISABLED = 'MEMBER_LIST_DISABLED',
+  MEMBER_PROFILES = 'MEMBER_PROFILES',
+  MEMBER_VERIFICATION_GATE_ENABLED = 'MEMBER_VERIFICATION_GATE_ENABLED',
+  MONETIZATION_ENABLED = 'MONETIZATION_ENABLED',
+  MORE_EMOJI = 'MORE_EMOJI',
+  MORE_STICKERS = 'MORE_STICKERS',
+  NEWS = 'NEWS',
+  NEW_THREAD_PERMISSIONS = 'NEW_THREAD_PERMISSIONS',
+  PARTNERED = 'PARTNERED',
+  PREVIEW_ENABLED = 'PREVIEW_ENABLED',
+  PRIVATE_THREADS = 'PRIVATE_THREADS',
+  PRUNE_REQUIRES_ADMIN = 'PRUNE_REQUIRES_ADMIN',
+  PUBLIC = 'PUBLIC',
+  PUBLIC_DISABLED = 'PUBLIC_DISABLED',
+  RAID_ALERTS_DISABLED = 'RAID_ALERTS_DISABLED',
+  ROLE_ICONS = 'ROLE_ICONS',
+  ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE = 'ROLE_SUBSCRIPTIONS_AVAILABLE_FOR_PURCHASE',
+  ROLE_SUBSCRIPTIONS_ENABLED = 'ROLE_SUBSCRIPTIONS_ENABLED',
+  SEVEN_DAY_THREAD_ARCHIVE = 'SEVEN_DAY_THREAD_ARCHIVE',
+  TEXT_IN_VOICE_ENABLED = 'TEXT_IN_VOICE_ENABLED',
+  THREADS_ENABLED = 'THREADS_ENABLED',
+  THREADS_ENABLED_TESTING = 'THREADS_ENABLED_TESTING',
+  THREE_DAY_THREAD_ARCHIVE = 'THREE_DAY_THREAD_ARCHIVE',
+  TICKETED_EVENTS_ENABLED = 'TICKETED_EVENTS_ENABLED',
+  VANITY_URL = 'VANITY_URL',
+  VERIFIED = 'VERIFIED',
+  VIP_REGIONS = 'VIP_REGIONS',
+  WELCOME_SCREEN_ENABLED = 'WELCOME_SCREEN_ENABLED',
+}
 
 
 export enum GuildMemberFlags {
@@ -1670,6 +1675,7 @@ export enum UserPremiumGuildSubscriptionLevels {
   LEVEL_9 = 9,
 }
 
+
 export const UserPremiumGuildSubscriptionMonths = Object.freeze({
   [UserPremiumGuildSubscriptionLevels.LEVEL_2]: 2,
   [UserPremiumGuildSubscriptionLevels.LEVEL_3]: 3,
@@ -1681,12 +1687,14 @@ export const UserPremiumGuildSubscriptionMonths = Object.freeze({
   [UserPremiumGuildSubscriptionLevels.LEVEL_9]: 24,
 });
 
-export const UserRequiredActions = Tools.normalize({
-  AGREEMENTS: null,
-  REQUIRE_CAPTCHA: null,
-  REQUIRE_VERIFIED_EMAIL: null,
-  REQUIRE_VERIFIED_PHONE: null,
-});
+
+export enum UserRequiredActions {
+  AGREEMENTS = 'AGREEMENTS',
+  REQUIRE_CAPTCHA = 'REQUIRE_CAPTCHA',
+  REQUIRE_VERIFIED_EMAIL = 'REQUIRE_VERIFIED_EMAIL',
+  REQUIRE_VERIFIED_PHONE = 'REQUIRE_VERIFIED_PHONE',
+}
+
 
 export enum VerificationLevels {
   NONE = 0,
@@ -1695,6 +1703,7 @@ export enum VerificationLevels {
   HIGH = 3,
   VERY_HIGH = 4,
 }
+
 
 export enum WebhookTypes {
   INCOMING = 1,

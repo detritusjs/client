@@ -13,6 +13,7 @@ import { BaseSet } from '../collections/baseset';
 import {
   DetritusKeys,
   DiscordKeys,
+  ChannelFlags,
   ChannelTypes,
   ChannelVideoQualityModes,
   Permissions,
@@ -415,6 +416,18 @@ export class ChannelBase extends BaseStructure {
     return !!this.applicationId;
   }
 
+  get isObfuscated(): boolean {
+    return this.hasFlag(ChannelFlags.CHANNEL_OBFUSCATED);
+  }
+
+  get isPinned(): boolean {
+    return this.hasFlag(ChannelFlags.PINNED);
+  }
+
+  get isSpoiler(): boolean {
+    return this.hasFlag(ChannelFlags.IS_SPOILER_CHANNEL);
+  }
+
   get isSyncedWithParent(): boolean {
     return this.isSyncedWith(this.parent);
   }
@@ -554,6 +567,13 @@ export class ChannelBase extends BaseStructure {
     memberOrRole?: Member | Role,
   ): boolean {
     return false;
+  }
+
+  hasFlag(flag: number): boolean {
+    if (this.flags == 0) {
+      return false;
+    }
+    return ((this.flags || 0) & flag) === flag;
   }
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
