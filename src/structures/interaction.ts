@@ -40,6 +40,13 @@ import { User } from './user';
 
 export type InteractionEditOrRespond = RequestTypes.CreateInteractionResponseInnerPayload & RequestTypes.EditWebhookTokenMessage;
 
+/**
+ * Pass an `InteractionModal` itself (not its json) as either argument to respond with it, so its `run` gets called when it's submitted
+ * e.g. `respond(modal)` or `respond(InteractionCallbackTypes.MODAL, modal)`
+ */
+export type InteractionResponseOptions = RequestTypes.CreateInteractionResponse | InteractionModal | number;
+export type InteractionResponseData = RequestTypes.CreateInteractionResponseInnerPayload | InteractionModal | string;
+
 const DEFERRED_TYPES = Object.freeze([
   InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
   InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE,
@@ -211,8 +218,8 @@ export class Interaction extends BaseStructure {
   }
 
   async createResponse(
-    options: RequestTypes.CreateInteractionResponse | number,
-    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+    options: InteractionResponseOptions,
+    data?: InteractionResponseData,
   ) {
     if (this._responding) {
       await this._responding;
@@ -220,7 +227,7 @@ export class Interaction extends BaseStructure {
 
     const response = new Promise((resolve, reject) => {
       if (this.isFromMessageComponent) {
-        const toAssignData = (typeof(options) === 'object') ? options.data || data : data;
+        const toAssignData = (typeof(options) === 'object' && !(options instanceof InteractionModal)) ? options.data || data : data;
         if (typeof(toAssignData) === 'object' && 'components' in toAssignData) {
           const listenerId = (this.message) ? this.message.id : '';
           Object.assign(toAssignData, {listenerId});
@@ -302,8 +309,8 @@ export class Interaction extends BaseStructure {
   }
 
   respond(
-    options: RequestTypes.CreateInteractionResponse | number,
-    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+    options: InteractionResponseOptions,
+    data?: InteractionResponseData,
   ) {
     return this.createResponse(options, data);
   }

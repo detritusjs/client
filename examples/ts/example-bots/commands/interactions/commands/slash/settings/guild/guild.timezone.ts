@@ -2,7 +2,7 @@ import { Constants, Interaction, Utils } from 'detritus-client';
 const { Permissions } = Constants;
 const { Embed } = Utils;
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseCommandOption } from '../../../basecommand';
 
 
 export enum Timezones {
@@ -18,7 +18,7 @@ export interface CommandArgs {
   timezone?: Timezones,
 }
 
-export class TimezoneCommand extends BaseCommandOption {
+export class SettingsGuildTimezoneCommand extends BaseCommandOption {
   description = 'Show or set your server\'s timezone';
   name = 'timezone';
 

@@ -1,6 +1,6 @@
-const { ShardClient } = require('../../lib');
-const { InteractionCallbackTypes, InteractionTypes, MessageComponentTypes } = require('../../lib/constants');
-const { ComponentActionRow } = require('../../lib/utils');
+const { ShardClient } = require('../../../lib');
+const { InteractionCallbackTypes, InteractionTypes } = require('../../../lib/constants');
+const { ComponentActionRow } = require('../../../lib/utils');
 
 
 const token = '';
@@ -21,7 +21,7 @@ client.on('messageCreate', async ({message}) => {
 client.on('interactionCreate', async ({interaction}) => {
   switch (interaction.type) {
     case InteractionTypes.MESSAGE_COMPONENT: {
-      await interaction.respond({type: InteractionCallbackTypes.DEFERRED_MESSAGE_UPDATE});
+      await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
     }; break;
   }
 });

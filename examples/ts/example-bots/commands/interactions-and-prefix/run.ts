@@ -37,7 +37,7 @@ const cluster = new ClusterClient(TOKEN, {
       await interactionClient.run();
       console.log(`${shardsText} - Interaction Command Client Loaded`);
     }
-  } catch(error) {
+  } catch(error: any) {
     console.log(error, error.errors);
   }
 })();

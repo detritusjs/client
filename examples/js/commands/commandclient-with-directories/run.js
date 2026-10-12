@@ -11,10 +11,6 @@ const token = '';
 const client = new CommandClient(token, {prefix});
 
 
-client.addMultipleIn('/command-classes');
-client.addMultipleIn('/some-directory');
-
-
 client.add({
   name: 'ping',
   run: (context) => context.reply('pong'),
@@ -142,6 +138,9 @@ client.add({
 });
 
 (async () => {
+  // loads every command file in these folders (relative to this file)
+  await client.addMultipleIn('./command-classes');
+  await client.addMultipleIn('./commands');
   await client.run();
   // Client fetched the gateway url, got the ready payload, and filled the applications cache
   console.log('ready');

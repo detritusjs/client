@@ -8,6 +8,8 @@ import {
   Interaction,
   InteractionDataComponent,
   InteractionEditOrRespond,
+  InteractionResponseData,
+  InteractionResponseOptions,
   Message,
 } from '../../structures';
 
@@ -312,8 +314,8 @@ export class ComponentContext {
   }
 
   createResponse(
-    options: RequestTypes.CreateInteractionResponse | number,
-    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+    options: InteractionResponseOptions,
+    data?: InteractionResponseData,
   ) {
     return this.interaction.createResponse(options, data);
   }
@@ -347,8 +349,8 @@ export class ComponentContext {
   }
 
   respond(
-    options: RequestTypes.CreateInteractionResponse | number,
-    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+    options: InteractionResponseOptions,
+    data?: InteractionResponseData,
   ) {
     return this.createResponse(options, data);
   }

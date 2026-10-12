@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { BaseSlashCommand } from '../baseslashcommand';
+import { BaseSlashCommand } from '../basecommand';
 
 
 const Tags = ['bot', 'botdiscord', 'botdetritus']; // just some random stuff
@@ -22,7 +22,7 @@ export default class TagCommand extends BaseSlashCommand {
         {
           name: 'name',
           description: 'Tag to show',
-          onAutoComplete: (context: Interaction.InteractionCommandContext) => {
+          onAutoComplete: (context: Interaction.InteractionAutoCompleteContext) => {
             let choices: Array<{name: string, value: string}>;
             if (context.value) {
               const value = context.value.toLowerCase();

@@ -1,0 +1,34 @@
+import { ShardClient } from 'detritus-client';
+import { InteractionCallbackTypes, InteractionTypes, MessageComponentTypes } from 'detritus-client/lib/constants';
+
+
+const token = '';
+const client = new ShardClient(token);
+
+client.on('messageCreate', async ({message}) => {
+  if (message.content === 'test' && message.author.isClientOwner) {
+    await message.reply({
+      content: 'test',
+      components: [
+        {
+          components: [
+            {customId: 'test', label: 'Test', type: MessageComponentTypes.BUTTON},
+          ],
+          type: MessageComponentTypes.ACTION_ROW,
+        }
+      ],
+    });
+  }
+});
+
+client.on('interactionCreate', async ({interaction}) => {
+  switch (interaction.type) {
+    case InteractionTypes.MESSAGE_COMPONENT: {
+      await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
+    }; break;
+  }
+});
+
+(async () => {
+  await client.run();
+})();

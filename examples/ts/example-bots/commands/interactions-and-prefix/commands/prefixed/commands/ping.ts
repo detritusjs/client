@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { BaseCommand } from '../basecommand';
 
@@ -6,7 +6,9 @@ import { BaseCommand } from '../basecommand';
 export const COMMAND_NAME = 'ping';
 
 export default class PingCommand extends BaseCommand {
-  name = COMMAND_NAME;
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {...options, name: COMMAND_NAME});
+  }
 
   async run(context: Command.Context) {
     const { gateway, rest } = await context.client.ping();

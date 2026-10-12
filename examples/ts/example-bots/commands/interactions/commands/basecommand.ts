@@ -15,7 +15,7 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
     });
   }
 
-  onRunError(context: Interaction.InteractionContext, args: ParsedArgsFinished, error: any) {
+  onRunError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, error: any) {
     const embed = new Embed();
     embed.setTitle(`⚠ ${this.error} Error`);
     embed.setDescription(Markup.codestring(String(error)));

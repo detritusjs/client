@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { BaseSlashCommand } from '../baseslashcommand';
+import { BaseSlashCommand } from '../basecommand';
 
 
 export const COMMAND_NAME = 'ping';

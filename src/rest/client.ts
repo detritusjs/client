@@ -635,14 +635,16 @@ export class RestClient {
   async createInteractionResponse(
     interactionId: string,
     token: string,
-    options: (RequestTypes.CreateInteractionResponse & {data?: {listenerId?: string}}) | number,
-    data?: (RequestTypes.CreateInteractionResponseInnerPayload & {listenerId?: string}) | string,
+    options: (RequestTypes.CreateInteractionResponse & {data?: {listenerId?: string}}) | InteractionModal | number,
+    data?: (RequestTypes.CreateInteractionResponseInnerPayload & {listenerId?: string}) | InteractionModal | string,
   ) {
     if (options instanceof InteractionModal) {
       options = {data: options as RequestTypes.CreateInteractionResponseInnerPayload, type: InteractionCallbackTypes.MODAL};
     }
     if (data instanceof InteractionModal) {
       options = {data, type: InteractionCallbackTypes.MODAL};
+      // the modal is in options now
+      data = undefined;
     }
 
     if (typeof(options) === 'object' && options.data instanceof InteractionModal) {

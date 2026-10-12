@@ -11,6 +11,8 @@ import {
   Interaction,
   InteractionDataApplicationCommand,
   InteractionEditOrRespond,
+  InteractionResponseData,
+  InteractionResponseOptions,
 } from '../structures';
 
 import { InteractionCommand, InteractionCommandOption } from './command';
@@ -347,8 +349,8 @@ export class InteractionContext extends InteractionContextBase {
   }
 
   createResponse(
-    options: RequestTypes.CreateInteractionResponse | number,
-    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+    options: InteractionResponseOptions,
+    data?: InteractionResponseData,
   ) {
     return this.interaction.createResponse(options, data);
   }
@@ -382,8 +384,8 @@ export class InteractionContext extends InteractionContextBase {
   }
 
   respond(
-    options: RequestTypes.CreateInteractionResponse | number,
-    data?: RequestTypes.CreateInteractionResponseInnerPayload | string,
+    options: InteractionResponseOptions,
+    data?: InteractionResponseData,
   ) {
     return this.createResponse(options, data);
   }

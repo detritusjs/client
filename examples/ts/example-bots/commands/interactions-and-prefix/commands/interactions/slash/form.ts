@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
-import { InteractionModal, InteractionModalContext } from 'detritus-client/lib/utils';
+import { InteractionModal, InteractionModalArgs, InteractionModalContext } from 'detritus-client/lib/utils';
 
-import { BaseSlashCommand } from '../baseslashcommand';
+import { BaseSlashCommand } from '../basecommand';
 
 
 export interface QuestionnaireArgs {
@@ -20,9 +20,10 @@ export default class FormCommand extends BaseSlashCommand {
     const modal = new InteractionModal({
       timeout: 5 * 60 * 1000, // 5 mins, (default is 10 minutes)
       title: 'My Cool Questionaire!',
-      run: (modalContext: InteractionModalContext, args: QuestionnaireArgs) => {
+      run: (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
         // args will use the defined customId in the text inputs (args.birds, args.cats)
-        return modalContext.createMessage(`${args.birds}, ${args.cats}`);
+        const { birds, cats } = args as QuestionnaireArgs;
+        return modalContext.createMessage(`${birds}, ${cats}`);
       },
       onTimeout: () => {
         return context.createMessage('Answer my questions faster next time please');
@@ -45,6 +46,7 @@ export default class FormCommand extends BaseSlashCommand {
       required: true,
     });
 
+    // pass the modal itself (not its json), so its `run` gets called when it's submitted
     return context.respond(modal);
   }
 }

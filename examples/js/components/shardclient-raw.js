@@ -24,7 +24,7 @@ client.on('messageCreate', async ({message}) => {
 client.on('interactionCreate', async ({interaction}) => {
   switch (interaction.type) {
     case InteractionTypes.MESSAGE_COMPONENT: {
-      await interaction.respond({type: InteractionCallbackTypes.DEFERRED_MESSAGE_UPDATE});
+      await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
     }; break;
   }
 });

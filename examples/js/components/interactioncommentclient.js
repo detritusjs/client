@@ -66,15 +66,15 @@ interactionClient.add({
       timeout: 5 * (60 * 1000),
       onTimeout: () => context.editOrRespond({content: 'Choosing Expired', components: []}),
       run: async (componentContext) => {
-        if (componentContext.userId !== context.userId || !context.values) {
+        if (componentContext.userId !== context.userId || !componentContext.data.values) {
           // ignore the press because it wasnt from the initiator
           return componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        const roleIds = context.values;
+        const roleIds = componentContext.data.values;
         if (roleIds.length) {
           if (context.me.canEdit(context.member)) {
-            for (let roleId of context.values) {
+            for (let roleId of roleIds) {
               if (!context.member.roles.has(roleId) && context.me.canEditRole(roleId)) {
                 await context.member.addRole(roleId);
               }
@@ -91,7 +91,7 @@ interactionClient.add({
 
     if (context.guild) {
       const rolesWeCanAdd = context.guild.roles.filter((role) => {
-        return !context.member.roles.has(roleId) && context.me.canEditRole(role);
+        return !context.member.roles.has(role.id) && context.me.canEditRole(role);
       });
       if (rolesWeCanAdd.length) {
         components.createSelectMenu({
