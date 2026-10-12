@@ -382,6 +382,10 @@ export class ChannelBase extends BaseStructure {
     return this.type === ChannelTypes.GUILD_FORUM;
   }
 
+  get isGuildMedia(): boolean {
+    return this.type === ChannelTypes.GUILD_MEDIA;
+  }
+
   get isGuildNews(): boolean {
     return this.type === ChannelTypes.GUILD_NEWS;
   }

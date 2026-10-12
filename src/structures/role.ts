@@ -3,7 +3,7 @@ import { Endpoints, RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DetritusKeys, DiscordKeys, Permissions } from '../constants';
+import { DetritusKeys, DiscordKeys, Permissions, RoleFlags } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -26,6 +26,7 @@ import { Overwrite } from './overwrite';
 const keysRole = new BaseSet<string>([
   DiscordKeys.COLOR,
   DiscordKeys.COLORS,
+  DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.HOIST,
   DiscordKeys.ICON,
@@ -49,6 +50,7 @@ export class Role extends BaseStructure {
   color: number = 0;
   // role gradients, `secondaryColor` and `tertiaryColor` are null for a plain color
   colors: {primaryColor: number, secondaryColor: null | number, tertiaryColor: null | number} | null = null;
+  flags: number = 0;
   guildId: string = '';
   hoist: boolean = false;
   id: string = '';
@@ -111,6 +113,17 @@ export class Role extends BaseStructure {
     return this.id === this.guildId;
   }
 
+  get isInPrompt(): boolean {
+    return this.hasFlag(RoleFlags.IN_PROMPT);
+  }
+
+  get isPurchasable(): boolean {
+    if (this.tags) {
+      return !!this.tags.availableForPurchase;
+    }
+    return false;
+  }
+
   get members(): BaseCollection<string, Member> {
     const guild = this.guild;
     const members = (guild) ? guild.members : null;
@@ -133,6 +146,13 @@ export class Role extends BaseStructure {
     return `<@&${this.id}>`;
   }
 
+  get subscriptionListingId(): null | string {
+    if (this.tags && this.tags.subscriptionListingId) {
+      return this.tags.subscriptionListingId;
+    }
+    return null;
+  }
+
   can(
     permissions: PermissionTools.PermissionChecks,
     {ignoreAdministrator}: {ignoreAdministrator?: boolean} = {},
@@ -141,6 +161,10 @@ export class Role extends BaseStructure {
       return true;
     }
     return PermissionTools.checkPermissions(this.permissions, permissions);
+  }
+
+  hasFlag(flag: number): boolean {
+    return (this.flags & flag) === flag;
   }
 
   iconUrlFormat(format?: number | null | string | UrlQuery, query?: number | UrlQuery): null | string {
@@ -218,6 +242,9 @@ export class Role extends BaseStructure {
         tertiaryColor: value[DiscordKeys.TERTIARY_COLOR] ?? null,
       } : null;
     }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
     }
@@ -258,9 +285,12 @@ export class Role extends BaseStructure {
 
 
 const keysRoleTags = new BaseSet<string>([
+  DiscordKeys.AVAILABLE_FOR_PURCHASE,
   DiscordKeys.BOT_ID,
+  DiscordKeys.GUILD_CONNECTIONS,
   DiscordKeys.INTEGRATION_ID,
   DiscordKeys.PREMIUM_SUBSCRIBER,
+  DiscordKeys.SUBSCRIPTION_LISTING_ID,
 ]);
 
 /**
@@ -270,17 +300,24 @@ const keysRoleTags = new BaseSet<string>([
 export class RoleTags extends BaseStructure {
   readonly _keys = keysRoleTags;
 
+  // `availableForPurchase`, `guildConnections`, and `premiumSubscriber` are sent as `null` when true and omitted when false
+  availableForPurchase?: boolean;
   botId?: string;
+  guildConnections?: boolean;
   integrationId?: string;
   premiumSubscriber?: boolean;
+  subscriptionListingId?: string;
 
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
     }
 
+    (this as any)[DetritusKeys[DiscordKeys.AVAILABLE_FOR_PURCHASE]] = (DiscordKeys.AVAILABLE_FOR_PURCHASE in data) || undefined;
     (this as any)[DetritusKeys[DiscordKeys.BOT_ID]] = data[DiscordKeys.BOT_ID];
+    (this as any)[DetritusKeys[DiscordKeys.GUILD_CONNECTIONS]] = (DiscordKeys.GUILD_CONNECTIONS in data) || undefined;
     (this as any)[DetritusKeys[DiscordKeys.INTEGRATION_ID]] = data[DiscordKeys.INTEGRATION_ID];
     (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIBER]] = (DiscordKeys.PREMIUM_SUBSCRIBER in data) || undefined;
+    (this as any)[DetritusKeys[DiscordKeys.SUBSCRIPTION_LISTING_ID]] = data[DiscordKeys.SUBSCRIPTION_LISTING_ID];
   }
 }

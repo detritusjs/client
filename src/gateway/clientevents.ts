@@ -729,7 +729,14 @@ export namespace GatewayClientEvents {
   }
 
   export interface ThreadListSync {
-    
+    // `null` when the entire guild was synced
+    channelIds: Array<string> | null,
+    guildId: string,
+    // keyed by thread id, the current user's thread member objects
+    members: BaseCollection<string, ThreadMember>,
+    // cached active threads that were not in the sync and got removed from the cache
+    removed: BaseCollection<string, Channel>,
+    threads: BaseCollection<string, Channel>,
   }
 
   export interface ThreadMemberUpdate {
@@ -739,7 +746,13 @@ export namespace GatewayClientEvents {
   }
 
   export interface ThreadMembersUpdate {
-
+    // keyed by user id
+    addedMembers: BaseCollection<string, ThreadMember>,
+    guildId: string,
+    id: string,
+    memberCount: number,
+    removedMemberIds: Array<string>,
+    thread: Channel | null,
   }
 
   export interface ThreadUpdate {

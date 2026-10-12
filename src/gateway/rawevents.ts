@@ -765,7 +765,7 @@ export namespace GatewayRawEvents {
   }
 
   export interface ThreadCreate extends RawChannel {
-
+    newly_created?: boolean,
   }
 
   export interface ThreadDelete {
@@ -787,7 +787,7 @@ export namespace GatewayRawEvents {
   }
 
   export interface ThreadMembersUpdate {
-    added_members?: Array<RawThreadMember>,
+    added_members?: Array<RawThreadMember & {member?: RawMember & {guild_id?: string}, presence?: null | RawPresence}>,
     guild_id: string,
     id: string,
     member_count: number,

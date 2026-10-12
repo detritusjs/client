@@ -123,6 +123,13 @@ export enum ApplicationCommandTypes {
   CHAT_INPUT = 1,
   USER = 2,
   MESSAGE = 3,
+  PRIMARY_ENTRY_POINT = 4,
+}
+
+
+export enum EntryPointCommandHandlerTypes {
+  APP_HANDLER = 1,
+  DISCORD_LAUNCH_ACTIVITY = 2,
 }
 
 
@@ -1412,6 +1419,7 @@ export const Permissions = Object.freeze({
   MENTION_EVERYONE: 1n << 17n,
   USE_EXTERNAL_EMOJIS: 1n << 18n,
   VIEW_GUILD_ANALYTICS: 1n << 19n,
+  VIEW_GUILD_INSIGHTS: 1n << 19n,
   CONNECT: 1n << 20n,
   SPEAK: 1n << 21n,
   MUTE_MEMBERS: 1n << 22n,
@@ -1420,17 +1428,34 @@ export const Permissions = Object.freeze({
   USE_VAD: 1n << 25n,
   CHANGE_NICKNAME: 1n << 26n,
   CHANGE_NICKNAMES: 1n << 27n,
+  MANAGE_NICKNAMES: 1n << 27n,
   MANAGE_ROLES: 1n << 28n,
   MANAGE_WEBHOOKS: 1n << 29n,
   MANAGE_EMOJIS: 1n << 30n,
+  MANAGE_GUILD_EXPRESSIONS: 1n << 30n,
   USE_APPLICATION_COMMANDS: 1n << 31n,
   REQUEST_TO_SPEAK: 1n << 32n,
   MANAGE_EVENTS: 1n << 33n,
   MANAGE_THREADS: 1n << 34n,
   USE_PUBLIC_THREADS: 1n << 35n,
+  CREATE_PUBLIC_THREADS: 1n << 35n,
   USE_PRIVATE_THREADS: 1n << 36n,
+  CREATE_PRIVATE_THREADS: 1n << 36n,
   USE_EXTERNAL_STICKERS: 1n << 37n,
   SEND_MESSAGES_IN_THREADS: 1n << 38n,
+  USE_EMBEDDED_ACTIVITIES: 1n << 39n,
+  MODERATE_MEMBERS: 1n << 40n,
+  VIEW_CREATOR_MONETIZATION_ANALYTICS: 1n << 41n,
+  USE_SOUNDBOARD: 1n << 42n,
+  CREATE_GUILD_EXPRESSIONS: 1n << 43n,
+  CREATE_EVENTS: 1n << 44n,
+  USE_EXTERNAL_SOUNDS: 1n << 45n,
+  SEND_VOICE_MESSAGES: 1n << 46n,
+  SET_VOICE_CHANNEL_STATUS: 1n << 48n,
+  SEND_POLLS: 1n << 49n,
+  USE_EXTERNAL_APPS: 1n << 50n,
+  PIN_MESSAGES: 1n << 51n,
+  BYPASS_SLOWMODE: 1n << 52n,
 });
 
 export const PERMISSIONS_ALL = Object.values(Permissions).reduce(
@@ -1452,6 +1477,13 @@ export const PERMISSIONS_ALL_TEXT = [
   Permissions.MANAGE_THREADS,
   Permissions.USE_PUBLIC_THREADS,
   Permissions.USE_PRIVATE_THREADS,
+  Permissions.USE_EXTERNAL_STICKERS,
+  Permissions.SEND_MESSAGES_IN_THREADS,
+  Permissions.SEND_VOICE_MESSAGES,
+  Permissions.SEND_POLLS,
+  Permissions.USE_EXTERNAL_APPS,
+  Permissions.PIN_MESSAGES,
+  Permissions.BYPASS_SLOWMODE,
 ].reduce(
   (permissions: bigint, permission: bigint) => permissions | permission,
   Permissions.NONE,
@@ -1467,6 +1499,10 @@ export const PERMISSIONS_ALL_VOICE = [
   Permissions.MOVE_MEMBERS,
   Permissions.USE_VAD,
   Permissions.REQUEST_TO_SPEAK,
+  Permissions.USE_EMBEDDED_ACTIVITIES,
+  Permissions.USE_SOUNDBOARD,
+  Permissions.USE_EXTERNAL_SOUNDS,
+  Permissions.SET_VOICE_CHANNEL_STATUS,
 ].reduce(
   (permissions: bigint, permission: bigint) => permissions | permission,
   Permissions.NONE,
@@ -1641,6 +1677,11 @@ export enum RelationshipTypes {
   PENDING_INCOMING = 3,
   PENDING_OUTGOING = 4,
   IMPLICIT = 5,
+}
+
+
+export enum RoleFlags {
+  IN_PROMPT = 1 << 0,
 }
 
 
@@ -1957,6 +1998,7 @@ export const DiscordKeys = Object.freeze({
   AUTO_MODERATION_RULES: 'auto_moderation_rules',
   AUTOCOMPLETE: 'autocomplete',
   AVAILABLE: 'available',
+  AVAILABLE_FOR_PURCHASE: 'available_for_purchase',
   AVAILABLE_TAGS: 'available_tags',
   AVATAR: 'avatar',
   AVATAR_DECORATION_DATA: 'avatar_decoration_data',
@@ -2115,6 +2157,7 @@ export const DiscordKeys = Object.freeze({
   GENRES: 'genres',
   GLOBAL_NAME: 'global_name',
   GUILD: 'guild',
+  GUILD_CONNECTIONS: 'guild_connections',
   GUILD_ID: 'guild_id',
   GUILD_IDS: 'guild_ids',
   GUILD_LOCALE: 'guild_locale',
@@ -2122,6 +2165,7 @@ export const DiscordKeys = Object.freeze({
   GUILD_SCHEDULED_EVENT: 'guild_scheduled_event',
   GUILD_SCHEDULED_EVENTS: 'guild_scheduled_events',
   GUILD_SCHEDULED_EVENT_ID: 'guild_scheduled_event_id',
+  HANDLER: 'handler',
   HEADER_BACKGROUND: 'header_background',
   HEADER_LOGO_DARK_THEME: 'header_logo_dark_theme',
   HEADER_LOGO_LIGHT_THEME: 'header_logo_light_theme',
@@ -2382,6 +2426,7 @@ export const DiscordKeys = Object.freeze({
   STORE_LISTING: 'store_listing',
   STYLE: 'style',
   SUBSCRIBER_COUNT: 'subscriber_count',
+  SUBSCRIPTION_LISTING_ID: 'subscription_listing_id',
   SUBSCRIPTION_PLAN: 'subscription_plan',
   SUBSCRIPTION_PLAN_ID: 'subscription_plan_id',
   SUBTARGET: 'subtarget',
@@ -2521,6 +2566,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.AUTO_MODERATION_RULES]: 'autoModerationRules',
   [DiscordKeys.AUTOCOMPLETE]: 'autocomplete',
   [DiscordKeys.AVAILABLE]: 'available',
+  [DiscordKeys.AVAILABLE_FOR_PURCHASE]: 'availableForPurchase',
   [DiscordKeys.AVAILABLE_TAGS]: 'availableTags',
   [DiscordKeys.AVATAR]: 'avatar',
   [DiscordKeys.AVATAR_DECORATION_DATA]: 'avatarDecorationData',
@@ -2679,6 +2725,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.GENRES]: 'genres',
   [DiscordKeys.GLOBAL_NAME]: 'globalName',
   [DiscordKeys.GUILD]: 'guild',
+  [DiscordKeys.GUILD_CONNECTIONS]: 'guildConnections',
   [DiscordKeys.GUILD_ID]: 'guildId',
   [DiscordKeys.GUILD_IDS]: 'guildIds',
   [DiscordKeys.GUILD_LOCALE]: 'guildLocale',
@@ -2686,6 +2733,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.GUILD_SCHEDULED_EVENT]: 'guildScheduledEvent',
   [DiscordKeys.GUILD_SCHEDULED_EVENTS]: 'guildScheduledEvents',
   [DiscordKeys.GUILD_SCHEDULED_EVENT_ID]: 'guildScheduledEventId',
+  [DiscordKeys.HANDLER]: 'handler',
   [DiscordKeys.HEADER_BACKGROUND]: 'headerBackground',
   [DiscordKeys.HEADER_LOGO_DARK_THEME]: 'headerLogoDarkTheme',
   [DiscordKeys.HEADER_LOGO_LIGHT_THEME]: 'headerLogoLightTheme',
@@ -2946,6 +2994,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.STORE_LISTING]: 'storeListing',
   [DiscordKeys.STYLE]: 'style',
   [DiscordKeys.SUBSCRIBER_COUNT]: 'subscriberCount',
+  [DiscordKeys.SUBSCRIPTION_LISTING_ID]: 'subscriptionListingId',
   [DiscordKeys.SUBSCRIPTION_PLAN]: 'subscriptionPlan',
   [DiscordKeys.SUBSCRIPTION_PLAN_ID]: 'subscriptionPlanId',
   [DiscordKeys.SUBTARGET]: 'subtarget',

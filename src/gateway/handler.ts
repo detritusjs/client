@@ -1693,6 +1693,11 @@ export class GatewayDispatchHandler {
     if (this.client.channels.has(message.channelId)) {
       const channel = this.client.channels.get(message.channelId)!;
       channel.merge({['last_message_id']: message.id});
+      // the starter message of a forum/media post shares the thread's id and isn't counted
+      if (channel.isGuildThread && message.id !== channel.id) {
+        channel.messageCount = (channel.messageCount || 0) + 1;
+        channel.totalMessageSent = (channel.totalMessageSent || 0) + 1;
+      }
     }
 
     if (this.client.typings.has(message.channelId)) {
@@ -1749,6 +1754,13 @@ export class GatewayDispatchHandler {
 
     this.handler._handlers.component.delete(messageId);
 
+    if (this.client.channels.has(channelId)) {
+      const channel = this.client.channels.get(channelId)!;
+      if (channel.isGuildThread && messageId !== channel.id) {
+        channel.messageCount = Math.max((channel.messageCount || 0) - 1, 0);
+      }
+    }
+
     const payload: GatewayClientEvents.MessageDelete = {channelId, guildId, message, messageId, raw: data};
     this.client.emit(ClientEvents.MESSAGE_DELETE, payload);
   }
@@ -1774,6 +1786,14 @@ export class GatewayDispatchHandler {
         messages.set(messageId, null);
       }
       this.handler._handlers.component.delete(messageId);
+    }
+
+    if (this.client.channels.has(channelId)) {
+      const channel = this.client.channels.get(channelId)!;
+      if (channel.isGuildThread) {
+        const count = data['ids'].filter((messageId) => messageId !== channel.id).length;
+        channel.messageCount = Math.max((channel.messageCount || 0) - count, 0);
+      }
     }
 
     const payload: GatewayClientEvents.MessageDeleteBulk = {amount, channelId, guildId, messages, raw: data};
@@ -2309,6 +2329,14 @@ export class GatewayDispatchHandler {
       guild._threadIds.add(thread.id);
     }
 
+    // a forum/media channel's `last_message_id` is the id of the most recently created thread
+    if (data['newly_created']) {
+      const parent = thread.parent;
+      if (parent && (parent.isGuildForum || parent.isGuildMedia)) {
+        parent.merge({['last_message_id']: thread.id});
+      }
+    }
+
     const payload: GatewayClientEvents.ThreadCreate = {thread};
     this.client.emit(ClientEvents.THREAD_CREATE, payload);
   }
@@ -2346,7 +2374,64 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.THREAD_LIST_SYNC](data: GatewayRawEvents.ThreadListSync) {
+    const channelIds = data['channel_ids'] || null;
+    const guildId = data['guild_id'];
+    const members = new BaseCollection<string, ThreadMember>();
+    const removed = new BaseCollection<string, Channel>();
+    const threads = new BaseCollection<string, Channel>();
 
+    // every active thread under the synced parents (or the whole guild) is sent, anything else we have cached is stale
+    const guild = this.client.guilds.get(guildId);
+    if (guild) {
+      for (let threadId of guild._threadIds) {
+        if (this.client.channels.has(threadId)) {
+          const thread = this.client.channels.get(threadId)!;
+          if (!channelIds || (thread.parentId && channelIds.includes(thread.parentId))) {
+            removed.set(threadId, thread);
+          }
+        } else {
+          guild._threadIds.delete(threadId);
+        }
+      }
+    }
+
+    for (let raw of data['threads']) {
+      let thread: Channel;
+      if (this.client.channels.has(raw['id'])) {
+        thread = this.client.channels.get(raw['id'])!;
+        thread.merge(raw);
+      } else {
+        thread = createChannelFromData(this.client, raw);
+        this.client.channels.insert(thread);
+      }
+      if (guild) {
+        guild._threadIds.add(thread.id);
+      }
+      removed.delete(thread.id);
+      threads.set(thread.id, thread);
+    }
+
+    for (let threadId of removed.keys()) {
+      this.client.channels.delete(threadId);
+      if (guild) {
+        guild._threadIds.delete(threadId);
+      }
+    }
+
+    for (let raw of data['members']) {
+      let threadMember: ThreadMember;
+      if (this.client.channels.has(raw['id'])) {
+        const thread = this.client.channels.get(raw['id'])!;
+        thread.merge({member: raw});
+        threadMember = thread.member as unknown as ThreadMember;
+      } else {
+        threadMember = new ThreadMember(this.client, raw);
+      }
+      members.set(threadMember.id, threadMember);
+    }
+
+    const payload: GatewayClientEvents.ThreadListSync = {channelIds, guildId, members, removed, threads};
+    this.client.emit(ClientEvents.THREAD_LIST_SYNC, payload);
   }
 
   [GatewayDispatchEvents.THREAD_MEMBER_UPDATE](data: GatewayRawEvents.ThreadMemberUpdate) {
@@ -2378,7 +2463,48 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.THREAD_MEMBERS_UPDATE](data: GatewayRawEvents.ThreadMembersUpdate) {
-    
+    const addedMembers = new BaseCollection<string, ThreadMember>();
+    const guildId = data['guild_id'];
+    const id = data['id'];
+    const memberCount = data['member_count'];
+    const removedMemberIds = data['removed_member_ids'] || [];
+
+    let thread: Channel | null = null;
+    if (this.client.channels.has(id)) {
+      thread = this.client.channels.get(id)!;
+      thread.merge({member_count: memberCount});
+    }
+
+    if (data['added_members']) {
+      for (let raw of data['added_members']) {
+        if (raw['member']) {
+          raw['member']['guild_id'] = guildId;
+        }
+
+        let threadMember: ThreadMember;
+        if (thread && raw['user_id'] === this.client.userId) {
+          thread.merge({member: raw});
+          threadMember = thread.member as unknown as ThreadMember;
+        } else {
+          threadMember = new ThreadMember(this.client, raw);
+        }
+        addedMembers.set(threadMember.userId, threadMember);
+      }
+    }
+
+    if (thread && thread.member && removedMemberIds.includes(this.client.userId)) {
+      thread.member = undefined;
+    }
+
+    const payload: GatewayClientEvents.ThreadMembersUpdate = {
+      addedMembers,
+      guildId,
+      id,
+      memberCount,
+      removedMemberIds,
+      thread,
+    };
+    this.client.emit(ClientEvents.THREAD_MEMBERS_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.THREAD_UPDATE](data: GatewayRawEvents.ThreadUpdate) {

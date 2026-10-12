@@ -13,6 +13,7 @@ import {
   ChannelTypes,
   DetritusKeys,
   DiscordKeys,
+  EntryPointCommandHandlerTypes,
   InteractionContextTypes,
 } from '../constants';
 import { KeyGenerator } from '../utils';
@@ -35,6 +36,7 @@ const keysApplicationCommand = new BaseSet<string>([
   DiscordKeys.DESCRIPTION_LOCALIZATIONS,
   DiscordKeys.DM_PERMISSION,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.HANDLER,
   DiscordKeys.ID,
   DiscordKeys.INTEGRATION_TYPES,
   DiscordKeys.NAME,
@@ -60,6 +62,8 @@ export class ApplicationCommand extends BaseStructure {
   descriptionLocalizations: Record<string, string | undefined> | null = null;
   dmPermission: boolean = true;
   guildId?: string;
+  // only for `PRIMARY_ENTRY_POINT` commands
+  handler?: EntryPointCommandHandlerTypes;
   id: string = '';
   integrationTypes?: Array<ApplicationIntegrationTypes>;
   name: string = '';
@@ -125,6 +129,9 @@ export class ApplicationCommand extends BaseStructure {
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
     }
+    if (DiscordKeys.HANDLER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HANDLER]] = data[DiscordKeys.HANDLER];
+    }
     if (DiscordKeys.ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
@@ -172,7 +179,9 @@ const keysApplicationCommandOption = new BaseSet<string>([
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DESCRIPTION_LOCALIZATIONS,
   DiscordKeys.FILE_TYPES,
+  DiscordKeys.MAX_LENGTH,
   DiscordKeys.MAX_VALUE,
+  DiscordKeys.MIN_LENGTH,
   DiscordKeys.MIN_VALUE,
   DiscordKeys.NAME,
   DiscordKeys.NAME_LOCALIZATIONS,
@@ -195,8 +204,10 @@ export class ApplicationCommandOption extends BaseStructure {
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
   fileTypes?: Array<string>;
-  maxValue?: bigint;
-  minValue?: bigint;
+  maxLength?: number;
+  maxValue?: bigint | number;
+  minLength?: number;
+  minValue?: bigint | number;
   name: string = '';
   nameLocalizations: Record<string, string | undefined> | null = null;
   options?: BaseCollection<string, ApplicationCommandOption>;
@@ -212,6 +223,19 @@ export class ApplicationCommandOption extends BaseStructure {
 
   get key(): string {
     return KeyGenerator.ApplicationCommandOption(this);
+  }
+
+  // NUMBER options can have decimal bounds (e.g. 0.5), which `BigInt()` throws on
+  parseValueBound(data: BaseStructureData, value: any): bigint | number | null | undefined {
+    if (value === undefined || value === null) {
+      return value;
+    }
+    // `type` is merged after the bounds, so prefer the incoming one
+    const type = (DiscordKeys.TYPE in data) ? data[DiscordKeys.TYPE] : this.type;
+    if (type === ApplicationCommandOptionTypes.NUMBER || !Number.isInteger(Number(value))) {
+      return Number(value);
+    }
+    return BigInt(value);
   }
 
   merge(data?: BaseStructureData): void {
@@ -249,12 +273,18 @@ export class ApplicationCommandOption extends BaseStructure {
     if (DiscordKeys.FILE_TYPES in data) {
       (this as any)[DetritusKeys[DiscordKeys.FILE_TYPES]] = data[DiscordKeys.FILE_TYPES];
     }
+    if (DiscordKeys.MAX_LENGTH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MAX_LENGTH]] = data[DiscordKeys.MAX_LENGTH];
+    }
     if (DiscordKeys.MAX_VALUE in data) {
-      const value = BigInt(data[DiscordKeys.MAX_VALUE]);
+      const value = this.parseValueBound(data, data[DiscordKeys.MAX_VALUE]);
       (this as any)[DetritusKeys[DiscordKeys.MAX_VALUE]] = value;
     }
+    if (DiscordKeys.MIN_LENGTH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MIN_LENGTH]] = data[DiscordKeys.MIN_LENGTH];
+    }
     if (DiscordKeys.MIN_VALUE in data) {
-      const value = BigInt(data[DiscordKeys.MIN_VALUE]);
+      const value = this.parseValueBound(data, data[DiscordKeys.MIN_VALUE]);
       (this as any)[DetritusKeys[DiscordKeys.MIN_VALUE]] = value;
     }
     if (DiscordKeys.NAME in data) {

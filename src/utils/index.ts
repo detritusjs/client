@@ -39,6 +39,7 @@ export {
   PermissionTools,
   Snowflake,
 };
+export * from './applicationcommands';
 export * from './components';
 export * from './embed';
 export * from './modal';
@@ -530,6 +531,8 @@ export const KeyGenerator = Object.freeze({
       JSON.stringify(option.channelTypes),
       option.maxValue,
       option.minValue,
+      option.maxLength,
+      option.minLength,
     ].join('-');
   },
   ApplicationCommandOptionChoice: (choice: ApplicationCommandOptionChoice | InteractionCommandOptionChoice): string => {

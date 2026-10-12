@@ -225,8 +225,12 @@ export interface InteractionCommandOptionOptions {
   descriptionLocalizations?: Record<string, string | undefined>,
   file_types?: Array<string>,
   fileTypes?: Array<string>,
+  max_length?: number,
+  maxLength?: number,
   max_value?: bigint | number,
   maxValue?: bigint | number,
+  min_length?: number,
+  minLength?: number,
   min_value?: bigint | number,
   minValue?: bigint | number,
   name?: string,
@@ -661,7 +665,9 @@ const keysInteractionCommandOption = new BaseSet<string>([
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DESCRIPTION_LOCALIZATIONS,
   DiscordKeys.FILE_TYPES,
+  DiscordKeys.MAX_LENGTH,
   DiscordKeys.MAX_VALUE,
+  DiscordKeys.MIN_LENGTH,
   DiscordKeys.MIN_VALUE,
   DiscordKeys.NAME,
   DiscordKeys.NAME_LOCALIZATIONS,
@@ -683,7 +689,9 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
   fileTypes?: Array<string>;
+  maxLength?: number;
   maxValue?: bigint | number;
+  minLength?: number;
   minValue?: bigint | number;
   name: string = '';
   nameLocalizations: Record<string, string | undefined> | null = null;
@@ -731,8 +739,14 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     if (DetritusKeys[DiscordKeys.FILE_TYPES] in data) {
       (data as any)[DiscordKeys.FILE_TYPES] = (data as any)[DetritusKeys[DiscordKeys.FILE_TYPES]];
     }
+    if (DetritusKeys[DiscordKeys.MAX_LENGTH] in data) {
+      (data as any)[DiscordKeys.MAX_LENGTH] = (data as any)[DetritusKeys[DiscordKeys.MAX_LENGTH]];
+    }
     if (DetritusKeys[DiscordKeys.MAX_VALUE] in data) {
       (data as any)[DiscordKeys.MAX_VALUE] = (data as any)[DetritusKeys[DiscordKeys.MAX_VALUE]];
+    }
+    if (DetritusKeys[DiscordKeys.MIN_LENGTH] in data) {
+      (data as any)[DiscordKeys.MIN_LENGTH] = (data as any)[DetritusKeys[DiscordKeys.MIN_LENGTH]];
     }
     if (DetritusKeys[DiscordKeys.MIN_VALUE] in data) {
       (data as any)[DiscordKeys.MIN_VALUE] = (data as any)[DetritusKeys[DiscordKeys.MIN_VALUE]];

@@ -35,7 +35,7 @@ import {
   InteractionDataApplicationCommandOption,
   InteractionDataApplicationCommandResolved,
 } from './structures';
-import { PermissionTools, getFiles } from './utils';
+import { PermissionTools, diffApplicationCommands, getFiles } from './utils';
 
 import {
   CommandRatelimit,
@@ -78,6 +78,13 @@ export type InteractionCommandClientInteractionCancel = (context: InteractionCon
 
 export interface InteractionCommandClientAddOptions extends InteractionCommandOptions {
   _class?: any,
+}
+
+export interface ApplicationCommandsPlan {
+  changes: number,
+  create: Array<InteractionCommand>,
+  delete: Array<ApplicationCommand>,
+  edit: Array<{differences: Array<string>, local: InteractionCommand, remote: ApplicationCommand}>,
 }
 
 export interface InteractionCommandClientRunOptions extends ClusterClientRunOptions {
@@ -367,7 +374,7 @@ export class InteractionCommandClient extends EventSpewer {
       return false;
     }
     const commands = await this.fetchApplicationCommands(guildId);
-    return this.validateCommands(commands);
+    return this.validateCommands(commands, guildId);
   }
 
   async checkAndUploadCommands(force: boolean = false): Promise<void> {
@@ -376,14 +383,72 @@ export class InteractionCommandClient extends EventSpewer {
     }
     for (let [guildId, localCommands] of this.commandsById) {
       const guildIdOrUndefined = (guildId === LOCAL_GUILD_ID) ? undefined : guildId;
-      if (force || (!(await this.checkApplicationCommands(guildIdOrUndefined)) && this.canUpload)) {
-        const commands = await this.uploadApplicationCommands(guildIdOrUndefined);
-        this.validateCommands(commands);
-        if (this.manager && this.manager.hasMultipleClusters) {
-          this.manager.sendIPC(ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS, {data: commands});
+
+      let commands: BaseCollection<string, ApplicationCommand>;
+      if (force) {
+        commands = await this.uploadApplicationCommands(guildIdOrUndefined);
+      } else {
+        const remoteCommands = await this.fetchApplicationCommands(guildIdOrUndefined);
+        this.fillCommandIds(remoteCommands, guildIdOrUndefined);
+        const plan = this.planApplicationCommands(remoteCommands, guildIdOrUndefined);
+        if (!plan.changes || !this.canUpload) {
+          continue;
         }
+        commands = await this.applyApplicationCommandsPlan(remoteCommands, plan, guildIdOrUndefined);
+      }
+      this.validateCommands(commands, guildIdOrUndefined);
+      if (this.manager && this.manager.hasMultipleClusters) {
+        this.manager.sendIPC(ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS, {data: commands});
       }
     }
+  }
+
+  // applies the plan with the fewest requests, a bulk overwrite is one request no matter how many commands changed
+  async applyApplicationCommandsPlan(
+    commands: BaseCollection<string, ApplicationCommand>,
+    plan: ApplicationCommandsPlan,
+    guildId?: string,
+  ): Promise<BaseCollection<string, ApplicationCommand>> {
+    if (plan.changes !== 1) {
+      return this.uploadApplicationCommands(guildId);
+    }
+    if (!this.client.ran) {
+      throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
+    }
+
+    const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
+    const applicationId = this.client.applicationId;
+    const collection = commands.clone();
+    if (plan.create.length) {
+      const data = this.createApplicationCommandPayload(plan.create[0]) as any;
+      const raw = (guildId) ?
+        await shard.rest.createApplicationGuildCommand(applicationId, guildId, data) :
+        await shard.rest.createApplicationCommand(applicationId, data);
+      const command = new ApplicationCommand(shard, raw);
+      collection.set(command.id, command);
+    } else if (plan.delete.length) {
+      const command = plan.delete[0];
+      if (guildId) {
+        await shard.rest.deleteApplicationGuildCommand(applicationId, guildId, command.id);
+      } else {
+        await shard.rest.deleteApplicationCommand(applicationId, command.id);
+      }
+      collection.delete(command.id);
+    } else {
+      const { local, remote } = plan.edit[0];
+      const data = this.createApplicationCommandPayload(local) as any;
+      const command = (guildId) ?
+        await shard.rest.editApplicationGuildCommand(applicationId, guildId, remote.id, data) :
+        await shard.rest.editApplicationCommand(applicationId, remote.id, data);
+      collection.set(command.id, command);
+    }
+    return collection;
+  }
+
+  createApplicationCommandPayload(command: InteractionCommand): {toJSON: () => object} {
+    const data = command.toJSON();
+    (data as any)[DiscordKeys.IDS] = undefined;
+    return {toJSON: () => data};
   }
 
   createApplicationCommandsFromRaw(data: Array<any>): BaseCollection<string, ApplicationCommand> {
@@ -430,10 +495,9 @@ export class InteractionCommandClient extends EventSpewer {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
     const localCommands = (this.commandsById.get(guildId || LOCAL_GUILD_ID) || []).map((command: InteractionCommand) => {
-      const data = command.toJSON();
-      (data as any)[DiscordKeys.ID] = command.ids.get(guildId || LOCAL_GUILD_ID);
-      (data as any)[DiscordKeys.IDS] = undefined;
-      return {toJSON: () => data};
+      const payload = this.createApplicationCommandPayload(command);
+      (payload.toJSON() as any)[DiscordKeys.ID] = command.ids.get(guildId || LOCAL_GUILD_ID);
+      return payload;
     });
 
     const shard = (this.client instanceof ClusterClient) ? this.client.shards.first()! : this.client;
@@ -444,33 +508,67 @@ export class InteractionCommandClient extends EventSpewer {
     }
   }
 
+  // stores the ids discord gave our local commands
+  fillCommandIds(commands: BaseCollection<string, ApplicationCommand>, guildId?: string): void {
+    const localCommands = this.commandsById.get(guildId || LOCAL_GUILD_ID);
+    if (!localCommands) {
+      return;
+    }
+    for (let [commandId, command] of commands) {
+      const localCommand = localCommands.find((cmd) => cmd.name === command.name && cmd.type === command.type);
+      if (localCommand) {
+        localCommand.ids.set(guildId || LOCAL_GUILD_ID, command.id);
+        if (localCommand.integrationTypes === undefined) {
+          localCommand.integrationTypes = command.integrationTypes;
+        }
+      }
+    }
+  }
+
+  // returns what has to change on discord for it to match our local commands
+  planApplicationCommands(commands: BaseCollection<string, ApplicationCommand>, guildId?: string): ApplicationCommandsPlan {
+    const plan: ApplicationCommandsPlan = {changes: 0, create: [], delete: [], edit: []};
+
+    const localCommands = this.commandsById.get(guildId || LOCAL_GUILD_ID);
+    const matched = new Set<InteractionCommand>();
+    for (let [commandId, command] of commands) {
+      const localCommand = localCommands && localCommands.find((cmd) => {
+        return !matched.has(cmd) && cmd.name === command.name && cmd.type === command.type;
+      });
+      if (localCommand) {
+        matched.add(localCommand);
+        const differences = diffApplicationCommands(localCommand, command, {isGuild: !!guildId});
+        if (differences.length) {
+          plan.edit.push({differences, local: localCommand, remote: command});
+        }
+      } else {
+        plan.delete.push(command);
+      }
+    }
+    if (localCommands) {
+      for (let localCommand of localCommands) {
+        if (!matched.has(localCommand)) {
+          plan.create.push(localCommand);
+        }
+      }
+    }
+    plan.changes = plan.create.length + plan.delete.length + plan.edit.length;
+    return plan;
+  }
+
   // returns if the commands from discord matches our local state
-  validateCommands(commands: BaseCollection<string, ApplicationCommand>): boolean {
+  validateCommands(commands: BaseCollection<string, ApplicationCommand>, guildId?: string): boolean {
     if (!commands.length) {
       return false;
     }
-    const guildId = commands.first()!.guildId || LOCAL_GUILD_ID;
-
-    const localCommands = this.commandsById.get(guildId);
-    if (localCommands) {
-      let matches = commands.length === localCommands.length;
-      for (let [commandId, command] of commands) {
-        const localCommand = localCommands.find((cmd) => cmd.name === command.name && cmd.type === command.type);
-        if (localCommand) {
-          localCommand.ids.set(guildId, command.id);
-          if (localCommand.integrationTypes === undefined) {
-            localCommand.integrationTypes = command.integrationTypes;
-          }
-          if (matches && localCommand.hash !== command.hash) {
-            matches = false;
-          }
-        } else {
-          matches = false;
-        }
-      }
-      return matches;
+    if (guildId === undefined) {
+      guildId = commands.first()!.guildId;
     }
-    return false;
+    if (!this.commandsById.has(guildId || LOCAL_GUILD_ID)) {
+      return false;
+    }
+    this.fillCommandIds(commands, guildId);
+    return !this.planApplicationCommands(commands, guildId).changes;
   }
 
   validateCommandsFromRaw(data: Array<any>): boolean {
