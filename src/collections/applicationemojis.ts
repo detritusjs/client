@@ -50,13 +50,13 @@ export class ApplicationEmojis extends BaseClientCollection<string, Emoji> {
           this.client.cluster.manager.sendIPC(ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS, {data});
         } else {
           data = await this.client.rest.raw.fetchApplicationEmojis(applicationId) as {items: Array<any>};
-          if (this.client.cluster) {
-            for (let [shardId, shard] of this.client.cluster.shards) {
-              if (shard === this.client) {
-                continue;
-              }
-              await shard.applicationEmojis.fill(data);
+        }
+        if (this.client.cluster) {
+          for (let [shardId, shard] of this.client.cluster.shards) {
+            if (shard === this.client) {
+              continue;
             }
+            await shard.applicationEmojis.fill(data);
           }
         }
         this.lastRefresh = Date.now();

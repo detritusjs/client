@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { ChannelTypes, DiscordKeys, WebhookTypes } from '../constants';
+import { ChannelTypes, DetritusKeys, DiscordKeys, WebhookTypes } from '../constants';
 import { addQuery, getFormatFromHash, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 
 import {
@@ -124,11 +124,11 @@ export class Webhook extends BaseStructure {
     return this.client.rest.deleteWebhook(this.id, options);
   }
 
-  async deleteMessage(messageId: string) {
+  async deleteMessage(messageId: string, options: RequestTypes.DeleteWebhookTokenMessage = {}) {
     if (!this.token) {
       throw new Error('Webhook is missing its token');
     }
-    return this.client.rest.deleteWebhookTokenMessage(this.id, this.token, messageId);
+    return this.client.rest.deleteWebhookTokenMessage(this.id, this.token, messageId, options);
   }
 
   async edit(options: RequestTypes.EditWebhook = {}) {
@@ -155,41 +155,68 @@ export class Webhook extends BaseStructure {
     return this.client.rest.executeWebhook(this.id, this.token, options, compatibleType);
   }
 
-  async fetchMessage(messageId: string) {
+  async fetchMessage(messageId: string, options: RequestTypes.FetchWebhookTokenMessage = {}) {
     if (!this.token) {
       throw new Error('Webhook is missing its token');
     }
-    return this.client.rest.fetchWebhookTokenMessage(this.id, this.token, messageId);
+    return this.client.rest.fetchWebhookTokenMessage(this.id, this.token, messageId, options);
   }
 
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.SOURCE_CHANNEL: {
-          value.type = ChannelTypes.GUILD_NEWS;
-          value = createChannelFromData(this.client, value);
-        }; break;
-        case DiscordKeys.SOURCE_GUILD: {
-          value = new BaseGuild(this.client, value);
-        }; break;
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.isClone) {
-            user = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id) as User;
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-              this.client.users.insert(user);
-            }
-          }
-          value = user;
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.AVATAR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AVATAR]] = data[DiscordKeys.AVATAR];
+    }
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.DISCRIMINATOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DISCRIMINATOR]] = data[DiscordKeys.DISCRIMINATOR];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.SOURCE_CHANNEL in data) {
+      const value = data[DiscordKeys.SOURCE_CHANNEL];
+      value.type = ChannelTypes.GUILD_NEWS;
+      (this as any)[DetritusKeys[DiscordKeys.SOURCE_CHANNEL]] = createChannelFromData(this.client, value);
+    }
+    if (DiscordKeys.SOURCE_GUILD in data) {
+      const value = new BaseGuild(this.client, data[DiscordKeys.SOURCE_GUILD]);
+      (this as any)[DetritusKeys[DiscordKeys.SOURCE_GUILD]] = value;
+    }
+    if (DiscordKeys.TOKEN in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOKEN]] = data[DiscordKeys.TOKEN];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id) as User;
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+          this.client.users.insert(user);
+        }
       }
-      super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
   }
 

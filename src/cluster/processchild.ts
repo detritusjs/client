@@ -123,6 +123,7 @@ export class ClusterProcessChild extends EventSpewer {
         }; return;
         case ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS: {
           const { data }: ClusterIPCTypes.FillApplicationEmojis = message.data;
+          this.cluster._refresh.applicationEmojis.last = Date.now();
           for (let [shardId, shard] of this.cluster.shards) {
             await shard.applicationEmojis.fill(data);
           }

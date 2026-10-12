@@ -1621,4 +1621,23 @@ export class GuildWelcomeScreenChannel extends BaseStructure {
     this.merge(data);
     Object.defineProperty(this, 'guildWelcomeScreen', {enumerable: false, writable: false});
   }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.EMOJI_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI_ID]] = data[DiscordKeys.EMOJI_ID];
+    }
+    if (DiscordKeys.EMOJI_NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EMOJI_NAME]] = data[DiscordKeys.EMOJI_NAME];
+    }
+  }
 }

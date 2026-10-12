@@ -402,18 +402,23 @@ export class InteractionCommandClient extends EventSpewer {
     if (!this.client.ran) {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
+    // include localizations so they can be compared against our local commands
+    const options = {withLocalizations: true};
+
     let data: Array<any>;
     if (this.manager && this.manager.hasMultipleClusters) {
       if (guildId) {
-        data = await this.manager.sendRestRequest('fetchApplicationGuildCommands', [this.client.applicationId, guildId]);
+        data = await this.manager.sendRestRequest('fetchApplicationGuildCommands', [this.client.applicationId, guildId, options]);
       } else {
-        data = await this.manager.sendRestRequest('fetchApplicationCommands', [this.client.applicationId]);
+        data = await this.manager.sendRestRequest('fetchApplicationCommands', [this.client.applicationId, options]);
       }
     } else {
+      // the shard client's rest wraps the responses into structures, we want the raw data
+      const rest = (this.client instanceof ClusterClient) ? this.client.rest : this.client.rest.raw;
       if (guildId) {
-        data = await this.rest.fetchApplicationGuildCommands(this.client.applicationId, guildId);
+        data = await rest.fetchApplicationGuildCommands(this.client.applicationId, guildId, options);
       } else {
-        data = await this.rest.fetchApplicationCommands(this.client.applicationId);
+        data = await rest.fetchApplicationCommands(this.client.applicationId, options);
       }
     }
     return this.createApplicationCommandsFromRaw(data);

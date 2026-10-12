@@ -76,7 +76,16 @@ const keysComponentSelectMenu = new BaseSet<string>([
       [DiscordKeys.MIN_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MIN_VALUES]] || (data as any)[DiscordKeys.MIN_VALUES],
     });
     this.merge(data);
-    this.type = MessageComponentTypes.SELECT_MENU;
+    switch (this.type) {
+      case MessageComponentTypes.SELECT_MENU:
+      case MessageComponentTypes.USER_SELECT:
+      case MessageComponentTypes.ROLE_SELECT:
+      case MessageComponentTypes.MENTIONABLE_SELECT:
+      case MessageComponentTypes.CHANNEL_SELECT: break;
+      default: {
+        this.type = MessageComponentTypes.SELECT_MENU;
+      };
+    }
   }
 
   addChannelType(channelType: ChannelTypes): this {
@@ -121,6 +130,17 @@ const keysComponentSelectMenu = new BaseSet<string>([
 
   setCustomId(customId: string): this {
     this.merge({custom_id: customId});
+    return this;
+  }
+
+  setType(
+    type: (
+      MessageComponentTypes.SELECT_MENU | MessageComponentTypes.USER_SELECT |
+      MessageComponentTypes.ROLE_SELECT | MessageComponentTypes.MENTIONABLE_SELECT |
+      MessageComponentTypes.CHANNEL_SELECT
+    ),
+  ): this {
+    this.merge({type});
     return this;
   }
 

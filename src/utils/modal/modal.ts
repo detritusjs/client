@@ -17,7 +17,16 @@ import {
   ComponentActionData,
   ComponentActionRowData,
   ComponentActionRow,
+  ComponentCheckbox,
+  ComponentCheckboxGroup,
+  ComponentFileUpload,
   ComponentInputText,
+  ComponentLabel,
+  ComponentLabelData,
+  ComponentRadioGroup,
+  ComponentSelectMenu,
+  ComponentTextDisplay,
+  ComponentTextDisplayData,
 } from '../components';
 
 import { InteractionModalContext } from './context';
@@ -31,7 +40,11 @@ export type InteractionModalOnError = (context: InteractionModalContext, args: I
 
 
 export interface InteractionModalOptions {
-  components?: Array<ComponentActionRowData | ComponentActionRow>,
+  components?: Array<
+    ComponentActionRow | ComponentActionRowData |
+    ComponentLabel | ComponentLabelData |
+    ComponentTextDisplay | ComponentTextDisplayData
+  >,
   customId?: string,
   custom_id?: string,
   timeout?: number,
@@ -90,6 +103,16 @@ export class InteractionModal extends Structure {
     return this;
   }
 
+  addLabel(data: ComponentLabel | ComponentLabelData = {}): this {
+    this.components.addLabel(data);
+    return this;
+  }
+
+  addTextDisplay(data: ComponentTextDisplay | ComponentTextDisplayData = {}): this {
+    this.components.addTextDisplay(data);
+    return this;
+  }
+
   clear() {
     return this.components.clear();
   }
@@ -98,9 +121,37 @@ export class InteractionModal extends Structure {
     return this.components.createActionRow(data);
   }
 
+  createCheckbox(label: ComponentLabelData = {}, data: ComponentActionData = {}): ComponentCheckbox {
+    return this.createLabel(label).createCheckbox(data);
+  }
+
+  createCheckboxGroup(label: ComponentLabelData = {}, data: ComponentActionData = {}): ComponentCheckboxGroup {
+    return this.createLabel(label).createCheckboxGroup(data);
+  }
+
+  createFileUpload(label: ComponentLabelData = {}, data: ComponentActionData = {}): ComponentFileUpload {
+    return this.createLabel(label).createFileUpload(data);
+  }
+
   createInputText(data: ComponentActionData = {}): ComponentInputText {
     const actionRow = this.createActionRow();
     return actionRow.createInputText(data);
+  }
+
+  createLabel(data: ComponentLabelData = {}): ComponentLabel {
+    return this.components.createLabel(data);
+  }
+
+  createRadioGroup(label: ComponentLabelData = {}, data: ComponentActionData = {}): ComponentRadioGroup {
+    return this.createLabel(label).createRadioGroup(data);
+  }
+
+  createSelectMenu(label: ComponentLabelData = {}, data: ComponentActionData = {}): ComponentSelectMenu {
+    return this.createLabel(label).createSelectMenu(data);
+  }
+
+  createTextDisplay(data: ComponentTextDisplayData = {}): ComponentTextDisplay {
+    return this.components.createTextDisplay(data);
   }
 
   mergeValue(key: string, value: any): void {
@@ -113,11 +164,23 @@ export class InteractionModal extends Structure {
         for (let raw of value) {
           if (raw instanceof ComponentActionRow) {
             this.components.addActionRow(raw);
+          } else if (raw instanceof ComponentLabel) {
+            this.components.addLabel(raw);
+          } else if (raw instanceof ComponentTextDisplay) {
+            this.components.addTextDisplay(raw);
           } else {
             switch (raw.type) {
               case MessageComponentTypes.ACTION_ROW: {
                 const component = new ComponentActionRow(raw);
                 this.components.addActionRow(component);
+              }; break;
+              case MessageComponentTypes.LABEL: {
+                const component = new ComponentLabel(raw);
+                this.components.addLabel(component);
+              }; break;
+              case MessageComponentTypes.TEXT_DISPLAY: {
+                const component = new ComponentTextDisplay(raw);
+                this.components.addTextDisplay(component);
               }; break;
               default: {
                 throw new Error(`Unknown component type ${raw.type}`);

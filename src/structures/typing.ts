@@ -2,7 +2,7 @@ import { Timers } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { ClientEvents, DiscordKeys, TYPING_TIMEOUT } from '../constants';
+import { ClientEvents, DetritusKeys, DiscordKeys, TYPING_TIMEOUT } from '../constants';
 import { GatewayClientEvents } from '../gateway/clientevents';
 
 import {
@@ -98,41 +98,61 @@ export class Typing extends BaseStructure {
     }
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.MEMBER: {
-          const guildId = this.guildId as string;
-          value.guild_id = guildId;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-          let member: Member;
-          if (this.isClone) {
-            member = new Member(this.client, value, this.isClone);
-          } else {
-            if (this.client.members.has(guildId, value.user.id)) {
-              member = this.client.members.get(guildId, value.user.id) as Member;
-              member.merge(value);
-            } else {
-              member = new Member(this.client, value);
-              this.client.members.insert(member);
-            }
-          }
-          value = member;
-        }; break;
-        case DiscordKeys.TIMESTAMP: {
-          value *= 1000;
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.MEMBER in data) {
+      const value = data[DiscordKeys.MEMBER];
 
-          if (!this.started) {
-            this.started = value;
-          }
+      const guildId = this.guildId as string;
+      value.guild_id = guildId;
 
-          const amount = (value + TYPING_TIMEOUT) - Date.now();
-          if (0 < amount && !this.isClone) {
-            this.timeout.start(TYPING_TIMEOUT, () => this._stop());
-          }
-        }; break;
+      let member: Member;
+      if (this.isClone) {
+        member = new Member(this.client, value, this.isClone);
+      } else {
+        if (this.client.members.has(guildId, value.user.id)) {
+          member = this.client.members.get(guildId, value.user.id) as Member;
+          member.merge(value);
+        } else {
+          member = new Member(this.client, value);
+          this.client.members.insert(member);
+        }
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
+    }
+    if (DiscordKeys.STARTED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.STARTED]] = data[DiscordKeys.STARTED];
+    }
+    if (DiscordKeys.STOPPED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.STOPPED]] = data[DiscordKeys.STOPPED];
+    }
+    if (DiscordKeys.TIMESTAMP in data) {
+      const value = data[DiscordKeys.TIMESTAMP] * 1000;
+
+      if (!this.started) {
+        this.started = value;
+      }
+
+      const amount = (value + TYPING_TIMEOUT) - Date.now();
+      if (0 < amount && !this.isClone) {
+        this.timeout.start(TYPING_TIMEOUT, () => this._stop());
+      }
+      (this as any)[DetritusKeys[DiscordKeys.TIMESTAMP]] = value;
+    }
+    if (DiscordKeys.USER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = data[DiscordKeys.USER];
+    }
+    if (DiscordKeys.USER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER_ID]] = data[DiscordKeys.USER_ID];
     }
   }
 }

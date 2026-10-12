@@ -223,6 +223,106 @@ export class ComponentButton extends BaseStructure {
 }
 
 
+const keysMessageComponentCheckbox = new BaseSet<string>([
+  DiscordKeys.CUSTOM_ID,
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
+  DiscordKeys.VALUE,
+]);
+
+/**
+ * Component Checkbox Structure, received from modal submits
+ * @category Structure
+ */
+export class ComponentCheckbox extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentCheckbox;
+
+  customId: string = '';
+  id?: number;
+  type: MessageComponentTypes.CHECKBOX = MessageComponentTypes.CHECKBOX;
+  value: boolean = false;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CUSTOM_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.VALUE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUE]] = data[DiscordKeys.VALUE];
+    }
+  }
+}
+
+
+const keysMessageComponentCheckboxGroup = new BaseSet<string>([
+  DiscordKeys.CUSTOM_ID,
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
+  DiscordKeys.VALUES,
+]);
+
+/**
+ * Component Checkbox Group Structure, received from modal submits
+ * @category Structure
+ */
+export class ComponentCheckboxGroup extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentCheckboxGroup;
+
+  customId: string = '';
+  id?: number;
+  type: MessageComponentTypes.CHECKBOX_GROUP = MessageComponentTypes.CHECKBOX_GROUP;
+  values: Array<string> = [];
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CUSTOM_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.VALUES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUES]] = data[DiscordKeys.VALUES];
+    }
+  }
+}
+
+
 const keysMessageComponentContainer = new BaseSet<string>([
   DiscordKeys.ACCENT_COLOR,
   DiscordKeys.COMPONENTS,
@@ -360,6 +460,56 @@ export class ComponentFile extends BaseStructure {
 }
 
 
+const keysMessageComponentFileUpload = new BaseSet<string>([
+  DiscordKeys.CUSTOM_ID,
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
+  DiscordKeys.VALUES,
+]);
+
+/**
+ * Component File Upload Structure, received from modal submits (the values are attachment ids, found in the resolved data)
+ * @category Structure
+ */
+export class ComponentFileUpload extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentFileUpload;
+
+  customId: string = '';
+  id?: number;
+  type: MessageComponentTypes.FILE_UPLOAD = MessageComponentTypes.FILE_UPLOAD;
+  values: Array<string> = [];
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CUSTOM_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.VALUES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUES]] = data[DiscordKeys.VALUES];
+    }
+  }
+}
+
+
 const keysMessageComponentInputText = new BaseSet<string>([
   DiscordKeys.CUSTOM_ID,
   DiscordKeys.ID,
@@ -405,6 +555,86 @@ export class ComponentInputText extends BaseStructure {
     }
     if (DiscordKeys.VALUE in data) {
       (this as any)[DetritusKeys[DiscordKeys.VALUE]] = data[DiscordKeys.VALUE];
+    }
+  }
+}
+
+
+const keysMessageComponentLabel = new BaseSet<string>([
+  DiscordKeys.COMPONENT,
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
+]);
+
+export type ComponentLabelChild = (
+  ComponentCheckbox | ComponentCheckboxGroup | ComponentFileUpload |
+  ComponentInputText | ComponentRadioGroup | ComponentSelectMenu | ComponentUnknown
+);
+
+/**
+ * Component Label Structure, received from modal submits
+ * @category Structure
+ */
+export class ComponentLabel extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentLabel;
+
+  component?: ComponentLabelChild;
+  id?: number;
+  type: MessageComponentTypes.LABEL = MessageComponentTypes.LABEL;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.COMPONENT in data) {
+      const value = data[DiscordKeys.COMPONENT];
+
+      let component: ComponentLabelChild;
+      switch (value.type) {
+        case MessageComponentTypes.CHECKBOX: {
+          component = new ComponentCheckbox(this.client, value, this._clone);
+        }; break;
+        case MessageComponentTypes.CHECKBOX_GROUP: {
+          component = new ComponentCheckboxGroup(this.client, value, this._clone);
+        }; break;
+        case MessageComponentTypes.FILE_UPLOAD: {
+          component = new ComponentFileUpload(this.client, value, this._clone);
+        }; break;
+        case MessageComponentTypes.INPUT_TEXT: {
+          component = new ComponentInputText(this.client, value, this._clone);
+        }; break;
+        case MessageComponentTypes.RADIO_GROUP: {
+          component = new ComponentRadioGroup(this.client, value, this._clone);
+        }; break;
+        case MessageComponentTypes.SELECT_MENU:
+        case MessageComponentTypes.USER_SELECT:
+        case MessageComponentTypes.ROLE_SELECT:
+        case MessageComponentTypes.MENTIONABLE_SELECT:
+        case MessageComponentTypes.CHANNEL_SELECT: {
+          component = new ComponentSelectMenu(this.client, value, this._clone);
+        }; break;
+        default: {
+          component = new ComponentUnknown(this.client, value, this._clone);
+        };
+      }
+      (this as any)[DetritusKeys[DiscordKeys.COMPONENT]] = component;
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
   }
 }
@@ -506,6 +736,56 @@ export class ComponentMediaGalleryItem extends BaseStructure {
 }
 
 
+const keysMessageComponentRadioGroup = new BaseSet<string>([
+  DiscordKeys.CUSTOM_ID,
+  DiscordKeys.ID,
+  DiscordKeys.TYPE,
+  DiscordKeys.VALUE,
+]);
+
+/**
+ * Component Radio Group Structure, received from modal submits
+ * @category Structure
+ */
+export class ComponentRadioGroup extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessageComponentRadioGroup;
+
+  customId: string = '';
+  id?: number;
+  type: MessageComponentTypes.RADIO_GROUP = MessageComponentTypes.RADIO_GROUP;
+  value: null | string = null;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CUSTOM_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.VALUE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUE]] = data[DiscordKeys.VALUE];
+    }
+  }
+}
+
+
 const keysComponentSection = new BaseSet<string>([
   DiscordKeys.ACCESSORY,
   DiscordKeys.COMPONENTS,
@@ -600,6 +880,7 @@ const keysMessageComponentSelectMenu = new BaseSet<string>([
   DiscordKeys.OPTIONS,
   DiscordKeys.PLACEHOLDER,
   DiscordKeys.TYPE,
+  DiscordKeys.VALUES,
 ]);
 
 /**
@@ -624,6 +905,7 @@ export class ComponentSelectMenu extends BaseStructure {
     MessageComponentTypes.ROLE_SELECT | MessageComponentTypes.MENTIONABLE_SELECT |
     MessageComponentTypes.CHANNEL_SELECT
   ) = MessageComponentTypes.SELECT_MENU;
+  values?: Array<string>;
 
   constructor(
     client: ShardClient,
@@ -690,6 +972,9 @@ export class ComponentSelectMenu extends BaseStructure {
     }
     if (DiscordKeys.TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.VALUES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUES]] = data[DiscordKeys.VALUES];
     }
   }
 }

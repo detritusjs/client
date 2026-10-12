@@ -1,7 +1,7 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { MEDIA_ATTACHMENT_URL_PREFIX, DiscordKeys, MessageEmbedTypes } from '../constants';
+import { MEDIA_ATTACHMENT_URL_PREFIX, DetritusKeys, DiscordKeys, MessageEmbedTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -131,40 +131,67 @@ export class MessageEmbed extends BaseStructure {
     return this.client.rest.fetchApplicationNewsId(<string> this.referenceId);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.AUTHOR: {
-        value = new MessageEmbedAuthor(this.client, value, this._clone);
-      }; break;
-      case DiscordKeys.FIELDS: {
-        if (!this.fields) {
-          this.fields = new BaseCollection<number, MessageEmbedField>();
-        }
-        this.fields.clear();
-        for (let i = 0; i < value.length; i++) {
-          this.fields.set(i, new MessageEmbedField(this.client, value[i], this._clone));
-        }
-      }; return;
-      case DiscordKeys.FOOTER: {
-        value = new MessageEmbedFooter(this.client, value, this._clone);
-      }; break;
-      case DiscordKeys.PROVIDER: {
-        value = new MessageEmbedProvider(this.client, value, this._clone);
-      }; break;
-      case DiscordKeys.IMAGE: {
-        value = new MessageEmbedImage(this.client, value, this._clone);
-      }; break;
-      case DiscordKeys.TIMESTAMP: {
-        value = new Date(value);
-      }; break;
-      case DiscordKeys.THUMBNAIL: {
-        value = new MessageEmbedThumbnail(this.client, value, this._clone);
-      }; break;
-      case DiscordKeys.VIDEO: {
-        value = new MessageEmbedVideo(this.client, value, this._clone);
-      }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
-    return super.mergeValue(key, value);
+
+    if (DiscordKeys.AUTHOR in data) {
+      const value = new MessageEmbedAuthor(this.client, data[DiscordKeys.AUTHOR], this._clone);
+      (this as any)[DetritusKeys[DiscordKeys.AUTHOR]] = value;
+    }
+    if (DiscordKeys.COLOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.COLOR]] = data[DiscordKeys.COLOR];
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.FIELDS in data) {
+      const value = data[DiscordKeys.FIELDS];
+      if (!this.fields) {
+        this.fields = new BaseCollection<number, MessageEmbedField>();
+      }
+      this.fields.clear();
+      for (let i = 0; i < value.length; i++) {
+        this.fields.set(i, new MessageEmbedField(this.client, value[i], this._clone));
+      }
+    }
+    if (DiscordKeys.FOOTER in data) {
+      const value = new MessageEmbedFooter(this.client, data[DiscordKeys.FOOTER], this._clone);
+      (this as any)[DetritusKeys[DiscordKeys.FOOTER]] = value;
+    }
+    if (DiscordKeys.IMAGE in data) {
+      const value = new MessageEmbedImage(this.client, data[DiscordKeys.IMAGE], this._clone);
+      (this as any)[DetritusKeys[DiscordKeys.IMAGE]] = value;
+    }
+    if (DiscordKeys.PROVIDER in data) {
+      const value = new MessageEmbedProvider(this.client, data[DiscordKeys.PROVIDER], this._clone);
+      (this as any)[DetritusKeys[DiscordKeys.PROVIDER]] = value;
+    }
+    if (DiscordKeys.REFERENCE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REFERENCE_ID]] = data[DiscordKeys.REFERENCE_ID];
+    }
+    if (DiscordKeys.THUMBNAIL in data) {
+      const value = new MessageEmbedThumbnail(this.client, data[DiscordKeys.THUMBNAIL], this._clone);
+      (this as any)[DetritusKeys[DiscordKeys.THUMBNAIL]] = value;
+    }
+    if (DiscordKeys.TIMESTAMP in data) {
+      const value = new Date(data[DiscordKeys.TIMESTAMP]);
+      (this as any)[DetritusKeys[DiscordKeys.TIMESTAMP]] = value;
+    }
+    if (DiscordKeys.TITLE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TITLE]] = data[DiscordKeys.TITLE];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+    }
+    if (DiscordKeys.VIDEO in data) {
+      const value = new MessageEmbedVideo(this.client, data[DiscordKeys.VIDEO], this._clone);
+      (this as any)[DetritusKeys[DiscordKeys.VIDEO]] = value;
+    }
   }
 }
 
@@ -196,6 +223,25 @@ export class MessageEmbedAuthor extends BaseStructure {
     super(client, undefined, isClone);
     this.merge(data);
   }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ICON_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ICON_URL]] = data[DiscordKeys.ICON_URL];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.PROXY_ICON_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PROXY_ICON_URL]] = data[DiscordKeys.PROXY_ICON_URL];
+    }
+    if (DiscordKeys.URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+    }
+  }
 }
 
 
@@ -224,6 +270,22 @@ export class MessageEmbedField extends BaseStructure {
     super(client, undefined, isClone);
     this.merge(data);
   }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.INLINE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INLINE]] = data[DiscordKeys.INLINE];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.VALUE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUE]] = data[DiscordKeys.VALUE];
+    }
+  }
 }
 
 
@@ -251,6 +313,22 @@ export class MessageEmbedFooter extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ICON_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ICON_URL]] = data[DiscordKeys.ICON_URL];
+    }
+    if (DiscordKeys.PROXY_ICON_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PROXY_ICON_URL]] = data[DiscordKeys.PROXY_ICON_URL];
+    }
+    if (DiscordKeys.TEXT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TEXT]] = data[DiscordKeys.TEXT];
+    }
   }
 }
 
@@ -286,6 +364,25 @@ export class MessageEmbedImage extends BaseStructure {
   get hasAttachment(): boolean {
     return !!(this.proxyUrl && this.proxyUrl.startsWith(MEDIA_ATTACHMENT_URL_PREFIX));
   }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.HEIGHT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HEIGHT]] = data[DiscordKeys.HEIGHT];
+    }
+    if (DiscordKeys.PROXY_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PROXY_URL]] = data[DiscordKeys.PROXY_URL];
+    }
+    if (DiscordKeys.URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+    }
+    if (DiscordKeys.WIDTH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.WIDTH]] = data[DiscordKeys.WIDTH];
+    }
+  }
 }
 
 
@@ -311,6 +408,19 @@ export class MessageEmbedProvider extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+    }
   }
 }
 

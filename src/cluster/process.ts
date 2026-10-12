@@ -101,6 +101,15 @@ export class ClusterProcess extends EventSpewer {
               }
             }
           }; return;
+          case ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS: {
+            // the sending cluster already filled its own shards
+            const promises = this.manager.processes.map((clusterProcess) => {
+              if (clusterProcess !== this) {
+                return clusterProcess.send(message);
+              }
+            });
+            await Promise.all(promises);
+          }; return;
           case ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS: {
             await this.manager.broadcast(message);
           }; return;

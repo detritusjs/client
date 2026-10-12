@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
@@ -54,5 +54,24 @@ export class PremiumSubscription extends BaseStructure {
 
   get user(): User | null {
     return this.client.users.get(this.userId) || null;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ENDED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ENDED]] = data[DiscordKeys.ENDED];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.USER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER_ID]] = data[DiscordKeys.USER_ID];
+    }
   }
 }

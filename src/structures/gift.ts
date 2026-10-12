@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -74,35 +74,60 @@ export class Gift extends BaseStructure {
     return this.client.rest.redeemGiftCode(this.code, options);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.EXPIRES_AT: {
-          value = new Date(value);
-        }; break;
-        case DiscordKeys.STORE_LISTING: {
-          value = new StoreListing(this.client, value);
-        }; break;
-        case DiscordKeys.SUBSCRIPTION_PLAN: {
-          value = new SubscriptionPlan(this.client, value, this.isClone);
-          this.subscriptionPlanId = value.id;
-        }; break;
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.isClone) {
-            user = new User(this.client, value);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id) as User
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-            }
-          }
-          value = user;
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.SUBSCRIPTION_PLAN in data) {
+      const value = new SubscriptionPlan(this.client, data[DiscordKeys.SUBSCRIPTION_PLAN], this.isClone);
+      this.subscriptionPlanId = value.id;
+      (this as any)[DetritusKeys[DiscordKeys.SUBSCRIPTION_PLAN]] = value;
+    }
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.CODE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CODE]] = data[DiscordKeys.CODE];
+    }
+    if (DiscordKeys.EXPIRES_AT in data) {
+      const value = new Date(data[DiscordKeys.EXPIRES_AT]);
+      (this as any)[DetritusKeys[DiscordKeys.EXPIRES_AT]] = value;
+    }
+    if (DiscordKeys.MAX_USES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MAX_USES]] = data[DiscordKeys.MAX_USES];
+    }
+    if (DiscordKeys.REDEEMED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REDEEMED]] = data[DiscordKeys.REDEEMED];
+    }
+    if (DiscordKeys.SKU_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SKU_ID]] = data[DiscordKeys.SKU_ID];
+    }
+    if (DiscordKeys.STORE_LISTING in data) {
+      const value = new StoreListing(this.client, data[DiscordKeys.STORE_LISTING]);
+      (this as any)[DetritusKeys[DiscordKeys.STORE_LISTING]] = value;
+    }
+    if (DiscordKeys.SUBSCRIPTION_PLAN_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SUBSCRIPTION_PLAN_ID]] = data[DiscordKeys.SUBSCRIPTION_PLAN_ID];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id) as User
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+        }
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
+    }
+    if (DiscordKeys.USES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USES]] = data[DiscordKeys.USES];
     }
   }
 }
@@ -138,5 +163,36 @@ export class SubscriptionPlan extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CURRENCY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CURRENCY]] = data[DiscordKeys.CURRENCY];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.INTERVAL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INTERVAL]] = data[DiscordKeys.INTERVAL];
+    }
+    if (DiscordKeys.INTERVAL_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INTERVAL_COUNT]] = data[DiscordKeys.INTERVAL_COUNT];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.PRICE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PRICE]] = data[DiscordKeys.PRICE];
+    }
+    if (DiscordKeys.SKU_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SKU_ID]] = data[DiscordKeys.SKU_ID];
+    }
+    if (DiscordKeys.TAX_INCLUSIVE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TAX_INCLUSIVE]] = data[DiscordKeys.TAX_INCLUSIVE];
+    }
   }
 }

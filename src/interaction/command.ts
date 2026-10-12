@@ -216,6 +216,8 @@ export interface InteractionCommandOptionOptions {
   description?: string,
   description_localizations?: Record<string, string | undefined>,
   descriptionLocalizations?: Record<string, string | undefined>,
+  file_types?: Array<string>,
+  fileTypes?: Array<string>,
   max_value?: bigint | number,
   maxValue?: bigint | number,
   min_value?: bigint | number,
@@ -647,6 +649,7 @@ const keysInteractionCommandOption = new BaseSet<string>([
   DiscordKeys.CHOICES,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DESCRIPTION_LOCALIZATIONS,
+  DiscordKeys.FILE_TYPES,
   DiscordKeys.MAX_VALUE,
   DiscordKeys.MIN_VALUE,
   DiscordKeys.NAME,
@@ -668,6 +671,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   choices?: Array<InteractionCommandOptionChoice>;
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
+  fileTypes?: Array<string>;
   maxValue?: bigint | number;
   minValue?: bigint | number;
   name: string = '';
@@ -711,6 +715,9 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     }
     if (DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS] in data) {
       (data as any)[DiscordKeys.DESCRIPTION_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS]];
+    }
+    if (DetritusKeys[DiscordKeys.FILE_TYPES] in data) {
+      (data as any)[DiscordKeys.FILE_TYPES] = (data as any)[DetritusKeys[DiscordKeys.FILE_TYPES]];
     }
     if (DetritusKeys[DiscordKeys.MAX_VALUE] in data) {
       (data as any)[DiscordKeys.MAX_VALUE] = (data as any)[DetritusKeys[DiscordKeys.MAX_VALUE]];

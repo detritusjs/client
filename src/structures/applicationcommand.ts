@@ -171,6 +171,7 @@ const keysApplicationCommandOption = new BaseSet<string>([
   DiscordKeys.CHOICES,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DESCRIPTION_LOCALIZATIONS,
+  DiscordKeys.FILE_TYPES,
   DiscordKeys.MAX_VALUE,
   DiscordKeys.MIN_VALUE,
   DiscordKeys.NAME,
@@ -193,6 +194,7 @@ export class ApplicationCommandOption extends BaseStructure {
   choices?: BaseCollection<string, ApplicationCommandOptionChoice>;
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
+  fileTypes?: Array<string>;
   maxValue?: bigint;
   minValue?: bigint;
   name: string = '';
@@ -212,44 +214,76 @@ export class ApplicationCommandOption extends BaseStructure {
     return KeyGenerator.ApplicationCommandOption(this);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.CHOICES: {
-        if (value) {
-          if (!this.choices) {
-            this.choices = new BaseCollection();
-          }
-          this.choices.clear();
-          for (let raw of value) {
-            const choice = new ApplicationCommandOptionChoice(this, raw, this.isClone);
-            this.choices.set(choice.name, choice);
-          }
-        } else {
-          this.choices = undefined;
-        }
-      }; return;
-      case DiscordKeys.MAX_VALUE: {
-        value = BigInt(value);
-      }; break;
-      case DiscordKeys.MIN_VALUE: {
-        value = BigInt(value);
-      }; break;
-      case DiscordKeys.OPTIONS: {
-        if (value) {
-          if (!this.options) {
-            this.options = new BaseCollection();
-          }
-          this.options.clear();
-          for (let raw of value) {
-            const option = new ApplicationCommandOption(this.command, raw, this.isClone);
-            this.options.set(option.name, option);
-          }
-        } else {
-          this.options = undefined;
-        }
-      }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
-    super.mergeValue(key, value);
+
+    if (DiscordKeys.AUTOCOMPLETE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AUTOCOMPLETE]] = data[DiscordKeys.AUTOCOMPLETE];
+    }
+    if (DiscordKeys.CHANNEL_TYPES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_TYPES]] = data[DiscordKeys.CHANNEL_TYPES];
+    }
+    if (DiscordKeys.CHOICES in data) {
+      const value = data[DiscordKeys.CHOICES];
+      if (value) {
+        if (!this.choices) {
+          this.choices = new BaseCollection();
+        }
+        this.choices.clear();
+        for (let raw of value) {
+          const choice = new ApplicationCommandOptionChoice(this, raw, this.isClone);
+          this.choices.set(choice.name, choice);
+        }
+      } else {
+        this.choices = undefined;
+      }
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.DESCRIPTION_LOCALIZATIONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION_LOCALIZATIONS]] = data[DiscordKeys.DESCRIPTION_LOCALIZATIONS];
+    }
+    if (DiscordKeys.FILE_TYPES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FILE_TYPES]] = data[DiscordKeys.FILE_TYPES];
+    }
+    if (DiscordKeys.MAX_VALUE in data) {
+      const value = BigInt(data[DiscordKeys.MAX_VALUE]);
+      (this as any)[DetritusKeys[DiscordKeys.MAX_VALUE]] = value;
+    }
+    if (DiscordKeys.MIN_VALUE in data) {
+      const value = BigInt(data[DiscordKeys.MIN_VALUE]);
+      (this as any)[DetritusKeys[DiscordKeys.MIN_VALUE]] = value;
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.NAME_LOCALIZATIONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS]] = data[DiscordKeys.NAME_LOCALIZATIONS];
+    }
+    if (DiscordKeys.OPTIONS in data) {
+      const value = data[DiscordKeys.OPTIONS];
+      if (value) {
+        if (!this.options) {
+          this.options = new BaseCollection();
+        }
+        this.options.clear();
+        for (let raw of value) {
+          const option = new ApplicationCommandOption(this.command, raw, this.isClone);
+          this.options.set(option.name, option);
+        }
+      } else {
+        this.options = undefined;
+      }
+    }
+    if (DiscordKeys.REQUIRED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REQUIRED]] = data[DiscordKeys.REQUIRED];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
   }
 }
 
@@ -281,6 +315,22 @@ export class ApplicationCommandOptionChoice extends BaseStructure {
 
   get key(): string {
     return KeyGenerator.ApplicationCommandOptionChoice(this);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.NAME_LOCALIZATIONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS]] = data[DiscordKeys.NAME_LOCALIZATIONS];
+    }
+    if (DiscordKeys.VALUE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VALUE]] = data[DiscordKeys.VALUE];
+    }
   }
 }
 
@@ -363,17 +413,27 @@ export class ApplicationCommandPermissions extends BaseStructure {
     return true;
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.PERMISSIONS: {
-        this.permissions.clear();
-        for (let raw of value) {
-          const permission = new ApplicationCommandPermission(this, raw, this.isClone);
-          this.permissions.set(permission.id, permission);
-        }
-      }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
-    super.mergeValue(key, value);
+
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.PERMISSIONS in data) {
+      this.permissions.clear();
+      for (let raw of data[DiscordKeys.PERMISSIONS]) {
+        const permission = new ApplicationCommandPermission(this, raw, this.isClone);
+        this.permissions.set(permission.id, permission);
+      }
+    }
   }
 }
 
@@ -428,5 +488,21 @@ export class ApplicationCommandPermission extends BaseStructure {
       return this.client.users.get(this.id) || null;
     }
     return null;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.PERMISSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PERMISSION]] = data[DiscordKeys.PERMISSION];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
   }
 }

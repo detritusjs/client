@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, IntegrationExpireBehaviors, Oauth2Scopes } from '../constants';
+import { DetritusKeys, DiscordKeys, IntegrationExpireBehaviors, Oauth2Scopes } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
@@ -73,35 +73,78 @@ export class Integration extends BaseStructure {
     return Snowflake.timestamp(this.id);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ACCOUNT: {
-          value = new IntegrationAccount(this, value);
-        }; break;
-        case DiscordKeys.APPLICATION: {
-          // todo: maybe use our own application object if its ours?
-          value = new Application(this.client, value);
-        }; break;
-        case DiscordKeys.SYNCED_AT: {
-          value = new Date(value);
-        }; break;
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.isClone) {
-            user = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id) as User;
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-            }
-          }
-          value = user;
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ACCOUNT in data) {
+      const value = new IntegrationAccount(this, data[DiscordKeys.ACCOUNT]);
+      (this as any)[DetritusKeys[DiscordKeys.ACCOUNT]] = value;
+    }
+    if (DiscordKeys.APPLICATION in data) {
+      // todo: maybe use our own application object if its ours?
+      const value = new Application(this.client, data[DiscordKeys.APPLICATION]);
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION]] = value;
+    }
+    if (DiscordKeys.ENABLED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ENABLED]] = data[DiscordKeys.ENABLED];
+    }
+    if (DiscordKeys.ENABLE_EMOTICONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ENABLE_EMOTICONS]] = data[DiscordKeys.ENABLE_EMOTICONS];
+    }
+    if (DiscordKeys.EXPIRE_BEHAVIOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EXPIRE_BEHAVIOR]] = data[DiscordKeys.EXPIRE_BEHAVIOR];
+    }
+    if (DiscordKeys.EXPIRE_GRACE_PERIOD in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EXPIRE_GRACE_PERIOD]] = data[DiscordKeys.EXPIRE_GRACE_PERIOD];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.REVOKED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REVOKED]] = data[DiscordKeys.REVOKED];
+    }
+    if (DiscordKeys.ROLE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ROLE_ID]] = data[DiscordKeys.ROLE_ID];
+    }
+    if (DiscordKeys.SCOPES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SCOPES]] = data[DiscordKeys.SCOPES];
+    }
+    if (DiscordKeys.SUBSCRIBER_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SUBSCRIBER_COUNT]] = data[DiscordKeys.SUBSCRIBER_COUNT];
+    }
+    if (DiscordKeys.SYNCED_AT in data) {
+      const value = new Date(data[DiscordKeys.SYNCED_AT]);
+      (this as any)[DetritusKeys[DiscordKeys.SYNCED_AT]] = value;
+    }
+    if (DiscordKeys.SYNCING in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SYNCING]] = data[DiscordKeys.SYNCING];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id) as User;
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+        }
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
   }
 }
@@ -129,5 +172,18 @@ export class IntegrationAccount extends BaseStructure {
     this.integration = integration;
     this.merge(data);
     Object.defineProperty(this, 'integration', {enumerable: false, writable: false});
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
   }
 }

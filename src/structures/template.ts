@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -90,37 +90,59 @@ export class Template extends BaseStructure {
     return this.client.rest.fetchTemplate(this.code);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.CREATED_AT: {
-          value = new Date(value);
-        }; break;
-        case DiscordKeys.CREATOR: {
-          let creator: User;
-          if (this.isClone) {
-            creator = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              creator = this.client.users.get(value.id) as User;
-              creator.merge(value);
-            } else {
-              creator = new User(this.client, value);
-            }
-          }
-          value = creator;
-        }; break;
-        case DiscordKeys.IS_DIRTY: {
-          value = !!value;
-        }; break;
-        case DiscordKeys.SERIALIZED_SOURCE_GUILD: {
-          
-        }; break;
-        case DiscordKeys.UPDATED_AT: {
-          value = new Date(value);
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.SOURCE_GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SOURCE_GUILD_ID]] = data[DiscordKeys.SOURCE_GUILD_ID];
+    }
+    if (DiscordKeys.CODE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CODE]] = data[DiscordKeys.CODE];
+    }
+    if (DiscordKeys.CREATED_AT in data) {
+      const value = new Date(data[DiscordKeys.CREATED_AT]);
+      (this as any)[DetritusKeys[DiscordKeys.CREATED_AT]] = value;
+    }
+    if (DiscordKeys.CREATOR in data) {
+      const value = data[DiscordKeys.CREATOR];
+
+      let creator: User;
+      if (this.isClone) {
+        creator = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          creator = this.client.users.get(value.id) as User;
+          creator.merge(value);
+        } else {
+          creator = new User(this.client, value);
+        }
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.CREATOR]] = creator;
+    }
+    if (DiscordKeys.CREATOR_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CREATOR_ID]] = data[DiscordKeys.CREATOR_ID];
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.IS_DIRTY in data) {
+      const value = !!data[DiscordKeys.IS_DIRTY];
+      (this as any)[DetritusKeys[DiscordKeys.IS_DIRTY]] = value;
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.SERIALIZED_SOURCE_GUILD in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SERIALIZED_SOURCE_GUILD]] = data[DiscordKeys.SERIALIZED_SOURCE_GUILD];
+    }
+    if (DiscordKeys.UPDATED_AT in data) {
+      const value = new Date(data[DiscordKeys.UPDATED_AT]);
+      (this as any)[DetritusKeys[DiscordKeys.UPDATED_AT]] = value;
+    }
+    if (DiscordKeys.USAGE_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USAGE_COUNT]] = data[DiscordKeys.USAGE_COUNT];
     }
   }
 }

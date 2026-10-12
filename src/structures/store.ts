@@ -3,7 +3,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, SkuTypes } from '../constants';
+import { DetritusKeys, DiscordKeys, SkuTypes } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -75,30 +75,70 @@ export class StoreListing extends BaseStructure {
     return this.sku.url;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ASSETS: {
-          this.assets.clear();
-          for (let raw of value) {
-            this.assets.set(raw.id, new StoreListingAsset(this, raw));
-          }
-        }; return;
-        case DiscordKeys.SKU: {
-          value = new Sku(this.client, value);
-        }; break;
-        case DiscordKeys.BOX_ART:
-        case DiscordKeys.HEADER_BACKGROUND:
-        case DiscordKeys.HEADER_LOGO_DARK_THEME:
-        case DiscordKeys.HEADER_LOGO_LIGHT_THEME:
-        case DiscordKeys.HERO_BACKGROUND:
-        case DiscordKeys.HERO_VIDEO:
-        case DiscordKeys.PREVIEW_VIDEO:
-        case DiscordKeys.THUMBNAIL: {
-          value = new StoreListingAsset(this, value);
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ASSETS in data) {
+      this.assets.clear();
+      for (let raw of data[DiscordKeys.ASSETS]) {
+        this.assets.set(raw.id, new StoreListingAsset(this, raw));
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.BOX_ART in data) {
+      const value = new StoreListingAsset(this, data[DiscordKeys.BOX_ART]);
+      (this as any)[DetritusKeys[DiscordKeys.BOX_ART]] = value;
+    }
+    if (DiscordKeys.CAROUSEL_ITEMS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CAROUSEL_ITEMS]] = data[DiscordKeys.CAROUSEL_ITEMS];
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.ENTITLEMENT_BRANCH_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ENTITLEMENT_BRANCH_ID]] = data[DiscordKeys.ENTITLEMENT_BRANCH_ID];
+    }
+    if (DiscordKeys.HEADER_BACKGROUND in data) {
+      const value = new StoreListingAsset(this, data[DiscordKeys.HEADER_BACKGROUND]);
+      (this as any)[DetritusKeys[DiscordKeys.HEADER_BACKGROUND]] = value;
+    }
+    if (DiscordKeys.HEADER_LOGO_DARK_THEME in data) {
+      const value = new StoreListingAsset(this, data[DiscordKeys.HEADER_LOGO_DARK_THEME]);
+      (this as any)[DetritusKeys[DiscordKeys.HEADER_LOGO_DARK_THEME]] = value;
+    }
+    if (DiscordKeys.HEADER_LOGO_LIGHT_THEME in data) {
+      const value = new StoreListingAsset(this, data[DiscordKeys.HEADER_LOGO_LIGHT_THEME]);
+      (this as any)[DetritusKeys[DiscordKeys.HEADER_LOGO_LIGHT_THEME]] = value;
+    }
+    if (DiscordKeys.HERO_BACKGROUND in data) {
+      const value = new StoreListingAsset(this, data[DiscordKeys.HERO_BACKGROUND]);
+      (this as any)[DetritusKeys[DiscordKeys.HERO_BACKGROUND]] = value;
+    }
+    if (DiscordKeys.HERO_VIDEO in data) {
+      const value = new StoreListingAsset(this, data[DiscordKeys.HERO_VIDEO]);
+      (this as any)[DetritusKeys[DiscordKeys.HERO_VIDEO]] = value;
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.PREVIEW_VIDEO in data) {
+      const value = new StoreListingAsset(this, data[DiscordKeys.PREVIEW_VIDEO]);
+      (this as any)[DetritusKeys[DiscordKeys.PREVIEW_VIDEO]] = value;
+    }
+    if (DiscordKeys.SKU in data) {
+      const value = new Sku(this.client, data[DiscordKeys.SKU]);
+      (this as any)[DetritusKeys[DiscordKeys.SKU]] = value;
+    }
+    if (DiscordKeys.SUMMARY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SUMMARY]] = data[DiscordKeys.SUMMARY];
+    }
+    if (DiscordKeys.TAGLINE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TAGLINE]] = data[DiscordKeys.TAGLINE];
+    }
+    if (DiscordKeys.THUMBNAIL in data) {
+      const value = new StoreListingAsset(this, data[DiscordKeys.THUMBNAIL]);
+      (this as any)[DetritusKeys[DiscordKeys.THUMBNAIL]] = value;
     }
   }
 }
@@ -132,6 +172,28 @@ export class StoreListingAsset extends BaseStructure {
     this.storeListing = storeListing;
     this.merge(data);
     Object.defineProperty(this, 'storeListing', {enumerable: false, writable: false});
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.HEIGHT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HEIGHT]] = data[DiscordKeys.HEIGHT];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.MIME_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MIME_TYPE]] = data[DiscordKeys.MIME_TYPE];
+    }
+    if (DiscordKeys.SIZE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SIZE]] = data[DiscordKeys.SIZE];
+    }
+    if (DiscordKeys.WIDTH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.WIDTH]] = data[DiscordKeys.WIDTH];
+    }
   }
 }
 
@@ -189,5 +251,33 @@ export class StoreApplicationAsset extends BaseStructure {
 
   async delete() {
     return this.client.rest.deleteStoreApplicationAsset(this.applicationId, this.id);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.FILENAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FILENAME]] = data[DiscordKeys.FILENAME];
+    }
+    if (DiscordKeys.HEIGHT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HEIGHT]] = data[DiscordKeys.HEIGHT];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.MIME_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MIME_TYPE]] = data[DiscordKeys.MIME_TYPE];
+    }
+    if (DiscordKeys.SIZE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SIZE]] = data[DiscordKeys.SIZE];
+    }
+    if (DiscordKeys.WIDTH in data) {
+      (this as any)[DetritusKeys[DiscordKeys.WIDTH]] = data[DiscordKeys.WIDTH];
+    }
   }
 }

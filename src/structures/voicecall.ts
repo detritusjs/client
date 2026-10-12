@@ -4,7 +4,7 @@ import {
 } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 import { VoiceConnection } from '../media/voiceconnection';
 
 import {
@@ -104,36 +104,47 @@ export class VoiceCall extends BaseStructure {
     return this.client.rest.stopChannelCallRinging(this.channelId, {recipients});
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.RINGING: {
-          this.ringing.clear();
-          for (let userId of value) {
-            if (this.client.users.has(userId)) {
-              this.ringing.set(userId, this.client.users.get(userId) as User);
-            } else {
-              this.ringing.set(userId, null);
-            }
-          }
-        }; return;
-        case DiscordKeys.VOICE_STATES: {
-          // cannot clone the voice states since it's not stored on the object
-          if (this.client.voiceStates.enabled && !this.isClone) {
-            const cache = this.client.voiceStates.insertCache(this.channelId);
-            cache.clear();
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-            for (let raw of value) {
-              if (this.client.voiceStates.has(this.channelId, raw.user_id)) {
-                (this.client.voiceStates.get(this.channelId, raw.user_id) as VoiceState).merge(raw);
-              } else {
-                this.client.voiceStates.insert(new VoiceState(this.client, raw));
-              }
-            }
+    if (DiscordKeys.VOICE_STATES in data) {
+      // cannot clone the voice states since it's not stored on the object
+      if (this.client.voiceStates.enabled && !this.isClone) {
+        const cache = this.client.voiceStates.insertCache(this.channelId);
+        cache.clear();
+
+        for (let raw of data[DiscordKeys.VOICE_STATES]) {
+          if (this.client.voiceStates.has(this.channelId, raw.user_id)) {
+            (this.client.voiceStates.get(this.channelId, raw.user_id) as VoiceState).merge(raw);
+          } else {
+            this.client.voiceStates.insert(new VoiceState(this.client, raw));
           }
-        }; return;
+        }
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE_ID]] = data[DiscordKeys.MESSAGE_ID];
+    }
+    if (DiscordKeys.REGION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REGION]] = data[DiscordKeys.REGION];
+    }
+    if (DiscordKeys.RINGING in data) {
+      this.ringing.clear();
+      for (let userId of data[DiscordKeys.RINGING]) {
+        if (this.client.users.has(userId)) {
+          this.ringing.set(userId, this.client.users.get(userId) as User);
+        } else {
+          this.ringing.set(userId, null);
+        }
+      }
+    }
+    if (DiscordKeys.UNAVAILABLE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.UNAVAILABLE]] = data[DiscordKeys.UNAVAILABLE];
     }
   }
 }

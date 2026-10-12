@@ -42,6 +42,14 @@ export class Applications extends BaseClientCollection<string, Application> {
         } else {
           applications = await this.client.rest.raw.fetchApplicationsDetectable() as Array<any>;
         }
+        if (this.client.cluster) {
+          for (let [shardId, shard] of this.client.cluster.shards) {
+            if (shard === this.client) {
+              continue;
+            }
+            await shard.applications.fill(applications);
+          }
+        }
         this.lastRefresh = Date.now();
       }
       this.clear();

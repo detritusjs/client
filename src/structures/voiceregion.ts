@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -38,6 +38,31 @@ export class VoiceRegion extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CUSTOM in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CUSTOM]] = data[DiscordKeys.CUSTOM];
+    }
+    if (DiscordKeys.DEPRECATED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEPRECATED]] = data[DiscordKeys.DEPRECATED];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.OPTIMAL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OPTIMAL]] = data[DiscordKeys.OPTIMAL];
+    }
+    if (DiscordKeys.VIP in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VIP]] = data[DiscordKeys.VIP];
+    }
   }
 
   toString(): string {

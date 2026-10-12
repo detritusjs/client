@@ -146,7 +146,7 @@ export class ChannelBase extends BaseStructure {
   _permissionOverwrites?: BaseCollection<string, Overwrite>;
   _recipients?: BaseCollection<string, User>;
 
-  applicationId?: string;
+  applicationId?: null | string;
   bitrate?: number;
   defaultAutoArchiveDuration?: number;
   defaultForumLayout?: number;

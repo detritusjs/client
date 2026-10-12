@@ -2,7 +2,7 @@ import { Endpoints } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, StickerExtensions, StickerFormats } from '../constants';
+import { DetritusKeys, DiscordKeys, StickerExtensions, StickerFormats } from '../constants';
 import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 
 import {
@@ -78,6 +78,22 @@ export class StickerItem extends BaseStructure {
       return addQuery(Endpoints.Urls.MEDIA.slice(0, -1) + Endpoints.CDN.STICKER(this.id, this.format), query);
     }
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.STICKER(this.id, this.format), query);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.FORMAT_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FORMAT_TYPE]] = data[DiscordKeys.FORMAT_TYPE];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
   }
 
   toString(): string {
@@ -165,26 +181,52 @@ export class Sticker extends StickerItem {
     return this.client.rest.fetchGuildSticker(this.guildId, this.id);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.isClone) {
-            user = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id)!;
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-              this.client.users.insert(user);
-            }
-          }
-          value = user;
-        }; break;
+  merge(data?: BaseStructureData): void {
+    super.merge(data);
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ASSET in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ASSET]] = data[DiscordKeys.ASSET];
+    }
+    if (DiscordKeys.AVAILABLE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AVAILABLE]] = data[DiscordKeys.AVAILABLE];
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.PACK_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PACK_ID]] = data[DiscordKeys.PACK_ID];
+    }
+    if (DiscordKeys.PREVIEW_ASSET in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREVIEW_ASSET]] = data[DiscordKeys.PREVIEW_ASSET];
+    }
+    if (DiscordKeys.SORT_VALUE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SORT_VALUE]] = data[DiscordKeys.SORT_VALUE];
+    }
+    if (DiscordKeys.TAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TAGS]] = data[DiscordKeys.TAGS];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id)!;
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+          this.client.users.insert(user);
+        }
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
   }
 }

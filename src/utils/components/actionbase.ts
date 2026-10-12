@@ -29,10 +29,13 @@ export interface ComponentActionData {
   channelTypes?: Array<ChannelTypes>,
   custom_id?: string,
   customId?: string,
+  default?: boolean,
   default_values?: Array<ComponentSelectMenuDefaultValueData>,
   defaultValues?: Array<ComponentSelectMenuDefaultValueData>,
   disabled?: boolean,
   emoji?: ComponentEmojiData,
+  file_types?: Array<string>,
+  fileTypes?: Array<string>,
   id?: number,
   label?: string,
   max_length?: number,
@@ -92,7 +95,11 @@ export class ComponentActionBase extends Structure {
   get hasRun(): boolean {
     switch (this.type) {
       case MessageComponentTypes.BUTTON:
-      case MessageComponentTypes.SELECT_MENU: {
+      case MessageComponentTypes.SELECT_MENU:
+      case MessageComponentTypes.USER_SELECT:
+      case MessageComponentTypes.ROLE_SELECT:
+      case MessageComponentTypes.MENTIONABLE_SELECT:
+      case MessageComponentTypes.CHANNEL_SELECT: {
         return typeof(this.run) === 'function';
       };
     }

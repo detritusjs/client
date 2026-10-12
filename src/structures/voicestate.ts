@@ -5,7 +5,7 @@ import {
   VoiceConnectOptions,
 } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -161,34 +161,70 @@ export class VoiceState extends BaseStructure {
     return this.edit({mute});
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.MEMBER: {
-          if (value) {
-            const guildId = this.guildId as string;
-            value.guild_id = guildId;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-            let member: Member;
-            if (this.isClone) {
-              member = new Member(this.client, value, this.isClone);
-            } else {
-              if (this.client.members.has(guildId, value.user.id)) {
-                member = this.client.members.get(guildId, value.user.id) as Member;
-                member.merge(value);
-              } else {
-                member = new Member(this.client, value);
-                this.client.members.insert(member);
-              }
-            }
-            value = member;
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.DEAF in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEAF]] = data[DiscordKeys.DEAF];
+    }
+    if (DiscordKeys.MEMBER in data) {
+      const value = data[DiscordKeys.MEMBER];
+      if (value) {
+        const guildId = this.guildId as string;
+        value.guild_id = guildId;
+
+        let member: Member;
+        if (this.isClone) {
+          member = new Member(this.client, value, this.isClone);
+        } else {
+          if (this.client.members.has(guildId, value.user.id)) {
+            member = this.client.members.get(guildId, value.user.id) as Member;
+            member.merge(value);
+          } else {
+            member = new Member(this.client, value);
+            this.client.members.insert(member);
           }
-        }; break;
-        case DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP: {
-          this.requestToSpeakTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
-        }; return;
+        }
+        (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
+      } else {
+        (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = value;
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.MUTE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MUTE]] = data[DiscordKeys.MUTE];
+    }
+    if (DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP in data) {
+      const value = data[DiscordKeys.REQUEST_TO_SPEAK_TIMESTAMP];
+      this.requestToSpeakTimestampUnix = (value) ? (new Date(value).getTime()) : 0;
+    }
+    if (DiscordKeys.SELF_DEAF in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SELF_DEAF]] = data[DiscordKeys.SELF_DEAF];
+    }
+    if (DiscordKeys.SELF_MUTE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SELF_MUTE]] = data[DiscordKeys.SELF_MUTE];
+    }
+    if (DiscordKeys.SELF_STREAM in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SELF_STREAM]] = data[DiscordKeys.SELF_STREAM];
+    }
+    if (DiscordKeys.SELF_VIDEO in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SELF_VIDEO]] = data[DiscordKeys.SELF_VIDEO];
+    }
+    if (DiscordKeys.SESSION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SESSION_ID]] = data[DiscordKeys.SESSION_ID];
+    }
+    if (DiscordKeys.SUPPRESS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SUPPRESS]] = data[DiscordKeys.SUPPRESS];
+    }
+    if (DiscordKeys.USER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER_ID]] = data[DiscordKeys.USER_ID];
     }
   }
 }

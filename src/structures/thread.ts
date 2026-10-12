@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -62,14 +62,22 @@ export class ThreadMember extends BaseStructure {
     return this.client.rest.removeThreadMember(this.id, this.userId);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.JOIN_TIMESTAMP: {
-          this.joinTimestampUnix = (new Date(value)).getTime();
-        }; return;
-      }
-      return super.mergeValue(key, value);
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.JOIN_TIMESTAMP in data) {
+      this.joinTimestampUnix = (new Date(data[DiscordKeys.JOIN_TIMESTAMP])).getTime();
+    }
+    if (DiscordKeys.USER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER_ID]] = data[DiscordKeys.USER_ID];
     }
   }
 }
@@ -118,14 +126,25 @@ const keysThreadMetadata = new BaseSet<string>([
     return new Date(this.archiveTimestampUnix);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ARCHIVE_TIMESTAMP: {
-          this.archiveTimestampUnix = (new Date(value)).getTime();
-        }; return;
-      }
-      return super.mergeValue(key, value);
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ARCHIVE_TIMESTAMP in data) {
+      this.archiveTimestampUnix = (new Date(data[DiscordKeys.ARCHIVE_TIMESTAMP])).getTime();
+    }
+    if (DiscordKeys.ARCHIVED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ARCHIVED]] = data[DiscordKeys.ARCHIVED];
+    }
+    if (DiscordKeys.ARCHIVER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ARCHIVER_ID]] = data[DiscordKeys.ARCHIVER_ID];
+    }
+    if (DiscordKeys.AUTO_ARCHIVE_DURATION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AUTO_ARCHIVE_DURATION]] = data[DiscordKeys.AUTO_ARCHIVE_DURATION];
+    }
+    if (DiscordKeys.LOCKED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LOCKED]] = data[DiscordKeys.LOCKED];
     }
   }
 }

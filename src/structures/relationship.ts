@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, RelationshipTypes } from '../constants';
+import { DetritusKeys, DiscordKeys, RelationshipTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -61,26 +61,33 @@ export class Relationship extends BaseStructure {
     return this.type === RelationshipTypes.PENDING_OUTGOING;
   }
 
-  mergeValue(key: string, value: any) {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.isClone) {
-            user = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id) as User;
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-              this.client.users.insert(user);
-            }
-          }
-          value = user;
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id) as User;
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+          this.client.users.insert(user);
+        }
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
   }
 }

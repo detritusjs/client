@@ -9,6 +9,7 @@ import {
   AuditLogSubtargetTypes,
   AuditLogTargetTypes,
   AuditLogChangeKeys,
+  DetritusKeys,
   DiscordKeys,
 } from '../constants';
 
@@ -76,21 +77,45 @@ export class AuditLog extends BaseStructure {
     return this.client.guilds.get(this.guildId) || null;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.CHANGES: {
-          this.changes.clear();
-          for (let raw of value) {
-            const change = new AuditLogChange(this, raw);
-            this.changes.set(change.key, change);
-          }
-        }; return;
-        case DiscordKeys.OPTIONS: {
-          value = new AuditLogOptions(this, value);
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ACTION_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ACTION_TYPE]] = data[DiscordKeys.ACTION_TYPE];
+    }
+    if (DiscordKeys.CHANGES in data) {
+      this.changes.clear();
+      for (let raw of data[DiscordKeys.CHANGES]) {
+        const change = new AuditLogChange(this, raw);
+        this.changes.set(change.key, change);
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.OPTIONS in data) {
+      const value = new AuditLogOptions(this, data[DiscordKeys.OPTIONS]);
+      (this as any)[DetritusKeys[DiscordKeys.OPTIONS]] = value;
+    }
+    if (DiscordKeys.REASON in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REASON]] = data[DiscordKeys.REASON];
+    }
+    if (DiscordKeys.TARGET in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TARGET]] = data[DiscordKeys.TARGET];
+    }
+    if (DiscordKeys.TARGET_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TARGET_ID]] = data[DiscordKeys.TARGET_ID];
+    }
+    if (DiscordKeys.USER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = data[DiscordKeys.USER];
+    }
+    if (DiscordKeys.USER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USER_ID]] = data[DiscordKeys.USER_ID];
     }
   }
 }
@@ -121,6 +146,22 @@ export class AuditLogChange extends BaseStructure {
     this.log = log;
     this.merge(data);
     Object.defineProperty(this, 'log', {enumerable: false, writable: false});
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.KEY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.KEY]] = data[DiscordKeys.KEY];
+    }
+    if (DiscordKeys.NEW_VALUE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NEW_VALUE]] = data[DiscordKeys.NEW_VALUE];
+    }
+    if (DiscordKeys.OLD_VALUE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OLD_VALUE]] = data[DiscordKeys.OLD_VALUE];
+    }
   }
 }
 
@@ -170,16 +211,49 @@ export class AuditLogOptions extends BaseStructure {
     Object.defineProperty(this, 'log', {enumerable: false, writable: false});
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.COUNT:
-        case DiscordKeys.DELETE_MEMBER_DAYS:
-        case DiscordKeys.MEMBERS_REMOVED: {
-          value = parseInt(value);
-        }; break;
-      }
-      return super.mergeValue(key, value);
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.AUTO_MODERATION_RULE_NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AUTO_MODERATION_RULE_NAME]] = data[DiscordKeys.AUTO_MODERATION_RULE_NAME];
+    }
+    if (DiscordKeys.AUTO_MODERATION_RULE_TRIGGER_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.AUTO_MODERATION_RULE_TRIGGER_TYPE]] = data[DiscordKeys.AUTO_MODERATION_RULE_TRIGGER_TYPE];
+    }
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.COUNT in data) {
+      const value = parseInt(data[DiscordKeys.COUNT]);
+      (this as any)[DetritusKeys[DiscordKeys.COUNT]] = value;
+    }
+    if (DiscordKeys.DELETE_MEMBER_DAYS in data) {
+      const value = parseInt(data[DiscordKeys.DELETE_MEMBER_DAYS]);
+      (this as any)[DetritusKeys[DiscordKeys.DELETE_MEMBER_DAYS]] = value;
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.INTEGRATION_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INTEGRATION_TYPE]] = data[DiscordKeys.INTEGRATION_TYPE];
+    }
+    if (DiscordKeys.MEMBERS_REMOVED in data) {
+      const value = parseInt(data[DiscordKeys.MEMBERS_REMOVED]);
+      (this as any)[DetritusKeys[DiscordKeys.MEMBERS_REMOVED]] = value;
+    }
+    if (DiscordKeys.MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE_ID]] = data[DiscordKeys.MESSAGE_ID];
+    }
+    if (DiscordKeys.ROLE_NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ROLE_NAME]] = data[DiscordKeys.ROLE_NAME];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
   }
 }

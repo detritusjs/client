@@ -2,6 +2,7 @@ import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  DetritusKeys,
   DiscordKeys,
   PresenceStatuses,
   LOCAL_GUILD_ID,
@@ -91,55 +92,66 @@ export class Session extends BaseStructure {
     return this.status === PresenceStatuses.ONLINE;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.ACTIVITIES: {
-          if (value.length) {
-            if (!this._activities) {
-              this._activities = new BaseCollection<string, PresenceActivity>();
-            }
-            this._activities.clear();
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
 
-            for (let position = 0; position < value.length; position++) {
-              const raw = value[position];
-              raw.position = position;
+    if (DiscordKeys.ACTIVITIES in data) {
+      const value = data[DiscordKeys.ACTIVITIES];
+      if (value.length) {
+        if (!this._activities) {
+          this._activities = new BaseCollection<string, PresenceActivity>();
+        }
+        this._activities.clear();
 
-              if (this.isClone) {
-                const activity = new PresenceActivity((this.client.user as User).clone(), raw);
-                this._activities.set(activity.id, activity);
-              } else {
-                if (this._activities.has(raw.id)) {
-                  const activity = this._activities.get(raw.id) as PresenceActivity;
-                  activity.merge(raw);
-                } else {
-                  const activity = new PresenceActivity(this.client.user as User, raw);
-                  this._activities.set(activity.id, activity);
-                }
-              }
-            }
+        for (let position = 0; position < value.length; position++) {
+          const raw = value[position];
+          raw.position = position;
+
+          if (this.isClone) {
+            const activity = new PresenceActivity((this.client.user as User).clone(), raw);
+            this._activities.set(activity.id, activity);
           } else {
-            if (this._activities) {
-              this._activities.clear();
-              this._activities = undefined;
+            if (this._activities.has(raw.id)) {
+              const activity = this._activities.get(raw.id) as PresenceActivity;
+              activity.merge(raw);
+            } else {
+              const activity = new PresenceActivity(this.client.user as User, raw);
+              this._activities.set(activity.id, activity);
             }
           }
-        }; return;
-        case DiscordKeys.CLIENT_INFO: {
-          let clientInfo: SessionClientInfo;
-          if (this.clientInfo) {
-            clientInfo = this.clientInfo;
-            clientInfo.merge(value);
-          } else {
-            clientInfo = new SessionClientInfo(this, value);
-          }
-          value = clientInfo;
-        }; break;
-        case DiscordKeys.GAME: {
-
-        }; return;
+        }
+      } else {
+        if (this._activities) {
+          this._activities.clear();
+          this._activities = undefined;
+        }
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.ACTIVE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ACTIVE]] = data[DiscordKeys.ACTIVE];
+    }
+    if (DiscordKeys.CLIENT_INFO in data) {
+      const value = data[DiscordKeys.CLIENT_INFO];
+
+      let clientInfo: SessionClientInfo;
+      if (this.clientInfo) {
+        clientInfo = this.clientInfo;
+        clientInfo.merge(value);
+      } else {
+        clientInfo = new SessionClientInfo(this, value);
+      }
+      (this as any)[DetritusKeys[DiscordKeys.CLIENT_INFO]] = clientInfo;
+    }
+    if (DiscordKeys.POSITION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.POSITION]] = data[DiscordKeys.POSITION];
+    }
+    if (DiscordKeys.SESSION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SESSION_ID]] = data[DiscordKeys.SESSION_ID];
+    }
+    if (DiscordKeys.STATUS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.STATUS]] = data[DiscordKeys.STATUS];
     }
   }
 }
@@ -173,13 +185,20 @@ export class SessionClientInfo extends BaseStructure {
     this.merge(data);
   }
 
-  mergeValue(key: string, value: any): void {
-    switch (key) {
-      case DiscordKeys.CLIENT: {
-        this.clientString = value;
-      }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
     }
-    return this._setFromSnake(key, value);
+
+    if (DiscordKeys.CLIENT in data) {
+      this.clientString = data[DiscordKeys.CLIENT];
+    }
+    if (DiscordKeys.OS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OS]] = data[DiscordKeys.OS];
+    }
+    if (DiscordKeys.VERSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VERSION]] = data[DiscordKeys.VERSION];
+    }
   }
 
   toJSON() {

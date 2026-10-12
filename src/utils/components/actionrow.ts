@@ -65,12 +65,7 @@ const keysComponentActionRow = new BaseSet<string>([
   }
 
   get hasSelectMenu(): boolean {
-    for (let component of this.components) {
-      if (component.type === MessageComponentTypes.SELECT_MENU) {
-        return true;
-      }
-    }
-    return false;
+    return this.components.some((component) => component instanceof ComponentSelectMenu);
   }
 
   get isEmpty(): boolean {
@@ -149,7 +144,11 @@ const keysComponentActionRow = new BaseSet<string>([
                 const component = new ComponentInputText(raw);
                 this.components.push(component);
               }; break;
-              case MessageComponentTypes.SELECT_MENU: {
+              case MessageComponentTypes.SELECT_MENU:
+              case MessageComponentTypes.USER_SELECT:
+              case MessageComponentTypes.ROLE_SELECT:
+              case MessageComponentTypes.MENTIONABLE_SELECT:
+              case MessageComponentTypes.CHANNEL_SELECT: {
                 const component = new ComponentSelectMenu(raw);
                 this.components.push(component);
               }; break;

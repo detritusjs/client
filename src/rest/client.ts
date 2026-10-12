@@ -227,6 +227,13 @@ export class RestClient {
     return this.raw.addGuildMemberRole(guildId, userId, roleId, options);
   }
 
+  addInviteTargetUser(
+    code: string,
+    userId: string,
+  ) {
+    return this.raw.addInviteTargetUser(code, userId);
+  }
+
   addPinnedMessage(
     channelId: string,
     messageId: string,
@@ -273,6 +280,20 @@ export class RestClient {
     options: RequestTypes.BeginGuildPrune = {},
   ) {
     return this.raw.beginGuildPrune(guildId, options);
+  }
+
+  bulkAddInviteTargetUsers(
+    code: string,
+    options: RequestTypes.BulkAddInviteTargetUsers,
+  ) {
+    return this.raw.bulkAddInviteTargetUsers(code, options);
+  }
+
+  bulkDeleteInviteTargetUsers(
+    code: string,
+    options: RequestTypes.BulkDeleteInviteTargetUsers,
+  ) {
+    return this.raw.bulkDeleteInviteTargetUsers(code, options);
   }
 
   bulkDeleteMessages(
@@ -1041,8 +1062,9 @@ export class RestClient {
     webhookId: string,
     webhookToken: string,
     messageId: string,
+    options: RequestTypes.DeleteWebhookTokenMessage = {},
   ) {
-    const data = await this.raw.deleteWebhookTokenMessage(webhookId, webhookToken, messageId);
+    const data = await this.raw.deleteWebhookTokenMessage(webhookId, webhookToken, messageId, options);
     if (this.client.messages.has(messageId)) {
       const message = this.client.messages.get(messageId)!;
       message.deleted = true;
@@ -1607,8 +1629,9 @@ export class RestClient {
 
   async fetchApplicationCommands(
     applicationId: string,
+    options: RequestTypes.FetchApplicationCommands = {},
   ): Promise<BaseCollection<string, ApplicationCommand>> {
-    const data = await this.raw.fetchApplicationCommands(applicationId);
+    const data = await this.raw.fetchApplicationCommands(applicationId, options);
     const collection = new BaseCollection<string, ApplicationCommand>();
 
     for (let raw of data) {
@@ -1664,8 +1687,9 @@ export class RestClient {
   async fetchApplicationGuildCommands(
     applicationId: string,
     guildId: string,
+    options: RequestTypes.FetchApplicationGuildCommands = {},
   ): Promise<BaseCollection<string, ApplicationCommand>> {
-    const data = await this.raw.fetchApplicationGuildCommands(applicationId, guildId);
+    const data = await this.raw.fetchApplicationGuildCommands(applicationId, guildId, options);
     const collection = new BaseCollection<string, ApplicationCommand>();
 
     for (let raw of data) {
@@ -2993,8 +3017,9 @@ export class RestClient {
     webhookId: string,
     webhookToken: string,
     messageId: string,
+    options: RequestTypes.FetchWebhookTokenMessage = {},
   ): Promise<Message> {
-    const data = await this.raw.fetchWebhookTokenMessage(webhookId, webhookToken, messageId);
+    const data = await this.raw.fetchWebhookTokenMessage(webhookId, webhookToken, messageId, options);
 
     let guildId: string | undefined;
     if (this.client.channels.has(data.channel_id)) {
@@ -3137,6 +3162,13 @@ export class RestClient {
     options: RequestTypes.RemoveGuildMemberRole = {},
   ) {
     return this.raw.removeGuildMemberRole(guildId, userId, roleId, options);
+  }
+
+  removeInviteTargetUser(
+    code: string,
+    userId: string,
+  ) {
+    return this.raw.removeInviteTargetUser(code, userId);
   }
 
   removeMention(

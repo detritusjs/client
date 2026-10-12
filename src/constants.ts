@@ -36,7 +36,7 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.106',
+  VERSION: '0.17.0-beta.107',
 });
 
 export type Snowflake = number | string;
@@ -1030,6 +1030,12 @@ export enum MessageComponentTypes {
   SEPARATOR = 14,
 
   CONTAINER = 17,
+  LABEL = 18,
+  FILE_UPLOAD = 19,
+
+  RADIO_GROUP = 21,
+  CHECKBOX_GROUP = 22,
+  CHECKBOX = 23,
 }
 
 
@@ -1790,6 +1796,7 @@ export const DiscordKeys = Object.freeze({
   COLORS: 'colors',
   COLLECTIBLES: 'collectibles',
   COMMUNICATION_DISABLED_UNTIL: 'communication_disabled_until',
+  COMPONENT: 'component',
   COMPONENT_TYPE: 'component_type',
   COMPONENTS: 'components',
   CONNECTED_ACCOUNTS: 'connected_accounts',
@@ -1879,6 +1886,7 @@ export const DiscordKeys = Object.freeze({
   FIELDS: 'fields',
   FILE: 'file',
   FILENAME: 'filename',
+  FILE_TYPES: 'file_types',
   FLAGS: 'flags',
   FOCUSED: 'focused',
   FONT_ID: 'font_id',
@@ -2295,6 +2303,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.COLOR]: 'color',
   [DiscordKeys.COLORS]: 'colors',
   [DiscordKeys.COMMUNICATION_DISABLED_UNTIL]: 'communicationDisabledUntil',
+  [DiscordKeys.COMPONENT]: 'component',
   [DiscordKeys.COMPONENT_TYPE]: 'componentType',
   [DiscordKeys.COMPONENTS]: 'components',
   [DiscordKeys.CONNECTED_ACCOUNTS]: 'connectedAccounts',
@@ -2384,6 +2393,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.FIELDS]: 'fields',
   [DiscordKeys.FILE]: 'file',
   [DiscordKeys.FILENAME]: 'filename',
+  [DiscordKeys.FILE_TYPES]: 'fileTypes',
   [DiscordKeys.FLAGS]: 'flags',
   [DiscordKeys.FOCUSED]: 'focused',
   [DiscordKeys.FONT_ID]: 'fontId',

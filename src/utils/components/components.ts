@@ -12,6 +12,7 @@ import { ComponentContainer, ComponentContainerData } from './container';
 import { ComponentContext } from './context';
 import { ComponentFile, ComponentFileData } from './file';
 import { ComponentInputText } from './inputtext';
+import { ComponentLabel, ComponentLabelData } from './label';
 import { ComponentMediaGallery, ComponentMediaGalleryData } from './mediagallery';
 import { ComponentSection, ComponentSectionData } from './section';
 import { ComponentSelectMenu } from './selectmenu';
@@ -29,6 +30,7 @@ export interface ComponentsOptions {
     ComponentActionRow | ComponentActionRowData |
     ComponentContainer | ComponentContainerData |
     ComponentFile | ComponentFileData |
+    ComponentLabel | ComponentLabelData |
     ComponentMediaGallery | ComponentMediaGalleryData |
     ComponentSection | ComponentSectionData |
     ComponentSeparator | ComponentSeparatorData |
@@ -56,7 +58,7 @@ export class Components extends Structure {
   readonly _keys = keysComponents;
   _timeout?: Timers.Timeout;
 
-  components: Array<ComponentActionRow | ComponentContainer | ComponentFile | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];
+  components: Array<ComponentActionRow | ComponentContainer | ComponentFile | ComponentLabel | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];
   id?: string;
   timeout: number = 10 * (60 * 1000); // 10 minutes
 
@@ -134,6 +136,15 @@ export class Components extends Structure {
   addInputText(data: ComponentInputText | ComponentActionData = {}): this {
     const actionRow = this.createActionRow();
     actionRow.addInputText(data);
+    return this;
+  }
+
+  addLabel(data: ComponentLabel | ComponentLabelData = {}): this {
+    if (data instanceof ComponentLabel) {
+      this.components.push(data);
+    } else {
+      this.createLabel(data);
+    }
     return this;
   }
 
@@ -218,6 +229,12 @@ export class Components extends Structure {
     return actionRow.createInputText(data);
   }
 
+  createLabel(data: ComponentLabelData = {}): ComponentLabel {
+    const label = new ComponentLabel(data);
+    this.components.push(label);
+    return label;
+  }
+
   createMediaGallery(data: ComponentMediaGalleryData = {}): ComponentMediaGallery {
     const mediaGallery = new ComponentMediaGallery(data);
     this.components.push(mediaGallery);
@@ -259,7 +276,8 @@ export class Components extends Structure {
       for (let raw of value) {
         if (
           raw instanceof ComponentActionRow || raw instanceof ComponentContainer ||
-          raw instanceof ComponentFile || raw instanceof ComponentMediaGallery ||
+          raw instanceof ComponentFile || raw instanceof ComponentLabel ||
+          raw instanceof ComponentMediaGallery ||
           raw instanceof ComponentSection || raw instanceof ComponentSeparator ||
           raw instanceof ComponentTextDisplay
         ) {
@@ -276,6 +294,10 @@ export class Components extends Structure {
             }; break;
             case MessageComponentTypes.FILE: {
               const component = new ComponentFile(raw);
+              this.components.push(component);
+            }; break;
+            case MessageComponentTypes.LABEL: {
+              const component = new ComponentLabel(raw);
               this.components.push(component);
             }; break;
             case MessageComponentTypes.MEDIA_GALLERY: {

@@ -5,6 +5,7 @@ import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { Snowflake } from '../utils';
 import {
+  DetritusKeys,
   DiscordKeys,
   TeamMembershipStates,
   TeamPayoutAccountStatuses,
@@ -110,17 +111,31 @@ export class Team extends BaseStructure {
     return this.client.rest.removeTeamMember(this.id, userId);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.MEMBERS: {
-          this.members.clear();
-          for (let raw of value) {
-            this.members.set(raw.user.id, new TeamMember(this.client, raw, this._clone));
-          }
-        }; return;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ICON in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ICON]] = data[DiscordKeys.ICON];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.MEMBERS in data) {
+      this.members.clear();
+      for (let raw of data[DiscordKeys.MEMBERS]) {
+        this.members.set(raw.user.id, new TeamMember(this.client, raw, this._clone));
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.NAME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.NAME]] = data[DiscordKeys.NAME];
+    }
+    if (DiscordKeys.OWNER_USER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OWNER_USER_ID]] = data[DiscordKeys.OWNER_USER_ID];
+    }
+    if (DiscordKeys.PAYOUT_ACCOUNT_STATUS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PAYOUT_ACCOUNT_STATUS]] = data[DiscordKeys.PAYOUT_ACCOUNT_STATUS];
     }
   }
 }
@@ -186,25 +201,33 @@ export class TeamMember extends UserMixin {
     return this.client.rest.editTeam(this.teamId, body);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.PERMISSIONS: {
-          value = new BaseSet(value);
-        }; break;
-        case DiscordKeys.USER: {
-          let user: User;
-          if (this.client.users.has(value.id)) {
-            user = <User> this.client.users.get(value.id);
-            user.merge(value);
-          } else {
-            user = new User(this.client, value);
-            // dont insert into cache
-          }
-          value = user;
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.MEMBERSHIP_STATE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MEMBERSHIP_STATE]] = data[DiscordKeys.MEMBERSHIP_STATE];
+    }
+    if (DiscordKeys.PERMISSIONS in data) {
+      const value = new BaseSet(data[DiscordKeys.PERMISSIONS]);
+      (this as any)[DetritusKeys[DiscordKeys.PERMISSIONS]] = value;
+    }
+    if (DiscordKeys.TEAM_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TEAM_ID]] = data[DiscordKeys.TEAM_ID];
+    }
+    if (DiscordKeys.USER in data) {
+      const value = data[DiscordKeys.USER];
+
+      let user: User;
+      if (this.client.users.has(value.id)) {
+        user = this.client.users.get(value.id) as User;
+        user.merge(value);
+      } else {
+        user = new User(this.client, value);
+        // dont insert into cache
       }
-      super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
   }
 }

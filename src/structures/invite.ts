@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, InviteTargetTypes } from '../constants';
+import { DetritusKeys, DiscordKeys, InviteTargetTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -127,6 +127,14 @@ export class Invite extends BaseStructure {
     return this.client.rest.acceptInvite(this.code);
   }
 
+  addTargetUser(userId: string) {
+    return this.client.rest.addInviteTargetUser(this.code, userId);
+  }
+
+  addTargetUsers(userIds: Array<string>) {
+    return this.client.rest.bulkAddInviteTargetUsers(this.code, {userIds});
+  }
+
   delete(options: RequestTypes.DeleteInvite = {}) {
     return this.client.rest.deleteInvite(this.code, options);
   }
@@ -135,61 +143,103 @@ export class Invite extends BaseStructure {
     return this.client.rest.fetchInvite(this.code, options);
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.CHANNEL: {
-          if (this.guild) {
-            value.guild_id = this.guild.id;
-          }
-          value = createChannelFromData(this.client, value, true);
-        }; break;
-        case DiscordKeys.CREATED_AT: {
-          if (value) {
-            value = new Date(value);
-          }
-        }; break;
-        case DiscordKeys.EXPIRES_AT: {
-          if (value) {
-            value = new Date(value);
-          }
-        }; break;
-        case DiscordKeys.GUILD: {
-          value = new GuildPartial(this.client, value);
-        }; break;
-        case DiscordKeys.GUILD_SCHEDULED_EVENT: {
-          value = new GuildScheduledEvent(this.client, value);
-        }; break;
-        case DiscordKeys.INVITER: {
-          let inviter: User;
-          if (this.isClone) {
-            inviter = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              inviter = this.client.users.get(value.id) as User;
-              inviter.merge(value);
-            } else {
-              inviter = new User(this.client, value);
-            }
-          }
-          value = inviter;
-        }; break;
-        case DiscordKeys.TARGET_USER: {
-          let user: User;
-          if (this.isClone) {
-            user = new User(this.client, value, this.isClone);
-          } else {
-            if (this.client.users.has(value.id)) {
-              user = this.client.users.get(value.id) as User;
-              user.merge(value);
-            } else {
-              user = new User(this.client, value);
-            }
-          }
-          value = user;
-        }; break;
+  removeTargetUser(userId: string) {
+    return this.client.rest.removeInviteTargetUser(this.code, userId);
+  }
+
+  removeTargetUsers(userIds: Array<string>) {
+    return this.client.rest.bulkDeleteInviteTargetUsers(this.code, {userIds});
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.GUILD in data) {
+      const value = new GuildPartial(this.client, data[DiscordKeys.GUILD]);
+      (this as any)[DetritusKeys[DiscordKeys.GUILD]] = value;
+    }
+    if (DiscordKeys.APPROXIMATE_MEMBER_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_MEMBER_COUNT]] = data[DiscordKeys.APPROXIMATE_MEMBER_COUNT];
+    }
+    if (DiscordKeys.APPROXIMATE_PRESENCE_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_PRESENCE_COUNT]] = data[DiscordKeys.APPROXIMATE_PRESENCE_COUNT];
+    }
+    if (DiscordKeys.CHANNEL in data) {
+      const value = data[DiscordKeys.CHANNEL];
+      if (this.guild) {
+        value.guild_id = this.guild.id;
       }
-      return super.mergeValue(key, value);
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL]] = createChannelFromData(this.client, value, true);
+    }
+    if (DiscordKeys.CODE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CODE]] = data[DiscordKeys.CODE];
+    }
+    if (DiscordKeys.CREATED_AT in data) {
+      const value = data[DiscordKeys.CREATED_AT];
+      (this as any)[DetritusKeys[DiscordKeys.CREATED_AT]] = (value) ? new Date(value) : value;
+    }
+    if (DiscordKeys.EXPIRES_AT in data) {
+      const value = data[DiscordKeys.EXPIRES_AT];
+      (this as any)[DetritusKeys[DiscordKeys.EXPIRES_AT]] = (value) ? new Date(value) : value;
+    }
+    if (DiscordKeys.GUILD_SCHEDULED_EVENT in data) {
+      const value = new GuildScheduledEvent(this.client, data[DiscordKeys.GUILD_SCHEDULED_EVENT]);
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_SCHEDULED_EVENT]] = value;
+    }
+    if (DiscordKeys.INVITER in data) {
+      const value = data[DiscordKeys.INVITER];
+
+      let inviter: User;
+      if (this.isClone) {
+        inviter = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          inviter = this.client.users.get(value.id) as User;
+          inviter.merge(value);
+        } else {
+          inviter = new User(this.client, value);
+        }
+      }
+      (this as any)[DetritusKeys[DiscordKeys.INVITER]] = inviter;
+    }
+    if (DiscordKeys.MAX_AGE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MAX_AGE]] = data[DiscordKeys.MAX_AGE];
+    }
+    if (DiscordKeys.MAX_USES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MAX_USES]] = data[DiscordKeys.MAX_USES];
+    }
+    if (DiscordKeys.REVOKED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.REVOKED]] = data[DiscordKeys.REVOKED];
+    }
+    if (DiscordKeys.TARGET_APPLICATION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TARGET_APPLICATION]] = data[DiscordKeys.TARGET_APPLICATION];
+    }
+    if (DiscordKeys.TARGET_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TARGET_TYPE]] = data[DiscordKeys.TARGET_TYPE];
+    }
+    if (DiscordKeys.TARGET_USER in data) {
+      const value = data[DiscordKeys.TARGET_USER];
+
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else {
+        if (this.client.users.has(value.id)) {
+          user = this.client.users.get(value.id) as User;
+          user.merge(value);
+        } else {
+          user = new User(this.client, value);
+        }
+      }
+      (this as any)[DetritusKeys[DiscordKeys.TARGET_USER]] = user;
+    }
+    if (DiscordKeys.TEMPORARY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TEMPORARY]] = data[DiscordKeys.TEMPORARY];
+    }
+    if (DiscordKeys.USES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USES]] = data[DiscordKeys.USES];
     }
   }
 }

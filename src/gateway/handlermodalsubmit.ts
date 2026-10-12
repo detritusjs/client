@@ -3,7 +3,19 @@
 import { Timers } from 'detritus-utils';
 
 import { BaseCollection } from '../collections';
-import { ComponentInputText, Interaction, InteractionDataModal } from '../structures';
+import {
+  Attachment,
+  ComponentActionRow,
+  ComponentCheckbox,
+  ComponentCheckboxGroup,
+  ComponentFileUpload,
+  ComponentInputText,
+  ComponentLabel,
+  ComponentRadioGroup,
+  ComponentSelectMenu,
+  Interaction,
+  InteractionDataModal,
+} from '../structures';
 import { InteractionModal, InteractionModalContext } from '../utils';
 
 
@@ -33,10 +45,32 @@ export class ModalSubmitHandler {
       const context = new InteractionModalContext(interaction);
 
       const args: Record<string, any> = {};
-      for (let [i, actionRow] of context.components) {
-        for (let [customId, component] of actionRow.components) {
-          if (component instanceof ComponentInputText) {
-            args[customId] = component.value;
+      for (let [i, topLevel] of context.components) {
+        if (topLevel instanceof ComponentActionRow) {
+          for (let [j, component] of topLevel.components) {
+            if (component instanceof ComponentInputText) {
+              args[component.customId] = component.value;
+            }
+          }
+        } else if (topLevel instanceof ComponentLabel) {
+          const component = topLevel.component;
+          if (
+            component instanceof ComponentCheckbox ||
+            component instanceof ComponentInputText ||
+            component instanceof ComponentRadioGroup
+          ) {
+            args[component.customId] = component.value;
+          } else if (component instanceof ComponentCheckboxGroup || component instanceof ComponentSelectMenu) {
+            args[component.customId] = component.values || [];
+          } else if (component instanceof ComponentFileUpload) {
+            // give the attachment objects instead of their ids
+            const attachments: Array<Attachment> = [];
+            for (let attachmentId of component.values) {
+              if (data.resolved && data.resolved.attachments && data.resolved.attachments.has(attachmentId)) {
+                attachments.push(data.resolved.attachments.get(attachmentId)!);
+              }
+            }
+            args[component.customId] = attachments;
           }
         }
       }

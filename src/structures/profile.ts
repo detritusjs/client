@@ -1,7 +1,7 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys } from '../constants';
+import { DetritusKeys, DiscordKeys } from '../constants';
 
 import {
   BaseStructure,
@@ -58,33 +58,35 @@ export class Profile extends BaseStructure {
     return null;
   }
 
-  mergeValue(key: string, value: any): void {
-    if (value !== undefined) {
-      switch (key) {
-        case DiscordKeys.CONNECTED_ACCOUNTS: {
-          this.connectedAccounts.clear();
-          for (let raw of value) {
-            const account = new ConnectedAccount(this.client, raw);
-            this.connectedAccounts.set(account.key, account);
-          }
-        }; return;
-        case DiscordKeys.MUTUAL_GUILDS: {
-          this.mutualGuilds.clear();
-          for (let raw of value) {
-            this.mutualGuilds.set(raw.id, raw);
-          }
-        }; return;
-        case DiscordKeys.PREMIUM_GUILD_SINCE: {
-          this.premiumGuildSinceUnix = (value) ? (new Date(value)).getTime() : 0;
-        }; return;
-        case DiscordKeys.PREMIUM_SINCE: {
-          this.premiumSinceUnix = (value) ? (new Date(value)).getTime() : 0;
-        }; return;
-        case DiscordKeys.USER: {
-          value = new UserWithFlags(this.client, value);
-        }; break;
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CONNECTED_ACCOUNTS in data) {
+      this.connectedAccounts.clear();
+      for (let raw of data[DiscordKeys.CONNECTED_ACCOUNTS]) {
+        const account = new ConnectedAccount(this.client, raw);
+        this.connectedAccounts.set(account.key, account);
       }
-      return super.mergeValue(key, value);
+    }
+    if (DiscordKeys.MUTUAL_GUILDS in data) {
+      this.mutualGuilds.clear();
+      for (let raw of data[DiscordKeys.MUTUAL_GUILDS]) {
+        this.mutualGuilds.set(raw.id, raw);
+      }
+    }
+    if (DiscordKeys.PREMIUM_GUILD_SINCE in data) {
+      const value = data[DiscordKeys.PREMIUM_GUILD_SINCE];
+      this.premiumGuildSinceUnix = (value) ? (new Date(value)).getTime() : 0;
+    }
+    if (DiscordKeys.PREMIUM_SINCE in data) {
+      const value = data[DiscordKeys.PREMIUM_SINCE];
+      this.premiumSinceUnix = (value) ? (new Date(value)).getTime() : 0;
+    }
+    if (DiscordKeys.USER in data) {
+      const value = new UserWithFlags(this.client, data[DiscordKeys.USER]);
+      (this as any)[DetritusKeys[DiscordKeys.USER]] = value;
     }
   }
 }

@@ -24,7 +24,12 @@ import {
 } from './basestructure';
 import { Attachment } from './attachment';
 import { Channel, createChannelFromData } from './channel';
-import { ComponentActionRow } from './components';
+import {
+  ComponentActionRow,
+  ComponentLabel,
+  ComponentTextDisplay,
+  ComponentUnknown,
+} from './components';
 import { Entitlement } from './entitlement';
 import { Guild } from './guild';
 import { Member } from './member';
@@ -241,8 +246,8 @@ export class Interaction extends BaseStructure {
     return response;
   }
 
-  deleteMessage(messageId: string) {
-    return this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId);
+  deleteMessage(messageId: string, options: RequestTypes.DeleteWebhookTokenMessage = {}) {
+    return this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId, options);
   }
 
   deleteResponse() {
@@ -284,8 +289,8 @@ export class Interaction extends BaseStructure {
     return this.respond(type, options);
   }
 
-  fetchMessage(messageId: string) {
-    return this.client.rest.fetchWebhookTokenMessage(this.applicationId, this.token, messageId);
+  fetchMessage(messageId: string, options: RequestTypes.FetchWebhookTokenMessage = {}) {
+    return this.client.rest.fetchWebhookTokenMessage(this.applicationId, this.token, messageId, options);
   }
 
   fetchResponse() {
@@ -622,7 +627,7 @@ const keysInteractionDataApplicationCommandResolved = new BaseSet<string>([
  */
 export class InteractionDataApplicationCommandResolved extends BaseStructure {
   readonly _keys = keysInteractionDataApplicationCommandResolved;
-  readonly interactionData: InteractionDataApplicationCommand;
+  readonly interactionData: InteractionDataApplicationCommand | InteractionDataModal;
 
   attachments?: BaseCollection<string, Attachment>;
   channels?: BaseCollection<string, Channel>;
@@ -632,7 +637,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
   users?: BaseCollection<string, User>;
 
   constructor(
-    interactionData: InteractionDataApplicationCommand,
+    interactionData: InteractionDataApplicationCommand | InteractionDataModal,
     data?: BaseStructureData,
     isClone?: boolean,
   ) {
@@ -779,7 +784,10 @@ export class InteractionDataComponent extends BaseStructure {
 const keysInteractionDataModal = new BaseSet<string>([
   DiscordKeys.COMPONENTS,
   DiscordKeys.CUSTOM_ID,
+  DiscordKeys.RESOLVED,
 ]);
+
+export type InteractionDataModalComponent = ComponentActionRow | ComponentLabel | ComponentTextDisplay | ComponentUnknown;
 
 /**
  * Interaction Data Modal Structure
@@ -788,9 +796,10 @@ const keysInteractionDataModal = new BaseSet<string>([
 export class InteractionDataModal extends BaseStructure {
   readonly _keys = keysInteractionDataModal;
   readonly interaction: Interaction;
-  _components?: BaseCollection<number, ComponentActionRow>;
+  _components?: BaseCollection<number, InteractionDataModalComponent>;
 
   customId: string = '';
+  resolved?: InteractionDataApplicationCommandResolved;
 
   constructor(
     interaction: Interaction,
@@ -803,7 +812,7 @@ export class InteractionDataModal extends BaseStructure {
     Object.defineProperty(this, 'interaction', {enumerable: false});
   }
 
-  get components(): BaseCollection<number, ComponentActionRow> {
+  get components(): BaseCollection<number, InteractionDataModalComponent> {
     if (this._components) {
       return this._components;
     }
@@ -819,11 +828,28 @@ export class InteractionDataModal extends BaseStructure {
       const value = data[DiscordKeys.COMPONENTS];
       if (value.length) {
         if (!this._components) {
-          this._components = new BaseCollection<number, ComponentActionRow>();
+          this._components = new BaseCollection<number, InteractionDataModalComponent>();
         }
         this._components.clear();
         for (let i = 0; i < value.length; i++) {
-          this._components.set(i, new ComponentActionRow(this.client, value[i]));
+          const raw = value[i];
+
+          let component: InteractionDataModalComponent;
+          switch (raw.type) {
+            case MessageComponentTypes.ACTION_ROW: {
+              component = new ComponentActionRow(this.client, raw);
+            }; break;
+            case MessageComponentTypes.LABEL: {
+              component = new ComponentLabel(this.client, raw);
+            }; break;
+            case MessageComponentTypes.TEXT_DISPLAY: {
+              component = new ComponentTextDisplay(this.client, raw);
+            }; break;
+            default: {
+              component = new ComponentUnknown(this.client, raw);
+            };
+          }
+          this._components.set(i, component);
         }
       } else {
         if (this._components) {
@@ -834,6 +860,10 @@ export class InteractionDataModal extends BaseStructure {
     }
     if (DiscordKeys.CUSTOM_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
+    }
+    if (DiscordKeys.RESOLVED in data) {
+      const value = new InteractionDataApplicationCommandResolved(this, data[DiscordKeys.RESOLVED], this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.RESOLVED]] = value;
     }
   }
 }

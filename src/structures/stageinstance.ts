@@ -3,7 +3,7 @@ import { RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DiscordKeys, StagePrivacyLevels } from '../constants';
+import { DetritusKeys, DiscordKeys, StagePrivacyLevels } from '../constants';
 
 import {
   BaseStructure,
@@ -97,5 +97,36 @@ export class StageInstance extends BaseStructure {
 
   async delete() {
     return this.client.rest.deleteStageInstance(this.channelId);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
+    if (DiscordKeys.DISCOVERABLE_DISABLED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DISCOVERABLE_DISABLED]] = data[DiscordKeys.DISCOVERABLE_DISABLED];
+    }
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
+    if (DiscordKeys.GUILD_SCHEDULED_EVENT_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_SCHEDULED_EVENT_ID]] = data[DiscordKeys.GUILD_SCHEDULED_EVENT_ID];
+    }
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
+    if (DiscordKeys.INVITE_CODE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INVITE_CODE]] = data[DiscordKeys.INVITE_CODE];
+    }
+    if (DiscordKeys.PRIVACY_LEVEL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PRIVACY_LEVEL]] = data[DiscordKeys.PRIVACY_LEVEL];
+    }
+    if (DiscordKeys.TOPIC in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
+    }
   }
 }
