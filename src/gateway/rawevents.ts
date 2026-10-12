@@ -67,6 +67,33 @@ export namespace GatewayRawEvents {
     }>
   }
 
+  export interface AutoModerationActionExecution {
+    action: RawAutoModerationRuleAction,
+    alert_system_message_id?: string,
+    channel_id?: string,
+    // `content` and `matched_content` need the MESSAGE_CONTENT intent
+    content: string,
+    guild_id: string,
+    matched_content: null | string,
+    matched_keyword: null | string,
+    message_id?: string,
+    rule_id: string,
+    rule_trigger_type: number,
+    user_id: string,
+  }
+
+  export interface AutoModerationRuleCreate extends RawAutoModerationRule {
+
+  }
+
+  export interface AutoModerationRuleDelete extends RawAutoModerationRule {
+
+  }
+
+  export interface AutoModerationRuleUpdate extends RawAutoModerationRule {
+
+  }
+
   export interface BraintreePopupBridgeCallback {
     path: string,
     query: any,
@@ -99,6 +126,15 @@ export namespace GatewayRawEvents {
 
   export interface ChannelDelete extends RawChannel  {
 
+  }
+
+  export interface ChannelInfo {
+    channels: Array<{
+      id: string,
+      status?: null | string,
+      voice_start_time?: null | number,
+    }>,
+    guild_id: string,
   }
 
   export interface ChannelPinsAck {
@@ -280,9 +316,32 @@ export namespace GatewayRawEvents {
     user_id: string,
   }
 
+  export interface GuildSoundboardSoundCreate extends RawSoundboardSound {
+
+  }
+
+  export interface GuildSoundboardSoundDelete {
+    guild_id: string,
+    sound_id: string,
+  }
+
+  export interface GuildSoundboardSoundUpdate extends RawSoundboardSound {
+
+  }
+
+  export interface GuildSoundboardSoundsUpdate {
+    guild_id: string,
+    soundboard_sounds: Array<RawSoundboardSound>,
+  }
+
   export interface GuildStickersUpdate {
     guild_id: string,
     stickers: Array<RawSticker>,
+  }
+
+  export interface SoundboardSounds {
+    guild_id: string,
+    soundboard_sounds: Array<RawSoundboardSound>,
   }
 
   export interface GuildUpdate extends RawGuild {
@@ -623,6 +682,16 @@ export namespace GatewayRawEvents {
     v: number,
   }
 
+  export interface RateLimited {
+    meta: {
+      // only Request Guild Members (opcode 8) gets rate limited for now
+      guild_id?: string,
+      nonce?: string,
+    },
+    opcode: number,
+    retry_after: number,
+  }
+
   export interface RecentMentionDelete {
     message_id: string,
   }
@@ -681,6 +750,18 @@ export namespace GatewayRawEvents {
     region: string,
     stream_key: string,
     viewer_ids: Array<string>,
+  }
+
+  export interface SubscriptionCreate extends RawSubscription {
+
+  }
+
+  export interface SubscriptionDelete extends RawSubscription {
+
+  }
+
+  export interface SubscriptionUpdate extends RawSubscription {
+
   }
 
   export interface ThreadCreate extends RawChannel {
@@ -775,6 +856,29 @@ export namespace GatewayRawEvents {
     // Current User Update
   }
 
+  export interface VoiceChannelEffectSend {
+    animation_id?: number,
+    animation_type?: null | number,
+    channel_id: string,
+    emoji?: null | RawEmojiPartial,
+    guild_id: string,
+    sound_id?: number | string,
+    sound_volume?: number,
+    user_id: string,
+  }
+
+  export interface VoiceChannelStartTimeUpdate {
+    guild_id: string,
+    id: string,
+    voice_start_time?: null | number,
+  }
+
+  export interface VoiceChannelStatusUpdate {
+    guild_id: string,
+    id: string,
+    status: null | string,
+  }
+
   export interface VoiceServerUpdate {
     channel_id: string,
     endpoint: string,
@@ -832,6 +936,36 @@ export namespace GatewayRawEvents {
     name: string,
     options?: Array<RawApplicationCommandInteractionDataOption>,
     value?: any,
+  }
+
+  export interface RawAutoModerationRule {
+    actions: Array<RawAutoModerationRuleAction>,
+    creator_id: string,
+    enabled: boolean,
+    event_type: number,
+    exempt_channels: Array<string>,
+    exempt_roles: Array<string>,
+    guild_id: string,
+    id: string,
+    name: string,
+    trigger_metadata: {
+      allow_list?: Array<string>,
+      keyword_filter?: Array<string>,
+      mention_raid_protection_enabled?: boolean,
+      mention_total_limit?: number,
+      presets?: Array<number>,
+      regex_patterns?: Array<string>,
+    },
+    trigger_type: number,
+  }
+
+  export interface RawAutoModerationRuleAction {
+    metadata?: {
+      channel_id?: string,
+      custom_message?: string,
+      duration_seconds?: number,
+    },
+    type: number,
   }
 
   export interface RawChannelPartial {
@@ -1175,6 +1309,17 @@ export namespace GatewayRawEvents {
     topic: string,
   }
 
+  export interface RawSoundboardSound {
+    available: boolean,
+    emoji_id: null | string,
+    emoji_name: null | string,
+    guild_id?: string,
+    name: string,
+    sound_id: string,
+    user?: RawUser,
+    volume: number,
+  }
+
   export interface RawSticker {
     asset: string,
     available?: boolean,
@@ -1185,6 +1330,19 @@ export namespace GatewayRawEvents {
     pack_id?: string,
     preview_asset: null | string,
     tags: string,
+  }
+
+  export interface RawSubscription {
+    canceled_at: null | string,
+    country?: string,
+    current_period_end: string,
+    current_period_start: string,
+    entitlement_ids: Array<string>,
+    id: string,
+    renewal_sku_ids: null | Array<string>,
+    sku_ids: Array<string>,
+    status: number,
+    user_id: string,
   }
 
   export interface RawThreadMember {

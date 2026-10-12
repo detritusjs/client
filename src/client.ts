@@ -28,6 +28,8 @@ import {
   ApplicationEmojisOptions,
   Applications,
   ApplicationsOptions,
+  AutoModerationRules,
+  AutoModerationRulesOptions,
   Channels,
   ChannelsOptions,
   ConnectedAccounts,
@@ -52,6 +54,8 @@ import {
   RolesOptions,
   Sessions,
   SessionsOptions,
+  SoundboardSounds,
+  SoundboardSoundsOptions,
   StageInstances,
   StageInstancesOptions,
   Stickers,
@@ -97,6 +101,7 @@ export interface ShardClientCacheOptions {
   applicationCommandPermissions?: ApplicationCommandPermissionsOptions | boolean,
   applicationEmojis?: ApplicationEmojisOptions | boolean,
   applications?: ApplicationsOptions | boolean,
+  autoModerationRules?: AutoModerationRulesOptions | boolean,
   channels?: ChannelsOptions | boolean,
   connectedAccounts?: ConnectedAccountsOptions | boolean,
   emojis?: EmojisOptions | boolean,
@@ -109,6 +114,7 @@ export interface ShardClientCacheOptions {
   relationships?: RelationshipsOptions | boolean,
   roles?: RolesOptions | boolean,
   sessions?: SessionsOptions | boolean,
+  soundboardSounds?: SoundboardSoundsOptions | boolean,
   stageInstances?: StageInstancesOptions | boolean,
   stickers?: StickersOptions | boolean,
   typings?: TypingOptions | boolean,
@@ -125,6 +131,7 @@ export interface ShardClientPassOptions {
   applicationCommandPermissions?: ApplicationCommandPermissionsCache,
   applicationEmojis?: ApplicationEmojis,
   applications?: Applications,
+  autoModerationRules?: AutoModerationRules,
   channels?: Channels,
   connectedAccounts?: ConnectedAccounts,
   emojis?: Emojis,
@@ -137,6 +144,7 @@ export interface ShardClientPassOptions {
   relationships?: Relationships,
   roles?: Roles,
   sessions?: Sessions,
+  soundboardSounds?: SoundboardSounds,
   stageInstances?: StageInstances,
   stickers?: Stickers,
   typings?: TypingCollection,
@@ -223,6 +231,7 @@ export class ShardClient extends EventSpewer {
   readonly applicationCommandPermissions: ApplicationCommandPermissionsCache;
   readonly applicationEmojis: ApplicationEmojis;
   readonly applications: Applications;
+  readonly autoModerationRules: AutoModerationRules;
   readonly channels: Channels;
   readonly connectedAccounts: ConnectedAccounts;
   readonly emojis: Emojis;
@@ -235,6 +244,7 @@ export class ShardClient extends EventSpewer {
   readonly relationships: Relationships;
   readonly roles: Roles;
   readonly sessions: Sessions;
+  readonly soundboardSounds: SoundboardSounds;
   readonly stageInstances: StageInstances;
   readonly stickers: Stickers;
   readonly typings: TypingCollection;
@@ -299,6 +309,7 @@ export class ShardClient extends EventSpewer {
         applicationCommandPermissions: {enabled},
         applicationEmojis: {enabled},
         applications: {enabled},
+        autoModerationRules: {enabled},
         channels: {enabled},
         connectedAccounts: {enabled},
         emojis: {enabled},
@@ -311,6 +322,7 @@ export class ShardClient extends EventSpewer {
         relationships: {enabled},
         roles: {enabled},
         sessions: {enabled},
+        soundboardSounds: {enabled},
         stageInstances: {enabled},
         stickers: {enabled},
         typings: {enabled},
@@ -324,6 +336,7 @@ export class ShardClient extends EventSpewer {
     this.applicationCommandPermissions = options.pass.applicationCommandPermissions || new ApplicationCommandPermissionsCache(this, options.cache.applicationCommandPermissions);
     this.applicationEmojis = options.pass.applicationEmojis || new ApplicationEmojis(this, options.cache.applicationEmojis);
     this.applications = options.pass.applications || new Applications(this, options.cache.applications);
+    this.autoModerationRules = options.pass.autoModerationRules || new AutoModerationRules(this, options.cache.autoModerationRules);
     this.channels = options.pass.channels || new Channels(this, options.cache.channels);
     this.connectedAccounts = options.pass.connectedAccounts || new ConnectedAccounts(this, options.cache.connectedAccounts);
     this.emojis = options.pass.emojis || new Emojis(this, options.cache.emojis);
@@ -336,6 +349,7 @@ export class ShardClient extends EventSpewer {
     this.relationships = options.pass.relationships || new Relationships(this, options.cache.relationships);
     this.roles = options.pass.roles || new Roles(this, options.cache.roles);
     this.sessions = options.pass.sessions || new Sessions(this, options.cache.sessions);
+    this.soundboardSounds = options.pass.soundboardSounds || new SoundboardSounds(this, options.cache.soundboardSounds);
     this.stageInstances = options.pass.stageInstances || new StageInstances(this, options.cache.stageInstances);
     this.stickers = options.pass.stickers || new Stickers(this, options.cache.stickers);
     this.typings = options.pass.typings || new TypingCollection(this, options.cache.typings);
@@ -535,6 +549,7 @@ export class ShardClient extends EventSpewer {
     if (applicationCommandPermissions) {
       this.applicationCommandPermissions.clear();
     }
+    this.autoModerationRules.clear();
     this.channels.clear();
     this.connectedAccounts.clear();
     this.emojis.clear();
@@ -547,6 +562,7 @@ export class ShardClient extends EventSpewer {
     this.relationships.clear();
     this.roles.clear();
     this.sessions.clear();
+    this.soundboardSounds.clear();
     this.stageInstances.clear();
     this.stickers.clear();
     this.typings.clear();
@@ -655,6 +671,14 @@ export class ShardClient extends EventSpewer {
   on(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): this;
   on(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   on(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
+  on(event: ClientEvents.AUTO_MODERATION_ACTION_EXECUTION, listener: (payload: GatewayClientEvents.AutoModerationActionExecution) => any): this;
+  on(event: 'autoModerationActionExecution', listener: (payload: GatewayClientEvents.AutoModerationActionExecution) => any): this;
+  on(event: ClientEvents.AUTO_MODERATION_RULE_CREATE, listener: (payload: GatewayClientEvents.AutoModerationRuleCreate) => any): this;
+  on(event: 'autoModerationRuleCreate', listener: (payload: GatewayClientEvents.AutoModerationRuleCreate) => any): this;
+  on(event: ClientEvents.AUTO_MODERATION_RULE_DELETE, listener: (payload: GatewayClientEvents.AutoModerationRuleDelete) => any): this;
+  on(event: 'autoModerationRuleDelete', listener: (payload: GatewayClientEvents.AutoModerationRuleDelete) => any): this;
+  on(event: ClientEvents.AUTO_MODERATION_RULE_UPDATE, listener: (payload: GatewayClientEvents.AutoModerationRuleUpdate) => any): this;
+  on(event: 'autoModerationRuleUpdate', listener: (payload: GatewayClientEvents.AutoModerationRuleUpdate) => any): this;
   on(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.CallCreate) => any): this;
   on(event: 'callCreate', listener: (payload: GatewayClientEvents.CallCreate) => any): this;
   on(event: ClientEvents.CALL_DELETE, listener: (payload: GatewayClientEvents.CallDelete) => any): this;
@@ -669,6 +693,8 @@ export class ShardClient extends EventSpewer {
   on(event: 'channelUpdate', listener: (payload: GatewayClientEvents.ChannelUpdate) => any): this;
   on(event: ClientEvents.CHANNEL_PINS_ACK, listener: (payload: GatewayClientEvents.ChannelPinsAck) => any): this;
   on(event: 'channelPinsAck', listener: (payload: GatewayClientEvents.ChannelPinsAck) => any): this;
+  on(event: ClientEvents.CHANNEL_INFO, listener: (payload: GatewayClientEvents.ChannelInfo) => any): this;
+  on(event: 'channelInfo', listener: (payload: GatewayClientEvents.ChannelInfo) => any): this;
   on(event: ClientEvents.CHANNEL_PINS_UPDATE, listener: (payload: GatewayClientEvents.ChannelPinsUpdate) => any): this;
   on(event: 'channelPinsUpdate', listener: (payload: GatewayClientEvents.ChannelPinsUpdate) => any): this;
   on(event: ClientEvents.CHANNEL_RECIPIENT_ADD, listener: (payload: GatewayClientEvents.ChannelRecipientAdd) => any): this;
@@ -727,6 +753,16 @@ export class ShardClient extends EventSpewer {
   on(event: 'guildScheduledEventUserAdd', listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): this;
   on(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE, listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): this;
   on(event: 'guildScheduledEventUserRemove', listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): this;
+  on(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_CREATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundCreate) => any): this;
+  on(event: 'guildSoundboardSoundCreate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundCreate) => any): this;
+  on(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_DELETE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundDelete) => any): this;
+  on(event: 'guildSoundboardSoundDelete', listener: (payload: GatewayClientEvents.GuildSoundboardSoundDelete) => any): this;
+  on(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_UPDATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundUpdate) => any): this;
+  on(event: 'guildSoundboardSoundUpdate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundUpdate) => any): this;
+  on(event: ClientEvents.GUILD_SOUNDBOARD_SOUNDS_UPDATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundsUpdate) => any): this;
+  on(event: 'guildSoundboardSoundsUpdate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundsUpdate) => any): this;
+  on(event: ClientEvents.SOUNDBOARD_SOUNDS, listener: (payload: GatewayClientEvents.SoundboardSounds) => any): this;
+  on(event: 'soundboardSounds', listener: (payload: GatewayClientEvents.SoundboardSounds) => any): this;
   on(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   on(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   on(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
@@ -779,6 +815,8 @@ export class ShardClient extends EventSpewer {
   on(event: 'presencesReplace', listener: (payload: GatewayClientEvents.PresencesReplace) => any): this;
   on(event: ClientEvents.PRESENCE_UPDATE, listener: (payload: GatewayClientEvents.PresenceUpdate) => any): this;
   on(event: 'presenceUpdate', listener: (payload: GatewayClientEvents.PresenceUpdate) => any): this;
+  on(event: ClientEvents.RATE_LIMITED, listener: (payload: GatewayClientEvents.RateLimited) => any): this;
+  on(event: 'rateLimited', listener: (payload: GatewayClientEvents.RateLimited) => any): this;
   on(event: ClientEvents.RECENT_MENTION_DELETE, listener: (payload: GatewayClientEvents.RecentMentionDelete) => any): this;
   on(event: 'recentMentionDelete', listener: (payload: GatewayClientEvents.RecentMentionDelete) => any): this;
   on(event: ClientEvents.RELATIONSHIP_ADD, listener: (payload: GatewayClientEvents.RelationshipAdd) => any): this;
@@ -801,6 +839,12 @@ export class ShardClient extends EventSpewer {
   on(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.StreamServerUpdate) => any): this;
   on(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
   on(event: 'streamUpdate', listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
+  on(event: ClientEvents.SUBSCRIPTION_CREATE, listener: (payload: GatewayClientEvents.SubscriptionCreate) => any): this;
+  on(event: 'subscriptionCreate', listener: (payload: GatewayClientEvents.SubscriptionCreate) => any): this;
+  on(event: ClientEvents.SUBSCRIPTION_DELETE, listener: (payload: GatewayClientEvents.SubscriptionDelete) => any): this;
+  on(event: 'subscriptionDelete', listener: (payload: GatewayClientEvents.SubscriptionDelete) => any): this;
+  on(event: ClientEvents.SUBSCRIPTION_UPDATE, listener: (payload: GatewayClientEvents.SubscriptionUpdate) => any): this;
+  on(event: 'subscriptionUpdate', listener: (payload: GatewayClientEvents.SubscriptionUpdate) => any): this;
   on(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ThreadCreate) => any): this;
   on(event: 'threadCreate', listener: (payload: GatewayClientEvents.ThreadCreate) => any): this;
   on(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ThreadDelete) => any): this;
@@ -835,6 +879,12 @@ export class ShardClient extends EventSpewer {
   on(event: 'userUpdate', listener: (payload: GatewayClientEvents.UserUpdate) => any): this;
   on(event: ClientEvents.USERS_UPDATE, listener: (payload: GatewayClientEvents.UsersUpdate) => any): this;
   on(event: 'usersUpdate', listener: (payload: GatewayClientEvents.UsersUpdate) => any): this;
+  on(event: ClientEvents.VOICE_CHANNEL_EFFECT_SEND, listener: (payload: GatewayClientEvents.VoiceChannelEffectSend) => any): this;
+  on(event: 'voiceChannelEffectSend', listener: (payload: GatewayClientEvents.VoiceChannelEffectSend) => any): this;
+  on(event: ClientEvents.VOICE_CHANNEL_START_TIME_UPDATE, listener: (payload: GatewayClientEvents.VoiceChannelStartTimeUpdate) => any): this;
+  on(event: 'voiceChannelStartTimeUpdate', listener: (payload: GatewayClientEvents.VoiceChannelStartTimeUpdate) => any): this;
+  on(event: ClientEvents.VOICE_CHANNEL_STATUS_UPDATE, listener: (payload: GatewayClientEvents.VoiceChannelStatusUpdate) => any): this;
+  on(event: 'voiceChannelStatusUpdate', listener: (payload: GatewayClientEvents.VoiceChannelStatusUpdate) => any): this;
   on(event: ClientEvents.VOICE_SERVER_UPDATE, listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): this;
   on(event: 'voiceServerUpdate', listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): this;
   on(event: ClientEvents.VOICE_STATE_UPDATE, listener: (payload: GatewayClientEvents.VoiceStateUpdate) => any): this;
@@ -873,6 +923,14 @@ export class ShardClient extends EventSpewer {
   once(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): this;
   once(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
   once(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): this;
+  once(event: ClientEvents.AUTO_MODERATION_ACTION_EXECUTION, listener: (payload: GatewayClientEvents.AutoModerationActionExecution) => any): this;
+  once(event: 'autoModerationActionExecution', listener: (payload: GatewayClientEvents.AutoModerationActionExecution) => any): this;
+  once(event: ClientEvents.AUTO_MODERATION_RULE_CREATE, listener: (payload: GatewayClientEvents.AutoModerationRuleCreate) => any): this;
+  once(event: 'autoModerationRuleCreate', listener: (payload: GatewayClientEvents.AutoModerationRuleCreate) => any): this;
+  once(event: ClientEvents.AUTO_MODERATION_RULE_DELETE, listener: (payload: GatewayClientEvents.AutoModerationRuleDelete) => any): this;
+  once(event: 'autoModerationRuleDelete', listener: (payload: GatewayClientEvents.AutoModerationRuleDelete) => any): this;
+  once(event: ClientEvents.AUTO_MODERATION_RULE_UPDATE, listener: (payload: GatewayClientEvents.AutoModerationRuleUpdate) => any): this;
+  once(event: 'autoModerationRuleUpdate', listener: (payload: GatewayClientEvents.AutoModerationRuleUpdate) => any): this;
   once(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.CallCreate) => any): this;
   once(event: 'callCreate', listener: (payload: GatewayClientEvents.CallCreate) => any): this;
   once(event: ClientEvents.CALL_DELETE, listener: (payload: GatewayClientEvents.CallDelete) => any): this;
@@ -887,6 +945,8 @@ export class ShardClient extends EventSpewer {
   once(event: 'channelUpdate', listener: (payload: GatewayClientEvents.ChannelUpdate) => any): this;
   once(event: ClientEvents.CHANNEL_PINS_ACK, listener: (payload: GatewayClientEvents.ChannelPinsAck) => any): this;
   once(event: 'channelPinsAck', listener: (payload: GatewayClientEvents.ChannelPinsAck) => any): this;
+  once(event: ClientEvents.CHANNEL_INFO, listener: (payload: GatewayClientEvents.ChannelInfo) => any): this;
+  once(event: 'channelInfo', listener: (payload: GatewayClientEvents.ChannelInfo) => any): this;
   once(event: ClientEvents.CHANNEL_PINS_UPDATE, listener: (payload: GatewayClientEvents.ChannelPinsUpdate) => any): this;
   once(event: 'channelPinsUpdate', listener: (payload: GatewayClientEvents.ChannelPinsUpdate) => any): this;
   once(event: ClientEvents.CHANNEL_RECIPIENT_ADD, listener: (payload: GatewayClientEvents.ChannelRecipientAdd) => any): this;
@@ -945,6 +1005,16 @@ export class ShardClient extends EventSpewer {
   once(event: 'guildScheduledEventUserAdd', listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): this;
   once(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE, listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): this;
   once(event: 'guildScheduledEventUserRemove', listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): this;
+  once(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_CREATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundCreate) => any): this;
+  once(event: 'guildSoundboardSoundCreate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundCreate) => any): this;
+  once(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_DELETE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundDelete) => any): this;
+  once(event: 'guildSoundboardSoundDelete', listener: (payload: GatewayClientEvents.GuildSoundboardSoundDelete) => any): this;
+  once(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_UPDATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundUpdate) => any): this;
+  once(event: 'guildSoundboardSoundUpdate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundUpdate) => any): this;
+  once(event: ClientEvents.GUILD_SOUNDBOARD_SOUNDS_UPDATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundsUpdate) => any): this;
+  once(event: 'guildSoundboardSoundsUpdate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundsUpdate) => any): this;
+  once(event: ClientEvents.SOUNDBOARD_SOUNDS, listener: (payload: GatewayClientEvents.SoundboardSounds) => any): this;
+  once(event: 'soundboardSounds', listener: (payload: GatewayClientEvents.SoundboardSounds) => any): this;
   once(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   once(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): this;
   once(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): this;
@@ -995,6 +1065,8 @@ export class ShardClient extends EventSpewer {
   once(event: 'presencesReplace', listener: (payload: GatewayClientEvents.PresencesReplace) => any): this;
   once(event: ClientEvents.PRESENCE_UPDATE, listener: (payload: GatewayClientEvents.PresenceUpdate) => any): this;
   once(event: 'presenceUpdate', listener: (payload: GatewayClientEvents.PresenceUpdate) => any): this;
+  once(event: ClientEvents.RATE_LIMITED, listener: (payload: GatewayClientEvents.RateLimited) => any): this;
+  once(event: 'rateLimited', listener: (payload: GatewayClientEvents.RateLimited) => any): this;
   once(event: ClientEvents.RECENT_MENTION_DELETE, listener: (payload: GatewayClientEvents.RecentMentionDelete) => any): this;
   once(event: 'recentMentionDelete', listener: (payload: GatewayClientEvents.RecentMentionDelete) => any): this;
   once(event: ClientEvents.RELATIONSHIP_ADD, listener: (payload: GatewayClientEvents.RelationshipAdd) => any): this;
@@ -1017,6 +1089,12 @@ export class ShardClient extends EventSpewer {
   once(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.StreamServerUpdate) => any): this;
   once(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
   once(event: 'streamUpdate', listener: (payload: GatewayClientEvents.StreamUpdate) => any): this;
+  once(event: ClientEvents.SUBSCRIPTION_CREATE, listener: (payload: GatewayClientEvents.SubscriptionCreate) => any): this;
+  once(event: 'subscriptionCreate', listener: (payload: GatewayClientEvents.SubscriptionCreate) => any): this;
+  once(event: ClientEvents.SUBSCRIPTION_DELETE, listener: (payload: GatewayClientEvents.SubscriptionDelete) => any): this;
+  once(event: 'subscriptionDelete', listener: (payload: GatewayClientEvents.SubscriptionDelete) => any): this;
+  once(event: ClientEvents.SUBSCRIPTION_UPDATE, listener: (payload: GatewayClientEvents.SubscriptionUpdate) => any): this;
+  once(event: 'subscriptionUpdate', listener: (payload: GatewayClientEvents.SubscriptionUpdate) => any): this;
   once(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ThreadCreate) => any): this;
   once(event: 'threadCreate', listener: (payload: GatewayClientEvents.ThreadCreate) => any): this;
   once(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ThreadDelete) => any): this;
@@ -1051,6 +1129,12 @@ export class ShardClient extends EventSpewer {
   once(event: 'userUpdate', listener: (payload: GatewayClientEvents.UserUpdate) => any): this;
   once(event: ClientEvents.USERS_UPDATE, listener: (payload: GatewayClientEvents.UsersUpdate) => any): this;
   once(event: 'usersUpdate', listener: (payload: GatewayClientEvents.UsersUpdate) => any): this;
+  once(event: ClientEvents.VOICE_CHANNEL_EFFECT_SEND, listener: (payload: GatewayClientEvents.VoiceChannelEffectSend) => any): this;
+  once(event: 'voiceChannelEffectSend', listener: (payload: GatewayClientEvents.VoiceChannelEffectSend) => any): this;
+  once(event: ClientEvents.VOICE_CHANNEL_START_TIME_UPDATE, listener: (payload: GatewayClientEvents.VoiceChannelStartTimeUpdate) => any): this;
+  once(event: 'voiceChannelStartTimeUpdate', listener: (payload: GatewayClientEvents.VoiceChannelStartTimeUpdate) => any): this;
+  once(event: ClientEvents.VOICE_CHANNEL_STATUS_UPDATE, listener: (payload: GatewayClientEvents.VoiceChannelStatusUpdate) => any): this;
+  once(event: 'voiceChannelStatusUpdate', listener: (payload: GatewayClientEvents.VoiceChannelStatusUpdate) => any): this;
   once(event: ClientEvents.VOICE_SERVER_UPDATE, listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): this;
   once(event: 'voiceServerUpdate', listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): this;
   once(event: ClientEvents.VOICE_STATE_UPDATE, listener: (payload: GatewayClientEvents.VoiceStateUpdate) => any): this;
@@ -1089,6 +1173,14 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'applicationCommandUpdate', listener: (payload: GatewayClientEvents.ApplicationCommandUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.BRAINTREE_POPUP_BRIDGE_CALLBACK, listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): EventSubscription;
   subscribe(event: 'braintreePopupBridgeCallback', listener: (payload: GatewayClientEvents.BraintreePopupBridgeCallback) => any): EventSubscription;
+  subscribe(event: ClientEvents.AUTO_MODERATION_ACTION_EXECUTION, listener: (payload: GatewayClientEvents.AutoModerationActionExecution) => any): EventSubscription;
+  subscribe(event: 'autoModerationActionExecution', listener: (payload: GatewayClientEvents.AutoModerationActionExecution) => any): EventSubscription;
+  subscribe(event: ClientEvents.AUTO_MODERATION_RULE_CREATE, listener: (payload: GatewayClientEvents.AutoModerationRuleCreate) => any): EventSubscription;
+  subscribe(event: 'autoModerationRuleCreate', listener: (payload: GatewayClientEvents.AutoModerationRuleCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.AUTO_MODERATION_RULE_DELETE, listener: (payload: GatewayClientEvents.AutoModerationRuleDelete) => any): EventSubscription;
+  subscribe(event: 'autoModerationRuleDelete', listener: (payload: GatewayClientEvents.AutoModerationRuleDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.AUTO_MODERATION_RULE_UPDATE, listener: (payload: GatewayClientEvents.AutoModerationRuleUpdate) => any): EventSubscription;
+  subscribe(event: 'autoModerationRuleUpdate', listener: (payload: GatewayClientEvents.AutoModerationRuleUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.CALL_CREATE, listener: (payload: GatewayClientEvents.CallCreate) => any): EventSubscription;
   subscribe(event: 'callCreate', listener: (payload: GatewayClientEvents.CallCreate) => any): EventSubscription;
   subscribe(event: ClientEvents.CALL_DELETE, listener: (payload: GatewayClientEvents.CallDelete) => any): EventSubscription;
@@ -1103,6 +1195,8 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'channelUpdate', listener: (payload: GatewayClientEvents.ChannelUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.CHANNEL_PINS_ACK, listener: (payload: GatewayClientEvents.ChannelPinsAck) => any): EventSubscription;
   subscribe(event: 'channelPinsAck', listener: (payload: GatewayClientEvents.ChannelPinsAck) => any): EventSubscription;
+  subscribe(event: ClientEvents.CHANNEL_INFO, listener: (payload: GatewayClientEvents.ChannelInfo) => any): EventSubscription;
+  subscribe(event: 'channelInfo', listener: (payload: GatewayClientEvents.ChannelInfo) => any): EventSubscription;
   subscribe(event: ClientEvents.CHANNEL_PINS_UPDATE, listener: (payload: GatewayClientEvents.ChannelPinsUpdate) => any): EventSubscription;
   subscribe(event: 'channelPinsUpdate', listener: (payload: GatewayClientEvents.ChannelPinsUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.CHANNEL_RECIPIENT_ADD, listener: (payload: GatewayClientEvents.ChannelRecipientAdd) => any): EventSubscription;
@@ -1161,6 +1255,16 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'guildScheduledEventUserAdd', listener: (payload: GatewayClientEvents.GuildScheduledEventUserAdd) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE, listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): EventSubscription;
   subscribe(event: 'guildScheduledEventUserRemove', listener: (payload: GatewayClientEvents.GuildScheduledEventUserRemove) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_CREATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundCreate) => any): EventSubscription;
+  subscribe(event: 'guildSoundboardSoundCreate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_DELETE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundDelete) => any): EventSubscription;
+  subscribe(event: 'guildSoundboardSoundDelete', listener: (payload: GatewayClientEvents.GuildSoundboardSoundDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_SOUNDBOARD_SOUND_UPDATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundUpdate) => any): EventSubscription;
+  subscribe(event: 'guildSoundboardSoundUpdate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.GUILD_SOUNDBOARD_SOUNDS_UPDATE, listener: (payload: GatewayClientEvents.GuildSoundboardSoundsUpdate) => any): EventSubscription;
+  subscribe(event: 'guildSoundboardSoundsUpdate', listener: (payload: GatewayClientEvents.GuildSoundboardSoundsUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.SOUNDBOARD_SOUNDS, listener: (payload: GatewayClientEvents.SoundboardSounds) => any): EventSubscription;
+  subscribe(event: 'soundboardSounds', listener: (payload: GatewayClientEvents.SoundboardSounds) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_STICKERS_UPDATE, listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
   subscribe(event: 'guildStickersUpdate', listener: (payload: GatewayClientEvents.GuildStickersUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.GUILD_UPDATE, listener: (payload: GatewayClientEvents.GuildUpdate) => any): EventSubscription;
@@ -1211,6 +1315,8 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'presencesReplace', listener: (payload: GatewayClientEvents.PresencesReplace) => any): EventSubscription;
   subscribe(event: ClientEvents.PRESENCE_UPDATE, listener: (payload: GatewayClientEvents.PresenceUpdate) => any): EventSubscription;
   subscribe(event: 'presenceUpdate', listener: (payload: GatewayClientEvents.PresenceUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.RATE_LIMITED, listener: (payload: GatewayClientEvents.RateLimited) => any): EventSubscription;
+  subscribe(event: 'rateLimited', listener: (payload: GatewayClientEvents.RateLimited) => any): EventSubscription;
   subscribe(event: ClientEvents.RECENT_MENTION_DELETE, listener: (payload: GatewayClientEvents.RecentMentionDelete) => any): EventSubscription;
   subscribe(event: 'recentMentionDelete', listener: (payload: GatewayClientEvents.RecentMentionDelete) => any): EventSubscription;
   subscribe(event: ClientEvents.RELATIONSHIP_ADD, listener: (payload: GatewayClientEvents.RelationshipAdd) => any): EventSubscription;
@@ -1233,6 +1339,12 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'streamServerUpdate', listener: (payload: GatewayClientEvents.StreamServerUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.STREAM_UPDATE, listener: (payload: GatewayClientEvents.StreamUpdate) => any): EventSubscription;
   subscribe(event: 'streamUpdate', listener: (payload: GatewayClientEvents.StreamUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.SUBSCRIPTION_CREATE, listener: (payload: GatewayClientEvents.SubscriptionCreate) => any): EventSubscription;
+  subscribe(event: 'subscriptionCreate', listener: (payload: GatewayClientEvents.SubscriptionCreate) => any): EventSubscription;
+  subscribe(event: ClientEvents.SUBSCRIPTION_DELETE, listener: (payload: GatewayClientEvents.SubscriptionDelete) => any): EventSubscription;
+  subscribe(event: 'subscriptionDelete', listener: (payload: GatewayClientEvents.SubscriptionDelete) => any): EventSubscription;
+  subscribe(event: ClientEvents.SUBSCRIPTION_UPDATE, listener: (payload: GatewayClientEvents.SubscriptionUpdate) => any): EventSubscription;
+  subscribe(event: 'subscriptionUpdate', listener: (payload: GatewayClientEvents.SubscriptionUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.THREAD_CREATE, listener: (payload: GatewayClientEvents.ThreadCreate) => any): EventSubscription;
   subscribe(event: 'threadCreate', listener: (payload: GatewayClientEvents.ThreadCreate) => any): EventSubscription;
   subscribe(event: ClientEvents.THREAD_DELETE, listener: (payload: GatewayClientEvents.ThreadDelete) => any): EventSubscription;
@@ -1267,6 +1379,12 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'userUpdate', listener: (payload: GatewayClientEvents.UserUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.USERS_UPDATE, listener: (payload: GatewayClientEvents.UsersUpdate) => any): EventSubscription;
   subscribe(event: 'usersUpdate', listener: (payload: GatewayClientEvents.UsersUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.VOICE_CHANNEL_EFFECT_SEND, listener: (payload: GatewayClientEvents.VoiceChannelEffectSend) => any): EventSubscription;
+  subscribe(event: 'voiceChannelEffectSend', listener: (payload: GatewayClientEvents.VoiceChannelEffectSend) => any): EventSubscription;
+  subscribe(event: ClientEvents.VOICE_CHANNEL_START_TIME_UPDATE, listener: (payload: GatewayClientEvents.VoiceChannelStartTimeUpdate) => any): EventSubscription;
+  subscribe(event: 'voiceChannelStartTimeUpdate', listener: (payload: GatewayClientEvents.VoiceChannelStartTimeUpdate) => any): EventSubscription;
+  subscribe(event: ClientEvents.VOICE_CHANNEL_STATUS_UPDATE, listener: (payload: GatewayClientEvents.VoiceChannelStatusUpdate) => any): EventSubscription;
+  subscribe(event: 'voiceChannelStatusUpdate', listener: (payload: GatewayClientEvents.VoiceChannelStatusUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.VOICE_SERVER_UPDATE, listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): EventSubscription;
   subscribe(event: 'voiceServerUpdate', listener: (payload: GatewayClientEvents.VoiceServerUpdate) => any): EventSubscription;
   subscribe(event: ClientEvents.VOICE_STATE_UPDATE, listener: (payload: GatewayClientEvents.VoiceStateUpdate) => any): EventSubscription;

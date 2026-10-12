@@ -17,6 +17,7 @@ import {
   ApplicationCommand,
   ApplicationCommandPermissions,
   AuditLog,
+  AutoModerationRule,
   Channel,
   ChannelDM,
   ConnectedAccount,
@@ -35,7 +36,9 @@ import {
   Role,
   Session,
   StageInstance,
+  SoundboardSound,
   Sticker,
+  Subscription,
   ThreadMember,
   Typing,
   User,
@@ -370,6 +373,103 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.APPLICATION_COMMAND_PERMISSIONS_UPDATE, payload);
   }
 
+  [GatewayDispatchEvents.AUTO_MODERATION_ACTION_EXECUTION](data: GatewayRawEvents.AutoModerationActionExecution) {
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
+    const ruleId = data['rule_id'];
+    const userId = data['user_id'];
+
+    const guild = this.client.guilds.get(guildId) || null;
+    const channel = (channelId) ? this.client.channels.get(channelId) || null : null;
+    const member = this.client.members.get(guildId, userId) || null;
+    const rule = (guild) ? guild.autoModerationRules.get(ruleId) || null : null;
+    const user = this.client.users.get(userId) || null;
+
+    const payload: GatewayClientEvents.AutoModerationActionExecution = {
+      action: data['action'],
+      alertSystemMessageId: data['alert_system_message_id'],
+      channel,
+      channelId,
+      content: data['content'],
+      guild,
+      guildId,
+      matchedContent: data['matched_content'],
+      matchedKeyword: data['matched_keyword'],
+      member,
+      messageId: data['message_id'],
+      rule,
+      ruleId,
+      ruleTriggerType: data['rule_trigger_type'],
+      user,
+      userId,
+    };
+    this.client.emit(ClientEvents.AUTO_MODERATION_ACTION_EXECUTION, payload);
+  }
+
+  [GatewayDispatchEvents.AUTO_MODERATION_RULE_CREATE](data: GatewayRawEvents.AutoModerationRuleCreate) {
+    const guildId = data['guild_id'];
+    const guild = this.client.guilds.get(guildId) || null;
+
+    const rule = new AutoModerationRule(this.client, data);
+    this.client.autoModerationRules.insert(rule);
+
+    const payload: GatewayClientEvents.AutoModerationRuleCreate = {guild, guildId, rule};
+    this.client.emit(ClientEvents.AUTO_MODERATION_RULE_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.AUTO_MODERATION_RULE_DELETE](data: GatewayRawEvents.AutoModerationRuleDelete) {
+    let guild: Guild | null = null;
+    let rule: AutoModerationRule;
+
+    const guildId = data['guild_id'];
+
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (guild.autoModerationRules.has(data['id'])) {
+        rule = guild.autoModerationRules.get(data['id'])!;
+        rule.merge(data);
+      } else {
+        rule = new AutoModerationRule(this.client, data);
+      }
+      guild.autoModerationRules.delete(data['id']);
+    } else {
+      rule = new AutoModerationRule(this.client, data);
+    }
+
+    const payload: GatewayClientEvents.AutoModerationRuleDelete = {guild, guildId, rule};
+    this.client.emit(ClientEvents.AUTO_MODERATION_RULE_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.AUTO_MODERATION_RULE_UPDATE](data: GatewayRawEvents.AutoModerationRuleUpdate) {
+    let differences: GatewayClientEvents.Differences = null;
+    let guild: Guild | null = null;
+    let old: AutoModerationRule | null = null;
+    let rule: AutoModerationRule;
+
+    const guildId = data['guild_id'];
+
+    const isListening = this.client.hasEventListener(ClientEvents.AUTO_MODERATION_RULE_UPDATE);
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (guild.autoModerationRules.has(data['id'])) {
+        rule = guild.autoModerationRules.get(data['id'])!;
+        if (isListening) {
+          differences = rule.differences(data);
+          old = rule.clone();
+        }
+        rule.merge(data);
+      } else {
+        rule = new AutoModerationRule(this.client, data);
+        this.client.autoModerationRules.insert(rule);
+      }
+    } else {
+      rule = new AutoModerationRule(this.client, data);
+    }
+
+    const payload: GatewayClientEvents.AutoModerationRuleUpdate = {differences, guild, guildId, old, rule};
+    this.client.emit(ClientEvents.AUTO_MODERATION_RULE_UPDATE, payload);
+  }
+
   [GatewayDispatchEvents.CALL_CREATE](data: GatewayRawEvents.CallCreate) {
     let call: VoiceCall;
     if (this.client.voiceCalls.has(data['channel_id'])) {
@@ -461,6 +561,36 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.ChannelDelete = {channel};
     this.client.emit(ClientEvents.CHANNEL_DELETE, payload);
+  }
+
+  // the events below that are keyed by name aren't in the published `GatewayDispatchEvents` yet
+
+  // response to `Guild.requestChannelInfo()`
+  ['CHANNEL_INFO'](data: GatewayRawEvents.ChannelInfo) {
+    const guildId = data['guild_id'];
+    const guild = this.client.guilds.get(guildId) || null;
+
+    const channels = new BaseCollection<string, Channel>();
+    const info = new BaseCollection<string, {status?: null | string, voiceStartTime?: null | number}>();
+    for (let raw of data['channels']) {
+      const value: {status?: null | string, voiceStartTime?: null | number} = {};
+      if (DiscordKeys.STATUS in raw) {
+        value.status = raw['status'];
+      }
+      if (DiscordKeys.VOICE_START_TIME in raw) {
+        value.voiceStartTime = raw['voice_start_time'];
+      }
+      info.set(raw['id'], value);
+
+      const channel = this.client.channels.get(raw['id']);
+      if (channel) {
+        channel.merge(raw);
+        channels.set(channel.id, channel);
+      }
+    }
+
+    const payload: GatewayClientEvents.ChannelInfo = {channels, guild, guildId, info};
+    this.client.emit(ClientEvents.CHANNEL_INFO, payload);
   }
 
   [GatewayDispatchEvents.CHANNEL_PINS_UPDATE](data: GatewayRawEvents.ChannelPinsUpdate) {
@@ -1342,6 +1472,109 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_STICKERS_UPDATE, payload);
   }
 
+  // the soundboard events aren't in `GatewayDispatchEvents` yet, so they're keyed by name
+
+  ['GUILD_SOUNDBOARD_SOUND_CREATE'](data: GatewayRawEvents.GuildSoundboardSoundCreate) {
+    let guild: Guild | null = null;
+
+    const guildId = data['guild_id']!;
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+    }
+
+    const sound = new SoundboardSound(this.client, data);
+    this.client.soundboardSounds.insert(sound);
+
+    const payload: GatewayClientEvents.GuildSoundboardSoundCreate = {guild, guildId, sound};
+    this.client.emit(ClientEvents.GUILD_SOUNDBOARD_SOUND_CREATE, payload);
+  }
+
+  ['GUILD_SOUNDBOARD_SOUND_DELETE'](data: GatewayRawEvents.GuildSoundboardSoundDelete) {
+    let guild: Guild | null = null;
+    let sound: SoundboardSound | null = null;
+
+    const guildId = data['guild_id'];
+    const soundId = data['sound_id'];
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      if (guild.soundboardSounds.has(soundId)) {
+        sound = guild.soundboardSounds.get(soundId)!;
+        guild.soundboardSounds.delete(soundId);
+      }
+    }
+
+    const payload: GatewayClientEvents.GuildSoundboardSoundDelete = {guild, guildId, sound, soundId};
+    this.client.emit(ClientEvents.GUILD_SOUNDBOARD_SOUND_DELETE, payload);
+  }
+
+  ['GUILD_SOUNDBOARD_SOUND_UPDATE'](data: GatewayRawEvents.GuildSoundboardSoundUpdate) {
+    let differences: GatewayClientEvents.Differences = null;
+    let guild: Guild | null = null;
+    let old: SoundboardSound | null = null;
+    let sound: SoundboardSound;
+
+    const guildId = data['guild_id']!;
+    const soundId = data['sound_id'];
+
+    const isListening = this.client.hasEventListener(ClientEvents.GUILD_SOUNDBOARD_SOUND_UPDATE);
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+    }
+    if (guild && guild.soundboardSounds.has(soundId)) {
+      sound = guild.soundboardSounds.get(soundId)!;
+      if (isListening) {
+        differences = sound.differences(data);
+        old = sound.clone();
+      }
+      sound.merge(data);
+    } else {
+      sound = new SoundboardSound(this.client, data);
+      this.client.soundboardSounds.insert(sound);
+    }
+
+    const payload: GatewayClientEvents.GuildSoundboardSoundUpdate = {differences, guild, guildId, old, sound};
+    this.client.emit(ClientEvents.GUILD_SOUNDBOARD_SOUND_UPDATE, payload);
+  }
+
+  ['GUILD_SOUNDBOARD_SOUNDS_UPDATE'](data: GatewayRawEvents.GuildSoundboardSoundsUpdate) {
+    const { guild, guildId, sounds } = this._replaceSoundboardSounds(data['guild_id'], data['soundboard_sounds']);
+    const payload: GatewayClientEvents.GuildSoundboardSoundsUpdate = {guild, guildId, sounds};
+    this.client.emit(ClientEvents.GUILD_SOUNDBOARD_SOUNDS_UPDATE, payload);
+  }
+
+  // response to requesting a guild's soundboard sounds through the gateway
+  ['SOUNDBOARD_SOUNDS'](data: GatewayRawEvents.SoundboardSounds) {
+    const { guild, guildId, sounds } = this._replaceSoundboardSounds(data['guild_id'], data['soundboard_sounds']);
+    const payload: GatewayClientEvents.SoundboardSounds = {guild, guildId, sounds};
+    this.client.emit(ClientEvents.SOUNDBOARD_SOUNDS, payload);
+  }
+
+  _replaceSoundboardSounds(
+    guildId: string,
+    rawSounds: Array<GatewayRawEvents.RawSoundboardSound>,
+  ): {guild: Guild | null, guildId: string, sounds: BaseCollection<string, SoundboardSound>} {
+    let guild: Guild | null = null;
+    let sounds: BaseCollection<string, SoundboardSound>;
+
+    if (this.client.guilds.has(guildId)) {
+      guild = this.client.guilds.get(guildId)!;
+      // guild.merge handles reusing the cached sounds, and skips it if the cache is disabled
+      guild.merge({[DiscordKeys.SOUNDBOARD_SOUNDS]: rawSounds});
+    }
+
+    if (guild && this.client.soundboardSounds.enabled) {
+      sounds = guild.soundboardSounds;
+    } else {
+      sounds = new BaseCollection<string, SoundboardSound>();
+      for (let raw of rawSounds) {
+        (raw as any)[DiscordKeys.GUILD_ID] = guildId;
+        const sound = new SoundboardSound(this.client, raw);
+        sounds.set(sound.soundId, sound);
+      }
+    }
+    return {guild, guildId, sounds};
+  }
+
   [GatewayDispatchEvents.GUILD_UPDATE](data: GatewayRawEvents.GuildUpdate) {
     let differences: GatewayClientEvents.Differences = null;
     let guild: Guild;
@@ -1890,6 +2123,19 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.PRESENCES_REPLACE, payload);
   }
 
+  ['RATE_LIMITED'](data: GatewayRawEvents.RateLimited) {
+    const meta: GatewayRawEvents.RateLimited['meta'] = data['meta'] || {};
+    const guild = (meta['guild_id']) ? this.client.guilds.get(meta['guild_id']) || null : null;
+
+    const payload: GatewayClientEvents.RateLimited = {
+      guild,
+      meta: {guildId: meta['guild_id'], nonce: meta['nonce']},
+      opcode: data['opcode'],
+      retryAfter: data['retry_after'],
+    };
+    this.client.emit(ClientEvents.RATE_LIMITED, payload);
+  }
+
   [GatewayDispatchEvents.RELATIONSHIP_ADD](data: GatewayRawEvents.RelationshipAdd) {
     let differences: GatewayClientEvents.Differences = null;
     let relationship: Relationship;
@@ -2025,6 +2271,27 @@ export class GatewayDispatchHandler {
       streamKey: data['stream_key'],
       viewerIds: data['viewer_ids'],
     });
+  }
+
+  ['SUBSCRIPTION_CREATE'](data: GatewayRawEvents.SubscriptionCreate) {
+    const subscription = new Subscription(this.client, data);
+
+    const payload: GatewayClientEvents.SubscriptionCreate = {subscription};
+    this.client.emit(ClientEvents.SUBSCRIPTION_CREATE, payload);
+  }
+
+  ['SUBSCRIPTION_DELETE'](data: GatewayRawEvents.SubscriptionDelete) {
+    const subscription = new Subscription(this.client, data);
+
+    const payload: GatewayClientEvents.SubscriptionDelete = {subscription};
+    this.client.emit(ClientEvents.SUBSCRIPTION_DELETE, payload);
+  }
+
+  ['SUBSCRIPTION_UPDATE'](data: GatewayRawEvents.SubscriptionUpdate) {
+    const subscription = new Subscription(this.client, data);
+
+    const payload: GatewayClientEvents.SubscriptionUpdate = {subscription};
+    this.client.emit(ClientEvents.SUBSCRIPTION_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.THREAD_CREATE](data: GatewayRawEvents.ThreadCreate) {
@@ -2175,6 +2442,103 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.UserUpdate = {differences, old, user};
     this.client.emit(ClientEvents.USER_UPDATE, payload);
+  }
+
+  ['VOICE_CHANNEL_EFFECT_SEND'](data: GatewayRawEvents.VoiceChannelEffectSend) {
+    const channelId = data['channel_id'];
+    const guildId = data['guild_id'];
+    const userId = data['user_id'];
+
+    let emoji: Emoji | null = null;
+    if (data['emoji']) {
+      const emojiId = data['emoji']['id'];
+      if (emojiId && this.client.emojis.has(guildId, emojiId)) {
+        emoji = this.client.emojis.get(guildId, emojiId)!;
+      } else {
+        emoji = new Emoji(this.client, data['emoji']);
+      }
+    }
+
+    // default sounds have integer ids and aren't cached
+    const soundId = (data['sound_id'] !== undefined) ? String(data['sound_id']) : undefined;
+    const sound = (soundId) ? this.client.soundboardSounds.get(guildId, soundId) || null : null;
+
+    const payload: GatewayClientEvents.VoiceChannelEffectSend = {
+      animationId: data['animation_id'],
+      animationType: data['animation_type'],
+      channel: this.client.channels.get(channelId) || null,
+      channelId,
+      emoji,
+      guild: this.client.guilds.get(guildId) || null,
+      guildId,
+      member: this.client.members.get(guildId, userId) || null,
+      sound,
+      soundId,
+      soundVolume: data['sound_volume'],
+      user: this.client.users.get(userId) || null,
+      userId,
+    };
+    this.client.emit(ClientEvents.VOICE_CHANNEL_EFFECT_SEND, payload);
+  }
+
+  ['VOICE_CHANNEL_START_TIME_UPDATE'](data: GatewayRawEvents.VoiceChannelStartTimeUpdate) {
+    const voiceStartTime = data['voice_start_time'] || null;
+    const { channel, differences, old } = this._mergeChannel(
+      data['id'],
+      {[DiscordKeys.VOICE_START_TIME]: voiceStartTime},
+      ClientEvents.VOICE_CHANNEL_START_TIME_UPDATE,
+    );
+
+    const payload: GatewayClientEvents.VoiceChannelStartTimeUpdate = {
+      channel,
+      channelId: data['id'],
+      differences,
+      guild: this.client.guilds.get(data['guild_id']) || null,
+      guildId: data['guild_id'],
+      old,
+      voiceStartTime,
+    };
+    this.client.emit(ClientEvents.VOICE_CHANNEL_START_TIME_UPDATE, payload);
+  }
+
+  ['VOICE_CHANNEL_STATUS_UPDATE'](data: GatewayRawEvents.VoiceChannelStatusUpdate) {
+    const status = data['status'] || null;
+    const { channel, differences, old } = this._mergeChannel(
+      data['id'],
+      {[DiscordKeys.STATUS]: status},
+      ClientEvents.VOICE_CHANNEL_STATUS_UPDATE,
+    );
+
+    const payload: GatewayClientEvents.VoiceChannelStatusUpdate = {
+      channel,
+      channelId: data['id'],
+      differences,
+      guild: this.client.guilds.get(data['guild_id']) || null,
+      guildId: data['guild_id'],
+      old,
+      status,
+    };
+    this.client.emit(ClientEvents.VOICE_CHANNEL_STATUS_UPDATE, payload);
+  }
+
+  // merges a partial update into a cached channel, cloning it first only if someone is listening
+  _mergeChannel(
+    channelId: string,
+    data: {[key: string]: any},
+    event: ClientEvents,
+  ): {channel: Channel | null, differences: GatewayClientEvents.Differences, old: Channel | null} {
+    let differences: GatewayClientEvents.Differences = null;
+    let old: Channel | null = null;
+
+    const channel = this.client.channels.get(channelId) || null;
+    if (channel) {
+      if (this.client.hasEventListener(event)) {
+        differences = channel.differences(data);
+        old = channel.clone();
+      }
+      channel.merge(data);
+    }
+    return {channel, differences, old};
   }
 
   [GatewayDispatchEvents.VOICE_SERVER_UPDATE](data: GatewayRawEvents.VoiceServerUpdate) {

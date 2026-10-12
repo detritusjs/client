@@ -7,6 +7,9 @@ import {
   DiscordKeys,
   GuildScheduledEventEntityTypes,
   GuildScheduledEventPrivacyLevels,
+  GuildScheduledEventRecurrenceRuleFrequencies,
+  GuildScheduledEventRecurrenceRuleMonths,
+  GuildScheduledEventRecurrenceRuleWeekdays,
   GuildScheduledEventStatusTypes,
 } from '../constants';
 import { Snowflake } from '../utils';
@@ -33,6 +36,7 @@ const keysGuildScheduledEvent = new BaseSet<string>([
   DiscordKeys.IMAGE,
   DiscordKeys.NAME,
   DiscordKeys.PRIVACY_LEVEL,
+  DiscordKeys.RECURRENCE_RULE,
   DiscordKeys.SCHEDULED_END_TIME,
   DiscordKeys.SCHEDULED_START_TIME,
   DiscordKeys.STATUS,
@@ -59,6 +63,7 @@ export class GuildScheduledEvent extends BaseStructure {
   image?: string | null;
   name: string = '';
   privacyLevel: GuildScheduledEventPrivacyLevels = GuildScheduledEventPrivacyLevels.GUILD_ONLY;
+  recurrenceRule: GuildScheduledEventRecurrenceRule | null = null;
   scheduledEndTimeUnix?: number;
   scheduledStartTimeUnix: number = 0;
   status: GuildScheduledEventStatusTypes = GuildScheduledEventStatusTypes.SCHEDULED;
@@ -167,9 +172,13 @@ export class GuildScheduledEvent extends BaseStructure {
     if (DiscordKeys.PRIVACY_LEVEL in data) {
       (this as any)[DetritusKeys[DiscordKeys.PRIVACY_LEVEL]] = data[DiscordKeys.PRIVACY_LEVEL];
     }
+    if (DiscordKeys.RECURRENCE_RULE in data) {
+      const value = data[DiscordKeys.RECURRENCE_RULE];
+      (this as any)[DetritusKeys[DiscordKeys.RECURRENCE_RULE]] = (value) ? new GuildScheduledEventRecurrenceRule(this.client, value) : null;
+    }
     if (DiscordKeys.SCHEDULED_END_TIME in data) {
       const value = data[DiscordKeys.SCHEDULED_END_TIME];
-      this.scheduledEndTimeUnix = Date.parse(value);
+      this.scheduledEndTimeUnix = (value) ? Date.parse(value) : undefined;
     }
     if (DiscordKeys.SCHEDULED_START_TIME in data) {
       const value = data[DiscordKeys.SCHEDULED_START_TIME];
@@ -247,5 +256,52 @@ export class GuildScheduledEventUser extends BaseStructure {
       }
       (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
     }
+  }
+}
+
+
+
+const keysGuildScheduledEventRecurrenceRule = new BaseSet<string>([
+  DiscordKeys.BY_MONTH,
+  DiscordKeys.BY_MONTH_DAY,
+  DiscordKeys.BY_N_WEEKDAY,
+  DiscordKeys.BY_WEEKDAY,
+  DiscordKeys.BY_YEAR_DAY,
+  DiscordKeys.COUNT,
+  DiscordKeys.END,
+  DiscordKeys.FREQUENCY,
+  DiscordKeys.INTERVAL,
+  DiscordKeys.START,
+]);
+
+/**
+ * Guild Scheduled Event Recurrence Rule Structure
+ * @category Structure
+ */
+export class GuildScheduledEventRecurrenceRule extends BaseStructure {
+  readonly _keys = keysGuildScheduledEventRecurrenceRule;
+
+  byMonth: Array<GuildScheduledEventRecurrenceRuleMonths> | null = null;
+  byMonthDay: Array<number> | null = null;
+  byNWeekday: Array<{day: GuildScheduledEventRecurrenceRuleWeekdays, n: number}> | null = null;
+  byWeekday: Array<GuildScheduledEventRecurrenceRuleWeekdays> | null = null;
+  byYearDay: Array<number> | null = null;
+  count: number | null = null;
+  end: string | null = null;
+  frequency: GuildScheduledEventRecurrenceRuleFrequencies = GuildScheduledEventRecurrenceRuleFrequencies.WEEKLY;
+  interval: number = 1;
+  start: string = '';
+
+  constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  get endAt(): Date | null {
+    return (this.end) ? new Date(this.end) : null;
+  }
+
+  get startAt(): Date {
+    return new Date(this.start);
   }
 }

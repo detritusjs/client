@@ -1,6 +1,6 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DetritusKeys, DiscordKeys, SPOILER_ATTACHMENT_PREFIX } from '../constants';
+import { DetritusKeys, DiscordKeys, MessageAttachmentFlags, SPOILER_ATTACHMENT_PREFIX } from '../constants';
 import { Snowflake } from '../utils';
 
 import {
@@ -89,15 +89,22 @@ export const MimeClassTypes: Array<{
 
 
 const keysAttachment = new BaseSet<string>([
+  DiscordKeys.APPLICATION,
+  DiscordKeys.CLIP_CREATED_AT,
+  DiscordKeys.CLIP_PARTICIPANTS,
   DiscordKeys.CONTENT_TYPE,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DURATION_SECS,
   DiscordKeys.EPHEMERAL,
   DiscordKeys.FILENAME,
+  DiscordKeys.FLAGS,
   DiscordKeys.HEIGHT,
   DiscordKeys.ID,
+  DiscordKeys.PLACEHOLDER,
+  DiscordKeys.PLACEHOLDER_VERSION,
   DiscordKeys.PROXY_URL,
   DiscordKeys.SIZE,
+  DiscordKeys.TITLE,
   DiscordKeys.URL,
   DiscordKeys.WAVEFORM,
   DiscordKeys.WIDTH,
@@ -111,15 +118,26 @@ export class Attachment extends BaseStructure {
   readonly _uncloneable = true;
   readonly _keys = keysAttachment;
 
+  // partial application, only on clips
+  application?: any;
+  // only on clips, iso8601 timestamp
+  clipCreatedAt?: string;
+  // only on clips, raw users
+  clipParticipants?: Array<any>;
   contentType?: string;
   description?: string;
   durationSecs?: number;
   ephemeral: boolean = false;
   filename: string = '';
+  flags: number = 0;
   height: number = 0;
   id: string = '';
+  placeholder?: string;
+  placeholderVersion?: number;
   proxyUrl: string = '';
   size: number = 0;
+  // the original filename, before discord sanitized it
+  title?: string;
   url: string = '';
   waveform?: string;
   width: number = 0;
@@ -161,7 +179,14 @@ export class Attachment extends BaseStructure {
   }
 
   get hasSpoiler(): boolean {
+    if ((this.flags & MessageAttachmentFlags.IS_SPOILER) === MessageAttachmentFlags.IS_SPOILER) {
+      return true;
+    }
     return this.filename.startsWith(SPOILER_ATTACHMENT_PREFIX);
+  }
+
+  get isClip(): boolean {
+    return (this.flags & MessageAttachmentFlags.IS_CLIP) === MessageAttachmentFlags.IS_CLIP;
   }
 
   get isAudio(): boolean {
@@ -195,8 +220,29 @@ export class Attachment extends BaseStructure {
     if (DiscordKeys.DESCRIPTION in data) {
       (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
     }
+    if (DiscordKeys.APPLICATION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION]] = data[DiscordKeys.APPLICATION];
+    }
+    if (DiscordKeys.CLIP_CREATED_AT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CLIP_CREATED_AT]] = data[DiscordKeys.CLIP_CREATED_AT];
+    }
+    if (DiscordKeys.CLIP_PARTICIPANTS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CLIP_PARTICIPANTS]] = data[DiscordKeys.CLIP_PARTICIPANTS];
+    }
     if (DiscordKeys.DURATION_SECS in data) {
       (this as any)[DetritusKeys[DiscordKeys.DURATION_SECS]] = data[DiscordKeys.DURATION_SECS];
+    }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+    if (DiscordKeys.PLACEHOLDER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PLACEHOLDER]] = data[DiscordKeys.PLACEHOLDER];
+    }
+    if (DiscordKeys.PLACEHOLDER_VERSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PLACEHOLDER_VERSION]] = data[DiscordKeys.PLACEHOLDER_VERSION];
+    }
+    if (DiscordKeys.TITLE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TITLE]] = data[DiscordKeys.TITLE];
     }
     if (DiscordKeys.EPHEMERAL in data) {
       (this as any)[DetritusKeys[DiscordKeys.EPHEMERAL]] = data[DiscordKeys.EPHEMERAL];

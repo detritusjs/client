@@ -60,6 +60,8 @@ import { Message } from './message';
 import { Presence } from './presence';
 import { Role } from './role';
 import { StageInstance } from './stageinstance';
+import { SoundboardSound } from './soundboardsound';
+import { AutoModerationRule } from './automoderationrule';
 import { Sticker } from './sticker';
 import { User } from './user';
 import { VoiceRegion } from './voiceregion';
@@ -448,6 +450,20 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.fetchGuildSticker(this.id, stickerId);
   }
 
+  async fetchSoundboardSounds() {
+    return this.client.rest.fetchGuildSoundboardSounds(this.id);
+  }
+
+  // asks the gateway for the guild's sounds, the cache gets filled when the `soundboardSounds` event comes back
+  requestSoundboardSounds() {
+    return this.client.gateway.requestSoundboardSounds(this.id);
+  }
+
+  // asks the gateway for voice channel statuses and start times, the channels get updated when the `channelInfo` event comes back
+  requestChannelInfo(fields?: Array<string>) {
+    return this.client.gateway.requestChannelInfo(this.id, fields);
+  }
+
   async fetchStickers() {
     return this.client.rest.fetchGuildStickers(this.id);
   }
@@ -697,6 +713,8 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.AFK_CHANNEL_ID,
   DiscordKeys.AFK_TIMEOUT,
   DiscordKeys.APPLICATION_ID,
+  DiscordKeys.APPROXIMATE_MEMBER_COUNT,
+  DiscordKeys.APPROXIMATE_PRESENCE_COUNT,
   DiscordKeys.BANNER,
   DiscordKeys.CHANNELS,
   DiscordKeys.DEFAULT_MESSAGE_NOTIFICATIONS,
@@ -708,12 +726,14 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.GUILD_SCHEDULED_EVENTS,
   DiscordKeys.ICON,
   DiscordKeys.ID,
+  DiscordKeys.INCIDENTS_DATA,
   DiscordKeys.IS_PARTIAL,
   DiscordKeys.JOINED_AT,
   DiscordKeys.LARGE,
   DiscordKeys.LAZY,
   DiscordKeys.MAX_MEMBERS,
   DiscordKeys.MAX_PRESENCES,
+  DiscordKeys.MAX_STAGE_VIDEO_CHANNEL_USERS,
   DiscordKeys.MAX_VIDEO_CHANNEL_USERS,
   DiscordKeys.MEMBER_COUNT,
   DiscordKeys.MEMBERS,
@@ -732,6 +752,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.ROLES,
   DiscordKeys.RULES_CHANNEL_ID,
   DiscordKeys.SAFETY_ALERTS_CHANNEL_ID,
+  DiscordKeys.SOUNDBOARD_SOUNDS,
   DiscordKeys.SPLASH,
   DiscordKeys.STAGE_INSTANCES,
   DiscordKeys.STICKERS,
@@ -752,6 +773,7 @@ const keysSkipDifferenceGuild = new BaseSet<string>([
   DiscordKeys.MEMBERS,
   DiscordKeys.PRESENCES,
   DiscordKeys.ROLES,
+  DiscordKeys.SOUNDBOARD_SOUNDS,
   DiscordKeys.STICKERS,
 ]);
 
@@ -768,6 +790,10 @@ export class Guild extends GuildPartial {
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
   applicationId?: null | string;
+  // only sent when fetched with `withCounts`
+  approximateMemberCount?: number;
+  approximatePresenceCount?: number;
+  autoModerationRules: BaseCollection<string, AutoModerationRule>;
   banner: null | string = null;
   defaultMessageNotifications: number = 0;
   description: null | string = null;
@@ -787,6 +813,8 @@ export class Guild extends GuildPartial {
   left: boolean = false;
   maxMembers: number = DEFAULT_MAX_MEMBERS;
   maxPresences: number = DEFAULT_MAX_PRESENCES;
+  incidentsData: GuildIncidentsData | null = null;
+  maxStageVideoChannelUsers?: number;
   maxVideoChannelUsers: number = DEFAULT_MAX_VIDEO_CHANNEL_USERS;
   memberCount: number = 0;
   members: BaseCollection<string, Member>;
@@ -804,6 +832,7 @@ export class Guild extends GuildPartial {
   roles: BaseCollection<string, Role>;
   rulesChannelId: null | string = null;
   safetyAlertsChannelId: null | string = null;
+  soundboardSounds: BaseCollection<string, SoundboardSound>;
   splash: null | string = null;
   stageInstances: BaseCollection<string, StageInstance>;
   stickers: BaseCollection<string, Sticker>;
@@ -819,17 +848,21 @@ export class Guild extends GuildPartial {
   constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
     if (this.isClone) {
+      this.autoModerationRules = new BaseCollection<string, AutoModerationRule>();
       this.emojis = new BaseCollection<string, Emoji>();
       this.guildScheduledEvents = new BaseCollection<string, GuildScheduledEvent>();
       this.members = new BaseCollection<string, Member>();
       this.roles = new BaseCollection<string, Role>();
+      this.soundboardSounds = new BaseCollection<string, SoundboardSound>();
       this.stageInstances = new BaseCollection<string, StageInstance>();
       this.stickers = new BaseCollection<string, Sticker>();
     } else {
+      this.autoModerationRules = new BaseCollection<string, AutoModerationRule>(this.client.autoModerationRules.options);
       this.emojis = new BaseCollection<string, Emoji>(this.client.emojis.options);
       this.guildScheduledEvents = new BaseCollection<string, GuildScheduledEvent>(this.client.guildScheduledEvents.options);
       this.members = new BaseCollection<string, Member>(this.client.members.options);
       this.roles = new BaseCollection<string, Role>(this.client.roles.options);
+      this.soundboardSounds = new BaseCollection<string, SoundboardSound>(this.client.soundboardSounds.options);
       this.stageInstances = new BaseCollection<string, StageInstance>(this.client.stageInstances.options);
       this.stickers = new BaseCollection<string, Sticker>(this.client.stickers.options);
     }
@@ -1242,7 +1275,7 @@ export class Guild extends GuildPartial {
         }
         this.emojis.clear();
         for (let emoji of emojis) {
-          this.emojis.set(emoji.id || emoji.name, emoji);
+          this.emojis.set(emoji.id || emoji.name || '', emoji);
         }
       }
     }
@@ -1280,8 +1313,26 @@ export class Guild extends GuildPartial {
       }
       (this as any)[DetritusKeys[DiscordKeys.MAX_PRESENCES]] = value;
     }
+    if (DiscordKeys.MAX_STAGE_VIDEO_CHANNEL_USERS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MAX_STAGE_VIDEO_CHANNEL_USERS]] = data[DiscordKeys.MAX_STAGE_VIDEO_CHANNEL_USERS];
+    }
     if (DiscordKeys.MAX_VIDEO_CHANNEL_USERS in data) {
       (this as any)[DetritusKeys[DiscordKeys.MAX_VIDEO_CHANNEL_USERS]] = data[DiscordKeys.MAX_VIDEO_CHANNEL_USERS];
+    }
+    if (DiscordKeys.APPROXIMATE_MEMBER_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_MEMBER_COUNT]] = data[DiscordKeys.APPROXIMATE_MEMBER_COUNT];
+    }
+    if (DiscordKeys.APPROXIMATE_PRESENCE_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_PRESENCE_COUNT]] = data[DiscordKeys.APPROXIMATE_PRESENCE_COUNT];
+    }
+    if (DiscordKeys.INCIDENTS_DATA in data) {
+      const value = data[DiscordKeys.INCIDENTS_DATA];
+      this.incidentsData = (value) ? {
+        dmSpamDetectedAt: value[DiscordKeys.DM_SPAM_DETECTED_AT] || null,
+        dmsDisabledUntil: value[DiscordKeys.DMS_DISABLED_UNTIL] || null,
+        invitesDisabledUntil: value[DiscordKeys.INVITES_DISABLED_UNTIL] || null,
+        raidDetectedAt: value[DiscordKeys.RAID_DETECTED_AT] || null,
+      } : null;
     }
     if (DiscordKeys.MEMBER_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.MEMBER_COUNT]] = data[DiscordKeys.MEMBER_COUNT];
@@ -1390,6 +1441,32 @@ export class Guild extends GuildPartial {
         }
       }
     }
+    if (DiscordKeys.SOUNDBOARD_SOUNDS in data) {
+      const value = data[DiscordKeys.SOUNDBOARD_SOUNDS];
+      if (this.client.soundboardSounds.enabled) {
+        const sounds: Array<SoundboardSound> = [];
+        for (let raw of value) {
+          raw[DiscordKeys.GUILD_ID] = this.id;
+
+          let sound: SoundboardSound;
+          if (this.isClone) {
+            sound = new SoundboardSound(this.client, raw, this.isClone);
+          } else {
+            if (this.soundboardSounds.has(raw.sound_id)) {
+              sound = this.soundboardSounds.get(raw.sound_id)!;
+              sound.merge(raw);
+            } else {
+              sound = new SoundboardSound(this.client, raw);
+            }
+          }
+          sounds.push(sound);
+        }
+        this.soundboardSounds.clear();
+        for (let sound of sounds) {
+          this.soundboardSounds.set(sound.soundId, sound);
+        }
+      }
+    }
     if (DiscordKeys.STICKERS in data) {
       const value = data[DiscordKeys.STICKERS];
       if (this.client.stickers.enabled) {
@@ -1482,6 +1559,9 @@ export class Guild extends GuildPartial {
 
 
 const keysGuildMe = new BaseSet<string>([
+  DiscordKeys.APPROXIMATE_MEMBER_COUNT,
+  DiscordKeys.APPROXIMATE_PRESENCE_COUNT,
+  DiscordKeys.BANNER,
   DiscordKeys.FEATURES,
   DiscordKeys.ICON,
   DiscordKeys.ID,
@@ -1497,6 +1577,10 @@ const keysGuildMe = new BaseSet<string>([
 export class GuildMe extends BaseGuild {
   readonly _keys = keysGuildMe;
 
+  // only sent when fetched with `withCounts`
+  approximateMemberCount?: number;
+  approximatePresenceCount?: number;
+  banner: null | string = null;
   owner: boolean = false;
   permissions: bigint = Permissions.NONE;
 
@@ -1538,10 +1622,31 @@ export class GuildMe extends BaseGuild {
       return;
     }
 
+    if (DiscordKeys.APPROXIMATE_MEMBER_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_MEMBER_COUNT]] = data[DiscordKeys.APPROXIMATE_MEMBER_COUNT];
+    }
+    if (DiscordKeys.APPROXIMATE_PRESENCE_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_PRESENCE_COUNT]] = data[DiscordKeys.APPROXIMATE_PRESENCE_COUNT];
+    }
+    if (DiscordKeys.BANNER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.BANNER]] = data[DiscordKeys.BANNER];
+    }
+    if (DiscordKeys.OWNER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OWNER]] = !!data[DiscordKeys.OWNER];
+    }
     if (DiscordKeys.PERMISSIONS in data) {
       (this as any)[DetritusKeys[DiscordKeys.PERMISSIONS]] = BigInt(data[DiscordKeys.PERMISSIONS]);
     }
   }
+}
+
+
+export interface GuildIncidentsData {
+  // iso8601 timestamps
+  dmSpamDetectedAt: null | string,
+  dmsDisabledUntil: null | string,
+  invitesDisabledUntil: null | string,
+  raidDetectedAt: null | string,
 }
 
 

@@ -47,22 +47,22 @@ export type ArgumentDefault = ((context: InteractionContext) => Promise<any> | a
 /**
  * @category InteractionCommand
  */
- export type CommandCallbackAutoComplete = (context: InteractionAutoCompleteContext) => Promise<any> | any;
+ export type CommandCallbackAutoComplete = (context: InteractionAutoCompleteContext) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackAutoCompleteError = (context: InteractionAutoCompleteContext, error: any) => Promise<any> | any;
+export type CommandCallbackAutoCompleteError = (context: InteractionAutoCompleteContext, error: any) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackDmBlocked = (context: InteractionContext) => Promise<any> | any;
+export type CommandCallbackDmBlocked = (context: InteractionContext) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackLoadingTrigger = (context: InteractionContext) => Promise<any> | any;
+export type CommandCallbackLoadingTrigger = (context: InteractionContext) => unknown;
 
 /**
  * @category InteractionCommand
@@ -77,22 +77,27 @@ export type CommandCallbackBeforeRun = (context: InteractionContext, args: Parse
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackCancel = (context: InteractionContext) => Promise<any> | any;
+export type CommandCallbackCancel = (context: InteractionContext) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackCancelRun = (context: InteractionContext, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackCancelRun = (context: InteractionContext, args: ParsedArgs) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackError = (context: InteractionContext, error: any) => Promise<any> | any;
+export type CommandCallbackFinally = (context: InteractionContext) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackPermissionsFail = (context: InteractionContext, permissions: FailedPermissions) => Promise<any> | any;
+export type CommandCallbackError = (context: InteractionContext, error: any) => unknown;
+
+/**
+ * @category InteractionCommand
+ */
+export type CommandCallbackPermissionsFail = (context: InteractionContext, permissions: FailedPermissions) => unknown;
 
 /**
 * @category InteractionCommand
@@ -101,27 +106,27 @@ export type CommandCallbackRatelimit = (
  context: InteractionContext,
  ratelimits: Array<CommandRatelimitInfo>,
  metadata: CommandRatelimitMetadata,
-) => Promise<any> | any;
+) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackRun = (context: InteractionContext, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackRun = (context: InteractionContext, args: ParsedArgs) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackRunError = (context: InteractionContext, args: ParsedArgs, error: any) => Promise<any> | any;
+export type CommandCallbackRunError = (context: InteractionContext, args: ParsedArgs, error: any) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackSuccess = (context: InteractionContext) => Promise<any> | any;
+export type CommandCallbackSuccess = (context: InteractionContext) => unknown;
 
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackValueError = (context: InteractionContext, args: ParsedArgs, errors: ParsedErrors) => Promise<any> | any;
+export type CommandCallbackValueError = (context: InteractionContext, args: ParsedArgs, errors: ParsedErrors) => unknown;
 
 
 const ON_FUNCTION_NAMES = Object.freeze([
@@ -134,6 +139,7 @@ const ON_FUNCTION_NAMES = Object.freeze([
   'onCancel',
   'onCancelRun',
   'onError',
+  'onFinally',
   'onPermissionsFail',
   'onPermissionsFailClient',
   'onRatelimit',
@@ -197,6 +203,7 @@ export interface InteractionCommandOptions {
   onCancel?: CommandCallbackCancel,
   onCancelRun?: CommandCallbackCancelRun,
   onError?: CommandCallbackError,
+  onFinally?: CommandCallbackFinally,
   onPermissionsFail?: CommandCallbackPermissionsFail,
   onPermissionsFailClient?: CommandCallbackPermissionsFail,
   onRatelimit?: CommandCallbackRatelimit,
@@ -250,6 +257,7 @@ export interface InteractionCommandOptionOptions {
   onCancel?: CommandCallbackCancel,
   onCancelRun?: CommandCallbackCancelRun,
   onError?: CommandCallbackError,
+  onFinally?: CommandCallbackFinally,
   onPermissionsFail?: CommandCallbackPermissionsFail,
   onPermissionsFailClient?: CommandCallbackPermissionsFail,
   onRatelimit?: CommandCallbackRatelimit,
@@ -261,6 +269,7 @@ export interface InteractionCommandOptionOptions {
 
 export interface InteractionCommandOptionChoiceOptions {
   name?: string,
+  nameLocalizations?: Record<string, string | undefined>,
   value?: number | string,
 }
 
@@ -315,22 +324,23 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   triggerLoadingAfter?: number;
   triggerLoadingAsEphemeral?: boolean;
 
-  onAutoComplete?(context: InteractionAutoCompleteContext): Promise<any> | any;
-  onAutoCompleteError?(context: InteractionAutoCompleteContext, error: any): Promise<any> | any;
-  onDmBlocked?(context: InteractionContext): Promise<any> | any;
-  onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
+  onAutoComplete?(context: InteractionAutoCompleteContext): unknown;
+  onAutoCompleteError?(context: InteractionAutoCompleteContext, error: any): unknown;
+  onDmBlocked?(context: InteractionContext): unknown;
+  onLoadingTrigger?(context: InteractionContext): unknown;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
   onBeforeRun?(context: InteractionContext, args: ParsedArgs): Promise<boolean> | boolean;
-  onCancel?(context: InteractionContext): Promise<any> | any;
-  onCancelRun?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
-  onError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
-  onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
-  onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
-  onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
-  run?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
-  onRunError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
-  onSuccess?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
-  onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): Promise<any> | any;
+  onCancel?(context: InteractionContext): unknown;
+  onCancelRun?(context: InteractionContext, args: ParsedArgs): unknown;
+  onError?(context: InteractionContext, args: ParsedArgs, error: any): unknown;
+  onFinally?(context: InteractionContext): unknown;
+  onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): unknown;
+  onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): unknown;
+  onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): unknown;
+  run?(context: InteractionContext, args: ParsedArgs): unknown;
+  onRunError?(context: InteractionContext, args: ParsedArgs, error: any): unknown;
+  onSuccess?(context: InteractionContext, args: ParsedArgs): unknown;
+  onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): unknown;
 
   constructor(data: InteractionCommandOptions = {}) {
     super();
@@ -408,6 +418,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
     this.onCancel = data.onCancel || this.onCancel;
     this.onCancelRun = data.onCancelRun || this.onCancelRun;
     this.onError = data.onError || this.onError;
+    this.onFinally = data.onFinally || this.onFinally;
     this.onPermissionsFail = data.onPermissionsFail || this.onPermissionsFail;
     this.onPermissionsFailClient = data.onPermissionsFailClient || this.onPermissionsFailClient;
     this.onRatelimit = data.onRatelimit || this.onRatelimit;
@@ -691,22 +702,23 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   triggerLoadingAsEphemeral?: boolean;
   value?: ArgumentConverter;
 
-  onAutoComplete?(context: InteractionAutoCompleteContext): Promise<any> | any;
-  onAutoCompleteError?(context: InteractionAutoCompleteContext, error: any): Promise<any> | any;
-  onDmBlocked?(context: InteractionContext): Promise<any> | any;
-  onLoadingTrigger?(context: InteractionContext): Promise<any> | any;
+  onAutoComplete?(context: InteractionAutoCompleteContext): unknown;
+  onAutoCompleteError?(context: InteractionAutoCompleteContext, error: any): unknown;
+  onDmBlocked?(context: InteractionContext): unknown;
+  onLoadingTrigger?(context: InteractionContext): unknown;
   onBefore?(context: InteractionContext): Promise<boolean> | boolean;
   onBeforeRun?(context: InteractionContext, args: ParsedArgs): Promise<boolean> | boolean;
-  onCancel?(context: InteractionContext): Promise<any> | any;
-  onCancelRun?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
-  onError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
-  onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
-  onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): Promise<any> | any;
-  onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any> | any;
-  run?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
-  onRunError?(context: InteractionContext, args: ParsedArgs, error: any): Promise<any> | any;
-  onSuccess?(context: InteractionContext, args: ParsedArgs): Promise<any> | any;
-  onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): Promise<any> | any;
+  onCancel?(context: InteractionContext): unknown;
+  onCancelRun?(context: InteractionContext, args: ParsedArgs): unknown;
+  onError?(context: InteractionContext, args: ParsedArgs, error: any): unknown;
+  onFinally?(context: InteractionContext): unknown;
+  onPermissionsFail?(context: InteractionContext, permissions: FailedPermissions): unknown;
+  onPermissionsFailClient?(context: InteractionContext, permissions: FailedPermissions): unknown;
+  onRatelimit?(context: InteractionContext, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): unknown;
+  run?(context: InteractionContext, args: ParsedArgs): unknown;
+  onRunError?(context: InteractionContext, args: ParsedArgs, error: any): unknown;
+  onSuccess?(context: InteractionContext, args: ParsedArgs): unknown;
+  onValueError?(context: InteractionContext, args: ParsedArgs, errors: ParsedErrors): unknown;
 
   constructor(data: InteractionCommandOptionOptions = {}) {
     super();
@@ -784,6 +796,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     this.onCancel = data.onCancel || this.onCancel;
     this.onCancelRun = data.onCancelRun || this.onCancelRun;
     this.onError = data.onError || this.onError;
+    this.onFinally = data.onFinally || this.onFinally;
     this.onPermissionsFail = data.onPermissionsFail || this.onPermissionsFail;
     this.onPermissionsFailClient = data.onPermissionsFailClient || this.onPermissionsFailClient;
     this.onRatelimit = data.onRatelimit || this.onRatelimit;
@@ -1112,6 +1125,9 @@ export class InteractionCommandOptionChoice extends Structure {
 
   constructor(data: InteractionCommandOptionChoiceOptions = {}) {
     super();
+    if (DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS] in data) {
+      (data as any)[DiscordKeys.NAME_LOCALIZATIONS] = (data as any)[DetritusKeys[DiscordKeys.NAME_LOCALIZATIONS]];
+    }
     this.merge(data);
   }
 

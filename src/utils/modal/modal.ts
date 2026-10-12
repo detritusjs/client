@@ -34,9 +34,9 @@ import { InteractionModalContext } from './context';
 
 export type InteractionModalArgs = Record<string, any>;
 
-export type InteractionModalOnTimeout = () => Promise<any> | any;
-export type InteractionModalRun = (context: InteractionModalContext, args: InteractionModalArgs) => Promise<any> | any;
-export type InteractionModalOnError = (context: InteractionModalContext, args: InteractionModalArgs, error: Error) => Promise<any> | any;
+export type InteractionModalOnTimeout = () => unknown;
+export type InteractionModalRun = (context: InteractionModalContext, args: InteractionModalArgs) => unknown;
+export type InteractionModalOnError = (context: InteractionModalContext, args: InteractionModalArgs, error: Error) => unknown;
 
 
 export interface InteractionModalOptions {
@@ -71,9 +71,9 @@ export class InteractionModal extends Structure {
   timeout: number = 10 * (60 * 1000); // 10 minutes
   title: string = '';
 
-  onTimeout?(): Promise<any> | any;
-  run?(context: InteractionModalContext, args: InteractionModalArgs): Promise<any> | any;
-  onError?(context: InteractionModalContext, args: InteractionModalArgs, error: Error): Promise<any> | any;
+  onTimeout?(): unknown;
+  run?(context: InteractionModalContext, args: InteractionModalArgs): unknown;
+  onError?(context: InteractionModalContext, args: InteractionModalArgs, error: Error): unknown;
 
   constructor(data: InteractionModalOptions = {}) {
     super();

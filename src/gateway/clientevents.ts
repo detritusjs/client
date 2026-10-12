@@ -4,11 +4,12 @@ import { GatewayRawEvents } from './rawevents';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
-import { ChannelTypes, ClientEvents, ReactionTypes } from '../constants';
+import { AutoModerationRuleTriggerTypes, ChannelTypes, ClientEvents, ReactionTypes } from '../constants';
 import {
   ApplicationCommand,
   ApplicationCommandPermissions,
   AuditLog,
+  AutoModerationRule,
   Channel,
   Emoji,
   Entitlement,
@@ -24,8 +25,10 @@ import {
   Relationship,
   Role,
   Session,
+  SoundboardSound,
   StageInstance,
   Sticker,
+  Subscription,
   ThreadMember,
   Typing,
   User,
@@ -97,6 +100,46 @@ export namespace GatewayClientEvents {
     old: ApplicationCommandPermissions | null,
   }
 
+  export interface AutoModerationActionExecution {
+    action: GatewayRawEvents.RawAutoModerationRuleAction,
+    alertSystemMessageId?: string,
+    channel: Channel | null,
+    channelId?: string,
+    // `content` and `matchedContent` are empty without the MESSAGE_CONTENT intent
+    content: string,
+    guild: Guild | null,
+    guildId: string,
+    matchedContent: null | string,
+    matchedKeyword: null | string,
+    member: Member | null,
+    messageId?: string,
+    rule: AutoModerationRule | null,
+    ruleId: string,
+    ruleTriggerType: AutoModerationRuleTriggerTypes,
+    user: User | null,
+    userId: string,
+  }
+
+  export interface AutoModerationRuleCreate {
+    guild: Guild | null,
+    guildId: string,
+    rule: AutoModerationRule,
+  }
+
+  export interface AutoModerationRuleDelete {
+    guild: Guild | null,
+    guildId: string,
+    rule: AutoModerationRule,
+  }
+
+  export interface AutoModerationRuleUpdate {
+    differences: Differences,
+    guild: Guild | null,
+    guildId: string,
+    old: AutoModerationRule | null,
+    rule: AutoModerationRule,
+  }
+
   export interface BraintreePopupBridgeCallback {
 
   }
@@ -121,6 +164,15 @@ export namespace GatewayClientEvents {
 
   export interface ChannelDelete {
     channel: Channel,
+  }
+
+  export interface ChannelInfo {
+    // the cached channels that got updated
+    channels: BaseCollection<string, Channel>,
+    guild: Guild | null,
+    guildId: string,
+    // everything Discord sent, keyed by channel id, whether the channel is cached or not
+    info: BaseCollection<string, {status?: null | string, voiceStartTime?: null | number}>,
   }
 
   export interface ChannelPinsAck {
@@ -335,6 +387,33 @@ export namespace GatewayClientEvents {
     userId: string,
   }
 
+  export interface GuildSoundboardSoundCreate {
+    guild: Guild | null,
+    guildId: string,
+    sound: SoundboardSound,
+  }
+
+  export interface GuildSoundboardSoundDelete {
+    guild: Guild | null,
+    guildId: string,
+    sound: SoundboardSound | null,
+    soundId: string,
+  }
+
+  export interface GuildSoundboardSoundUpdate {
+    differences: Differences,
+    guild: Guild | null,
+    guildId: string,
+    old: SoundboardSound | null,
+    sound: SoundboardSound,
+  }
+
+  export interface GuildSoundboardSoundsUpdate {
+    guild: Guild | null,
+    guildId: string,
+    sounds: BaseCollection<string, SoundboardSound>,
+  }
+
   export interface GuildStickersUpdate {
     differences: {
       created: BaseCollection<string, Sticker>,
@@ -540,6 +619,17 @@ export namespace GatewayClientEvents {
     presences: BaseCollection<string, Presence>,
   }
 
+  export interface RateLimited {
+    guild: Guild | null,
+    meta: {
+      guildId?: string,
+      nonce?: string,
+    },
+    opcode: number,
+    // seconds
+    retryAfter: number,
+  }
+
   export interface RecentMentionDelete {
 
   }
@@ -559,6 +649,12 @@ export namespace GatewayClientEvents {
   export interface SessionsReplace {
     old: BaseCollection<string, Session>,
     raw: GatewayRawEvents.SessionsReplace,
+  }
+
+  export interface SoundboardSounds {
+    guild: Guild | null,
+    guildId: string,
+    sounds: BaseCollection<string, SoundboardSound>,
   }
 
   export interface StageInstanceCreate {
@@ -606,6 +702,18 @@ export namespace GatewayClientEvents {
     region: string,
     streamKey: string,
     viewerIds: Array<string>,
+  }
+
+  export interface SubscriptionCreate {
+    subscription: Subscription,
+  }
+
+  export interface SubscriptionDelete {
+    subscription: Subscription,
+  }
+
+  export interface SubscriptionUpdate {
+    subscription: Subscription,
   }
 
   export interface ThreadCreate {
@@ -691,6 +799,43 @@ export namespace GatewayClientEvents {
     from: ClientEvents,
     old: User | null,
     user: User,
+  }
+
+  export interface VoiceChannelEffectSend {
+    animationId?: number,
+    animationType?: null | number,
+    channel: Channel | null,
+    channelId: string,
+    emoji: Emoji | null,
+    guild: Guild | null,
+    guildId: string,
+    member: Member | null,
+    sound: SoundboardSound | null,
+    soundId?: string,
+    soundVolume?: number,
+    user: User | null,
+    userId: string,
+  }
+
+  export interface VoiceChannelStartTimeUpdate {
+    channel: Channel | null,
+    channelId: string,
+    differences: Differences,
+    guild: Guild | null,
+    guildId: string,
+    old: Channel | null,
+    // unix seconds
+    voiceStartTime: null | number,
+  }
+
+  export interface VoiceChannelStatusUpdate {
+    channel: Channel | null,
+    channelId: string,
+    differences: Differences,
+    guild: Guild | null,
+    guildId: string,
+    old: Channel | null,
+    status: null | string,
   }
 
   export interface VoiceServerUpdate {

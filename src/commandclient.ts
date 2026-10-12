@@ -52,9 +52,9 @@ export interface CommandClientOptions extends ClusterClientOptions {
 }
 
 export type CommandClientCommandCheck = (context: Context, command: Command) => Promise<boolean> | boolean;
-export type CommandClientCommandCancel = (context: Context, command: Command) => Promise<any> | any;
+export type CommandClientCommandCancel = (context: Context, command: Command) => unknown;
 export type CommandClientMessageCheck = (context: Context) => Promise<boolean> | boolean;
-export type CommandClientMessageCancel = (context: Context) => Promise<any> | any;
+export type CommandClientMessageCancel = (context: Context) => unknown;
 
 export type CommandClientPrefixes = Array<string> | BaseSet<string> | Set<string> | string;
 export type CommandClientPrefixCheck = (context: Context) => CommandClientPrefixes | Promise<CommandClientPrefixes>;
@@ -104,9 +104,9 @@ export class CommandClient extends EventSpewer {
   replies: BaseCollection<string, CommandReply>;
 
   onCommandCheck?(context: Context, command: Command): Promise<boolean> | boolean;
-  onCommandCancel?(context: Context, command: Command): Promise<any> | any;
+  onCommandCancel?(context: Context, command: Command): unknown;
   onMessageCheck?(context: Context): Promise<boolean> | boolean;
-  onMessageCancel?(context: Context): Promise<any> | any;
+  onMessageCancel?(context: Context): unknown;
   onPrefixCheck?(context: Context): CommandClientPrefixes | Promise<CommandClientPrefixes>;
 
   constructor(
@@ -525,7 +525,7 @@ export class CommandClient extends EventSpewer {
     return this.client;
   }
 
-  storeReply(messageId: string, command: Command, context: Context, reply: Message): void {
+  storeReply(messageId: string, command: Command, context: Context, reply: Message | void): void {
     if (this.maxEditDuration && reply instanceof Message) {
       this.replies.set(messageId, {command, context, reply});
     }
@@ -568,12 +568,34 @@ export class CommandClient extends EventSpewer {
     }
 
     const context = new Context(message, typing, this);
+    try {
+      await this.handleContext(name, event, context);
+    } finally {
+      const command = context.command;
+      if (command && typeof(command.onFinally) === 'function') {
+        try {
+          await Promise.resolve(command.onFinally(context));
+        } catch(error: any) {
+          const payload: CommandEvents.CommandError = {command, context, error};
+          this.emit(ClientEvents.COMMAND_ERROR, payload);
+        }
+      }
+    }
+  }
+
+  async handleContext(
+    name: ClientEvents.MESSAGE_CREATE | ClientEvents.MESSAGE_UPDATE,
+    event: GatewayClientEvents.MessageCreate | GatewayClientEvents.MessageUpdate,
+    context: Context,
+  ): Promise<void> {
+    const { message } = context;
     if (typeof(this.onMessageCheck) === 'function') {
       try {
         const shouldContinue = await Promise.resolve(this.onMessageCheck(context));
         if (!shouldContinue) {
           if (typeof(this.onMessageCancel) === 'function') {
-            return await Promise.resolve(this.onMessageCancel(context));
+            await Promise.resolve(this.onMessageCancel(context));
+            return;
           }
           const error = new Error('Message check returned false');
           const payload: CommandEvents.CommandNone = {context, error};
@@ -636,7 +658,8 @@ export class CommandClient extends EventSpewer {
           const shouldContinue = await Promise.resolve(this.onCommandCheck(context, command));
           if (!shouldContinue) {
             if (typeof(this.onCommandCancel) === 'function') {
-              return await Promise.resolve(this.onCommandCancel(context, command));
+              await Promise.resolve(this.onCommandCancel(context, command));
+              return;
             }
             const error = new Error('Command check returned false');
             const payload: CommandEvents.CommandNone = {context, error};

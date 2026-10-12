@@ -178,6 +178,7 @@ const keysAuditLogOptions = new BaseSet<string>([
   DiscordKeys.MEMBERS_REMOVED,
   DiscordKeys.MESSAGE_ID,
   DiscordKeys.ROLE_NAME,
+  DiscordKeys.STATUS,
   DiscordKeys.TYPE,
 ]);
 
@@ -202,6 +203,7 @@ export class AuditLogOptions extends BaseStructure {
   membersRemoved?: number;
   messageId?: string;
   roleName?: string;
+  status?: string;
   type?: string;
 
   constructor(log: AuditLog, data: BaseStructureData) {
@@ -251,6 +253,9 @@ export class AuditLogOptions extends BaseStructure {
     }
     if (DiscordKeys.ROLE_NAME in data) {
       (this as any)[DetritusKeys[DiscordKeys.ROLE_NAME]] = data[DiscordKeys.ROLE_NAME];
+    }
+    if (DiscordKeys.STATUS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.STATUS]] = data[DiscordKeys.STATUS];
     }
     if (DiscordKeys.TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];

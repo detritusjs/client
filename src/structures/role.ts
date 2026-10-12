@@ -25,6 +25,7 @@ import { Overwrite } from './overwrite';
 
 const keysRole = new BaseSet<string>([
   DiscordKeys.COLOR,
+  DiscordKeys.COLORS,
   DiscordKeys.GUILD_ID,
   DiscordKeys.HOIST,
   DiscordKeys.ICON,
@@ -46,6 +47,8 @@ export class Role extends BaseStructure {
   readonly _keys = keysRole;
 
   color: number = 0;
+  // role gradients, `secondaryColor` and `tertiaryColor` are null for a plain color
+  colors: {primaryColor: number, secondaryColor: null | number, tertiaryColor: null | number} | null = null;
   guildId: string = '';
   hoist: boolean = false;
   id: string = '';
@@ -206,6 +209,14 @@ export class Role extends BaseStructure {
 
     if (DiscordKeys.COLOR in data) {
       (this as any)[DetritusKeys[DiscordKeys.COLOR]] = data[DiscordKeys.COLOR];
+    }
+    if (DiscordKeys.COLORS in data) {
+      const value = data[DiscordKeys.COLORS];
+      this.colors = (value) ? {
+        primaryColor: value[DiscordKeys.PRIMARY_COLOR],
+        secondaryColor: value[DiscordKeys.SECONDARY_COLOR] ?? null,
+        tertiaryColor: value[DiscordKeys.TERTIARY_COLOR] ?? null,
+      } : null;
     }
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];

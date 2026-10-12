@@ -25,7 +25,7 @@ export class Emojis extends BaseClientGuildReferenceCache<string, Emoji> {
     if (this.enabled) {
       const guild = emoji.guild;
       if (guild) {
-        guild.emojis.set(emoji.id || emoji.name, emoji);
+        guild.emojis.set(emoji.id || emoji.name || '', emoji);
       }
     }
   }

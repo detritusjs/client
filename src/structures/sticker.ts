@@ -2,7 +2,7 @@ import { Endpoints } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DetritusKeys, DiscordKeys, StickerExtensions, StickerFormats } from '../constants';
+import { DetritusKeys, DiscordKeys, StickerExtensions, StickerFormats, StickerTypes } from '../constants';
 import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 
 import {
@@ -114,6 +114,7 @@ const keysSticker = new BaseSet<string>([
   DiscordKeys.PREVIEW_ASSET,
   DiscordKeys.SORT_VALUE,
   DiscordKeys.TAGS,
+  DiscordKeys.TYPE,
   DiscordKeys.USER,
 ]);
 
@@ -135,6 +136,7 @@ export class Sticker extends StickerItem {
   previewAsset: null | string = null;
   sortValue?: number;
   tags: null | string = '';
+  type: StickerTypes = StickerTypes.GUILD;
   user?: User;
 
   constructor(
@@ -207,6 +209,9 @@ export class Sticker extends StickerItem {
     }
     if (DiscordKeys.SORT_VALUE in data) {
       (this as any)[DetritusKeys[DiscordKeys.SORT_VALUE]] = data[DiscordKeys.SORT_VALUE];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
     if (DiscordKeys.TAGS in data) {
       (this as any)[DetritusKeys[DiscordKeys.TAGS]] = data[DiscordKeys.TAGS];

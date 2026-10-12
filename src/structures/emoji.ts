@@ -47,7 +47,8 @@ export class Emoji extends BaseStructure {
   guildId?: string;
   id: null | string = null;
   managed?: boolean;
-  name: string = '';
+  // can be null on reaction emojis
+  name: null | string = '';
   requireColons?: boolean;
   user?: User;
 
@@ -76,14 +77,14 @@ export class Emoji extends BaseStructure {
     if (this.id) {
       return `${this.name}:${this.id}`;
     }
-    return this.name;
+    return this.name || '';
   }
 
   get format(): string {
     if (this.id) {
       return `<${(this.animated) ? 'a' : ''}:${this.name}:${this.id}>`;
     }
-    return this.name;
+    return this.name || '';
   }
 
   get guild(): Guild | null {

@@ -28,6 +28,8 @@ const keysWebhook = new BaseSet<string>([
   DiscordKeys.SOURCE_CHANNEL,
   DiscordKeys.SOURCE_GUILD,
   DiscordKeys.TOKEN,
+  DiscordKeys.TYPE,
+  DiscordKeys.URL,
   DiscordKeys.USER,
 ]);
 
@@ -49,6 +51,8 @@ export class Webhook extends BaseStructure {
   sourceGuild?: BaseGuild;
   token?: null | string;
   type: WebhookTypes = WebhookTypes.INCOMING;
+  // only returned from the webhook oauth2 flow
+  url?: string;
   user?: null | User;
 
   constructor(
@@ -200,6 +204,12 @@ export class Webhook extends BaseStructure {
     }
     if (DiscordKeys.TOKEN in data) {
       (this as any)[DetritusKeys[DiscordKeys.TOKEN]] = data[DiscordKeys.TOKEN];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
+    }
+    if (DiscordKeys.URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
     }
     if (DiscordKeys.USER in data) {
       const value = data[DiscordKeys.USER];

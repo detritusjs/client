@@ -14,6 +14,7 @@ const keysMessageEmbed = new BaseSet<string>([
   DiscordKeys.COLOR,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.FIELDS,
+  DiscordKeys.FLAGS,
   DiscordKeys.FOOTER,
   DiscordKeys.IMAGE,
   DiscordKeys.PROVIDER,
@@ -37,6 +38,7 @@ export class MessageEmbed extends BaseStructure {
   color?: number;
   description?: string;
   fields?: BaseCollection<number, MessageEmbedField>;
+  flags?: number;
   footer?: MessageEmbedFooter;
   image?: MessageEmbedImage;
   provider?: MessageEmbedProvider;
@@ -145,6 +147,9 @@ export class MessageEmbed extends BaseStructure {
     }
     if (DiscordKeys.DESCRIPTION in data) {
       (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
     }
     if (DiscordKeys.FIELDS in data) {
       const value = data[DiscordKeys.FIELDS];
@@ -334,7 +339,12 @@ export class MessageEmbedFooter extends BaseStructure {
 
 
 const keysMessageEmbedImage = new BaseSet<string>([
+  DiscordKeys.CONTENT_TYPE,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.FLAGS,
   DiscordKeys.HEIGHT,
+  DiscordKeys.PLACEHOLDER,
+  DiscordKeys.PLACEHOLDER_VERSION,
   DiscordKeys.PROXY_URL,
   DiscordKeys.URL,
   DiscordKeys.WIDTH,
@@ -347,7 +357,12 @@ const keysMessageEmbedImage = new BaseSet<string>([
 export class MessageEmbedImage extends BaseStructure {
   readonly _keys = keysMessageEmbedImage;
 
+  contentType?: string;
+  description?: string;
+  flags?: number;
   height: number = 0;
+  placeholder?: string;
+  placeholderVersion?: number;
   proxyUrl?: string;
   url: string = '';
   width: number = 0;
@@ -370,8 +385,23 @@ export class MessageEmbedImage extends BaseStructure {
       return;
     }
 
+    if (DiscordKeys.CONTENT_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONTENT_TYPE]] = data[DiscordKeys.CONTENT_TYPE];
+    }
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
+    }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
     if (DiscordKeys.HEIGHT in data) {
       (this as any)[DetritusKeys[DiscordKeys.HEIGHT]] = data[DiscordKeys.HEIGHT];
+    }
+    if (DiscordKeys.PLACEHOLDER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PLACEHOLDER]] = data[DiscordKeys.PLACEHOLDER];
+    }
+    if (DiscordKeys.PLACEHOLDER_VERSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PLACEHOLDER_VERSION]] = data[DiscordKeys.PLACEHOLDER_VERSION];
     }
     if (DiscordKeys.PROXY_URL in data) {
       (this as any)[DetritusKeys[DiscordKeys.PROXY_URL]] = data[DiscordKeys.PROXY_URL];

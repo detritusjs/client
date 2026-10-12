@@ -7,6 +7,7 @@ import {
   BaseStructureData,
 } from './basestructure';
 import { ChannelGuildThread } from './channel';
+import { Member } from './member';
 import { User } from './user';
 
 
@@ -14,6 +15,7 @@ const keysThreadMember = new BaseSet<string>([
   DiscordKeys.FLAGS,
   DiscordKeys.ID,
   DiscordKeys.JOIN_TIMESTAMP,
+  DiscordKeys.MEMBER,
   DiscordKeys.USER_ID,
 ]);
 
@@ -28,6 +30,7 @@ export class ThreadMember extends BaseStructure {
   flags: number = 0;
   id: string = '';
   joinTimestampUnix: number = 0;
+  member?: Member;
   userId: string = '';
 
   constructor(
@@ -79,6 +82,15 @@ export class ThreadMember extends BaseStructure {
     if (DiscordKeys.USER_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.USER_ID]] = data[DiscordKeys.USER_ID];
     }
+    // only sent when fetching with `withMember`
+    if (DiscordKeys.MEMBER in data) {
+      const value = data[DiscordKeys.MEMBER];
+      const thread = this.thread;
+      if (thread && thread.guildId) {
+        value[DiscordKeys.GUILD_ID] = thread.guildId;
+      }
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = new Member(this.client, value, true);
+    }
   }
 }
 
@@ -88,6 +100,8 @@ const keysThreadMetadata = new BaseSet<string>([
   DiscordKeys.ARCHIVED,
   DiscordKeys.ARCHIVER_ID,
   DiscordKeys.AUTO_ARCHIVE_DURATION,
+  DiscordKeys.CREATE_TIMESTAMP,
+  DiscordKeys.INVITABLE,
   DiscordKeys.LOCKED,
 ]);
 
@@ -103,6 +117,8 @@ const keysThreadMetadata = new BaseSet<string>([
   archived: boolean = false;
   archiverId?: string;
   autoArchiveDuration: number = 60;
+  createTimestampUnix?: number;
+  invitable?: boolean;
   locked?: boolean;
 
   constructor(
@@ -126,6 +142,14 @@ const keysThreadMetadata = new BaseSet<string>([
     return new Date(this.archiveTimestampUnix);
   }
 
+  // only on threads created after 2022-01-09
+  get createTimestamp(): Date | null {
+    if (this.createTimestampUnix) {
+      return new Date(this.createTimestampUnix);
+    }
+    return null;
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
@@ -142,6 +166,13 @@ const keysThreadMetadata = new BaseSet<string>([
     }
     if (DiscordKeys.AUTO_ARCHIVE_DURATION in data) {
       (this as any)[DetritusKeys[DiscordKeys.AUTO_ARCHIVE_DURATION]] = data[DiscordKeys.AUTO_ARCHIVE_DURATION];
+    }
+    if (DiscordKeys.CREATE_TIMESTAMP in data) {
+      const value = data[DiscordKeys.CREATE_TIMESTAMP];
+      this.createTimestampUnix = (value) ? Date.parse(value) : undefined;
+    }
+    if (DiscordKeys.INVITABLE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INVITABLE]] = data[DiscordKeys.INVITABLE];
     }
     if (DiscordKeys.LOCKED in data) {
       (this as any)[DetritusKeys[DiscordKeys.LOCKED]] = data[DiscordKeys.LOCKED];

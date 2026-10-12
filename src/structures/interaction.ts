@@ -431,6 +431,7 @@ export class Interaction extends BaseStructure {
 
 
 const keysInteractionDataApplicationCommand = new BaseSet<string>([
+  DiscordKeys.GUILD_ID,
   DiscordKeys.ID,
   DiscordKeys.NAME,
   DiscordKeys.OPTIONS,
@@ -447,6 +448,7 @@ export class InteractionDataApplicationCommand extends BaseStructure {
   readonly _keys = keysInteractionDataApplicationCommand;
   readonly interaction: Interaction;
 
+  guildId?: string;
   id: string = '';
   name: string = '';
   options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
@@ -496,6 +498,9 @@ export class InteractionDataApplicationCommand extends BaseStructure {
       return;
     }
 
+    if (DiscordKeys.GUILD_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
+    }
     if (DiscordKeys.ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
@@ -627,7 +632,7 @@ const keysInteractionDataApplicationCommandResolved = new BaseSet<string>([
  */
 export class InteractionDataApplicationCommandResolved extends BaseStructure {
   readonly _keys = keysInteractionDataApplicationCommandResolved;
-  readonly interactionData: InteractionDataApplicationCommand | InteractionDataModal;
+  readonly interactionData: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
 
   attachments?: BaseCollection<string, Attachment>;
   channels?: BaseCollection<string, Channel>;
@@ -637,7 +642,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
   users?: BaseCollection<string, User>;
 
   constructor(
-    interactionData: InteractionDataApplicationCommand | InteractionDataModal,
+    interactionData: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal,
     data?: BaseStructureData,
     isClone?: boolean,
   ) {
@@ -736,6 +741,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
 const keysInteractionDataComponent = new BaseSet<string>([
   DiscordKeys.COMPONENT_TYPE,
   DiscordKeys.CUSTOM_ID,
+  DiscordKeys.RESOLVED,
   DiscordKeys.VALUES,
 ]);
 
@@ -749,6 +755,7 @@ export class InteractionDataComponent extends BaseStructure {
 
   componentType: MessageComponentTypes = MessageComponentTypes.BUTTON;
   customId: string = '';
+  resolved?: InteractionDataApplicationCommandResolved;
   values?: Array<string>;
 
   constructor(
@@ -772,6 +779,10 @@ export class InteractionDataComponent extends BaseStructure {
     }
     if (DiscordKeys.CUSTOM_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] = data[DiscordKeys.CUSTOM_ID];
+    }
+    if (DiscordKeys.RESOLVED in data) {
+      const value = new InteractionDataApplicationCommandResolved(this, data[DiscordKeys.RESOLVED], this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.RESOLVED]] = value;
     }
     if (DiscordKeys.VALUES in data) {
       (this as any)[DetritusKeys[DiscordKeys.VALUES]] = data[DiscordKeys.VALUES];
@@ -864,6 +875,116 @@ export class InteractionDataModal extends BaseStructure {
     if (DiscordKeys.RESOLVED in data) {
       const value = new InteractionDataApplicationCommandResolved(this, data[DiscordKeys.RESOLVED], this.isClone);
       (this as any)[DetritusKeys[DiscordKeys.RESOLVED]] = value;
+    }
+  }
+}
+
+
+
+const keysInteractionCallbackResponse = new BaseSet<string>([
+  DiscordKeys.INTERACTION,
+  DiscordKeys.RESOURCE,
+]);
+
+/**
+ * Interaction Callback Response Structure
+ * returned when responding to an interaction with `withResponse`
+ * @category Structure
+ */
+export class InteractionCallbackResponse extends BaseStructure {
+  readonly _keys = keysInteractionCallbackResponse;
+
+  interaction!: InteractionCallback;
+  resource?: InteractionCallbackResource;
+
+  constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.INTERACTION in data) {
+      const value = new InteractionCallback(this.client, data[DiscordKeys.INTERACTION], this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.INTERACTION]] = value;
+    }
+    if (DiscordKeys.RESOURCE in data) {
+      const value = new InteractionCallbackResource(this.client, data[DiscordKeys.RESOURCE], this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.RESOURCE]] = value;
+    }
+  }
+}
+
+
+const keysInteractionCallback = new BaseSet<string>([
+  DiscordKeys.ACTIVITY_INSTANCE_ID,
+  DiscordKeys.ID,
+  DiscordKeys.RESPONSE_MESSAGE_EPHEMERAL,
+  DiscordKeys.RESPONSE_MESSAGE_ID,
+  DiscordKeys.RESPONSE_MESSAGE_LOADING,
+  DiscordKeys.TYPE,
+]);
+
+/**
+ * Interaction Callback Structure
+ * @category Structure
+ */
+export class InteractionCallback extends BaseStructure {
+  readonly _keys = keysInteractionCallback;
+
+  activityInstanceId?: string;
+  id: string = '';
+  responseMessageEphemeral?: boolean;
+  responseMessageId?: string;
+  responseMessageLoading?: boolean;
+  type: InteractionTypes = InteractionTypes.PING;
+
+  constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+}
+
+
+const keysInteractionCallbackResource = new BaseSet<string>([
+  DiscordKeys.ACTIVITY_INSTANCE,
+  DiscordKeys.MESSAGE,
+  DiscordKeys.TYPE,
+]);
+
+/**
+ * Interaction Callback Resource Structure
+ * @category Structure
+ */
+export class InteractionCallbackResource extends BaseStructure {
+  readonly _keys = keysInteractionCallbackResource;
+
+  activityInstance?: {id: string};
+  message?: Message;
+  type: InteractionCallbackTypes = InteractionCallbackTypes.PONG;
+
+  constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ACTIVITY_INSTANCE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ACTIVITY_INSTANCE]] = data[DiscordKeys.ACTIVITY_INSTANCE];
+    }
+    if (DiscordKeys.MESSAGE in data) {
+      const value = new Message(this.client, data[DiscordKeys.MESSAGE], this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.MESSAGE]] = value;
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
   }
 }

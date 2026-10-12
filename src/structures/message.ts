@@ -62,6 +62,7 @@ export interface MessageReplyOptions extends RequestTypes.CreateMessage {
 const keysMessage = new BaseSet<string>([
   DiscordKeys.ACTIVITY,
   DiscordKeys.APPLICATION,
+  DiscordKeys.APPLICATION_ID,
   DiscordKeys.ATTACHMENTS,
   DiscordKeys.AUTHOR,
   DiscordKeys.CALL,
@@ -128,6 +129,8 @@ export class Message extends BaseStructure {
 
   activity?: MessageActivity;
   application?: Application;
+  // for interaction or application-owned webhook messages
+  applicationId?: string;
   author!: User;
   call?: MessageCall;
   channelId: string = '';
@@ -604,6 +607,9 @@ export class Message extends BaseStructure {
     // we need webhook id before merging the author to make sure not to cache it
     if (DiscordKeys.WEBHOOK_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.WEBHOOK_ID]] = data[DiscordKeys.WEBHOOK_ID];
+    }
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
     }
 
     // do not put webhook user into cache since the username can change per-message
@@ -1206,6 +1212,7 @@ export class MessageCall extends BaseStructure {
 
 const keysMessageInteraction = new BaseSet<string>([
   DiscordKeys.ID,
+  DiscordKeys.MEMBER,
   DiscordKeys.NAME,
   DiscordKeys.TYPE,
   DiscordKeys.USER,
@@ -1221,6 +1228,7 @@ export class MessageInteraction extends BaseStructure {
   readonly message: Message;
 
   id: string = '';
+  member?: Member;
   name: string = '';
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
@@ -1259,6 +1267,17 @@ export class MessageInteraction extends BaseStructure {
       }
       (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
+    if (DiscordKeys.MEMBER in data) {
+      // partial member, so don't cache it
+      const value = data[DiscordKeys.MEMBER];
+      value[DiscordKeys.GUILD_ID] = this.message.guildId;
+
+      const member = new Member(this.client, value, true);
+      if (!member.user && this.user) {
+        member.user = this.user;
+      }
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
+    }
   }
 }
 
@@ -1268,6 +1287,8 @@ const keysMessageInteractionMetadata = new BaseSet<string>([
   DiscordKeys.ID,
   DiscordKeys.INTERACTED_MESSAGE_ID,
   DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID,
+  DiscordKeys.TARGET_MESSAGE_ID,
+  DiscordKeys.TARGET_USER,
   DiscordKeys.TRIGGERING_INTERACTION_METADATA,
   DiscordKeys.TYPE,
   DiscordKeys.USER,
@@ -1286,6 +1307,10 @@ export class MessageInteractionMetadata extends BaseStructure {
   id: string = '';
   interactedMessageId?: string;
   originalResponseMessageId?: string;
+  // message context menu commands
+  targetMessageId?: string;
+  // user context menu commands
+  targetUser?: User;
   triggeringInteractionMetadata?: MessageInteractionMetadata;
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
@@ -1331,6 +1356,13 @@ export class MessageInteractionMetadata extends BaseStructure {
     if (DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID]] = data[DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID];
     }
+    if (DiscordKeys.TARGET_MESSAGE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TARGET_MESSAGE_ID]] = data[DiscordKeys.TARGET_MESSAGE_ID];
+    }
+    if (DiscordKeys.TARGET_USER in data) {
+      const value = data[DiscordKeys.TARGET_USER];
+      (this as any)[DetritusKeys[DiscordKeys.TARGET_USER]] = this.client.users.get(value.id) || new User(this.client, value);
+    }
     if (DiscordKeys.TRIGGERING_INTERACTION_METADATA in data) {
       const value = new MessageInteractionMetadata(this.message, data[DiscordKeys.TRIGGERING_INTERACTION_METADATA]);
       (this as any)[DetritusKeys[DiscordKeys.TRIGGERING_INTERACTION_METADATA]] = value;
@@ -1359,8 +1391,10 @@ const keysMessagePoll = new BaseSet<string>([
   DiscordKeys.ALLOW_MULTISELECT,
   DiscordKeys.ANSWERS,
   DiscordKeys.DURATION,
+  DiscordKeys.EXPIRY,
   DiscordKeys.LAYOUT_TYPE,
   DiscordKeys.QUESTION,
+  DiscordKeys.RESULTS,
 ]);
 
 /**
@@ -1375,8 +1409,11 @@ export class MessagePoll extends BaseStructure {
 
   allowMultiselect: boolean = false;
   duration: number = 0;
+  expiryUnix: number = 0;
   layoutType?: MessagePollLayoutTypes;
   question!: MessagePollMedia;
+  // not sent if the poll's results haven't been calculated yet
+  results?: MessagePollResults;
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
@@ -1394,6 +1431,18 @@ export class MessagePoll extends BaseStructure {
 
   get channelId(): string {
     return this.message.channelId;
+  }
+
+  // null for polls that never expire
+  get expiry(): Date | null {
+    if (this.expiryUnix) {
+      return new Date(this.expiryUnix);
+    }
+    return null;
+  }
+
+  get expired(): boolean {
+    return !!this.expiryUnix && this.expiryUnix <= Date.now();
   }
 
   get messageId(): string {
@@ -1432,12 +1481,89 @@ export class MessagePoll extends BaseStructure {
     if (DiscordKeys.DURATION in data) {
       (this as any)[DetritusKeys[DiscordKeys.DURATION]] = data[DiscordKeys.DURATION];
     }
+    if (DiscordKeys.EXPIRY in data) {
+      const value = data[DiscordKeys.EXPIRY];
+      this.expiryUnix = (value) ? Date.parse(value) : 0;
+    }
     if (DiscordKeys.LAYOUT_TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.LAYOUT_TYPE]] = data[DiscordKeys.LAYOUT_TYPE];
     }
     if (DiscordKeys.QUESTION in data) {
       const value = new MessagePollMedia(this, data[DiscordKeys.QUESTION]);
       (this as any)[DetritusKeys[DiscordKeys.QUESTION]] = value;
+    }
+    if (DiscordKeys.RESULTS in data) {
+      const value = data[DiscordKeys.RESULTS];
+      if (value) {
+        if (this.results) {
+          this.results.merge(value);
+        } else {
+          this.results = new MessagePollResults(this, value);
+        }
+      } else {
+        this.results = undefined;
+      }
+    }
+  }
+}
+
+
+export interface MessagePollAnswerCount {
+  count: number,
+  id: number,
+  meVoted: boolean,
+}
+
+const keysMessagePollResults = new BaseSet<string>([
+  DiscordKeys.ANSWER_COUNTS,
+  DiscordKeys.IS_FINALIZED,
+]);
+
+/**
+ * Channel Message Poll Results Structure
+ * @category Structure
+ */
+export class MessagePollResults extends BaseStructure {
+  readonly _uncloneable = true;
+  readonly _keys = keysMessagePollResults;
+  readonly poll: MessagePoll;
+
+  // keyed by answer id
+  answerCounts = new BaseCollection<number, MessagePollAnswerCount>();
+  isFinalized: boolean = false;
+
+  constructor(poll: MessagePoll, data: BaseStructureData) {
+    super(poll.client, undefined, poll._clone);
+    this.poll = poll;
+    this.merge(data);
+    Object.defineProperty(this, 'poll', {enumerable: false});
+  }
+
+  get totalVotes(): number {
+    let total = 0;
+    for (let [answerId, answerCount] of this.answerCounts) {
+      total += answerCount.count;
+    }
+    return total;
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.ANSWER_COUNTS in data) {
+      this.answerCounts.clear();
+      for (let raw of data[DiscordKeys.ANSWER_COUNTS]) {
+        this.answerCounts.set(raw[DiscordKeys.ID], {
+          count: raw[DiscordKeys.COUNT],
+          id: raw[DiscordKeys.ID],
+          meVoted: raw[DiscordKeys.ME_VOTED],
+        });
+      }
+    }
+    if (DiscordKeys.IS_FINALIZED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.IS_FINALIZED]] = data[DiscordKeys.IS_FINALIZED];
     }
   }
 }

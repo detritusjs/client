@@ -5,7 +5,7 @@ import {
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
-import { DetritusKeys, DiscordKeys, InviteTargetTypes } from '../constants';
+import { DetritusKeys, DiscordKeys, InviteFlags, InviteTargetTypes, InviteTypes } from '../constants';
 
 import {
   BaseStructure,
@@ -27,16 +27,19 @@ const keysInvite = new BaseSet<string>([
   DiscordKeys.CODE,
   DiscordKeys.CREATED_AT,
   DiscordKeys.EXPIRES_AT,
+  DiscordKeys.FLAGS,
   DiscordKeys.GUILD,
   DiscordKeys.GUILD_SCHEDULED_EVENT,
   DiscordKeys.INVITER,
   DiscordKeys.MAX_AGE,
   DiscordKeys.MAX_USES,
   DiscordKeys.REVOKED,
+  DiscordKeys.ROLES,
   DiscordKeys.TARGET_APPLICATION,
   DiscordKeys.TARGET_TYPE,
   DiscordKeys.TARGET_USER,
   DiscordKeys.TEMPORARY,
+  DiscordKeys.TYPE,
   DiscordKeys.USES,
 ]);
 
@@ -58,16 +61,20 @@ export class Invite extends BaseStructure {
   code: string = '';
   createdAt?: Date;
   expiresAt?: Date;
+  flags: number = 0;
   guild?: GuildPartial;
   guildScheduledEvent?: GuildScheduledEvent;
   inviter?: User;
   maxAge?: number;
   maxUses?: number;
   revoked?: boolean;
+  // partial roles given to whoever accepts the invite
+  roles?: Array<{id: string, name?: string, [key: string]: any}>;
   targetApplication?: any;
   targetType?: InviteTargetTypes;
   targetUser?: User;
   temporary?: boolean;
+  type: InviteTypes = InviteTypes.GUILD;
   uses?: number;
 
   constructor(
@@ -77,6 +84,10 @@ export class Invite extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  get isGuestInvite(): boolean {
+    return (this.flags & InviteFlags.IS_GUEST_INVITE) === InviteFlags.IS_GUEST_INVITE;
   }
 
   get createdAtUnix(): number {
@@ -165,6 +176,15 @@ export class Invite extends BaseStructure {
     }
     if (DiscordKeys.APPROXIMATE_PRESENCE_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_PRESENCE_COUNT]] = data[DiscordKeys.APPROXIMATE_PRESENCE_COUNT];
+    }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+    if (DiscordKeys.ROLES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ROLES]] = data[DiscordKeys.ROLES];
+    }
+    if (DiscordKeys.TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
     if (DiscordKeys.CHANNEL in data) {
       const value = data[DiscordKeys.CHANNEL];

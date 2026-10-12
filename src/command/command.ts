@@ -16,7 +16,7 @@ export type FailedPermissions = Array<bigint>;
 /**
  * @category Command
  */
-export type CommandCallbackDmBlocked = (context: Context) => Promise<any | Message> | any | Message;
+export type CommandCallbackDmBlocked = (context: Context) => Promise<Message | void> | Message | void;
 
 /**
  * @category Command
@@ -31,27 +31,32 @@ export type CommandCallbackBeforeRun = (context: Context, args: ParsedArgs) => P
 /**
  * @category Command
  */
-export type CommandCallbackCancel = (context: Context) => Promise<any | Message> | any | Message;
+export type CommandCallbackCancel = (context: Context) => Promise<Message | void> | Message | void;
 
 /**
  * @category Command
  */
-export type CommandCallbackCancelRun = (context: Context, args: ParsedArgs) => Promise<any | Message> | any | Message;
+export type CommandCallbackCancelRun = (context: Context, args: ParsedArgs) => Promise<Message | void> | Message | void;
 
 /**
  * @category Command
  */
-export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => Promise<any> | any;
+export type CommandCallbackFinally = (context: Context) => unknown;
 
 /**
  * @category Command
  */
-export type CommandCallbackPermissionsFail = (context: Context, permissions: FailedPermissions) => Promise<any | Message> | any | Message;
+export type CommandCallbackError = (context: Context, args: ParsedArgs, error: any) => unknown;
 
 /**
  * @category Command
  */
-export type CommandCallbackSuccess = (context: Context, args: ParsedArgs) => Promise<any> | any;
+export type CommandCallbackPermissionsFail = (context: Context, permissions: FailedPermissions) => Promise<Message | void> | Message | void;
+
+/**
+ * @category Command
+ */
+export type CommandCallbackSuccess = (context: Context, args: ParsedArgs) => unknown;
 
 /**
  * @category Command
@@ -60,27 +65,27 @@ export type CommandCallbackRatelimit = (
   context: Context,
   ratelimits: Array<CommandRatelimitInfo>,
   metadata: CommandRatelimitMetadata,
-) => Promise<any | Message> | any | Message;
+) => Promise<Message | void> | Message | void;
 
 /**
  * @category Command
  */
-export type CommandCallbackRun = (context: Context, args: ParsedArgs) => Promise<any | Message> | any | Message;
+export type CommandCallbackRun = (context: Context, args: ParsedArgs) => Promise<Message | void> | Message | void;
 
 /**
  * @category Command
  */
-export type CommandCallbackRunError = (context: Context, args: ParsedArgs, error: any) => Promise<any> | any;
+export type CommandCallbackRunError = (context: Context, args: ParsedArgs, error: any) => Promise<Message | void> | Message | void;
 
 /**
  * @category Command
  */
-export type CommandCallbackTypeError = (context: Context, args: ParsedArgs, errors: ParsedErrors) => Promise<any | Message> | any | Message;
+export type CommandCallbackTypeError = (context: Context, args: ParsedArgs, errors: ParsedErrors) => Promise<Message | void> | Message | void;
 
 /**
  * @category Command
  */
-export type CommandCallbackTypingTrigger = (context: Context) => Promise<any> | any;
+export type CommandCallbackTypingTrigger = (context: Context) => unknown;
 
 
 /**
@@ -110,6 +115,7 @@ export interface CommandOptions extends ArgumentOptions {
   onCancel?: CommandCallbackCancel,
   onCancelRun?: CommandCallbackCancelRun,
   onError?: CommandCallbackError,
+  onFinally?: CommandCallbackFinally,
   onPermissionsFail?: CommandCallbackPermissionsFail,
   onPermissionsFailClient?: CommandCallbackPermissionsFail,
   onRatelimit?: CommandCallbackRatelimit,
@@ -145,20 +151,21 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   // trigger typing even when the existing reply is expected to be edited (instead of a new message being sent)
   triggerTypingOnEdits: boolean = false;
 
-  onDmBlocked?(context: Context): Promise<any | Message> | any | Message;
+  onDmBlocked?(context: Context): Promise<Message | void> | Message | void;
   onBefore?(context: Context): Promise<boolean> | boolean;
   onBeforeRun?(context: Context, args: ParsedArgs): Promise<boolean> | boolean;
-  onCancel?(context: Context): Promise<any | Message> | any | Message;
-  onCancelRun?(context: Context, args: ParsedArgs): Promise<any | Message> | any | Message;
-  onError?(context: Context, args: ParsedArgs, error: any): Promise<any> | any;
-  onPermissionsFail?(context: Context, permissions: FailedPermissions): Promise<any | Message> | any | Message;
-  onPermissionsFailClient?(context: Context, permissions: FailedPermissions): Promise<any | Message> | any | Message;
-  onRatelimit?(context: Context, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<any | Message> | any | Message;
-  run?(context: Context, args: ParsedArgsFinished): Promise<any | Message> | any | Message;
-  onRunError?(context: Context, args: ParsedArgsFinished, error: any): Promise<any | Message> | any | Message;
-  onSuccess?(context: Context, args: ParsedArgsFinished): Promise<any> | any;
-  onTypeError?(context: Context, args: ParsedArgs, errors: ParsedErrors): Promise<any | Message> | any | Message;
-  onTypingTrigger?(context: Context): Promise<any> | any;
+  onCancel?(context: Context): Promise<Message | void> | Message | void;
+  onCancelRun?(context: Context, args: ParsedArgs): Promise<Message | void> | Message | void;
+  onError?(context: Context, args: ParsedArgs, error: any): unknown;
+  onFinally?(context: Context): unknown;
+  onPermissionsFail?(context: Context, permissions: FailedPermissions): Promise<Message | void> | Message | void;
+  onPermissionsFailClient?(context: Context, permissions: FailedPermissions): Promise<Message | void> | Message | void;
+  onRatelimit?(context: Context, ratelimits: Array<CommandRatelimitInfo>, metadata: CommandRatelimitMetadata): Promise<Message | void> | Message | void;
+  run?(context: Context, args: ParsedArgsFinished): Promise<Message | void> | Message | void;
+  onRunError?(context: Context, args: ParsedArgsFinished, error: any): Promise<Message | void> | Message | void;
+  onSuccess?(context: Context, args: ParsedArgsFinished): unknown;
+  onTypeError?(context: Context, args: ParsedArgs, errors: ParsedErrors): Promise<Message | void> | Message | void;
+  onTypingTrigger?(context: Context): unknown;
 
   constructor(
     commandClient: CommandClient,
@@ -219,6 +226,7 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
     this.onCancel = options.onCancel || this.onCancel;
     this.onCancelRun = options.onCancelRun || this.onCancelRun;
     this.onError = options.onError || this.onError;
+    this.onFinally = options.onFinally || this.onFinally;
     this.onPermissionsFail = options.onPermissionsFail || this.onPermissionsFail;
     this.onPermissionsFailClient = options.onPermissionsFailClient || this.onPermissionsFailClient;
     this.run = options.run || this.run;

@@ -1,6 +1,7 @@
 export * from './applicationcommandpermissions';
 export * from './applicationemojis';
 export * from './applications';
+export * from './automoderationrules';
 export * from './basecollection';
 export * from './baseset';
 export * from './channels';
@@ -15,6 +16,7 @@ export * from './presences';
 export * from './relationships';
 export * from './roles';
 export * from './sessions';
+export * from './soundboardsounds';
 export * from './stageinstances';
 export * from './stickers';
 export * from './typing';

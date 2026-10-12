@@ -73,8 +73,8 @@ export class ComponentActionBase extends Structure {
   id?: null | number;
   type: MessageComponentTypes = MessageComponentTypes.BUTTON;
 
-  run?(context: ComponentContext): Promise<any> | any;
-  onError?(context: ComponentContext, error: Error): Promise<any> | any;
+  run?(context: ComponentContext): unknown;
+  onError?(context: ComponentContext, error: Error): unknown;
 
   constructor(data: ComponentActionData = {}) {
     super();

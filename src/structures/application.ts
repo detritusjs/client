@@ -7,6 +7,8 @@ import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
+  ActivityLocationKinds,
+  ApplicationEventWebhookStatus,
   ApplicationFlags,
   ApplicationMonetizationStates,
   ApplicationIntegrationTypes,
@@ -54,6 +56,14 @@ export interface ApplicationExecutable {
   os: string,
 }
 
+export interface ApplicationGuildPartial {
+  features?: Array<string>,
+  icon?: null | string,
+  id: string,
+  name?: string,
+  [key: string]: any,
+}
+
 export interface ApplicationPublisher {
   id: string,
   name: string,
@@ -62,6 +72,7 @@ export interface ApplicationPublisher {
 const keysApplication = new BaseSet<string>([
   DiscordKeys.ALIASES,
   DiscordKeys.APPROXIMATE_GUILD_COUNT,
+  DiscordKeys.APPROXIMATE_USER_AUTHORIZATION_COUNT,
   DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT,
   DiscordKeys.BOT,
   DiscordKeys.BOT_PUBLIC,
@@ -71,9 +82,14 @@ const keysApplication = new BaseSet<string>([
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DEVELOPERS,
   DiscordKeys.EULA_ID,
+  DiscordKeys.EVENT_WEBHOOKS_STATUS,
+  DiscordKeys.EVENT_WEBHOOKS_TYPES,
+  DiscordKeys.EVENT_WEBHOOKS_URL,
   DiscordKeys.EXECUTABLES,
   DiscordKeys.FLAGS,
+  DiscordKeys.FLAGS_NEW,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.GUILD_PARTIAL,
   DiscordKeys.HOOK,
   DiscordKeys.ICON,
   DiscordKeys.ID,
@@ -91,7 +107,7 @@ const keysApplication = new BaseSet<string>([
   DiscordKeys.PRIVACY_POLICY_URL,
   DiscordKeys.PUBLISHERS,
   DiscordKeys.REDIRECT_URIS,
-  DiscordKeys.ROLE_CONNECTIONS_VERIFY_URL,
+  DiscordKeys.ROLE_CONNECTIONS_VERIFICATION_URL,
   DiscordKeys.RPC_ORIGINS,
   DiscordKeys.SLUG,
   DiscordKeys.SPLASH,
@@ -114,6 +130,7 @@ export class Application extends BaseStructure {
 
   aliases?: BaseSet<string>;
   approximateGuildCount?: number;
+  approximateUserAuthorizationCount?: number;
   approximateUserInstallCount?: number;
   bot?: UserWithToken;
   botPublic?: boolean;
@@ -123,15 +140,20 @@ export class Application extends BaseStructure {
   description: string = '';
   developers?: Array<ApplicationDeveloper>;
   eulaId?: string;
+  eventWebhooksStatus?: ApplicationEventWebhookStatus;
+  eventWebhooksTypes?: Array<string>;
+  eventWebhooksUrl?: null | string;
   executables?: Array<ApplicationExecutable>;
   flags?: number;
+  flagsNew?: string;
   guildId?: string;
+  guildPartial?: ApplicationGuildPartial;
   hook?: boolean;
   icon: null | string = null;
   id: string = '';
   installParams?: ApplicationInstallParams;
   integrationTypesConfig?: BaseCollection<ApplicationIntegrationTypes, ApplicationIntegrationTypeConfiguration>;
-  interactionsEndpointUrl?: string;
+  interactionsEndpointUrl?: null | string;
   isMonetized?: boolean;
   isVerified?: boolean;
   monetizationState?: ApplicationMonetizationStates;
@@ -143,7 +165,7 @@ export class Application extends BaseStructure {
   privacyPolicyUrl?: string;
   publishers?: Array<ApplicationPublisher>;
   redirectUris?: Array<string>;
-  roleConnectionsVerifyUrl?: string;
+  roleConnectionsVerificationUrl?: null | string;
   rpcApplicationState?: number;
   rpcOrigins?: BaseSet<string>;
   secret?: string;
@@ -161,6 +183,13 @@ export class Application extends BaseStructure {
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  /**
+   * @deprecated use `roleConnectionsVerificationUrl`
+   */
+  get roleConnectionsVerifyUrl(): null | string | undefined {
+    return this.roleConnectionsVerificationUrl;
   }
 
   get canGatewayGuildMembers(): boolean {
@@ -382,6 +411,9 @@ export class Application extends BaseStructure {
     if (DiscordKeys.APPROXIMATE_GUILD_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_GUILD_COUNT]] = data[DiscordKeys.APPROXIMATE_GUILD_COUNT];
     }
+    if (DiscordKeys.APPROXIMATE_USER_AUTHORIZATION_COUNT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_USER_AUTHORIZATION_COUNT]] = data[DiscordKeys.APPROXIMATE_USER_AUTHORIZATION_COUNT];
+    }
     if (DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT]] = data[DiscordKeys.APPROXIMATE_USER_INSTALL_COUNT];
     }
@@ -410,11 +442,26 @@ export class Application extends BaseStructure {
     if (DiscordKeys.EULA_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.EULA_ID]] = data[DiscordKeys.EULA_ID];
     }
+    if (DiscordKeys.EVENT_WEBHOOKS_STATUS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EVENT_WEBHOOKS_STATUS]] = data[DiscordKeys.EVENT_WEBHOOKS_STATUS];
+    }
+    if (DiscordKeys.EVENT_WEBHOOKS_TYPES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EVENT_WEBHOOKS_TYPES]] = data[DiscordKeys.EVENT_WEBHOOKS_TYPES];
+    }
+    if (DiscordKeys.EVENT_WEBHOOKS_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EVENT_WEBHOOKS_URL]] = data[DiscordKeys.EVENT_WEBHOOKS_URL];
+    }
     if (DiscordKeys.EXECUTABLES in data) {
       (this as any)[DetritusKeys[DiscordKeys.EXECUTABLES]] = data[DiscordKeys.EXECUTABLES];
     }
     if (DiscordKeys.FLAGS in data) {
       (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+    if (DiscordKeys.FLAGS_NEW in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS_NEW]] = data[DiscordKeys.FLAGS_NEW];
+    }
+    if (DiscordKeys.GUILD in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_PARTIAL]] = data[DiscordKeys.GUILD];
     }
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
@@ -481,8 +528,8 @@ export class Application extends BaseStructure {
     if (DiscordKeys.REDIRECT_URIS in data) {
       (this as any)[DetritusKeys[DiscordKeys.REDIRECT_URIS]] = data[DiscordKeys.REDIRECT_URIS];
     }
-    if (DiscordKeys.ROLE_CONNECTIONS_VERIFY_URL in data) {
-      (this as any)[DetritusKeys[DiscordKeys.ROLE_CONNECTIONS_VERIFY_URL]] = data[DiscordKeys.ROLE_CONNECTIONS_VERIFY_URL];
+    if (DiscordKeys.ROLE_CONNECTIONS_VERIFICATION_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ROLE_CONNECTIONS_VERIFICATION_URL]] = data[DiscordKeys.ROLE_CONNECTIONS_VERIFICATION_URL];
     }
     if (DiscordKeys.RPC_APPLICATION_STATE in data) {
       (this as any)[DetritusKeys[DiscordKeys.RPC_APPLICATION_STATE]] = data[DiscordKeys.RPC_APPLICATION_STATE];
@@ -721,5 +768,91 @@ export class ApplicationThirdPartySku extends BaseStructure {
     if (DiscordKeys.SKU in data) {
       (this as any)[DetritusKeys[DiscordKeys.SKU]] = data[DiscordKeys.SKU];
     }
+  }
+}
+
+
+
+const keysApplicationActivityInstance = new BaseSet<string>([
+  DiscordKeys.APPLICATION_ID,
+  DiscordKeys.INSTANCE_ID,
+  DiscordKeys.LAUNCH_ID,
+  DiscordKeys.LOCATION,
+  DiscordKeys.USERS,
+]);
+
+/**
+ * Application Activity Instance Structure
+ * @category Structure
+ */
+export class ApplicationActivityInstance extends BaseStructure {
+  readonly _keys = keysApplicationActivityInstance;
+
+  applicationId: string = '';
+  instanceId: string = '';
+  launchId: string = '';
+  location!: ApplicationActivityLocation;
+  users: Array<string> = [];
+
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+    }
+    if (DiscordKeys.INSTANCE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.INSTANCE_ID]] = data[DiscordKeys.INSTANCE_ID];
+    }
+    if (DiscordKeys.LAUNCH_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LAUNCH_ID]] = data[DiscordKeys.LAUNCH_ID];
+    }
+    if (DiscordKeys.LOCATION in data) {
+      const value = new ApplicationActivityLocation(this.client, data[DiscordKeys.LOCATION], this.isClone);
+      (this as any)[DetritusKeys[DiscordKeys.LOCATION]] = value;
+    }
+    if (DiscordKeys.USERS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.USERS]] = data[DiscordKeys.USERS];
+    }
+  }
+}
+
+
+const keysApplicationActivityLocation = new BaseSet<string>([
+  DiscordKeys.CHANNEL_ID,
+  DiscordKeys.GUILD_ID,
+  DiscordKeys.ID,
+  DiscordKeys.KIND,
+]);
+
+/**
+ * Application Activity Location Structure
+ * @category Structure
+ */
+export class ApplicationActivityLocation extends BaseStructure {
+  readonly _keys = keysApplicationActivityLocation;
+
+  channelId: string = '';
+  guildId?: null | string;
+  id: string = '';
+  kind: ActivityLocationKinds = ActivityLocationKinds.GUILD_CHANNEL;
+
+  constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  get isGuildChannel(): boolean {
+    return this.kind === ActivityLocationKinds.GUILD_CHANNEL;
+  }
+
+  get isPrivateChannel(): boolean {
+    return this.kind === ActivityLocationKinds.PRIVATE_CHANNEL;
   }
 }

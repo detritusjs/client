@@ -161,6 +161,7 @@ export class ChannelBase extends BaseStructure {
   isPartial: boolean = false;
   lastMessageId?: null | string;
   lastPinTimestampUnix?: number;
+  managed?: boolean;
   member?: ThreadMember;
   memberCount?: number;
   messageCount?: number;
@@ -169,6 +170,7 @@ export class ChannelBase extends BaseStructure {
   position?: number;
   rateLimitPerUser?: number;
   rtcRegion?: null | string;
+  status?: null | string;
   template?: string;
   totalMessageSent?: number;
   threadMetadata?: ThreadMetadata;
@@ -176,6 +178,7 @@ export class ChannelBase extends BaseStructure {
   type: ChannelTypes = ChannelTypes.BASE;
   userLimit?: number;
   videoQualityMode?: ChannelVideoQualityModes;
+  voiceStartTime?: null | number;
 
   constructor(
     client: ShardClient,
@@ -184,6 +187,13 @@ export class ChannelBase extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  get appliedTags(): BaseSet<string> {
+    if (this._appliedTags) {
+      return this._appliedTags;
+    }
+    return new BaseSet<string>();
   }
 
   get availableTags(): BaseCollection<string, ChannelAvailableTag> {
@@ -598,11 +608,11 @@ export class ChannelBase extends BaseStructure {
     return this.client.rest.addThreadMember(this.id, userId);
   }
 
-  async addRecipient(userId: string) {
+  async addRecipient(userId: string, options: RequestTypes.AddRecipient = {}) {
     if (!this.isDm) {
       throw new Error('Channel type doesn\'t support this.');
     }
-    return this.client.rest.addRecipient(this.id, userId);
+    return this.client.rest.addRecipient(this.id, userId, options);
   }
 
   async bulkDelete(messageIds: Array<string>) {
@@ -750,11 +760,11 @@ export class ChannelBase extends BaseStructure {
     return this.client.rest.fetchChannelInvites(this.id);
   }
 
-  async fetchMembers() {
+  async fetchMembers(options: RequestTypes.FetchThreadMembers = {}) {
     if (!this.isGuildThread) {
       throw new Error('Channel type doesn\'t support this.');
     }
-    return this.client.rest.fetchThreadMembers(this.id);
+    return this.client.rest.fetchThreadMembers(this.id, options);
   }
 
   async fetchMessage(messageId: string) {
@@ -1120,6 +1130,7 @@ const keysChannelDmGroup = new BaseSet<string>([
   ...keysChannelDm,
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.ICON,
+  DiscordKeys.MANAGED,
   DiscordKeys.NAME,
   DiscordKeys.OWNER_ID,
 ].sort());
@@ -1185,6 +1196,9 @@ export class ChannelDMGroup extends ChannelDM {
     }
     if (DiscordKeys.ICON in data) {
       (this as any)[DetritusKeys[DiscordKeys.ICON]] = data[DiscordKeys.ICON];
+    }
+    if (DiscordKeys.MANAGED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MANAGED]] = data[DiscordKeys.MANAGED];
     }
     if (DiscordKeys.OWNER_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.OWNER_ID]] = data[DiscordKeys.OWNER_ID];
@@ -1493,6 +1507,11 @@ export class ChannelGuildBase extends ChannelBase {
     if (DiscordKeys.PARENT_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.PARENT_ID]] = data[DiscordKeys.PARENT_ID];
     }
+    // sent on channels inside of interactions, the invoking member's permissions in the channel
+    if (DiscordKeys.PERMISSIONS in data) {
+      const value = data[DiscordKeys.PERMISSIONS];
+      this._permissions = (value !== undefined && value !== null) ? BigInt(value) : undefined;
+    }
     if (DiscordKeys.PERMISSION_OVERWRITES in data) {
       const value = data[DiscordKeys.PERMISSION_OVERWRITES];
       if (value.length) {
@@ -1554,6 +1573,8 @@ export class ChannelGuildCategory extends ChannelGuildBase {
 
 const keysChannelGuildText = new BaseSet<string>([
   ...keysChannelGuildBase,
+  DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION,
+  DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.LAST_PIN_TIMESTAMP,
   DiscordKeys.TOPIC,
@@ -1611,6 +1632,12 @@ export class ChannelGuildText extends ChannelGuildBase {
       return;
     }
 
+    if (DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION]] = data[DiscordKeys.DEFAULT_AUTO_ARCHIVE_DURATION];
+    }
+    if (DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER]] = data[DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER];
+    }
     if (DiscordKeys.LAST_MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
     }
@@ -1631,9 +1658,11 @@ const keysChannelGuildVoice = new BaseSet<string>([
   DiscordKeys.BITRATE,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.RTC_REGION,
+  DiscordKeys.STATUS,
   DiscordKeys.TOPIC,
   DiscordKeys.USER_LIMIT,
   DiscordKeys.VIDEO_QUALITY_MODE,
+  DiscordKeys.VOICE_START_TIME,
 ].sort());
 
 /**
@@ -1648,8 +1677,12 @@ export class ChannelGuildVoice extends ChannelGuildBase {
 
   bitrate: number = 64000;
   rtcRegion: null | string = null;
+  // `status` and `voiceStartTime` come from the voice channel gateway events or `Guild.requestChannelInfo()`
+  status: null | string = null;
   userLimit: number = 0;
   videoQualityMode: ChannelVideoQualityModes = ChannelVideoQualityModes.AUTO;
+  // unix seconds
+  voiceStartTime: null | number = null;
 
   constructor(
     client: ShardClient,
@@ -1666,6 +1699,13 @@ export class ChannelGuildVoice extends ChannelGuildBase {
       return voiceConnection.guildId === this.id;
     }
     return false;
+  }
+
+  get voiceStartedAt(): Date | null {
+    if (this.voiceStartTime) {
+      return new Date(this.voiceStartTime * 1000);
+    }
+    return null;
   }
 
   get members(): BaseCollection<string, Member> {
@@ -1708,8 +1748,11 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     if (DiscordKeys.LAST_MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
     }
-    if (DiscordKeys.REGION in data) {
-      (this as any)[DetritusKeys[DiscordKeys.REGION]] = data[DiscordKeys.REGION];
+    if (DiscordKeys.RTC_REGION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.RTC_REGION]] = data[DiscordKeys.RTC_REGION];
+    }
+    if (DiscordKeys.STATUS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.STATUS]] = data[DiscordKeys.STATUS];
     }
     if (DiscordKeys.TOPIC in data) {
       (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
@@ -1719,6 +1762,9 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     }
     if (DiscordKeys.VIDEO_QUALITY_MODE in data) {
       (this as any)[DetritusKeys[DiscordKeys.VIDEO_QUALITY_MODE]] = data[DiscordKeys.VIDEO_QUALITY_MODE];
+    }
+    if (DiscordKeys.VOICE_START_TIME in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VOICE_START_TIME]] = data[DiscordKeys.VOICE_START_TIME];
     }
   }
 }
@@ -1805,13 +1851,14 @@ export class ChannelGuildStageVoice extends ChannelGuildVoice {
 
 const keysChannelGuildThread = new BaseSet<string>([
   ...keysChannelGuildBase,
+  DiscordKeys.APPLIED_TAGS,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.LAST_PIN_TIMESTAMP,
   DiscordKeys.MEMBER,
   DiscordKeys.MEMBER_COUNT,
   DiscordKeys.MESSAGE_COUNT,
   DiscordKeys.OWNER_ID,
-  DiscordKeys.TOTAL_MESSAGE_COUNT,
+  DiscordKeys.TOTAL_MESSAGE_SENT,
   DiscordKeys.THREAD_METADATA,
 ].sort());
 
@@ -1853,6 +1900,16 @@ export class ChannelGuildThread extends ChannelGuildBase {
       return;
     }
 
+    if (DiscordKeys.APPLIED_TAGS in data) {
+      if (this._appliedTags) {
+        this._appliedTags.clear();
+        for (let raw of data[DiscordKeys.APPLIED_TAGS]) {
+          this._appliedTags.add(raw);
+        }
+      } else {
+        this._appliedTags = new BaseSet<string>(data[DiscordKeys.APPLIED_TAGS]);
+      }
+    }
     if (DiscordKeys.LAST_MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
     }
@@ -1873,8 +1930,8 @@ export class ChannelGuildThread extends ChannelGuildBase {
     if (DiscordKeys.OWNER_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.OWNER_ID]] = data[DiscordKeys.OWNER_ID];
     }
-    if (DiscordKeys.TOTAL_MESSAGE_COUNT in data) {
-      (this as any)[DetritusKeys[DiscordKeys.TOTAL_MESSAGE_COUNT]] = data[DiscordKeys.TOTAL_MESSAGE_COUNT];
+    if (DiscordKeys.TOTAL_MESSAGE_SENT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOTAL_MESSAGE_SENT]] = data[DiscordKeys.TOTAL_MESSAGE_SENT];
     }
     if (DiscordKeys.THREAD_METADATA in data) {
       const value = data[DiscordKeys.THREAD_METADATA];
@@ -1918,6 +1975,7 @@ const keysChannelGuildForum = new BaseSet<string>([
   DiscordKeys.DEFAULT_FORUM_LAYOUT,
   DiscordKeys.DEFAULT_REACTION_EMOJI,
   DiscordKeys.DEFAULT_SORT_ORDER,
+  DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.TEMPLATE,
 ].sort());
@@ -1989,6 +2047,9 @@ export class ChannelGuildForum extends ChannelGuildBase {
     }
     if (DiscordKeys.DEFAULT_SORT_ORDER in data) {
       (this as any)[DetritusKeys[DiscordKeys.DEFAULT_SORT_ORDER]] = data[DiscordKeys.DEFAULT_SORT_ORDER];
+    }
+    if (DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER]] = data[DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER];
     }
     if (DiscordKeys.LAST_MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];

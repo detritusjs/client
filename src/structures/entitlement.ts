@@ -133,7 +133,7 @@ export class Entitlement extends BaseStructure {
 
     if (DiscordKeys.ENDS_AT in data) {
       const value = data[DiscordKeys.ENDS_AT];
-      this.endsAtUnix = Date.parse(value);
+      this.endsAtUnix = (value) ? Date.parse(value) : 0;
     }
 
     (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID] || null;
@@ -148,7 +148,7 @@ export class Entitlement extends BaseStructure {
 
     if (DiscordKeys.STARTS_AT in data) {
       const value = data[DiscordKeys.STARTS_AT];
-      this.startsAtUnix = Date.parse(value);
+      this.startsAtUnix = (value) ? Date.parse(value) : 0;
     }
 
     if (DiscordKeys.TYPE in data) {

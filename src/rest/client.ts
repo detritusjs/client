@@ -15,6 +15,7 @@ import { InteractionModal, createComponentListenerOrNone } from '../utils';
 
 import {
   Application,
+  ApplicationActivityInstance,
   ApplicationCommand,
   ApplicationCommandPermissions,
   ApplicationNews,
@@ -36,14 +37,18 @@ import {
   GuildScheduledEvent,
   GuildScheduledEventUser,
   Integration,
+  InteractionCallbackResponse,
   Invite,
   Member,
   Message,
   PremiumSubscription,
   Profile,
   Role,
+  Sku,
+  SoundboardSound,
   StageInstance,
   Sticker,
+  Subscription,
   StoreApplicationAsset,
   StoreListing,
   Team,
@@ -238,15 +243,17 @@ export class RestClient {
   addPinnedMessage(
     channelId: string,
     messageId: string,
+    options: RequestTypes.PinMessage = {},
   ) {
-    return this.raw.addPinnedMessage(channelId, messageId);
+    return this.raw.addPinnedMessage(channelId, messageId, options);
   }
 
   addRecipient(
     channelId: string,
     userId: string,
+    options: RequestTypes.AddRecipient = {},
   ) {
-    return this.raw.addRecipient(channelId, userId);
+    return this.raw.addRecipient(channelId, userId, options);
   }
 
   addOauth2ApplicationWhitelistUser(
@@ -300,8 +307,9 @@ export class RestClient {
   bulkDeleteMessages(
     channelId: string,
     messageIds: Array<string>,
+    options: RequestTypes.BulkDeleteMessages = {},
   ) {
-    return this.raw.bulkDeleteMessages(channelId, messageIds);
+    return this.raw.bulkDeleteMessages(channelId, messageIds, options);
   }
 
   async bulkGuildBan(
@@ -643,10 +651,7 @@ export class RestClient {
       // scope the listener to the user who opened it, so modals sharing a custom id don't overwrite each other
       const interaction = this.client.interactions.get(interactionId);
       this.client.gatewayHandler._handlers.modal.insert(listener, (interaction) ? interaction.userId : undefined);
-      if (rawData) {
-        // return InteractionCallbackResponse
-      }
-      return rawData;
+      return this._createInteractionCallbackResponse(interactionId, rawData);
     } else {
       // if type is edit message, do not use interactionId (maybe fetch message id if listenerId isnt given)
       const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
@@ -672,18 +677,62 @@ export class RestClient {
           this.client.gatewayHandler._handlers.component.delete(listenerId);
         }
       }
-      if (rawData) {
-        // return InteractionCallbackResponse
-      }
-      return rawData;
+      return this._createInteractionCallbackResponse(interactionId, rawData);
     }
   }
 
+  _createInteractionCallbackResponse(
+    interactionId: string,
+    data: any,
+  ): InteractionCallbackResponse | null {
+    if (!data) {
+      return null;
+    }
+    if (data.resource && data.resource.message) {
+      const interaction = this.client.interactions.get(interactionId);
+      if (interaction && interaction.guildId) {
+        data.resource.message[DiscordKeys.GUILD_ID] = interaction.guildId;
+      }
+    }
+    return new InteractionCallbackResponse(this.client, data);
+  }
+
   createLobby(
-    applicationId: string,
+    applicationIdOrOptions: RequestTypes.CreateLobby | string = {},
     options: RequestTypes.CreateLobby = {},
   ) {
-    return this.raw.createLobby(applicationId, options);
+    return this.raw.createLobby(applicationIdOrOptions, options);
+  }
+
+  createLobbyChannelInvite(
+    lobbyId: string,
+    userId: string = '@me',
+  ) {
+    return this.raw.createLobbyChannelInvite(lobbyId, userId);
+  }
+
+  createLobbyMessage(
+    lobbyId: string,
+    options: RequestTypes.CreateLobbyMessage,
+  ) {
+    return this.raw.createLobbyMessage(lobbyId, options);
+  }
+
+  createOrJoinLobby(
+    options: RequestTypes.CreateOrJoinLobby,
+  ) {
+    return this.raw.createOrJoinLobby(options);
+  }
+
+  async createGuildSoundboardSound(
+    guildId: string,
+    options: RequestTypes.CreateGuildSoundboardSound,
+  ): Promise<SoundboardSound> {
+    const data = await this.raw.createGuildSoundboardSound(guildId, options);
+    data[DiscordKeys.GUILD_ID] = guildId;
+    const sound = new SoundboardSound(this.client, data);
+    this.client.soundboardSounds.insert(sound);
+    return sound;
   }
 
   createMeBillingPaymentSource(
@@ -942,6 +991,23 @@ export class RestClient {
     return this.raw.deleteGuildTemplate(guildId, templateId);
   }
 
+  async editGuildTemplate(
+    guildId: string,
+    templateId: string,
+    options: RequestTypes.EditGuildTemplate = {},
+  ): Promise<Template> {
+    const data = await this.raw.editGuildTemplate(guildId, templateId, options);
+    return new Template(this.client, data);
+  }
+
+  async syncGuildTemplate(
+    guildId: string,
+    templateId: string,
+  ): Promise<Template> {
+    const data = await this.raw.syncGuildTemplate(guildId, templateId);
+    return new Template(this.client, data);
+  }
+
   async deleteInvite(
     code: string,
     options: RequestTypes.DeleteInvite = {},
@@ -992,8 +1058,9 @@ export class RestClient {
   deletePinnedMessage(
     channelId: string,
     messageId: string,
+    options: RequestTypes.PinMessage = {},
   ) {
-    return this.raw.deletePinnedMessage(channelId, messageId);
+    return this.raw.deletePinnedMessage(channelId, messageId, options);
   }
 
   deleteReactions(
@@ -1028,8 +1095,86 @@ export class RestClient {
 
   deleteStageInstance(
     channelId: string,
+    options: RequestTypes.DeleteStageInstance = {},
   ) {
-    return this.raw.deleteStageInstance(channelId);
+    return this.raw.deleteStageInstance(channelId, options);
+  }
+
+  deleteMeApplicationRoleConnection(
+    applicationId: string,
+  ) {
+    return this.raw.deleteMeApplicationRoleConnection(applicationId);
+  }
+
+  editMeApplicationRoleConnection(
+    applicationId: string,
+    options: RequestTypes.EditMeApplicationRoleConnection = {},
+  ) {
+    return this.raw.editMeApplicationRoleConnection(applicationId, options);
+  }
+
+  fetchMeApplicationRoleConnection(
+    applicationId: string,
+  ) {
+    return this.raw.fetchMeApplicationRoleConnection(applicationId);
+  }
+
+  async fetchMeGuildMember(
+    guildId: string,
+  ): Promise<Member> {
+    const data = await this.raw.fetchMeGuildMember(guildId);
+    data[DiscordKeys.GUILD_ID] = guildId;
+    return new Member(this.client, data, true);
+  }
+
+  fetchGuildVoiceState(
+    guildId: string,
+    userId: string = '@me',
+  ) {
+    return this.raw.fetchGuildVoiceState(guildId, userId);
+  }
+
+  async fetchSkuSubscription(
+    skuId: string,
+    subscriptionId: string,
+  ): Promise<Subscription> {
+    const data = await this.raw.fetchSkuSubscription(skuId, subscriptionId);
+    return new Subscription(this.client, data);
+  }
+
+  async fetchSkuSubscriptions(
+    skuId: string,
+    options: RequestTypes.FetchSkuSubscriptions = {},
+  ): Promise<BaseCollection<string, Subscription>> {
+    const data = await this.raw.fetchSkuSubscriptions(skuId, options);
+    const collection = new BaseCollection<string, Subscription>();
+    for (let raw of data) {
+      const subscription = new Subscription(this.client, raw);
+      collection.set(subscription.id, subscription);
+    }
+    return collection;
+  }
+
+  async fetchSticker(
+    stickerId: string,
+  ): Promise<Sticker> {
+    const data = await this.raw.fetchSticker(stickerId);
+    if (data.guild_id && this.client.stickers.has(data.guild_id, stickerId)) {
+      const sticker = this.client.stickers.get(data.guild_id, stickerId)!;
+      sticker.merge(data);
+      return sticker;
+    }
+    return new Sticker(this.client, data);
+  }
+
+  fetchStickerPack(
+    stickerPackId: string,
+  ) {
+    return this.raw.fetchStickerPack(stickerPackId);
+  }
+
+  fetchStickerPacks() {
+    return this.raw.fetchStickerPacks();
   }
 
   deleteStoreApplicationAsset(
@@ -1080,6 +1225,17 @@ export class RestClient {
     options: RequestTypes.DisableAccount,
   ) {
     return this.raw.disableAccount(options);
+  }
+
+  async editApplication(
+    options: RequestTypes.EditApplication = {},
+    applicationId: string = '@me',
+  ): Promise<Application> {
+    const data = await this.raw.editApplication(options, applicationId);
+    if (applicationId === '@me' || (this.client.application && this.client.application.id === applicationId)) {
+      return this.client._mergeOauth2Application(data);
+    }
+    return new Application(this.client, data);
   }
 
   async editApplicationCommand(
@@ -1151,6 +1307,13 @@ export class RestClient {
       // insert? nah
     }
     return channel;
+  }
+
+  editChannelVoiceStatus(
+    channelId: string,
+    options: RequestTypes.EditChannelVoiceStatus,
+  ) {
+    return this.raw.editChannelVoiceStatus(channelId, options);
   }
 
   editChannelOverwrite(
@@ -1383,12 +1546,153 @@ export class RestClient {
     return this.raw.editLobby(lobbyId, options);
   }
 
+  editLobbyChannelLinking(
+    lobbyId: string,
+    options: RequestTypes.EditLobbyChannelLinking = {},
+  ) {
+    return this.raw.editLobbyChannelLinking(lobbyId, options);
+  }
+
   editLobbyMember(
     lobbyId: string,
     userId: string,
     options: RequestTypes.EditLobbyMember = {},
   ) {
     return this.raw.editLobbyMember(lobbyId, userId, options);
+  }
+
+  editLobbyMembersBulk(
+    lobbyId: string,
+    members: RequestTypes.EditLobbyMembersBulk,
+  ) {
+    return this.raw.editLobbyMembersBulk(lobbyId, members);
+  }
+
+  editLobbyMessageModerationMetadata(
+    lobbyId: string,
+    messageId: string,
+    metadata: Record<string, string>,
+  ) {
+    return this.raw.editLobbyMessageModerationMetadata(lobbyId, messageId, metadata);
+  }
+
+  async editGuildSoundboardSound(
+    guildId: string,
+    soundId: string,
+    options: RequestTypes.EditGuildSoundboardSound = {},
+  ): Promise<SoundboardSound> {
+    const data = await this.raw.editGuildSoundboardSound(guildId, soundId, options);
+    return this._mergeSoundboardSound(guildId, data);
+  }
+
+  async deleteGuildSoundboardSound(
+    guildId: string,
+    soundId: string,
+    options: RequestTypes.DeleteGuildSoundboardSound = {},
+  ) {
+    const data = await this.raw.deleteGuildSoundboardSound(guildId, soundId, options);
+    if (this.client.soundboardSounds.has(guildId, soundId)) {
+      this.client.soundboardSounds.delete(guildId, soundId);
+    }
+    return data;
+  }
+
+  _mergeSoundboardSound(guildId: string, data: any): SoundboardSound {
+    data[DiscordKeys.GUILD_ID] = guildId;
+
+    let sound: SoundboardSound;
+    if (this.client.soundboardSounds.has(guildId, data.sound_id)) {
+      sound = this.client.soundboardSounds.get(guildId, data.sound_id)!;
+      sound.merge(data);
+    } else {
+      sound = new SoundboardSound(this.client, data);
+      this.client.soundboardSounds.insert(sound);
+    }
+    return sound;
+  }
+
+  async fetchApplicationSkus(
+    applicationId: string,
+  ): Promise<BaseCollection<string, Sku>> {
+    const data = await this.raw.fetchApplicationSkus(applicationId);
+    const collection = new BaseCollection<string, Sku>();
+    for (let raw of data) {
+      const sku = new Sku(this.client, raw);
+      collection.set(sku.id, sku);
+    }
+    return collection;
+  }
+
+  async fetchGuildSoundboardSound(
+    guildId: string,
+    soundId: string,
+  ): Promise<SoundboardSound> {
+    const data = await this.raw.fetchGuildSoundboardSound(guildId, soundId);
+    return this._mergeSoundboardSound(guildId, data);
+  }
+
+  async fetchGuildSoundboardSounds(
+    guildId: string,
+  ): Promise<BaseCollection<string, SoundboardSound>> {
+    const data = await this.raw.fetchGuildSoundboardSounds(guildId);
+
+    // this is the full list, so replace the guild's cache with it
+    if (this.client.soundboardSounds.enabled && this.client.guilds.has(guildId)) {
+      const guild = this.client.guilds.get(guildId)!;
+      guild.merge({[DiscordKeys.SOUNDBOARD_SOUNDS]: data.items});
+      return guild.soundboardSounds;
+    }
+
+    const collection = new BaseCollection<string, SoundboardSound>();
+    for (let raw of data.items) {
+      raw[DiscordKeys.GUILD_ID] = guildId;
+      const sound = new SoundboardSound(this.client, raw);
+      collection.set(sound.soundId, sound);
+    }
+    return collection;
+  }
+
+  fetchLobby(
+    lobbyId: string,
+  ) {
+    return this.raw.fetchLobby(lobbyId);
+  }
+
+  fetchLobbyMessages(
+    lobbyId: string,
+    options: RequestTypes.FetchLobbyMessages = {},
+  ) {
+    return this.raw.fetchLobbyMessages(lobbyId, options);
+  }
+
+  async fetchSoundboardDefaultSounds(): Promise<BaseCollection<string, SoundboardSound>> {
+    const data = await this.raw.fetchSoundboardDefaultSounds();
+    const collection = new BaseCollection<string, SoundboardSound>();
+    for (let raw of data) {
+      const sound = new SoundboardSound(this.client, raw);
+      collection.set(sound.soundId, sound);
+    }
+    return collection;
+  }
+
+  leaveLobby(
+    lobbyId: string,
+  ) {
+    return this.raw.leaveLobby(lobbyId);
+  }
+
+  removeLobbyMember(
+    lobbyId: string,
+    userId: string,
+  ) {
+    return this.raw.removeLobbyMember(lobbyId, userId);
+  }
+
+  sendSoundboardSound(
+    channelId: string,
+    options: RequestTypes.SendSoundboardSound,
+  ) {
+    return this.raw.sendSoundboardSound(channelId, options);
   }
 
   async editMe(
@@ -1659,9 +1963,24 @@ export class RestClient {
     const data = await this.raw.fetchApplicationEmojis(applicationId);
     const collection = new BaseCollection<string, Emoji>();
 
+    const isOwnApplication = this._isOwnApplication(applicationId);
     for (let raw of data.items) {
-      const emoji = new Emoji(this.client, raw);
+      let emoji: Emoji;
+      if (isOwnApplication && this.client.applicationEmojis.has(raw.id)) {
+        emoji = this.client.applicationEmojis.get(raw.id)!;
+        emoji.merge(raw);
+      } else {
+        emoji = new Emoji(this.client, raw);
+      }
       collection.set(emoji.id!, emoji);
+    }
+
+    // this is the full list, so replace the cache with it
+    if (isOwnApplication && this.client.applicationEmojis.enabled) {
+      this.client.applicationEmojis.clear();
+      for (let [emojiId, emoji] of collection) {
+        this.client.applicationEmojis.insert(emoji);
+      }
     }
     return {items: collection};
   }
@@ -1671,7 +1990,30 @@ export class RestClient {
     emojiId: string,
   ): Promise<Emoji>{
     const data = await this.raw.fetchApplicationEmoji(applicationId, emojiId);
-    return new Emoji(this.client, data);
+
+    let emoji: Emoji;
+    if (this._isOwnApplication(applicationId) && this.client.applicationEmojis.has(data.id)) {
+      emoji = this.client.applicationEmojis.get(data.id)!;
+      emoji.merge(data);
+    } else {
+      emoji = new Emoji(this.client, data);
+      if (this._isOwnApplication(applicationId)) {
+        this.client.applicationEmojis.insert(emoji);
+      }
+    }
+    return emoji;
+  }
+
+  _isOwnApplication(applicationId: string): boolean {
+    return applicationId === '@me' || (this.client.isBot && applicationId === this.client.applicationId);
+  }
+
+  async fetchApplicationEntitlement(
+    applicationId: string,
+    entitlementId: string,
+  ): Promise<Entitlement> {
+    const data = await this.raw.fetchApplicationEntitlement(applicationId, entitlementId);
+    return new Entitlement(this.client, data);
   }
 
   async fetchApplicationEntitlements(
@@ -1761,6 +2103,14 @@ export class RestClient {
   ): Promise<Application> {
     const data = await this.raw.fetchApplication(applicationId);
     return new Application(this.client, data);
+  }
+
+  async fetchApplicationActivityInstance(
+    applicationId: string,
+    instanceId: string,
+  ): Promise<ApplicationActivityInstance> {
+    const data = await this.raw.fetchApplicationActivityInstance(applicationId, instanceId);
+    return new ApplicationActivityInstance(this.client, data);
   }
 
   async fetchApplicationRoleConnectionsMetadata(
@@ -2170,8 +2520,15 @@ export class RestClient {
     guildId: string,
   ): Promise<BaseCollection<string, AutoModerationRule>> {
     const data = await this.raw.fetchGuildAutoModerationRules(guildId);
-    const collection = new BaseCollection<string, AutoModerationRule>();
 
+    // this is the full list, so replace the guild's cache with it
+    const guild = this.client.guilds.get(guildId);
+    const shouldCache = !!guild && this.client.autoModerationRules.enabled;
+
+    const collection = (shouldCache) ? guild!.autoModerationRules : new BaseCollection<string, AutoModerationRule>();
+    if (shouldCache) {
+      collection.clear();
+    }
     for (let raw of data) {
       raw[DiscordKeys.GUILD_ID] = guildId;
 
@@ -2245,7 +2602,7 @@ export class RestClient {
           raw.guild_id = guildId;
           emoji = new Emoji(this.client, raw);
         }
-        collection.set(emoji.id || emoji.name, emoji);
+        collection.set(emoji.id || emoji.name || '', emoji);
       }
       return collection;
     }
@@ -2387,6 +2744,89 @@ export class RestClient {
     return this.raw.fetchGuildPruneCount(guildId, options);
   }
 
+  async fetchGuildRole(
+    guildId: string,
+    roleId: string,
+  ): Promise<Role> {
+    const data = await this.raw.fetchGuildRole(guildId, roleId);
+
+    let role: Role;
+    if (this.client.guilds.has(guildId) && this.client.guilds.get(guildId)!.roles.has(roleId)) {
+      role = this.client.guilds.get(guildId)!.roles.get(roleId)!;
+      role.merge(data);
+    } else {
+      data.guild_id = guildId;
+      role = new Role(this.client, data);
+    }
+    return role;
+  }
+
+  // role id to member count, @everyone isn't included
+  fetchGuildRoleMemberCounts(
+    guildId: string,
+  ): Promise<Record<string, number>> {
+    return this.raw.fetchGuildRoleMemberCounts(guildId);
+  }
+
+  async fetchGuildThreadsActive(
+    guildId: string,
+  ): Promise<{members: BaseCollection<string, ThreadMember>, threads: BaseCollection<string, ChannelGuildThread>}> {
+    const data = await this.raw.fetchGuildThreadsActive(guildId);
+
+    const members = new BaseCollection<string, ThreadMember>();
+    for (let raw of data.members) {
+      const member = new ThreadMember(this.client, raw);
+      members.set(member.id, member);
+    }
+
+    const threads = new BaseCollection<string, ChannelGuildThread>();
+    for (let raw of data.threads) {
+      let thread: ChannelGuildThread;
+      if (this.client.channels.has(raw.id)) {
+        thread = this.client.channels.get(raw.id) as ChannelGuildThread;
+        thread.merge(raw);
+      } else {
+        raw.guild_id = guildId;
+        thread = new ChannelGuildThread(this.client, raw);
+      }
+      threads.set(thread.id, thread);
+    }
+    return {members, threads};
+  }
+
+  fetchGuildOnboarding(
+    guildId: string,
+  ) {
+    return this.raw.fetchGuildOnboarding(guildId);
+  }
+
+  editGuildOnboarding(
+    guildId: string,
+    options: RequestTypes.EditGuildOnboarding = {},
+  ) {
+    return this.raw.editGuildOnboarding(guildId, options);
+  }
+
+  fetchGuildWelcomeScreen(
+    guildId: string,
+  ) {
+    return this.raw.fetchGuildWelcomeScreen(guildId);
+  }
+
+  editGuildWelcomeScreen(
+    guildId: string,
+    options: RequestTypes.EditGuildWelcomeScreen = {},
+  ) {
+    return this.raw.editGuildWelcomeScreen(guildId, options);
+  }
+
+  editGuildIncidentActions(
+    guildId: string,
+    options: RequestTypes.EditGuildIncidentActions = {},
+  ) {
+    return this.raw.editGuildIncidentActions(guildId, options);
+  }
+
   async fetchGuildRoles(
     guildId: string,
   ): Promise<BaseCollection<string, Role>> {
@@ -2426,8 +2866,9 @@ export class RestClient {
   async fetchGuildScheduledEvent(
     guildId: string,
     scheduledEventId: string,
+    options: RequestTypes.FetchGuildScheduledEvent = {},
   ): Promise<GuildScheduledEvent> {
-    const data = await this.raw.fetchGuildScheduledEvent(guildId, scheduledEventId);
+    const data = await this.raw.fetchGuildScheduledEvent(guildId, scheduledEventId, options);
     data[DiscordKeys.GUILD_ID] = guildId;
     return new GuildScheduledEvent(this.client, data);
   }
@@ -2558,6 +2999,25 @@ export class RestClient {
     options: RequestTypes.FetchGuildWidgetPng = {},
   ) {
     return this.raw.fetchGuildWidgetPng(guildId, options);
+  }
+
+  editInviteTargetUsers(
+    code: string,
+    options: RequestTypes.EditInviteTargetUsers,
+  ) {
+    return this.raw.editInviteTargetUsers(code, options);
+  }
+
+  fetchInviteTargetUsers(
+    code: string,
+  ) {
+    return this.raw.fetchInviteTargetUsers(code);
+  }
+
+  fetchInviteTargetUsersJobStatus(
+    code: string,
+  ) {
+    return this.raw.fetchInviteTargetUsersJobStatus(code);
   }
 
   async fetchInvite(
@@ -2787,6 +3247,33 @@ export class RestClient {
     return this.raw.fetchOauth2Token(tokenId);
   }
 
+  async fetchChannelPins(
+    channelId: string,
+    options: RequestTypes.FetchChannelPins = {},
+  ): Promise<{hasMore: boolean, items: Array<{message: Message, pinnedAt: Date}>}> {
+    const data = await this.raw.fetchChannelPins(channelId, options);
+
+    let guildId: null | string = null;
+    if (this.client.channels.has(channelId)) {
+      guildId = this.client.channels.get(channelId)!.guildId || null;
+    }
+
+    const items: Array<{message: Message, pinnedAt: Date}> = [];
+    for (let raw of data.items) {
+      let message: Message;
+      if (this.client.messages.has(raw.message.id)) {
+        message = this.client.messages.get(raw.message.id)!;
+        message.merge(raw.message);
+      } else {
+        raw.message.guild_id = guildId;
+        message = new Message(this.client, raw.message);
+      }
+      items.push({message, pinnedAt: new Date(raw.pinned_at)});
+    }
+    return {hasMore: !!data.has_more, items};
+  }
+
+  /** @deprecated use `fetchChannelPins` */
   async fetchPinnedMessages(
     channelId: string,
   ): Promise<BaseCollection<string, Message>> {
@@ -2931,14 +3418,24 @@ export class RestClient {
     return new Template(this.client, data);
   }
 
+  async fetchThreadMember(
+    channelId: string,
+    userId: string,
+    options: RequestTypes.FetchThreadMember = {},
+  ): Promise<ThreadMember> {
+    const data = await this.raw.fetchThreadMember(channelId, userId, options);
+    return new ThreadMember(this.client, data);
+  }
+
   async fetchThreadMembers(
     channelId: string,
+    options: RequestTypes.FetchThreadMembers = {},
   ): Promise<BaseCollection<string, ThreadMember>> {
-    const data = await this.raw.fetchThreadMembers(channelId);
+    const data = await this.raw.fetchThreadMembers(channelId, options);
     const collection = new BaseCollection<string, ThreadMember>();
 
     for (let raw of data) {
-      const threadMember = new ThreadMember(this.client, data);
+      const threadMember = new ThreadMember(this.client, raw);
       collection.set(threadMember.userId, threadMember);
     }
     return collection;
@@ -3262,6 +3759,7 @@ export class RestClient {
     return this.raw.searchGuild(guildId, options, retry, retryNumber);
   }
 
+  /** @deprecated old GameSDK lobbies, this endpoint doesn't exist anymore */
   searchLobbies(
     applicationId: string,
     options: RequestTypes.SearchLobbies = {},
@@ -3281,6 +3779,7 @@ export class RestClient {
     return this.raw.sendFriendRequest(options);
   }
 
+  /** @deprecated old GameSDK lobbies, use `createLobbyMessage` */
   sendLobbyData(
     lobbyId: string,
     data: string,

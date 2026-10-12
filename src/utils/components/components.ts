@@ -20,9 +20,9 @@ import { ComponentSeparator, ComponentSeparatorData } from './separator';
 import { ComponentTextDisplay, ComponentTextDisplayData } from './textdisplay';
 
 
-export type ComponentOnTimeout = () => Promise<any> | any;
-export type ComponentRun = (context: ComponentContext) => Promise<any> | any;
-export type ComponentOnError = (context: ComponentContext, error: Error) => Promise<any> | any;
+export type ComponentOnTimeout = () => unknown;
+export type ComponentRun = (context: ComponentContext) => unknown;
+export type ComponentOnError = (context: ComponentContext, error: Error) => unknown;
 
 
 export interface ComponentsOptions {
@@ -62,9 +62,9 @@ export class Components extends Structure {
   id?: string;
   timeout: number = 10 * (60 * 1000); // 10 minutes
 
-  onTimeout?(): Promise<any> | any;
-  run?(context: ComponentContext): Promise<any> | any;
-  onError?(context: ComponentContext, error: Error): Promise<any> | any;
+  onTimeout?(): unknown;
+  run?(context: ComponentContext): unknown;
+  onError?(context: ComponentContext, error: Error): unknown;
 
   constructor(data: ComponentsOptions = {}) {
     super();
