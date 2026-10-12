@@ -20,18 +20,20 @@ import { InteractionModal, InteractionModalContext } from '../utils';
 
 
 export class ModalSubmitHandler {
+  // keyed by `userId.customId` when the opener is known, otherwise by `customId`
   listeners = new BaseCollection<string, InteractionModal>();
+  timeouts = new BaseCollection<string, Timers.Timeout>();
+
+  static getKey(customId: string, userId?: string): string {
+    return (userId) ? `${userId}.${customId}` : customId;
+  }
 
   delete(listenerId: string): boolean {
-    if (this.listeners.has(listenerId)) {
-      const listener = this.listeners.get(listenerId)!;
-      if (listener._timeout) {
-        listener._timeout.stop();
-        listener._timeout = undefined;
-      }
-      return this.listeners.delete(listenerId);
+    if (this.timeouts.has(listenerId)) {
+      this.timeouts.get(listenerId)!.stop();
+      this.timeouts.delete(listenerId);
     }
-    return false;
+    return this.listeners.delete(listenerId);
   }
 
   async execute(interaction: Interaction): Promise<void> {
@@ -40,8 +42,18 @@ export class ModalSubmitHandler {
     }
     const data = interaction.data as InteractionDataModal;
 
-    const listener = this.listeners.get(data.customId);
-    if (listener && typeof(listener.run) === 'function') {
+    let listenerId = ModalSubmitHandler.getKey(data.customId, interaction.userId);
+    if (!this.listeners.has(listenerId)) {
+      listenerId = data.customId;
+    }
+    const listener = this.listeners.get(listenerId);
+    if (!listener) {
+      return;
+    }
+    // a modal can only be submitted once per open, so stop listening (and don't fire onTimeout later)
+    this.delete(listenerId);
+
+    if (typeof(listener.run) === 'function') {
       const context = new InteractionModalContext(interaction);
 
       const args: Record<string, any> = {};
@@ -87,26 +99,23 @@ export class ModalSubmitHandler {
     }
   }
 
-  insert(listener: InteractionModal) {
-    const listenerId = listener.id;
-    if (listenerId) {
+  insert(listener: InteractionModal, userId?: string) {
+    if (listener.id) {
+      const listenerId = ModalSubmitHandler.getKey(listener.id, userId);
       this.delete(listenerId);
       if (listener.timeout) {
-        const timeout = listener._timeout = new Timers.Timeout();
+        const timeout = new Timers.Timeout();
+        this.timeouts.set(listenerId, timeout);
         timeout.start(listener.timeout, async () => {
-          if (!listener.id) {
-            return;
-          }
-
-          if (this.listeners.get(listener.id) === listener) {
-            this.delete(listener.id);
+          if (this.listeners.get(listenerId) === listener) {
+            this.delete(listenerId);
 
             try {
               if (typeof(listener.onTimeout) === 'function') {
                 await Promise.resolve(listener.onTimeout());
               }
             } catch(error) {
-      
+
             }
           }
         });

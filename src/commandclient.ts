@@ -860,6 +860,14 @@ export class CommandClient extends EventSpewer {
       try {
         const shouldTriggerLoading = command.triggerTypingAfter !== undefined && 0 <= command.triggerTypingAfter;
         const shouldTriggerOnEdits = !!command.triggerTypingOnEdits;
+        // typing only makes sense if `editOrReply` will send a new message rather than edit the stored reply
+        const expectsNewMessage = () => {
+          if (this.replies.has(context.messageId)) {
+            const { reply } = this.replies.get(context.messageId)!;
+            return !reply.canEdit;
+          }
+          return true;
+        };
         if (shouldTriggerLoading) {
           if (command.triggerTypingAfter) {
             timeout = new Timers.Timeout();
@@ -868,7 +876,7 @@ export class CommandClient extends EventSpewer {
               try {
                 if (command && typeof(command.onTypingTrigger) === 'function') {
                   await Promise.resolve(command.onTypingTrigger(context));
-                } else if (shouldTriggerOnEdits || !this.replies.has(context.messageId)) {
+                } else if (shouldTriggerOnEdits || expectsNewMessage()) {
                   await context.triggerTyping();
                 }
               } catch(error) {
@@ -879,7 +887,7 @@ export class CommandClient extends EventSpewer {
             try {
               if (command && typeof(command.onTypingTrigger) === 'function') {
                 await Promise.resolve(command.onTypingTrigger(context));
-              } else if (shouldTriggerOnEdits || !this.replies.has(context.messageId)) {
+              } else if (shouldTriggerOnEdits || expectsNewMessage()) {
                 await context.triggerTyping();
               }
             } catch(error) {

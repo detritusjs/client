@@ -142,7 +142,8 @@ export class Command<ParsedArgsFinished = ParsedArgs> {
   ratelimits: Array<CommandRatelimit> = [];
   responseOptional: boolean = false;
   triggerTypingAfter: number = -1;
-  triggerTypingOnEdits: boolean = true;
+  // trigger typing even when the existing reply is expected to be edited (instead of a new message being sent)
+  triggerTypingOnEdits: boolean = false;
 
   onDmBlocked?(context: Context): Promise<any | Message> | any | Message;
   onBefore?(context: Context): Promise<boolean> | boolean;

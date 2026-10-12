@@ -59,6 +59,10 @@ export class ClusterProcess extends EventSpewer {
     });
   }
 
+  get execArgv(): Array<string> | undefined {
+    return this.manager.execArgv;
+  }
+
   get file(): string {
     return this.manager.file;
   }
@@ -315,7 +319,7 @@ export class ClusterProcess extends EventSpewer {
     if (this.process) {
       return this.process;
     }
-    const process = fork(this.file, [], {env: this.env});
+    const process = fork(this.file, [], {env: this.env, execArgv: this.execArgv});
     this.process = process;
     this.process.on('message', this.onMessage.bind(this));
     this.process.on('exit', this.onExit.bind(this));

@@ -12,6 +12,7 @@ import { Snowflake } from './utils';
 
 
 export interface ClusterManagerOptions {
+  execArgv?: Array<string>,
   isAbsolute?: boolean,
   maxConcurrency?: number,
   respawn?: boolean,
@@ -34,6 +35,8 @@ export interface ClusterManagerRestCachePayload {
 
 export class ClusterManager extends EventSpewer {
   buckets = new BaseCollection<number, Bucket>();
+  // node arguments passed to each cluster process (e.g. `--max-old-space-size=4096`), defaults to the manager's `process.execArgv`
+  execArgv?: Array<string>;
   file: string;
   maxConcurrency: number = 1;
   processes = new BaseCollection<number, ClusterProcess>();
@@ -64,6 +67,9 @@ export class ClusterManager extends EventSpewer {
     }
     this.token = token;
 
+    if (Array.isArray(options.execArgv)) {
+      this.execArgv = options.execArgv;
+    }
     this.maxConcurrency = options.maxConcurrency || this.maxConcurrency;
     this.respawn = (options.respawn || options.respawn === undefined);
     this.rest = new DetritusRestClient(token, {authType: AuthTypes.BOT});

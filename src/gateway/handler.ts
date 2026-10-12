@@ -46,7 +46,7 @@ import {
 } from '../structures';
 
 import { GatewayClientEvents } from './clientevents';
-import { ComponentHandler } from './handlercomponent';
+import { ComponentHandler, getResponseInteractionId } from './handlercomponent';
 import { ModalSubmitHandler } from './handlermodalsubmit';
 import { GatewayRawEvents } from './rawevents';
 
@@ -132,7 +132,13 @@ export class GatewayHandler {
     if (!this.disabledEvents.has(name)) {
       if (name in this.dispatchHandler) {
         try {
-          (this.dispatchHandler as any)[name](data);
+          const result = (this.dispatchHandler as any)[name](data);
+          // async handlers (READY) reject instead of throwing
+          if (result && typeof(result.catch) === 'function') {
+            result.catch((error: any) => {
+              this.client.emit(ClientEvents.WARN, {error: new GatewayError(error, packet)});
+            });
+          }
         } catch(error: any) {
           this.client.emit(ClientEvents.WARN, {error: new GatewayError(error, packet)});
         }
@@ -442,14 +448,15 @@ export class GatewayDispatchHandler {
         if (message.channelId === channel.id) {
           message.deleted = true;
           this.client.messages.delete(messageId);
+          this.handler._handlers.component.delete(messageId);
         }
-        this.handler._handlers.component.delete(messageId);
       }
     }
 
+    // `guild.channels` is a computed collection, remove the id from the backing set instead
     const guild = channel.guild;
     if (guild) {
-      guild.channels.delete(channel.id);
+      guild._channelIds.delete(channel.id);
     }
 
     const payload: GatewayClientEvents.ChannelDelete = {channel};
@@ -504,9 +511,9 @@ export class GatewayDispatchHandler {
 
     if (this.client.users.has(data['user']['id'])) {
       user = this.client.users.get(data['user']['id'])!;
-      user.merge(data);
+      user.merge(data['user']);
     } else {
-      user = new User(this.client, data);
+      user = new User(this.client, data['user']);
       this.client.users.insert(user);
     }
 
@@ -537,9 +544,9 @@ export class GatewayDispatchHandler {
 
     if (this.client.users.has(data['user']['id'])) {
       user = this.client.users.get(data['user']['id'])!;
-      user.merge(data);
+      user.merge(data['user']);
     } else {
-      user = new User(this.client, data);
+      user = new User(this.client, data['user']);
       this.client.users.insert(user);
     }
 
@@ -898,7 +905,9 @@ export class GatewayDispatchHandler {
     for (let [cacheId, cache] of this.client.typings.caches) {
       if (cache.has(userId)) {
         const typing = cache.get(userId)!;
-        typing._stop(false);
+        if (typing.guildId === guildId) {
+          typing._stop(false);
+        }
       }
     }
 
@@ -1395,16 +1404,26 @@ export class GatewayDispatchHandler {
     const interaction = new Interaction(this.client, data);
     this.client.interactions.insert(interaction);
 
-    if (interaction.message && interaction.message.interaction) {
-      this.handler._handlers.component.replaceId(interaction.message.interaction.id, interaction.message.id);
+    if (interaction.message) {
+      const responseInteractionId = getResponseInteractionId(interaction.message);
+      if (responseInteractionId) {
+        this.handler._handlers.component.replaceId(responseInteractionId, interaction.message.id);
+      }
     }
 
     const payload: GatewayClientEvents.InteractionCreate = {_raw: data, interaction};
     this.client.emit(ClientEvents.INTERACTION_CREATE, payload);
 
+    let promise: Promise<void> | undefined;
     switch (interaction.type) {
-      case InteractionTypes.MESSAGE_COMPONENT: this.handler._handlers.component.execute(interaction); break;
-      case InteractionTypes.MODAL_SUBMIT: this.handler._handlers.modal.execute(interaction); break;
+      case InteractionTypes.MESSAGE_COMPONENT: promise = this.handler._handlers.component.execute(interaction); break;
+      case InteractionTypes.MODAL_SUBMIT: promise = this.handler._handlers.modal.execute(interaction); break;
+    }
+    if (promise) {
+      promise.catch((error: any) => {
+        const payload: GatewayClientEvents.Warn = {error};
+        this.client.emit(ClientEvents.WARN, payload);
+      });
     }
   }
 
@@ -1451,12 +1470,13 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (message.interaction) {
-      if (this.client.interactions.has(message.interaction.id)) {
-        const interaction = this.client.interactions.get(message.interaction.id)!;
+    const responseInteractionId = getResponseInteractionId(message);
+    if (responseInteractionId) {
+      if (this.client.interactions.has(responseInteractionId)) {
+        const interaction = this.client.interactions.get(responseInteractionId)!;
         interaction.responseId = message.id;
       }
-      this.handler._handlers.component.replaceId(message.interaction.id, message.id);
+      this.handler._handlers.component.replaceId(responseInteractionId, message.id);
     }
 
     const payload: GatewayClientEvents.MessageCreate = {message, typing};
@@ -1475,10 +1495,15 @@ export class GatewayDispatchHandler {
       message.deleted = true;
       this.client.messages.delete(messageId);
 
-      if (message.interaction && this.client.interactions.has(message.interaction.id)) {
-        const interaction = this.client.interactions.get(message.interaction.id)!;
-        interaction.responseDeleted = true;
-        interaction.responseId = messageId;
+      const responseInteractionId = getResponseInteractionId(message);
+      if (responseInteractionId) {
+        if (this.client.interactions.has(responseInteractionId)) {
+          const interaction = this.client.interactions.get(responseInteractionId)!;
+          interaction.responseDeleted = true;
+          interaction.responseId = messageId;
+        }
+        // the listener may still be stored under the interaction id if it was never re-keyed
+        this.handler._handlers.component.delete(responseInteractionId);
       }
     } else {
       for (let [interactionId, interaction] of this.client.interactions) {
@@ -1507,6 +1532,11 @@ export class GatewayDispatchHandler {
         message.deleted = true;
         messages.set(messageId, message);
         this.client.messages.delete(messageId);
+
+        const responseInteractionId = getResponseInteractionId(message);
+        if (responseInteractionId) {
+          this.handler._handlers.component.delete(responseInteractionId);
+        }
       } else {
         messages.set(messageId, null);
       }
@@ -1642,8 +1672,7 @@ export class GatewayDispatchHandler {
       message = this.client.messages.get(messageId)!;
       if (message._reactions && message._reactions.has(emojiId)) {
         reaction = message._reactions.get(emojiId)!;
-        reaction.count = Math.min(reaction.count - 1, 0);
-        reaction.me = reaction.me && userId !== this.client.userId;
+        reaction.count = Math.max(reaction.count - 1, 0);
 
         if (reaction.count <= 0) {
           message._reactions.delete(emojiId);
@@ -2019,9 +2048,24 @@ export class GatewayDispatchHandler {
 
   [GatewayDispatchEvents.THREAD_DELETE](data: GatewayRawEvents.ThreadDelete) {
     let thread: Channel | null = null;
-    if (this.client.channels.has(data['id'])) {
-      thread = this.client.channels.get(data['id'])!;
+    const threadId = data['id'];
+    if (this.client.channels.has(threadId)) {
+      thread = this.client.channels.get(threadId)!;
       thread.deleted = true;
+      this.client.channels.delete(threadId);
+    }
+
+    if (this.client.guilds.has(data['guild_id'])) {
+      const guild = this.client.guilds.get(data['guild_id'])!;
+      guild._threadIds.delete(threadId);
+    }
+
+    for (let [messageId, message] of this.client.messages) {
+      if (message.channelId === threadId) {
+        message.deleted = true;
+        this.client.messages.delete(messageId);
+        this.handler._handlers.component.delete(messageId);
+      }
     }
 
     const payload: GatewayClientEvents.ThreadDelete = {
@@ -2162,9 +2206,14 @@ export class GatewayDispatchHandler {
         leftChannel = true;
       }
     } else {
-      joinedChannel = true;
       voiceState = new VoiceState(this.client, data);
-      this.client.voiceStates.insert(voiceState);
+      // an uncached user leaving (no channel) isn't a join, and there's nothing to cache
+      if (data['channel_id']) {
+        joinedChannel = true;
+        this.client.voiceStates.insert(voiceState);
+      } else {
+        leftChannel = true;
+      }
     }
 
     const payload: GatewayClientEvents.VoiceStateUpdate = {differences, joinedChannel, leftChannel, old, voiceState};

@@ -10,6 +10,7 @@ import { Snowflake } from 'detritus-utils';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { ClientEvents, DiscordKeys, InteractionCallbackTypes, MessageFlags } from '../constants';
+import { getResponseInteractionId } from '../gateway/handlercomponent';
 import { InteractionModal, createComponentListenerOrNone } from '../utils';
 
 import {
@@ -639,7 +640,9 @@ export class RestClient {
     if (typeof(options) === 'object' && options.data instanceof InteractionModal) {
       const listener = options.data;
       const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
-      this.client.gatewayHandler._handlers.modal.insert(listener);
+      // scope the listener to the user who opened it, so modals sharing a custom id don't overwrite each other
+      const interaction = this.client.interactions.get(interactionId);
+      this.client.gatewayHandler._handlers.modal.insert(listener, (interaction) ? interaction.userId : undefined);
       if (rawData) {
         // return InteractionCallbackResponse
       }
@@ -1545,8 +1548,9 @@ export class RestClient {
       this.client.messages.insert(message);
     }
 
-    if (message.interaction) {
-      this.client.gatewayHandler._handlers.component.replaceId(message.interaction.id, message.id);
+    const responseInteractionId = getResponseInteractionId(message);
+    if (responseInteractionId) {
+      this.client.gatewayHandler._handlers.component.replaceId(responseInteractionId, message.id);
     }
 
     if (listenerData) {
@@ -3038,8 +3042,9 @@ export class RestClient {
       message = new Message(this.client, data);
     }
 
-    if (message.interaction && message.components.length) {
-      this.client.gatewayHandler._handlers.component.replaceId(message.interaction.id, messageId);
+    const responseInteractionId = getResponseInteractionId(message);
+    if (responseInteractionId && message.components.length) {
+      this.client.gatewayHandler._handlers.component.replaceId(responseInteractionId, messageId);
     }
 
     return message;
