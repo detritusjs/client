@@ -10,6 +10,7 @@ import { DetritusKeys, DiscordKeys } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { User } from './user';
@@ -38,8 +39,8 @@ const keysMergeTemplate = new BaseSet<string>([
  * @category Structure
  */
 export class Template extends BaseStructure {
-  readonly _keys = keysTemplate;
-  readonly _keysMerge = keysMergeTemplate;
+  static { setStructureKeys(this, '_keys', keysTemplate); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeTemplate); }
 
   code: string = '';
   createdAt!: Date;

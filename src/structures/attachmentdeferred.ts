@@ -5,6 +5,7 @@ import { DetritusKeys, DiscordKeys } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 
 
@@ -20,7 +21,7 @@ const keysAttachmentDeferred = new BaseSet<string>([
  */
 export class AttachmentDeferred extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysAttachmentDeferred;
+  static { setStructureKeys(this, '_keys', keysAttachmentDeferred); }
 
   id: null | number = null;
   uploadFilename: string = '';

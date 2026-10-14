@@ -12,7 +12,7 @@ import {
 
 import { BaseSet } from '../collections/baseset';
 import { BaseCollection } from '../collections/basecollection';
-import { Structure } from '../structures/basestructure';
+import { Structure, setStructureKeys } from '../structures/basestructure';
 import {
   InteractionDataApplicationCommand,
   InteractionDataApplicationCommandOption,
@@ -300,8 +300,8 @@ const keysSkipDifferenceInteractionCommand = new BaseSet<string>([
 
 export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structure {
   readonly _file?: string;
-  readonly _keys = keysInteractionCommand;
-  readonly _keysSkipDifference = keysSkipDifferenceInteractionCommand;
+  static { setStructureKeys(this, '_keys', keysInteractionCommand); }
+  static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferenceInteractionCommand); }
   _options?: BaseCollection<string, InteractionCommandOption>;
 
   contexts: Array<InteractionContextTypes> | null = null;
@@ -681,7 +681,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   readonly parent?: InteractionCommand | InteractionCommandOption;
 
   readonly _file?: string;
-  readonly _keys = keysInteractionCommandOption;
+  static { setStructureKeys(this, '_keys', keysInteractionCommandOption); }
   _options?: BaseCollection<string, InteractionCommandOption>;
 
   autocomplete?: boolean;
@@ -1140,7 +1140,7 @@ const keysInteractionCommandOptionChoice = new BaseSet<string>([
 ]);
 
 export class InteractionCommandOptionChoice extends Structure {
-  readonly _keys = keysInteractionCommandOptionChoice;
+  static { setStructureKeys(this, '_keys', keysInteractionCommandOptionChoice); }
 
   name: string = '';
   nameLocalizations: Record<string, string | undefined> | null = null;

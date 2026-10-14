@@ -10,6 +10,7 @@ import { VoiceConnection } from '../media/voiceconnection';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Channel } from './channel';
 import { User } from './user';
@@ -36,8 +37,8 @@ const keysMergeVoiceCall = new BaseSet<string>([
  * @category Structure
  */
 export class VoiceCall extends BaseStructure {
-  readonly _keys = keysVoiceCall;
-  readonly _keysMerge = keysMergeVoiceCall;
+  static { setStructureKeys(this, '_keys', keysVoiceCall); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeVoiceCall); }
 
   readonly ringing = new BaseCollection<string, null | User>();
 

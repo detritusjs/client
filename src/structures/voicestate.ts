@@ -10,6 +10,7 @@ import { DetritusKeys, DiscordKeys } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { ChannelGuildStageVoice, ChannelGuildVoice } from './channel';
 import { Guild } from './guild';
@@ -40,15 +41,21 @@ const keysSkipDifferenceVoiceState = new BaseSet<string>([
   DiscordKeys.MEMBER,
 ]);
 
+// added to each voice state as a new property, redefining an existing (class field) one is a lot slower
+const voiceStateHiddenProperties: PropertyDescriptorMap = Object.freeze({
+  _isSpeaking: {configurable: true, enumerable: false, writable: true, value: false},
+});
+
 /**
  * Voice State Structure
  * @category Structure
  */
 export class VoiceState extends BaseStructure {
-  readonly _keys = keysVoiceState;
-  readonly _keysMerge = keysMergeVoiceState;
-  readonly _keysSkipDifference = keysSkipDifferenceVoiceState;
-  _isSpeaking: boolean = false;
+  static { setStructureKeys(this, '_keys', keysVoiceState); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeVoiceState); }
+  static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferenceVoiceState); }
+  // only declared, the constructor adds it (see `voiceStateHiddenProperties`)
+  declare _isSpeaking: boolean;
 
   channelId?: null | string;
   deaf: boolean = false;
@@ -70,9 +77,7 @@ export class VoiceState extends BaseStructure {
     isClone?: boolean,
   ) {
     super(client, undefined, isClone);
-    Object.defineProperties(this, {
-      _isSpeaking: {enumerable: false, writable: true},
-    });
+    Object.defineProperties(this, voiceStateHiddenProperties);
     this.merge(data);
   }
 

@@ -6,6 +6,7 @@ import { Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { User } from './user';
@@ -24,7 +25,7 @@ const keysPremiumSubscription = new BaseSet<string>([
  * @category Structure
  */
 export class PremiumSubscription extends BaseStructure {
-  readonly _keys = keysPremiumSubscription;
+  static { setStructureKeys(this, '_keys', keysPremiumSubscription); }
 
   ended: boolean = false;
   guildId: string = '';

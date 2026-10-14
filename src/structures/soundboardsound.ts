@@ -8,6 +8,7 @@ import { Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { User } from './user';
@@ -30,7 +31,7 @@ const keysSoundboardSound = new BaseSet<string>([
  * @category Structure
  */
 export class SoundboardSound extends BaseStructure {
-  readonly _keys = keysSoundboardSound;
+  static { setStructureKeys(this, '_keys', keysSoundboardSound); }
 
   available: boolean = true;
   emojiId: null | string = null;

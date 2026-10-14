@@ -9,7 +9,7 @@ import {
   MessageComponentDefaultValueTypes,
   MessageComponentTypes,
 } from '../../constants';
-import { Structure } from '../../structures/basestructure';
+import { Structure, setStructureKeys } from '../../structures/basestructure';
 import { Emoji } from '../../structures/emoji';
 
 import { ComponentOnError, ComponentRun } from './components';
@@ -67,7 +67,7 @@ const keysComponentActionBase = new BaseSet<string>([
 ]);
 
 export class ComponentActionBase extends Structure {
-  readonly _keys = keysComponentActionBase;
+  static { setStructureKeys(this, '_keys', keysComponentActionBase); }
 
   customId?: null | string;
   id?: null | number;

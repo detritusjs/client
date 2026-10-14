@@ -7,6 +7,7 @@ import {
 } from '../../constants';
 
 import { ComponentActionBase, ComponentActionData } from './actionbase';
+import { setStructureKeys } from '../../structures/basestructure';
 
 
 const keysComponentInputText = new BaseSet<string>([
@@ -27,7 +28,7 @@ const keysComponentInputText = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentInputText extends ComponentActionBase {
-  readonly _keys = keysComponentInputText;
+  static { setStructureKeys(this, '_keys', keysComponentInputText); }
 
   customId: string = '';
   label?: null | string;

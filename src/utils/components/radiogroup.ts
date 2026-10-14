@@ -4,7 +4,7 @@ import {
   DiscordKeys,
   MessageComponentTypes,
 } from '../../constants';
-import { BaseStructureData } from '../../structures/basestructure';
+import { BaseStructureData, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentActionBase, ComponentActionData } from './actionbase';
 import { ComponentSelectMenuOption, ComponentSelectMenuOptionData } from './selectmenu';
@@ -23,7 +23,7 @@ const keysComponentRadioGroup = new BaseSet<string>([
  * @category Utils
  */
 export class ComponentRadioGroup extends ComponentActionBase {
-  readonly _keys = keysComponentRadioGroup;
+  static { setStructureKeys(this, '_keys', keysComponentRadioGroup); }
 
   customId: string = '';
   options: Array<ComponentSelectMenuOption> = [];

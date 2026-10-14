@@ -17,6 +17,7 @@ import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { Role } from './role';
@@ -35,13 +36,19 @@ const keysEmoji = new BaseSet<string>([
   DiscordKeys.USER,
 ]);
 
+// added to each emoji as a new property, redefining an existing (class field) one is a lot slower
+const emojiHiddenProperties: PropertyDescriptorMap = Object.freeze({
+  _roles: {configurable: true, enumerable: false, writable: true, value: undefined},
+});
+
 /**
  * Emoji Structure
  * @category Structure
  */
 export class Emoji extends BaseStructure {
-  readonly _keys = keysEmoji;
-  _roles?: Array<string>;
+  static { setStructureKeys(this, '_keys', keysEmoji); }
+  // only declared, the constructor adds it (see `emojiHiddenProperties`)
+  declare _roles?: Array<string>;
 
   animated: boolean = false;
   available?: boolean;
@@ -55,8 +62,8 @@ export class Emoji extends BaseStructure {
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
+    Object.defineProperties(this, emojiHiddenProperties);
     this.merge(data);
-    Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
   }
 
   get createdAt(): Date | null {

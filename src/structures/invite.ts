@@ -10,6 +10,7 @@ import { DetritusKeys, DiscordKeys, InviteFlags, InviteTargetTypes, InviteTypes 
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import {
   Channel,
@@ -52,8 +53,8 @@ const keysMergeInvite = new BaseSet<string>([
  * @category Structure
  */
 export class Invite extends BaseStructure {
-  readonly _keys = keysInvite;
-  readonly _keysMerge = keysMergeInvite;
+  static { setStructureKeys(this, '_keys', keysInvite); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeInvite); }
 
   approximateMemberCount?: number;
   approximatePresenceCount?: number;

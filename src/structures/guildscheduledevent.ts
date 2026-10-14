@@ -17,6 +17,7 @@ import { Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { Member } from './member';
@@ -48,7 +49,7 @@ const keysGuildScheduledEvent = new BaseSet<string>([
  * @category Structure
  */
 export class GuildScheduledEvent extends BaseStructure {
-  readonly _keys = keysGuildScheduledEvent;
+  static { setStructureKeys(this, '_keys', keysGuildScheduledEvent); }
 
   channelId: string | null = null;
   creator?: User;
@@ -206,7 +207,7 @@ const keysGuildScheduledEventUser = new BaseSet<string>([
  * @category Structure
  */
 export class GuildScheduledEventUser extends BaseStructure {
-  readonly _keys = keysGuildScheduledEventUser;
+  static { setStructureKeys(this, '_keys', keysGuildScheduledEventUser); }
 
   guildScheduledEventId: string = '';
   member?: Member;
@@ -286,7 +287,7 @@ const keysGuildScheduledEventRecurrenceRule = new BaseSet<string>([
  * @category Structure
  */
 export class GuildScheduledEventRecurrenceRule extends BaseStructure {
-  readonly _keys = keysGuildScheduledEventRecurrenceRule;
+  static { setStructureKeys(this, '_keys', keysGuildScheduledEventRecurrenceRule); }
 
   byMonth: Array<GuildScheduledEventRecurrenceRuleMonths> | null = null;
   byMonthDay: Array<number> | null = null;

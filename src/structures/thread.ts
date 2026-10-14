@@ -5,6 +5,7 @@ import { DetritusKeys, DiscordKeys } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { ChannelGuildThread } from './channel';
 import { Member } from './member';
@@ -25,7 +26,7 @@ const keysThreadMember = new BaseSet<string>([
  * @category Structure
  */
 export class ThreadMember extends BaseStructure {
-  readonly _keys = keysThreadMember;
+  static { setStructureKeys(this, '_keys', keysThreadMember); }
 
   flags: number = 0;
   id: string = '';
@@ -110,7 +111,7 @@ const keysThreadMetadata = new BaseSet<string>([
  * @category Structure
  */
  export class ThreadMetadata extends BaseStructure {
-  readonly _keys = keysThreadMetadata;
+  static { setStructureKeys(this, '_keys', keysThreadMetadata); }
   readonly channel: ChannelGuildThread;
 
   archiveTimestampUnix: number = 0;

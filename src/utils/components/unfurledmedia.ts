@@ -1,6 +1,6 @@
 import { BaseSet } from '../../collections/baseset';
 import { DetritusKeys, DiscordKeys } from '../../constants';
-import { BaseStructureData, Structure } from '../../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../../structures/basestructure';
 
 
 export interface ComponentUnfurledMediaData {
@@ -17,7 +17,7 @@ const keysComponentUnfurledMedia = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentUnfurledMedia extends Structure {
-  readonly _keys = keysComponentUnfurledMedia;
+  static { setStructureKeys(this, '_keys', keysComponentUnfurledMedia); }
 
   url: string = '';
 

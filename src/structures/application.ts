@@ -31,6 +31,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Team } from './team';
 import { UserWithFlags, UserWithToken } from './user';
@@ -126,7 +127,7 @@ const keysApplication = new BaseSet<string>([
  * @category Structure
  */
 export class Application extends BaseStructure {
-  readonly _keys = keysApplication;
+  static { setStructureKeys(this, '_keys', keysApplication); }
 
   aliases?: BaseSet<string>;
   approximateGuildCount?: number;
@@ -611,18 +612,17 @@ const keysApplicationInstallParams = new BaseSet<string>([
 
 export class ApplicationInstallParams extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysApplicationInstallParams;
+  static { setStructureKeys(this, '_keys', keysApplicationInstallParams); }
 
-  readonly application: Application;
+  declare readonly application: Application;
 
   permissions!: string;
   scopes!: Array<string>;
 
   constructor(application: Application, data: BaseStructureData) {
     super(application.client, undefined, application._clone);
-    this.application = application;
+    Object.defineProperty(this, 'application', {configurable: true, enumerable: false, writable: false, value: application});
     this.merge(data);
-    Object.defineProperty(this, 'application', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -646,17 +646,16 @@ const keysApplicationIntegrationTypeConfiguration = new BaseSet<string>([
 
 export class ApplicationIntegrationTypeConfiguration extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysApplicationIntegrationTypeConfiguration;
+  static { setStructureKeys(this, '_keys', keysApplicationIntegrationTypeConfiguration); }
 
-  readonly application: Application;
+  declare readonly application: Application;
 
   oauth2InstallParams?: ApplicationInstallParams;
 
   constructor(application: Application, data: BaseStructureData) {
     super(application.client, undefined, application._clone);
-    this.application = application;
+    Object.defineProperty(this, 'application', {configurable: true, enumerable: false, writable: false, value: application});
     this.merge(data);
-    Object.defineProperty(this, 'application', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -681,9 +680,9 @@ const keysApplicationThirdPartySku = new BaseSet<string>([
 
 export class ApplicationThirdPartySku extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysApplicationThirdPartySku;
+  static { setStructureKeys(this, '_keys', keysApplicationThirdPartySku); }
 
-  readonly application: Application;
+  declare readonly application: Application;
 
   distributor!: Distributors;
   id: null | string = null;
@@ -691,9 +690,8 @@ export class ApplicationThirdPartySku extends BaseStructure {
 
   constructor(application: Application, data: BaseStructureData) {
     super(application.client, undefined, application._clone);
-    this.application = application;
+    Object.defineProperty(this, 'application', {configurable: true, enumerable: false, writable: false, value: application});
     this.merge(data);
-    Object.defineProperty(this, 'application', {enumerable: false, writable: false});
   }
 
   get key(): string {
@@ -790,7 +788,7 @@ const keysApplicationActivityInstance = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationActivityInstance extends BaseStructure {
-  readonly _keys = keysApplicationActivityInstance;
+  static { setStructureKeys(this, '_keys', keysApplicationActivityInstance); }
 
   applicationId: string = '';
   instanceId: string = '';
@@ -840,7 +838,7 @@ const keysApplicationActivityLocation = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationActivityLocation extends BaseStructure {
-  readonly _keys = keysApplicationActivityLocation;
+  static { setStructureKeys(this, '_keys', keysApplicationActivityLocation); }
 
   channelId: string = '';
   guildId?: null | string;

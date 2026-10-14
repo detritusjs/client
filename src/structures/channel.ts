@@ -32,6 +32,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { Member } from './member';
@@ -138,8 +139,8 @@ const keysMergeChannelBase = new BaseSet<string>();
  * @category Structure
  */
 export class ChannelBase extends BaseStructure {
-  readonly _keys = keysChannelBase;
-  readonly _keysMerge = keysMergeChannelBase;
+  static { setStructureKeys(this, '_keys', keysChannelBase); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeChannelBase); }
   _appliedTags?: BaseSet<string>;
   _availableTags?: BaseCollection<string, ChannelAvailableTag>;
   _name: string = '';
@@ -1004,7 +1005,7 @@ const keysChannelDm = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelDM extends ChannelBase {
-  readonly _keys = keysChannelDm;
+  static { setStructureKeys(this, '_keys', keysChannelDm); }
   type = ChannelTypes.DM;
 
   declare lastMessageId: null | string;
@@ -1152,7 +1153,7 @@ const keysChannelDmGroup = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelDMGroup extends ChannelDM {
-  readonly _keys = keysChannelDmGroup;
+  static { setStructureKeys(this, '_keys', keysChannelDmGroup); }
   type = ChannelTypes.GROUP_DM;
 
   declare applicationId?: string;
@@ -1238,7 +1239,7 @@ const keysChannelGuildBase = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildBase extends ChannelBase {
-  readonly _keys = keysChannelGuildBase;
+  static { setStructureKeys(this, '_keys', keysChannelGuildBase); }
   type = ChannelTypes.BASE;
 
   flags: number = 0;
@@ -1577,7 +1578,7 @@ export class ChannelGuildBase extends ChannelBase {
  * @category Structure
  */
 export class ChannelGuildCategory extends ChannelGuildBase {
-  readonly _keys = keysChannelGuildBase;
+  static { setStructureKeys(this, '_keys', keysChannelGuildBase); }
   type = ChannelTypes.GUILD_CATEGORY;
 
   constructor(
@@ -1605,7 +1606,7 @@ const keysChannelGuildText = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildText extends ChannelGuildBase {
-  readonly _keys = keysChannelGuildText;
+  static { setStructureKeys(this, '_keys', keysChannelGuildText); }
   type = ChannelTypes.GUILD_TEXT;
 
   declare lastMessageId: null | string;
@@ -1690,7 +1691,7 @@ const keysChannelGuildVoice = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildVoice extends ChannelGuildBase {
-  readonly _keys = keysChannelGuildVoice;
+  static { setStructureKeys(this, '_keys', keysChannelGuildVoice); }
   type = ChannelTypes.GUILD_VOICE;
 
   declare lastMessageId: null | string;
@@ -1801,7 +1802,7 @@ const keysChannelGuildStore = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildStore extends ChannelGuildBase {
-  readonly _keys = keysChannelGuildStore;
+  static { setStructureKeys(this, '_keys', keysChannelGuildStore); }
   type = ChannelTypes.GUILD_STORE;
 
   bitrate: number = 0;
@@ -1842,7 +1843,7 @@ const keysChannelGuildStageVoice = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildStageVoice extends ChannelGuildVoice {
-  readonly _keys = keysChannelGuildStageVoice;
+  static { setStructureKeys(this, '_keys', keysChannelGuildStageVoice); }
   type = ChannelTypes.GUILD_STAGE_VOICE;
 
   topic: null | string = null;
@@ -1926,7 +1927,7 @@ const keysChannelGuildThread = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildThread extends ChannelGuildBase {
-  readonly _keys = keysChannelGuildThread;
+  static { setStructureKeys(this, '_keys', keysChannelGuildThread); }
   type = ChannelTypes.GUILD_PUBLIC_THREAD;
 
   declare member?: ThreadMember;
@@ -2064,7 +2065,7 @@ const keysChannelGuildDirectory = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildDirectory extends ChannelGuildBase {
-  readonly _keys = keysChannelGuildDirectory;
+  static { setStructureKeys(this, '_keys', keysChannelGuildDirectory); }
   type = ChannelTypes.GUILD_DIRECTORY;
 
   constructor(
@@ -2099,7 +2100,7 @@ const keysChannelGuildForum = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildForum extends ChannelGuildBase {
-  readonly _keys = keysChannelGuildForum;
+  static { setStructureKeys(this, '_keys', keysChannelGuildForum); }
   type = ChannelTypes.GUILD_FORUM;
 
   defaultAutoArchiveDuration: number = 0;
@@ -2188,7 +2189,7 @@ const keysChannelGuildMedia = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelGuildMedia extends ChannelGuildForum {
-  readonly _keys = keysChannelGuildMedia;
+  static { setStructureKeys(this, '_keys', keysChannelGuildMedia); }
   type = ChannelTypes.GUILD_MEDIA;
 
   constructor(
@@ -2217,7 +2218,7 @@ const keysChannelAvailableTag = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelAvailableTag extends BaseStructure {
-  readonly _keys = keysChannelAvailableTag;
+  static { setStructureKeys(this, '_keys', keysChannelAvailableTag); }
 
   channelId: string = '';
   emojiId: string | null = null;
@@ -2273,7 +2274,7 @@ const keysChannelDefaultReactionEmoji = new BaseSet<string>([
  * @category Structure
  */
 export class ChannelDefaultReactionEmoji extends BaseStructure {
-  readonly _keys = keysChannelDefaultReactionEmoji;
+  static { setStructureKeys(this, '_keys', keysChannelDefaultReactionEmoji); }
 
   emojiId: string | null = null;
   emojiName: string = '';

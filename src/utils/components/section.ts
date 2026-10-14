@@ -7,7 +7,7 @@ import {
   MessageComponentTypes,
   MAX_COMPONENTS_SECTION_TEXT_DISPLAYS,
 } from '../../constants';
-import { BaseStructureData, Structure } from '../../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
 import { ComponentButton } from './button';
@@ -34,7 +34,7 @@ const keysComponentSection = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentSection extends Structure {
-  readonly _keys = keysComponentSection;
+  static { setStructureKeys(this, '_keys', keysComponentSection); }
 
   accessory?: ComponentButton | ComponentThumbnail;
   components: Array<ComponentTextDisplay> = [];

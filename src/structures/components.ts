@@ -19,6 +19,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Emoji } from './emoji';
 
@@ -43,7 +44,7 @@ const keysComponentActionRow = new BaseSet<string>([
  */
 export class ComponentActionRow extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysComponentActionRow;
+  static { setStructureKeys(this, '_keys', keysComponentActionRow); }
 
   components = new BaseCollection<number, ComponentUnknown | ComponentButton | ComponentSelectMenu | ComponentInputText>();
   id?: number;
@@ -113,7 +114,7 @@ const keysComponentUnknown = new BaseSet<string>([
  */
 export class ComponentUnknown extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysComponentUnknown;
+  static { setStructureKeys(this, '_keys', keysComponentUnknown); }
 
   id?: number;
   type: MessageComponentTypes = MessageComponentTypes.BUTTON;
@@ -160,7 +161,7 @@ const keysComponentButton = new BaseSet<string>([
  */
 export class ComponentButton extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysComponentButton;
+  static { setStructureKeys(this, '_keys', keysComponentButton); }
 
   customId?: string;
   disabled?: boolean;
@@ -236,7 +237,7 @@ const keysMessageComponentCheckbox = new BaseSet<string>([
  */
 export class ComponentCheckbox extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentCheckbox;
+  static { setStructureKeys(this, '_keys', keysMessageComponentCheckbox); }
 
   customId: string = '';
   id?: number;
@@ -286,7 +287,7 @@ const keysMessageComponentCheckboxGroup = new BaseSet<string>([
  */
 export class ComponentCheckboxGroup extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentCheckboxGroup;
+  static { setStructureKeys(this, '_keys', keysMessageComponentCheckboxGroup); }
 
   customId: string = '';
   id?: number;
@@ -337,7 +338,7 @@ const keysMessageComponentContainer = new BaseSet<string>([
  */
 export class ComponentContainer extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentContainer;
+  static { setStructureKeys(this, '_keys', keysMessageComponentContainer); }
 
   accentColor?: number;
   components = new BaseCollection<number, ComponentActionRow | ComponentFile | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay | ComponentUnknown>();
@@ -422,7 +423,7 @@ const keysMessageComponentFile = new BaseSet<string>([
  */
 export class ComponentFile extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentFile;
+  static { setStructureKeys(this, '_keys', keysMessageComponentFile); }
 
   file!: ComponentUnfurledMedia;
   id?: number;
@@ -473,7 +474,7 @@ const keysMessageComponentFileUpload = new BaseSet<string>([
  */
 export class ComponentFileUpload extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentFileUpload;
+  static { setStructureKeys(this, '_keys', keysMessageComponentFileUpload); }
 
   customId: string = '';
   id?: number;
@@ -523,7 +524,7 @@ const keysMessageComponentInputText = new BaseSet<string>([
  */
 export class ComponentInputText extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentInputText;
+  static { setStructureKeys(this, '_keys', keysMessageComponentInputText); }
 
   customId: string = '';
   id?: number;
@@ -577,7 +578,7 @@ export type ComponentLabelChild = (
  */
 export class ComponentLabel extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentLabel;
+  static { setStructureKeys(this, '_keys', keysMessageComponentLabel); }
 
   component?: ComponentLabelChild;
   id?: number;
@@ -652,7 +653,7 @@ const keysMessageComponentMediaGallery = new BaseSet<string>([
  */
 export class ComponentMediaGallery extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentMediaGallery;
+  static { setStructureKeys(this, '_keys', keysMessageComponentMediaGallery); }
 
   id?: number;
   items = new BaseCollection<number, ComponentMediaGalleryItem>();
@@ -703,8 +704,8 @@ const keysComponentMediaGalleryItem = new BaseSet<string>([
  */
 export class ComponentMediaGalleryItem extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysComponentMediaGalleryItem;
-  readonly mediaGallery: ComponentMediaGallery;
+  static { setStructureKeys(this, '_keys', keysComponentMediaGalleryItem); }
+  declare readonly mediaGallery: ComponentMediaGallery;
 
   description?: string;
   media!: ComponentUnfurledMedia;
@@ -712,9 +713,8 @@ export class ComponentMediaGalleryItem extends BaseStructure {
 
   constructor(mediaGallery: ComponentMediaGallery, data: BaseStructureData) {
     super(mediaGallery.client, undefined, mediaGallery._clone);
-    this.mediaGallery = mediaGallery;
+    Object.defineProperty(this, 'mediaGallery', {configurable: true, enumerable: false, writable: true, value: mediaGallery});
     this.merge(data);
-    Object.defineProperty(this, 'mediaGallery', {enumerable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -749,7 +749,7 @@ const keysMessageComponentRadioGroup = new BaseSet<string>([
  */
 export class ComponentRadioGroup extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentRadioGroup;
+  static { setStructureKeys(this, '_keys', keysMessageComponentRadioGroup); }
 
   customId: string = '';
   id?: number;
@@ -799,7 +799,7 @@ const keysComponentSection = new BaseSet<string>([
  */
 export class ComponentSection extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysComponentSection;
+  static { setStructureKeys(this, '_keys', keysComponentSection); }
 
   accessory!: ComponentButton | ComponentThumbnail | ComponentUnknown;
   components = new BaseCollection<number, ComponentTextDisplay | ComponentUnknown>();
@@ -889,7 +889,7 @@ const keysMessageComponentSelectMenu = new BaseSet<string>([
  */
 export class ComponentSelectMenu extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentSelectMenu;
+  static { setStructureKeys(this, '_keys', keysMessageComponentSelectMenu); }
 
   channelTypes?: Array<ChannelTypes>;
   customId: string = '';
@@ -991,8 +991,8 @@ const keysComponentSelectMenuDefaultValue = new BaseSet<string>([
  */
 export class ComponentSelectMenuDefaultValue extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysComponentSelectMenuDefaultValue;
-  readonly selectMenu: ComponentSelectMenu;
+  static { setStructureKeys(this, '_keys', keysComponentSelectMenuDefaultValue); }
+  declare readonly selectMenu: ComponentSelectMenu;
 
   id: string = '';
   type!: MessageComponentDefaultValueTypes;
@@ -1003,9 +1003,8 @@ export class ComponentSelectMenuDefaultValue extends BaseStructure {
 
   constructor(selectMenu: ComponentSelectMenu, data: BaseStructureData) {
     super(selectMenu.client, undefined, selectMenu._clone);
-    this.selectMenu = selectMenu;
+    Object.defineProperty(this, 'selectMenu', {configurable: true, enumerable: false, writable: true, value: selectMenu});
     this.merge(data);
-    Object.defineProperty(this, 'selectMenu', {enumerable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -1037,8 +1036,8 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
  */
 export class ComponentSelectMenuOption extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysComponentSelectMenuOption;
-  readonly selectMenu: ComponentSelectMenu;
+  static { setStructureKeys(this, '_keys', keysComponentSelectMenuOption); }
+  declare readonly selectMenu: ComponentSelectMenu;
 
   default: boolean = false;
   description?: string;
@@ -1048,9 +1047,8 @@ export class ComponentSelectMenuOption extends BaseStructure {
 
   constructor(selectMenu: ComponentSelectMenu, data: BaseStructureData) {
     super(selectMenu.client, undefined, selectMenu._clone);
-    this.selectMenu = selectMenu;
+    Object.defineProperty(this, 'selectMenu', {configurable: true, enumerable: false, writable: true, value: selectMenu});
     this.merge(data);
-    Object.defineProperty(this, 'selectMenu', {enumerable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -1096,7 +1094,7 @@ const keysMessageComponentSeparator = new BaseSet<string>([
  */
 export class ComponentSeparator extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentSeparator;
+  static { setStructureKeys(this, '_keys', keysMessageComponentSeparator); }
 
   divider?: boolean;
   id?: number;
@@ -1145,7 +1143,7 @@ const keysMessageComponentTextDisplay = new BaseSet<string>([
  */
 export class ComponentTextDisplay extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentTextDisplay;
+  static { setStructureKeys(this, '_keys', keysMessageComponentTextDisplay); }
 
   content: string = '';
   id?: number;
@@ -1192,7 +1190,7 @@ const keysMessageComponentThumbnail = new BaseSet<string>([
  */
 export class ComponentThumbnail extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentThumbnail;
+  static { setStructureKeys(this, '_keys', keysMessageComponentThumbnail); }
 
   description?: string;
   id?: number;
@@ -1248,7 +1246,7 @@ const keysMessageComponentUnfurledMedia = new BaseSet<string>([
  */
 export class ComponentUnfurledMedia extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageComponentUnfurledMedia;
+  static { setStructureKeys(this, '_keys', keysMessageComponentUnfurledMedia); }
 
   contentType?: string;
   height?: number;

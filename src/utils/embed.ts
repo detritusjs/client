@@ -2,7 +2,7 @@ import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import { DiscordKeys, MessageEmbedTypes } from '../constants';
 import { GatewayRawEvents } from '../gateway/rawevents';
-import { BaseStructureData, Structure } from '../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../structures/basestructure';
 
 
 const keysEmbed = new BaseSet<string>([
@@ -27,7 +27,7 @@ const keysEmbed = new BaseSet<string>([
  * @category Utils
  */
 export class Embed extends Structure {
-  readonly _keys = keysEmbed;
+  static { setStructureKeys(this, '_keys', keysEmbed); }
 
   author?: EmbedAuthor;
   color?: number;
@@ -251,7 +251,7 @@ const keysEmbedAuthor = new BaseSet<string>([
  * @category Utils
  */
 export class EmbedAuthor extends Structure {
-  readonly _keys = keysEmbedAuthor;
+  static { setStructureKeys(this, '_keys', keysEmbedAuthor); }
 
   iconUrl?: string;
   name?: string;
@@ -276,7 +276,7 @@ const keysEmbedField = new BaseSet<string>([
  * @category Utils
  */
 export class EmbedField extends Structure {
-  readonly _keys = keysEmbedField;
+  static { setStructureKeys(this, '_keys', keysEmbedField); }
 
   inline?: boolean;
   name: string = '';
@@ -300,7 +300,7 @@ const keysEmbedFooter = new BaseSet<string>([
  * @category Utils
  */
 export class EmbedFooter extends Structure {
-  readonly _keys = keysEmbedFooter;
+  static { setStructureKeys(this, '_keys', keysEmbedFooter); }
 
   iconUrl?: string;
   proxyIconUrl?: string;
@@ -325,7 +325,7 @@ const keysEmbedImage = new BaseSet<string>([
  * @category Utils
  */
 export class EmbedImage extends Structure {
-  readonly _keys = keysEmbedImage;
+  static { setStructureKeys(this, '_keys', keysEmbedImage); }
 
   height?: number;
   proxyUrl?: string;
@@ -349,7 +349,7 @@ const keysEmbedProvider = new BaseSet<string>([
  * @category Utils
  */
 export class EmbedProvider extends Structure {
-  readonly _keys = keysEmbedProvider;
+  static { setStructureKeys(this, '_keys', keysEmbedProvider); }
 
   name?: string;
   url?: string;

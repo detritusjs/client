@@ -26,6 +26,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Channel } from './channel';
 import { Guild } from './guild';
@@ -54,7 +55,7 @@ const keysUser = new BaseSet<string>([
  * @category Structure
  */
 export class User extends BaseStructure {
-  readonly _keys = keysUser;
+  static { setStructureKeys(this, '_keys', keysUser); }
 
   avatar: null | string = null;
   avatarDecorationData: null | UserAvatarDecorationData = null;
@@ -382,7 +383,7 @@ const keysUserWithToken = new BaseSet<string>([
  * @category Structure
  */
 export class UserWithToken extends User {
-  readonly _keys = keysUserWithToken;
+  static { setStructureKeys(this, '_keys', keysUserWithToken); }
 
   token: string = '';
 
@@ -421,7 +422,7 @@ const keysUserWithBanner = new BaseSet<string>([
 ].sort());
 
 export class UserWithBanner extends User {
-  readonly _keys = keysUserWithBanner;
+  static { setStructureKeys(this, '_keys', keysUserWithBanner); }
 
   accentColor: number | null = null;
   banner: null | string = null;
@@ -485,7 +486,7 @@ const keysUserWithFlags = new BaseSet<string>([
  * @category Structure
  */
 export class UserWithFlags extends UserWithBanner {
-  readonly _keys = keysUserWithFlags;
+  static { setStructureKeys(this, '_keys', keysUserWithFlags); }
 
   bio: null | string = null;
   flags: number = 0;
@@ -534,7 +535,7 @@ const keysUserExtended = new BaseSet<string>([
  * @category Structure
  */
 export class UserExtended extends UserWithFlags {
-  readonly _keys = keysUserExtended;
+  static { setStructureKeys(this, '_keys', keysUserExtended); }
 
   email?: string | null;
   flags: number = 0;
@@ -606,7 +607,7 @@ const keysUserMe = new BaseSet<string>([
  * @category Structure
  */
 export class UserMe extends UserExtended {
-  readonly _keys = keysUserMe;
+  static { setStructureKeys(this, '_keys', keysUserMe); }
 
   analyticsToken?: string;
   phone?: string;
@@ -901,7 +902,7 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
  * @category Structure
  */
  export class UserAvatarDecorationData extends BaseStructure {
-  readonly _keys = keysUserAvatarDecorationData;
+  static { setStructureKeys(this, '_keys', keysUserAvatarDecorationData); }
 
   asset: string = '';
   skuId: string = '';
@@ -956,7 +957,7 @@ const keysUserClan = new BaseSet<string>([
  * @category Structure
  */
  export class UserClan extends BaseStructure {
-  readonly _keys = keysUserClan;
+  static { setStructureKeys(this, '_keys', keysUserClan); }
 
   badge: null | string = null;
   identityEnabled: boolean = false;
@@ -1003,7 +1004,7 @@ const keysUserCollectibles = new BaseSet<string>([
  * @category Structure
  */
  export class UserCollectibles extends BaseStructure {
-  readonly _keys = keysUserCollectibles;
+  static { setStructureKeys(this, '_keys', keysUserCollectibles); }
 
   nameplate?: UserCollectiblesNameplate;
 
@@ -1044,7 +1045,7 @@ const keysUserCollectiblesNameplate = new BaseSet<string>([
  * @category Structure
  */
  export class UserCollectiblesNameplate extends BaseStructure {
-  readonly _keys = keysUserCollectiblesNameplate;
+  static { setStructureKeys(this, '_keys', keysUserCollectiblesNameplate); }
 
   asset: string = '';
   label: string = '';
@@ -1093,7 +1094,7 @@ const keysUserDisplayNameStyles = new BaseSet<string>([
  * @category Structure
  */
  export class UserDisplayNameStyles extends BaseStructure {
-  readonly _keys = keysUserDisplayNameStyles;
+  static { setStructureKeys(this, '_keys', keysUserDisplayNameStyles); }
 
   colors: Array<number> = [];
   effectId: UserDisplayNameEffects = UserDisplayNameEffects.UNSPECIFIED;

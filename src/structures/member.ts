@@ -9,7 +9,7 @@ import { BaseSet } from '../collections/baseset';
 import { DetritusKeys, DiscordKeys, Permissions, PERMISSIONS_ALL } from '../constants';
 import { PermissionTools, UrlQuery, addQuery, getFormatFromHash, getQueryForImage } from '../utils';
 
-import { BaseStructureData } from './basestructure';
+import { BaseStructureData, setStructureKeys } from './basestructure';
 
 import {
   Channel,
@@ -61,19 +61,25 @@ const keysSkipDifferenceMember = new BaseSet<string>([
   DiscordKeys.PERMISSIONS,
 ]);
 
+// added to each member as a new property, redefining an existing (class field) one is a lot slower
+const memberHiddenProperties: PropertyDescriptorMap = Object.freeze({
+  _roles: {configurable: true, enumerable: false, writable: true, value: undefined},
+});
+
 /**
  * Guild Member Structure
  * @category Structure
  */
 export class Member extends UserMixin {
-  readonly _keys = keysMember;
-  readonly _keysSkipDifference = keysSkipDifferenceMember;
+  static { setStructureKeys(this, '_keys', keysMember); }
+  static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferenceMember); }
   _avatar: null | string = null;
   _avatarDecorationData: null | UserAvatarDecorationData = null;
   _banner: null | string = null;
   _collectibles: null | UserCollectibles = null;
   _displayNameStyles: null | UserDisplayNameStyles = null;
-  _roles?: Array<string>;
+  // only declared, the constructor adds it (see `memberHiddenProperties`)
+  declare _roles?: Array<string>;
   _permissions?: bigint = 0n;
 
   declare user: User;
@@ -97,8 +103,8 @@ export class Member extends UserMixin {
     isClone?: boolean,
   ) {
     super(client, undefined, isClone);
+    Object.defineProperties(this, memberHiddenProperties);
     this.merge(data);
-    Object.defineProperty(this, '_roles', {enumerable: false, writable: true});
   }
 
   get avatar(): null | string {

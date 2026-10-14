@@ -28,6 +28,7 @@ import { Markup, Snowflake, parseMentionsInText } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Application } from './application';
 import { Attachment } from './attachment';
@@ -108,24 +109,38 @@ const keysSkipDifferenceMessage = new BaseSet<string>([
   DiscordKeys.MEMBER,
 ]);
 
+// added to each message as new properties, redefining existing (class field) ones is a lot slower
+const messageHiddenProperties: PropertyDescriptorMap = Object.freeze({
+  _content: {configurable: true, enumerable: false, writable: false, value: ''},
+  _attachments: {configurable: true, enumerable: false, writable: true, value: undefined},
+  _embeds: {configurable: true, enumerable: false, writable: true, value: undefined},
+  _mentions: {configurable: true, enumerable: false, writable: true, value: undefined},
+  _mentionChannels: {configurable: true, enumerable: false, writable: true, value: undefined},
+  _mentionRoles: {configurable: true, enumerable: false, writable: true, value: undefined},
+  _reactions: {configurable: true, enumerable: false, writable: true, value: undefined},
+  _stickers: {configurable: true, enumerable: false, writable: true, value: undefined},
+  _stickerItems: {configurable: true, enumerable: false, writable: true, value: undefined},
+});
+
 /**
  * Channel Message Structure
  * @category Structure
  */
 export class Message extends BaseStructure {
-  readonly _keys = keysMessage;
-  readonly _keysSkipDifference = keysSkipDifferenceMessage;
-  _content = '';
-  _attachments?: BaseCollection<string, Attachment>;
+  static { setStructureKeys(this, '_keys', keysMessage); }
+  static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferenceMessage); }
+  // hidden ones are only declared here, the constructor adds them (see `messageHiddenProperties`)
+  declare _content: string;
+  declare _attachments?: BaseCollection<string, Attachment>;
   _components?: BaseCollection<number, ComponentsTopLevel>;
-  _embeds?: BaseCollection<number, MessageEmbed>;
-  _mentions?: BaseCollection<string, Member | User>;
-  _mentionChannels?: BaseCollection<string, Channel>;
-  _mentionRoles?: BaseCollection<string, null | Role>;
+  declare _embeds?: BaseCollection<number, MessageEmbed>;
+  declare _mentions?: BaseCollection<string, Member | User>;
+  declare _mentionChannels?: BaseCollection<string, Channel>;
+  declare _mentionRoles?: BaseCollection<string, null | Role>;
   _messageSnapshots?: BaseCollection<number, MessageSnapshot>;
-  _reactions?: BaseCollection<string, Reaction>;
-  _stickers?: BaseCollection<string, Sticker>;
-  _stickerItems?: BaseCollection<string, StickerItem>;
+  declare _reactions?: BaseCollection<string, Reaction>;
+  declare _stickers?: BaseCollection<string, Sticker>;
+  declare _stickerItems?: BaseCollection<string, StickerItem>;
 
   activity?: MessageActivity;
   application?: Application;
@@ -164,18 +179,8 @@ export class Message extends BaseStructure {
     isClone?: boolean,
   ) {
     super(client, undefined, isClone);
+    Object.defineProperties(this, messageHiddenProperties);
     this.merge(data);
-    Object.defineProperties(this, {
-      _content: {configurable: true, enumerable: false, writable: false},
-      _attachments: {enumerable: false, writable: true},
-      _embeds: {enumerable: false, writable: true},
-      _mentions: {enumerable: false, writable: true},
-      _mentionChannels: {enumerable: false, writable: true},
-      _mentionRoles: {enumerable: false, writable: true},
-      _reactions: {enumerable: false, writable: true},
-      _stickers: {enumerable: false, writable: true},
-      _stickerItems: {enumerable: false, writable: true},
-    });
 
     if (this.guildId && !this.member) {
       this.member = this.client.members.get(this.guildId, this.author.id);
@@ -1093,8 +1098,8 @@ const keysMessageActivity = new BaseSet<string>([
  */
 export class MessageActivity extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageActivity;
-  readonly message: Message;
+  static { setStructureKeys(this, '_keys', keysMessageActivity); }
+  declare readonly message: Message;
 
   coverImage: null | string = null;
   name: null | string = null;
@@ -1103,9 +1108,8 @@ export class MessageActivity extends BaseStructure {
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.message = message;
+    Object.defineProperty(this, 'message', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
   }
 
   get activity(): null | PresenceActivity {
@@ -1168,17 +1172,16 @@ const keysMessageCall = new BaseSet<string>([
  */
 export class MessageCall extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageCall;
-  readonly message: Message;
+  static { setStructureKeys(this, '_keys', keysMessageCall); }
+  declare readonly message: Message;
 
   endedTimestampUnix: number = 0;
   participants: Array<string> = [];
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.message = message;
+    Object.defineProperty(this, 'message', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
   }
 
   get duration(): number {
@@ -1231,8 +1234,8 @@ const keysMessageInteraction = new BaseSet<string>([
  */
 export class MessageInteraction extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageInteraction;
-  readonly message: Message;
+  static { setStructureKeys(this, '_keys', keysMessageInteraction); }
+  declare readonly message: Message;
 
   id: string = '';
   member?: Member;
@@ -1242,9 +1245,8 @@ export class MessageInteraction extends BaseStructure {
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.message = message;
+    Object.defineProperty(this, 'message', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -1309,8 +1311,8 @@ const keysMessageInteractionMetadata = new BaseSet<string>([
  */
 export class MessageInteractionMetadata extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageInteractionMetadata;
-  readonly message: Message;
+  static { setStructureKeys(this, '_keys', keysMessageInteractionMetadata); }
+  declare readonly message: Message;
 
   authorizingIntegrationOwners?: Record<ApplicationIntegrationTypes, string>;
   id: string = '';
@@ -1326,9 +1328,8 @@ export class MessageInteractionMetadata extends BaseStructure {
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.message = message;
+    Object.defineProperty(this, 'message', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
   }
 
   get interactedMessage(): Message | null {
@@ -1420,8 +1421,8 @@ const keysMessagePoll = new BaseSet<string>([
  */
 export class MessagePoll extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessagePoll;
-  readonly message: Message;
+  static { setStructureKeys(this, '_keys', keysMessagePoll); }
+  declare readonly message: Message;
   _answers?: BaseCollection<number, MessagePollAnswer>;
 
   allowMultiselect: boolean = false;
@@ -1434,9 +1435,8 @@ export class MessagePoll extends BaseStructure {
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.message = message;
+    Object.defineProperty(this, 'message', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
   }
 
   get answers(): BaseCollection<number, MessagePollAnswer> {
@@ -1542,8 +1542,8 @@ const keysMessagePollResults = new BaseSet<string>([
  */
 export class MessagePollResults extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessagePollResults;
-  readonly poll: MessagePoll;
+  static { setStructureKeys(this, '_keys', keysMessagePollResults); }
+  declare readonly poll: MessagePoll;
 
   // keyed by answer id
   answerCounts = new BaseCollection<number, MessagePollAnswerCount>();
@@ -1551,9 +1551,8 @@ export class MessagePollResults extends BaseStructure {
 
   constructor(poll: MessagePoll, data: BaseStructureData) {
     super(poll.client, undefined, poll._clone);
-    this.poll = poll;
+    Object.defineProperty(this, 'poll', {configurable: true, enumerable: false, writable: true, value: poll});
     this.merge(data);
-    Object.defineProperty(this, 'poll', {enumerable: false});
   }
 
   get totalVotes(): number {
@@ -1610,17 +1609,16 @@ const keysMessagePollAnswer = new BaseSet<string>([
  */
 export class MessagePollAnswer extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessagePollAnswer;
-  readonly poll: MessagePoll;
+  static { setStructureKeys(this, '_keys', keysMessagePollAnswer); }
+  declare readonly poll: MessagePoll;
 
   answerId: string = '';
   pollMedia!: MessagePollMedia;
 
   constructor(poll: MessagePoll, data: BaseStructureData) {
     super(poll.client, undefined, poll._clone);
-    this.poll = poll;
+    Object.defineProperty(this, 'poll', {configurable: true, enumerable: false, writable: true, value: poll});
     this.merge(data);
-    Object.defineProperty(this, 'poll', {enumerable: false});
   }
 
   get channelId(): string {
@@ -1662,17 +1660,16 @@ const keysMessagePollMedia = new BaseSet<string>([
  */
 export class MessagePollMedia extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessagePollMedia;
-  readonly poll: MessagePoll;
+  static { setStructureKeys(this, '_keys', keysMessagePollMedia); }
+  declare readonly poll: MessagePoll;
 
   emoji?: Emoji;
   text?: string;
 
   constructor(poll: MessagePoll, data: BaseStructureData) {
     super(poll.client, undefined, poll._clone);
-    this.poll = poll;
+    Object.defineProperty(this, 'poll', {configurable: true, enumerable: false, writable: true, value: poll});
     this.merge(data);
-    Object.defineProperty(this, 'poll', {enumerable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -1705,8 +1702,8 @@ const keysMessageReference = new BaseSet<string>([
  */
 export class MessageReference extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageReference;
-  readonly parent: Message;
+  static { setStructureKeys(this, '_keys', keysMessageReference); }
+  declare readonly parent: Message;
 
   channelId: string = '';
   guildId?: string = '';
@@ -1715,9 +1712,8 @@ export class MessageReference extends BaseStructure {
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.parent = message;
+    Object.defineProperty(this, 'parent', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'parent', {enumerable: false});
   }
 
   get channel(): ChannelTextType | null {
@@ -1780,8 +1776,8 @@ const keysMessageResolvedData = new BaseSet<string>([
  */
 export class MessageResolvedData extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageResolvedData;
-  readonly message: Message;
+  static { setStructureKeys(this, '_keys', keysMessageResolvedData); }
+  declare readonly message: Message;
 
   attachments?: BaseCollection<string, Attachment>;
   channels?: BaseCollection<string, Channel>;
@@ -1792,9 +1788,8 @@ export class MessageResolvedData extends BaseStructure {
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.message = message;
+    Object.defineProperty(this, 'message', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
   }
 
   get guildId(): null | string {
@@ -1911,8 +1906,8 @@ const keysMessageRoleSubscriptionData = new BaseSet<string>([
  */
 export class MessageRoleSubscriptionData extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageRoleSubscriptionData;
-  readonly message: Message;
+  static { setStructureKeys(this, '_keys', keysMessageRoleSubscriptionData); }
+  declare readonly message: Message;
 
   isRenewal: boolean = false;
   roleSubscriptionListingId: string = '';
@@ -1921,9 +1916,8 @@ export class MessageRoleSubscriptionData extends BaseStructure {
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.message = message;
+    Object.defineProperty(this, 'message', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'message', {enumerable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -1957,16 +1951,15 @@ const keysMessageSnapshot = new BaseSet<string>([
  */
 export class MessageSnapshot extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysMessageSnapshot;
-  readonly parent: Message;
+  static { setStructureKeys(this, '_keys', keysMessageSnapshot); }
+  declare readonly parent: Message;
 
   message!: Message;
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
-    this.parent = message;
+    Object.defineProperty(this, 'parent', {configurable: true, enumerable: false, writable: true, value: message});
     this.merge(data);
-    Object.defineProperty(this, 'parent', {enumerable: false});
   }
 
   merge(data?: BaseStructureData): void {

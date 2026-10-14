@@ -11,6 +11,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Integration } from './integration';
 
@@ -35,7 +36,7 @@ const keysConnectedAccount = new BaseSet<string>([
  * @category Structure
  */
 export class ConnectedAccount extends BaseStructure {
-  readonly _keys = keysConnectedAccount;
+  static { setStructureKeys(this, '_keys', keysConnectedAccount); }
 
   accessToken?: string;
   friendSync?: boolean;

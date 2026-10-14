@@ -14,6 +14,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { User, UserMixin } from './user';
 
@@ -33,7 +34,7 @@ const keysTeam = new BaseSet<string>([
  * @category Structure
  */
 export class Team extends BaseStructure {
-  readonly _keys = keysTeam;
+  static { setStructureKeys(this, '_keys', keysTeam); }
 
   icon: null | string = null;
   id: string = '';
@@ -154,7 +155,7 @@ const keysTeamMember = new BaseSet<string>([
  * @category Structure
  */
 export class TeamMember extends UserMixin {
-  readonly _keys = keysTeamMember;
+  static { setStructureKeys(this, '_keys', keysTeamMember); }
 
   declare user: User;
 

@@ -6,6 +6,7 @@ import { MEDIA_ATTACHMENT_URL_PREFIX, DetritusKeys, DiscordKeys, MessageEmbedTyp
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 
 
@@ -32,7 +33,7 @@ const keysMessageEmbed = new BaseSet<string>([
  * @category Structure
  */
 export class MessageEmbed extends BaseStructure {
-  readonly _keys = keysMessageEmbed;
+  static { setStructureKeys(this, '_keys', keysMessageEmbed); }
 
   author?: MessageEmbedAuthor;
   color?: number;
@@ -213,7 +214,7 @@ const keysMessageEmbedAuthor = new BaseSet<string>([
  * @category Structure
  */
 export class MessageEmbedAuthor extends BaseStructure {
-  readonly _keys = keysMessageEmbedAuthor;
+  static { setStructureKeys(this, '_keys', keysMessageEmbedAuthor); }
 
   iconUrl?: string;
   name?: string;
@@ -261,7 +262,7 @@ const keysMessageEmbedField = new BaseSet<string>([
  * @category Structure
  */
 export class MessageEmbedField extends BaseStructure {
-  readonly _keys = keysMessageEmbedField;
+  static { setStructureKeys(this, '_keys', keysMessageEmbedField); }
 
   inline: boolean = false;
   name: string = '';
@@ -305,7 +306,7 @@ const keysMessageEmbedFooter = new BaseSet<string>([
  * @category Structure
  */
 export class MessageEmbedFooter extends BaseStructure {
-  readonly _keys = keysMessageEmbedFooter;
+  static { setStructureKeys(this, '_keys', keysMessageEmbedFooter); }
 
   iconUrl?: string;
   proxyIconUrl?: string;
@@ -355,7 +356,7 @@ const keysMessageEmbedImage = new BaseSet<string>([
  * @category Structure
  */
 export class MessageEmbedImage extends BaseStructure {
-  readonly _keys = keysMessageEmbedImage;
+  static { setStructureKeys(this, '_keys', keysMessageEmbedImage); }
 
   contentType?: string;
   description?: string;
@@ -426,7 +427,7 @@ const keysMessageEmbedProvider = new BaseSet<string>([
  * @category Structure
  */
 export class MessageEmbedProvider extends BaseStructure {
-  readonly _keys = keysMessageEmbedProvider;
+  static { setStructureKeys(this, '_keys', keysMessageEmbedProvider); }
 
   name?: string;
   url?: string;

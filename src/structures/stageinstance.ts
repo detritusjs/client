@@ -8,6 +8,7 @@ import { DetritusKeys, DiscordKeys, Permissions, StagePrivacyLevels } from '../c
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Channel } from './channel';
 import { Guild } from './guild';
@@ -37,7 +38,7 @@ const keysStageInstance = new BaseSet<string>([
  * @category Structure
  */
 export class StageInstance extends BaseStructure {
-  readonly _keys = keysStageInstance;
+  static { setStructureKeys(this, '_keys', keysStageInstance); }
 
   channelId: string = '';
   deleted: boolean = false;

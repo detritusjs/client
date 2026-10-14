@@ -21,6 +21,7 @@ import { InteractionModal, Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Attachment } from './attachment';
 import { Channel, createChannelFromData } from './channel';
@@ -75,16 +76,23 @@ const keysInteraction = new BaseSet<string>([
   DiscordKeys.VERSION,
 ]);
 
+// added to each interaction as new properties, redefining existing (class field) ones is a lot slower
+const interactionHiddenProperties: PropertyDescriptorMap = Object.freeze({
+  _entitlements: {configurable: true, enumerable: false, writable: true, value: undefined},
+  _responding: {configurable: true, enumerable: false, writable: true, value: null},
+});
+
 /**
  * Interaction Structure
  * @category Structure
  */
 export class Interaction extends BaseStructure {
-  readonly _keys = keysInteraction;
+  static { setStructureKeys(this, '_keys', keysInteraction); }
   readonly _deleted: boolean = false;
   _channel?: Channel;
-  _entitlements?: BaseCollection<string, Entitlement>;
-  _responding: Promise<boolean> | null = null;
+  // only declared, the constructor adds them (see `interactionHiddenProperties`)
+  declare _entitlements?: BaseCollection<string, Entitlement>;
+  declare _responding: Promise<boolean> | null;
 
   appPermissions: bigint = Permissions.NONE;
   applicationId: string = '';
@@ -114,11 +122,8 @@ export class Interaction extends BaseStructure {
     isClone?: boolean,
   ) {
     super(client, undefined, isClone);
+    Object.defineProperties(this, interactionHiddenProperties);
     this.merge(data);
-    Object.defineProperties(this, {
-      _entitlements: {enumerable: false, writable: true},
-      _responding: {enumerable: false, writable: true},
-    });
   }
 
   get channel(): Channel | null {
@@ -461,8 +466,8 @@ const keysInteractionDataApplicationCommand = new BaseSet<string>([
  * @category Structure
  */
 export class InteractionDataApplicationCommand extends BaseStructure {
-  readonly _keys = keysInteractionDataApplicationCommand;
-  readonly interaction: Interaction;
+  static { setStructureKeys(this, '_keys', keysInteractionDataApplicationCommand); }
+  declare readonly interaction: Interaction;
 
   guildId?: string;
   id: string = '';
@@ -478,9 +483,8 @@ export class InteractionDataApplicationCommand extends BaseStructure {
     isClone?: boolean,
   ) {
     super(interaction.client, undefined, isClone);
-    this.interaction = interaction;
+    Object.defineProperty(this, 'interaction', {configurable: true, enumerable: false, writable: true, value: interaction});
     this.merge(data);
-    Object.defineProperty(this, 'interaction', {enumerable: false});
   }
 
   get fullName(): string {
@@ -565,8 +569,8 @@ const keysInteractionDataApplicationCommandOption = new BaseSet<string>([
  * @category Structure
  */
 export class InteractionDataApplicationCommandOption extends BaseStructure {
-  readonly _keys = keysInteractionDataApplicationCommandOption;
-  readonly interactionData: InteractionDataApplicationCommand;
+  static { setStructureKeys(this, '_keys', keysInteractionDataApplicationCommandOption); }
+  declare readonly interactionData: InteractionDataApplicationCommand;
 
   focused?: boolean;
   name: string = '';
@@ -580,9 +584,8 @@ export class InteractionDataApplicationCommandOption extends BaseStructure {
     isClone?: boolean,
   ) {
     super(interactionData.client, undefined, isClone);
-    this.interactionData = interactionData;
+    Object.defineProperty(this, 'interactionData', {configurable: true, enumerable: false, writable: true, value: interactionData});
     this.merge(data);
-    Object.defineProperty(this, 'interactionData', {enumerable: false});
   }
 
   get fullName(): string {
@@ -647,8 +650,8 @@ const keysInteractionDataApplicationCommandResolved = new BaseSet<string>([
  * @category Structure
  */
 export class InteractionDataApplicationCommandResolved extends BaseStructure {
-  readonly _keys = keysInteractionDataApplicationCommandResolved;
-  readonly interactionData: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
+  static { setStructureKeys(this, '_keys', keysInteractionDataApplicationCommandResolved); }
+  declare readonly interactionData: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
 
   attachments?: BaseCollection<string, Attachment>;
   channels?: BaseCollection<string, Channel>;
@@ -663,9 +666,8 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
     isClone?: boolean,
   ) {
     super(interactionData.client, undefined, isClone);
-    this.interactionData = interactionData;
+    Object.defineProperty(this, 'interactionData', {configurable: true, enumerable: false, writable: true, value: interactionData});
     this.merge(data);
-    Object.defineProperty(this, 'interactionData', {enumerable: false});
   }
 
   get guildId(): string | null {
@@ -766,8 +768,8 @@ const keysInteractionDataComponent = new BaseSet<string>([
  * @category Structure
  */
 export class InteractionDataComponent extends BaseStructure {
-  readonly _keys = keysInteractionDataComponent;
-  readonly interaction: Interaction;
+  static { setStructureKeys(this, '_keys', keysInteractionDataComponent); }
+  declare readonly interaction: Interaction;
 
   componentType: MessageComponentTypes = MessageComponentTypes.BUTTON;
   customId: string = '';
@@ -780,9 +782,8 @@ export class InteractionDataComponent extends BaseStructure {
     isClone?: boolean,
   ) {
     super(interaction.client, undefined, isClone);
-    this.interaction = interaction;
+    Object.defineProperty(this, 'interaction', {configurable: true, enumerable: false, writable: true, value: interaction});
     this.merge(data);
-    Object.defineProperty(this, 'interaction', {enumerable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -821,8 +822,8 @@ export type InteractionDataModalComponent = ComponentActionRow | ComponentLabel 
  * @category Structure
  */
 export class InteractionDataModal extends BaseStructure {
-  readonly _keys = keysInteractionDataModal;
-  readonly interaction: Interaction;
+  static { setStructureKeys(this, '_keys', keysInteractionDataModal); }
+  declare readonly interaction: Interaction;
   _components?: BaseCollection<number, InteractionDataModalComponent>;
 
   customId: string = '';
@@ -834,9 +835,8 @@ export class InteractionDataModal extends BaseStructure {
     isClone?: boolean,
   ) {
     super(interaction.client, undefined, isClone);
-    this.interaction = interaction;
+    Object.defineProperty(this, 'interaction', {configurable: true, enumerable: false, writable: true, value: interaction});
     this.merge(data);
-    Object.defineProperty(this, 'interaction', {enumerable: false});
   }
 
   get components(): BaseCollection<number, InteractionDataModalComponent> {
@@ -908,7 +908,7 @@ const keysInteractionCallbackResponse = new BaseSet<string>([
  * @category Structure
  */
 export class InteractionCallbackResponse extends BaseStructure {
-  readonly _keys = keysInteractionCallbackResponse;
+  static { setStructureKeys(this, '_keys', keysInteractionCallbackResponse); }
 
   interaction!: InteractionCallback;
   resource?: InteractionCallbackResource;
@@ -949,7 +949,7 @@ const keysInteractionCallback = new BaseSet<string>([
  * @category Structure
  */
 export class InteractionCallback extends BaseStructure {
-  readonly _keys = keysInteractionCallback;
+  static { setStructureKeys(this, '_keys', keysInteractionCallback); }
 
   activityInstanceId?: string;
   id: string = '';
@@ -976,7 +976,7 @@ const keysInteractionCallbackResource = new BaseSet<string>([
  * @category Structure
  */
 export class InteractionCallbackResource extends BaseStructure {
-  readonly _keys = keysInteractionCallbackResource;
+  static { setStructureKeys(this, '_keys', keysInteractionCallbackResource); }
 
   activityInstance?: {id: string};
   message?: Message;

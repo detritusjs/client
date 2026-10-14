@@ -8,6 +8,7 @@ import { GatewayClientEvents } from '../gateway/clientevents';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Channel } from './channel';
 import { Guild } from './guild';
@@ -36,9 +37,9 @@ const keysMergeTyping = new BaseSet<string>([
  * @category Structure
  */
 export class Typing extends BaseStructure {
-  readonly _keys = keysTyping;
-  readonly _keysMerge = keysMergeTyping;
-  readonly timeout = new Timers.Timeout();
+  static { setStructureKeys(this, '_keys', keysTyping); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeTyping); }
+  declare readonly timeout: Timers.Timeout;
 
   channelId: string = '';
   guildId?: string;
@@ -54,9 +55,8 @@ export class Typing extends BaseStructure {
     isClone?: boolean,
   ) {
     super(client, undefined, isClone);
+    Object.defineProperty(this, 'timeout', {configurable: true, enumerable: false, writable: true, value: new Timers.Timeout()});
     this.merge(data);
-
-    Object.defineProperty(this, 'timeout', {enumerable: false});
   }
 
   get channel(): Channel | null {

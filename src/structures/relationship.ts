@@ -5,6 +5,7 @@ import { DetritusKeys, DiscordKeys, RelationshipTypes } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { User } from './user';
 
@@ -22,7 +23,7 @@ const keysRelationship = new BaseSet<string>([
  * @category Structure
  */
 export class Relationship extends BaseStructure {
-  readonly _keys = keysRelationship;
+  static { setStructureKeys(this, '_keys', keysRelationship); }
 
   id: string = '';
   type: RelationshipTypes = RelationshipTypes.NONE;

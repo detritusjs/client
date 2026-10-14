@@ -9,7 +9,7 @@ import {
   MessageComponentDefaultValueTypes,
   MessageComponentTypes,
 } from '../../constants';
-import { Structure } from '../../structures/basestructure';
+import { Structure, setStructureKeys } from '../../structures/basestructure';
 import { Emoji } from '../../structures/emoji';
 import { regex as discordRegex } from '../../utils';
 
@@ -48,7 +48,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentSelectMenu extends ComponentActionBase {
-  readonly _keys = keysComponentSelectMenu;
+  static { setStructureKeys(this, '_keys', keysComponentSelectMenu); }
 
   channelTypes?: null | Array<ChannelTypes>;
   customId: string = '';
@@ -197,7 +197,7 @@ const keysComponentSelectMenuDefaultValue = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentSelectMenuDefaultValue extends Structure {
-  readonly _keys = keysComponentSelectMenuDefaultValue;
+  static { setStructureKeys(this, '_keys', keysComponentSelectMenuDefaultValue); }
 
   id: string = '';
   type!: MessageComponentDefaultValueTypes;
@@ -232,7 +232,7 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentSelectMenuOption extends Structure {
-  readonly _keys = keysComponentSelectMenuOption;
+  static { setStructureKeys(this, '_keys', keysComponentSelectMenuOption); }
 
   default?: boolean;
   description?: null | string;

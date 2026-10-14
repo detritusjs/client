@@ -7,7 +7,7 @@ import {
   MessageComponentTypes,
   MAX_COMPONENTS_SECTION_TEXT_DISPLAYS,
 } from '../../constants';
-import { BaseStructureData, Structure } from '../../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
 import { ComponentActionRowData, ComponentActionRow } from './actionrow';
@@ -48,7 +48,7 @@ const keysComponentContainer = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentContainer extends Structure {
-  readonly _keys = keysComponentContainer;
+  static { setStructureKeys(this, '_keys', keysComponentContainer); }
 
   accentColor?: number;
   components: Array<ComponentActionRow | ComponentFile | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];

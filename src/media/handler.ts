@@ -135,6 +135,12 @@ export class MediaGatewayOpHandler {
     this.connection.emit('disconnect', payload);
   }
 
+  [MediaOpCodes.READY](data: any) {
+    // a new voice session (resumes get RESUMED instead), users that left while we were reconnecting never get a CLIENT_DISCONNECT
+    // so free every decoder, the ones still talking get recreated on their next packet
+    this.connection.clearOpusDecoders();
+  }
+
   [MediaOpCodes.SPEAKING](data: MediaRawEvents.Speaking) {
     const isSpeaking = !!data['speaking'];
     const priority = (data['speaking'] & SpeakingFlags.PRIORITY) === SpeakingFlags.PRIORITY;

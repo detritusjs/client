@@ -11,7 +11,7 @@ import {
 
 import { BaseSet } from '../../collections/baseset';
 import { BaseCollection } from '../../collections/basecollection';
-import { Structure } from '../../structures/basestructure';
+import { Structure, setStructureKeys } from '../../structures/basestructure';
 
 import {
   Components,
@@ -64,7 +64,7 @@ const keysInteractionModal = new BaseSet<string>([
 ]);
 
 export class InteractionModal extends Structure {
-  readonly _keys = keysInteractionModal;
+  static { setStructureKeys(this, '_keys', keysInteractionModal); }
   _timeout?: Timers.Timeout;
 
   components = new Components();

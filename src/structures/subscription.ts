@@ -10,6 +10,7 @@ import { Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { User } from './user';
 
@@ -32,7 +33,7 @@ const keysSubscription = new BaseSet<string>([
  * @category Structure
  */
 export class Subscription extends BaseStructure {
-  readonly _keys = keysSubscription;
+  static { setStructureKeys(this, '_keys', keysSubscription); }
 
   canceledAtUnix: number = 0;
   // only present when fetched with a private oauth2 scope

@@ -288,12 +288,7 @@ export class VoiceConnection extends EventSpewer {
       if (this.opusDecoder !== null) {
         Object.defineProperty(this, 'opusDecoder', {value: null});
       }
-      if (this.opusDecoders.length) {
-        for (let [userId, decoder] of this.opusDecoders) {
-          decoder.delete();
-        }
-        this.opusDecoders.clear();
-      }
+      this.clearOpusDecoders();
       return;
     }
 
@@ -325,6 +320,13 @@ export class VoiceConnection extends EventSpewer {
     Object.defineProperty(this, 'opusDecoder', {value});
 
     // decoders get lazily recreated with the new settings in `fetchOpusDecoder()`
+    this.clearOpusDecoders();
+  }
+
+  /**
+   * Frees every user's opus decoder, they get lazily recreated in `fetchOpusDecoder()`
+   */
+  clearOpusDecoders(): void {
     for (let [userId, decoder] of this.opusDecoders) {
       decoder.delete();
     }

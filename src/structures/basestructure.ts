@@ -8,11 +8,36 @@ import { DetritusKeys } from '../constants';
 import { toCamelCase } from '../utils/casing';
 
 
+// every merge/difference converts each key, so remember the conversions
+// capped since `differences()` can be handed objects with arbitrary keys
+const convertedKeys = new Map<string, string>();
+const CONVERTED_KEYS_LIMIT = 4096;
+
 export function convertKey(snake: string): string {
-  if (snake in DetritusKeys) {
-    return (DetritusKeys as any)[snake];
+  let camel = convertedKeys.get(snake);
+  if (camel === undefined) {
+    if (snake in DetritusKeys) {
+      camel = (DetritusKeys as any)[snake] as string;
+    } else {
+      camel = toCamelCase(snake);
+    }
+    if (convertedKeys.size < CONVERTED_KEYS_LIMIT) {
+      convertedKeys.set(snake, camel);
+    }
   }
-  return toCamelCase(snake);
+  return camel;
+}
+
+
+export type StructureKeysName = '_keys' | '_keysMerge' | '_keysSkipDifference';
+
+/**
+ * Store a structure's keys on its prototype, a class field would put a copy on every instance
+ * @ignore
+ */
+export function setStructureKeys(structure: Function, name: StructureKeysName, keys: BaseSet<string>): void {
+  // writable so subclasses can still assign their own keys
+  Object.defineProperty(structure.prototype, name, {configurable: true, value: keys, writable: true});
 }
 
 
@@ -25,12 +50,13 @@ export interface BaseStructureData {
  * @category Structure
  */
 export class Structure {
+  // declared only, these live on the prototype (see `setStructureKeys`) instead of on every instance
   /** @ignore */
-  readonly _keys?: BaseSet<string>;
+  declare readonly _keys?: BaseSet<string>;
   /** @ignore */
-  readonly _keysMerge?: BaseSet<string>;
+  declare readonly _keysMerge?: BaseSet<string>;
   /** @ignore */
-  readonly _keysSkipDifference?: BaseSet<string>;
+  declare readonly _keysSkipDifference?: BaseSet<string>;
 
   _getFromSnake(key: string): any {
     return (this as any)[convertKey(key)];
@@ -303,7 +329,7 @@ export class BaseStructure extends Structure {
   /** @ignore */
   readonly _clone?: boolean;
   /** @ignore */
-  readonly _uncloneable?: boolean;
+  declare readonly _uncloneable?: boolean;
 
   readonly client: ShardClient;
 

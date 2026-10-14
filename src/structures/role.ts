@@ -16,6 +16,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { ChannelGuildBase } from './channel';
 import { Guild } from './guild';
@@ -63,7 +64,7 @@ function createRoleColors(value: any): RoleColors | null {
  * @category Structure
  */
 export class Role extends BaseStructure {
-  readonly _keys = keysRole;
+  static { setStructureKeys(this, '_keys', keysRole); }
 
   color: number = 0;
   // role gradients, `secondaryColor` and `tertiaryColor` are null for a plain color
@@ -362,7 +363,7 @@ const keysRoleTags = new BaseSet<string>([
  * @category Structure
  */
 export class RoleTags extends BaseStructure {
-  readonly _keys = keysRoleTags;
+  static { setStructureKeys(this, '_keys', keysRoleTags); }
 
   // `availableForPurchase`, `guildConnections`, and `premiumSubscriber` are sent as `null` when true and omitted when false
   availableForPurchase?: boolean;

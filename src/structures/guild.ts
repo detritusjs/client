@@ -42,6 +42,7 @@ import {
   BaseStructure,
   BaseStructureData,
   convertKey,
+  setStructureKeys,
 } from './basestructure';
 import {
   createChannelFromData,
@@ -80,7 +81,7 @@ const keysBaseGuild = new BaseSet<string>([
  * @category Structure
  */
 export class BaseGuild extends BaseStructure {
-  readonly _keys = keysBaseGuild;
+  static { setStructureKeys(this, '_keys', keysBaseGuild); }
 
   features = new BaseSet<string>();
   icon: null | string = null;
@@ -596,7 +597,7 @@ const keysGuildPartial = new BaseSet<string>([
  * @category Structure
  */
 export class GuildPartial extends BaseGuild {
-  readonly _keys = keysGuildPartial;
+  static { setStructureKeys(this, '_keys', keysGuildPartial); }
 
   banner: null | string = null;
   description: null | string = null;
@@ -784,8 +785,8 @@ const keysSkipDifferenceGuild = new BaseSet<string>([
  * @category Structure
  */
 export class Guild extends GuildPartial {
-  readonly _keys = keysGuild;
-  readonly _keysSkipDifference = keysSkipDifferenceGuild;
+  static { setStructureKeys(this, '_keys', keysGuild); }
+  static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferenceGuild); }
   readonly _channelIds = new BaseSet<string>();
   readonly _threadIds = new BaseSet<string>();
 
@@ -1627,7 +1628,7 @@ const keysGuildMe = new BaseSet<string>([
  * @category Structure
  */
 export class GuildMe extends BaseGuild {
-  readonly _keys = keysGuildMe;
+  static { setStructureKeys(this, '_keys', keysGuildMe); }
 
   // only sent when fetched with `withCounts`
   approximateMemberCount?: number;
@@ -1727,7 +1728,7 @@ const keysGuildWelcomeScreen = new BaseSet<string>([
  */
 export class GuildWelcomeScreen extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysGuildWelcomeScreen;
+  static { setStructureKeys(this, '_keys', keysGuildWelcomeScreen); }
 
   description: string = '';
   welcomeChannels = new BaseCollection<string, GuildWelcomeScreenChannel>();
@@ -1776,9 +1777,9 @@ const keysGuildWelcomeScreenChannel = new BaseSet<string>([
  */
 export class GuildWelcomeScreenChannel extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysGuildWelcomeScreenChannel;
+  static { setStructureKeys(this, '_keys', keysGuildWelcomeScreenChannel); }
 
-  readonly guildWelcomeScreen: GuildWelcomeScreen;
+  declare readonly guildWelcomeScreen: GuildWelcomeScreen;
 
   channelId: string = '';
   description: string = '';
@@ -1787,9 +1788,8 @@ export class GuildWelcomeScreenChannel extends BaseStructure {
 
   constructor(guildWelcomeScreen: GuildWelcomeScreen, data: BaseStructureData) {
     super(guildWelcomeScreen.client, undefined, guildWelcomeScreen._clone);
-    this.guildWelcomeScreen = guildWelcomeScreen;
+    Object.defineProperty(this, 'guildWelcomeScreen', {configurable: true, enumerable: false, writable: false, value: guildWelcomeScreen});
     this.merge(data);
-    Object.defineProperty(this, 'guildWelcomeScreen', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {

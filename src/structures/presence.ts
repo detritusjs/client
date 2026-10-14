@@ -20,6 +20,7 @@ import { addQuery, getFormatFromHash, getQueryForImage, UrlQuery } from '../util
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Application } from './application';
 import { Emoji } from './emoji';
@@ -67,9 +68,9 @@ const keysSkipDifferencePresence = new BaseSet<string>([
  * @category Structure
  */
 export class Presence extends BaseStructure {
-  readonly _keys = keysPresence;
-  readonly _keysMerge = keysMergePresence;
-  readonly _keysSkipDifference = keysSkipDifferencePresence;
+  static { setStructureKeys(this, '_keys', keysPresence); }
+  static { setStructureKeys(this, '_keysMerge', keysMergePresence); }
+  static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferencePresence); }
   _activities?: BaseCollection<string, PresenceActivity>;
   _guildIds: BaseSet<string> | string = '';
 
@@ -394,9 +395,9 @@ const keysSkipDifferencePresenceActivity = new BaseSet<string>([
  */
 export class PresenceActivity extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysPresenceActivity;
-  readonly _keysMerge = keysMergePresenceActivity;
-  readonly _keysSkipDifference = keysSkipDifferencePresenceActivity;
+  static { setStructureKeys(this, '_keys', keysPresenceActivity); }
+  static { setStructureKeys(this, '_keysMerge', keysMergePresenceActivity); }
+  static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferencePresenceActivity); }
   readonly user: User;
   _guildIds: BaseSet<string> | string = '';
 
@@ -818,7 +819,7 @@ const keysPresenceActivityAssets = new BaseSet<string>([
  */
 export class PresenceActivityAssets extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysPresenceActivityAssets;
+  static { setStructureKeys(this, '_keys', keysPresenceActivityAssets); }
   readonly activity: PresenceActivity;
 
   largeImage?: string;
@@ -935,7 +936,7 @@ const keysPresenceActivityTimestamps = new BaseSet<string>([
  */
 export class PresenceActivityTimestamps extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysPresenceActivityTimestamps;
+  static { setStructureKeys(this, '_keys', keysPresenceActivityTimestamps); }
   readonly activity: PresenceActivity;
 
   end?: number = 0;

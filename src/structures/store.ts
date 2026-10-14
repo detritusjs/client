@@ -14,6 +14,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Application } from './application';
 import { Sku } from './sku';
@@ -44,7 +45,7 @@ const keysStore = new BaseSet<string>([
  * @category Structure
  */
 export class StoreListing extends BaseStructure {
-  readonly _keys = keysStore;
+  static { setStructureKeys(this, '_keys', keysStore); }
 
   assets = new BaseCollection<string, StoreListingAsset>();
   boxArt?: StoreListingAsset;
@@ -158,8 +159,8 @@ const keysStoreListingAsset = new BaseSet<string>([
  */
 export class StoreListingAsset extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysStoreListingAsset;
-  readonly storeListing: StoreListing;
+  static { setStructureKeys(this, '_keys', keysStoreListingAsset); }
+  declare readonly storeListing: StoreListing;
 
   height: number = 0;
   id: string = '';
@@ -169,9 +170,8 @@ export class StoreListingAsset extends BaseStructure {
 
   constructor(storeListing: StoreListing, data: BaseStructureData) {
     super(storeListing.client, undefined, storeListing._clone);
-    this.storeListing = storeListing;
+    Object.defineProperty(this, 'storeListing', {configurable: true, enumerable: false, writable: false, value: storeListing});
     this.merge(data);
-    Object.defineProperty(this, 'storeListing', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -209,7 +209,7 @@ export const keysStoreApplicationAsset = new BaseSet<string>([
 ]);
 
 export class StoreApplicationAsset extends BaseStructure {
-  readonly _keys = keysStoreApplicationAsset;
+  static { setStructureKeys(this, '_keys', keysStoreApplicationAsset); }
 
   applicationId: string = '';
   filename: string = '';

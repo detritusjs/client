@@ -3,7 +3,7 @@ import { Timers } from 'detritus-utils';
 
 import { BaseSet } from '../../collections/baseset';
 import { DetritusKeys, DiscordKeys, MessageComponentTypes, INTERACTION_TIMEOUT } from '../../constants';
-import { BaseStructureData, Structure } from '../../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
 import { ComponentActionRowData, ComponentActionRow } from './actionrow';
@@ -55,7 +55,7 @@ const keysComponents = new BaseSet<string>([
  * @category Utils
  */
 export class Components extends Structure {
-  readonly _keys = keysComponents;
+  static { setStructureKeys(this, '_keys', keysComponents); }
   _timeout?: Timers.Timeout;
 
   components: Array<ComponentActionRow | ComponentContainer | ComponentFile | ComponentLabel | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];

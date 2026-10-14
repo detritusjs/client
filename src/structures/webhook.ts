@@ -11,6 +11,7 @@ import { addQuery, getFormatFromHash, getQueryForImage, Snowflake, UrlQuery } fr
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { createChannelFromData, Channel } from './channel';
 import { BaseGuild, Guild } from './guild';
@@ -38,7 +39,7 @@ const keysWebhook = new BaseSet<string>([
  * @category Structure
  */
 export class Webhook extends BaseStructure {
-  readonly _keys = keysWebhook;
+  static { setStructureKeys(this, '_keys', keysWebhook); }
 
   applicationId: null | string = null;
   avatar: null | string = null;

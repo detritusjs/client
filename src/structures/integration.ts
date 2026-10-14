@@ -6,6 +6,7 @@ import { Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Application } from './application';
 import { User } from './user';
@@ -36,7 +37,7 @@ const keysIntegration = new BaseSet<string>([
  * @category Structure
  */
 export class Integration extends BaseStructure {
-  readonly _keys = keysIntegration;
+  static { setStructureKeys(this, '_keys', keysIntegration); }
 
   account!: IntegrationAccount;
   application?: Application;
@@ -161,17 +162,16 @@ const keysIntegrationAccount = new BaseSet<string>([
  */
 export class IntegrationAccount extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysIntegrationAccount;
-  readonly integration: Integration;
+  static { setStructureKeys(this, '_keys', keysIntegrationAccount); }
+  declare readonly integration: Integration;
 
   id: string = '';
   name: string = '';
 
   constructor(integration: Integration, data: BaseStructureData) {
     super(integration.client, undefined, integration._clone);
-    this.integration = integration;
+    Object.defineProperty(this, 'integration', {configurable: true, enumerable: false, writable: false, value: integration});
     this.merge(data);
-    Object.defineProperty(this, 'integration', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {

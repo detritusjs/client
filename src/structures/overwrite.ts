@@ -12,6 +12,7 @@ import { PermissionTools } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Channel } from './channel';
 import { Guild } from './guild';
@@ -31,8 +32,8 @@ const keysOverwrite = new BaseSet<string>([
  * @category Structure
  */
 export class Overwrite extends BaseStructure {
-  readonly _keys = keysOverwrite;
-  readonly channel: Channel;
+  static { setStructureKeys(this, '_keys', keysOverwrite); }
+  declare readonly channel: Channel;
 
   allow: bigint = Permissions.NONE;
   deny: bigint = Permissions.NONE;
@@ -41,9 +42,8 @@ export class Overwrite extends BaseStructure {
 
   constructor(channel: Channel, data: BaseStructureData) {
     super(channel.client, undefined, channel._clone);
-    this.channel = channel;
+    Object.defineProperty(this, 'channel', {configurable: true, enumerable: false, writable: true, value: channel});
     this.merge(data);
-    Object.defineProperty(this, 'channel', {enumerable: false});
   }
 
   get channelId(): string {

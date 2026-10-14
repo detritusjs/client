@@ -8,6 +8,7 @@ import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 
 import { Guild } from './guild';
@@ -26,7 +27,7 @@ const keysStickerItem = new BaseSet<string>([
  * @category Structure
  */
 export class StickerItem extends BaseStructure {
-  readonly _keys = keysStickerItem;
+  static { setStructureKeys(this, '_keys', keysStickerItem); }
 
   formatType: StickerFormats = StickerFormats.UNKNOWN;
   id: string = '';
@@ -123,7 +124,7 @@ const keysSticker = new BaseSet<string>([
  * @category Structure
  */
 export class Sticker extends StickerItem {
-  readonly _keys = keysSticker;
+  static { setStructureKeys(this, '_keys', keysSticker); }
 
   asset: string = '';
   available?: boolean;

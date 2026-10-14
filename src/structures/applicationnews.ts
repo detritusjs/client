@@ -9,6 +9,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import {
   MessageEmbedFooter,
@@ -36,7 +37,7 @@ const keysApplicationNews = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationNews extends BaseStructure {
-  readonly _keys = keysApplicationNews;
+  static { setStructureKeys(this, '_keys', keysApplicationNews); }
 
   applicationId: string = '';
   category: null = null;

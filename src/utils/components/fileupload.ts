@@ -4,7 +4,7 @@ import {
   DiscordKeys,
   MessageComponentTypes,
 } from '../../constants';
-import { BaseStructureData } from '../../structures/basestructure';
+import { BaseStructureData, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentActionBase, ComponentActionData } from './actionbase';
 
@@ -24,7 +24,7 @@ const keysComponentFileUpload = new BaseSet<string>([
  * @category Utils
  */
 export class ComponentFileUpload extends ComponentActionBase {
-  readonly _keys = keysComponentFileUpload;
+  static { setStructureKeys(this, '_keys', keysComponentFileUpload); }
 
   customId: string = '';
   fileTypes?: null | Array<string>;

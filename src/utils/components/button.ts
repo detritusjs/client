@@ -9,6 +9,7 @@ import { Emoji } from '../../structures/emoji';
 import { regex as discordRegex } from '../../utils';
 
 import { ComponentActionBase, ComponentActionData, ComponentEmojiData } from './actionbase';
+import { setStructureKeys } from '../../structures/basestructure';
 
 
 const keysComponentButton = new BaseSet<string>([
@@ -28,7 +29,7 @@ const keysComponentButton = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentButton extends ComponentActionBase {
-  readonly _keys = keysComponentButton;
+  static { setStructureKeys(this, '_keys', keysComponentButton); }
 
   declare customId?: null | string;
 

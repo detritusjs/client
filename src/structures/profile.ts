@@ -6,6 +6,7 @@ import { DetritusKeys, DiscordKeys } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { ConnectedAccount } from './connectedaccount';
 import { Guild } from './guild';
@@ -26,7 +27,7 @@ const keysProfile = new BaseSet<string>([
  * @category Structure
  */
 export class Profile extends BaseStructure {
-  readonly _keys = keysProfile;
+  static { setStructureKeys(this, '_keys', keysProfile); }
 
   connectedAccounts = new BaseCollection<string, ConnectedAccount>();
   mutualGuilds = new BaseCollection<string, {id: string, nick: null | string}>();

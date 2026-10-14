@@ -4,7 +4,7 @@ import {
   DiscordKeys,
   MessageComponentTypes,
 } from '../../constants';
-import { BaseStructureData } from '../../structures/basestructure';
+import { BaseStructureData, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentActionBase, ComponentActionData } from './actionbase';
 import { ComponentSelectMenuOption, ComponentSelectMenuOptionData } from './selectmenu';
@@ -22,7 +22,7 @@ const keysComponentCheckbox = new BaseSet<string>([
  * @category Utils
  */
 export class ComponentCheckbox extends ComponentActionBase {
-  readonly _keys = keysComponentCheckbox;
+  static { setStructureKeys(this, '_keys', keysComponentCheckbox); }
 
   customId: string = '';
   default?: boolean;
@@ -83,7 +83,7 @@ const keysComponentCheckboxGroup = new BaseSet<string>([
  * @category Utils
  */
 export class ComponentCheckboxGroup extends ComponentActionBase {
-  readonly _keys = keysComponentCheckboxGroup;
+  static { setStructureKeys(this, '_keys', keysComponentCheckboxGroup); }
 
   customId: string = '';
   maxValues?: null | number;

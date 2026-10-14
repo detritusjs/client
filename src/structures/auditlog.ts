@@ -16,6 +16,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { ApplicationCommand } from './applicationcommand';
 import { AutoModerationRule } from './automoderationrule';
@@ -47,7 +48,7 @@ const keysAuditLog = new BaseSet<string>([
  */
 export class AuditLog extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysAuditLog;
+  static { setStructureKeys(this, '_keys', keysAuditLog); }
 
   actionType!: AuditLogActions;
   changes = new BaseCollection<string, any>();
@@ -133,9 +134,9 @@ const keysAuditLogChange = new BaseSet<string>([
  */
 export class AuditLogChange extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysAuditLogChange;
+  static { setStructureKeys(this, '_keys', keysAuditLogChange); }
 
-  readonly log: AuditLog;
+  declare readonly log: AuditLog;
 
   key!: AuditLogChangeKeys;
   newValue: any;
@@ -143,9 +144,8 @@ export class AuditLogChange extends BaseStructure {
 
   constructor(log: AuditLog, data: BaseStructureData) {
     super(log.client, undefined, log._clone);
-    this.log = log;
+    Object.defineProperty(this, 'log', {configurable: true, enumerable: false, writable: false, value: log});
     this.merge(data);
-    Object.defineProperty(this, 'log', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -188,9 +188,9 @@ const keysAuditLogOptions = new BaseSet<string>([
  */
 export class AuditLogOptions extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysAuditLogOptions;
+  static { setStructureKeys(this, '_keys', keysAuditLogOptions); }
 
-  readonly log: AuditLog;
+  declare readonly log: AuditLog;
 
   applicationId?: string;
   autoModerationRuleName?: string;
@@ -208,9 +208,8 @@ export class AuditLogOptions extends BaseStructure {
 
   constructor(log: AuditLog, data: BaseStructureData) {
     super(log.client, undefined, log._clone);
-    this.log = log;
+    Object.defineProperty(this, 'log', {configurable: true, enumerable: false, writable: false, value: log});
     this.merge(data);
-    Object.defineProperty(this, 'log', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {

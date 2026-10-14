@@ -11,6 +11,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { PresenceActivity } from './presence';
 import { User } from './user';
@@ -35,8 +36,8 @@ const keysMergeSession = new BaseSet<string>([
  * @category Structure
  */
 export class Session extends BaseStructure {
-  readonly _keys = keysSession
-  readonly _keysMerge = keysMergeSession;
+  static { setStructureKeys(this, '_keys', keysSession); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeSession); }
   _activities?: BaseCollection<string, PresenceActivity>;
 
   active: boolean = false;
@@ -171,8 +172,8 @@ const keysMergeSessionClientInfo = keysSessionClientInfo;
  */
 export class SessionClientInfo extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysSessionClientInfo;
-  readonly _keysMerge = keysMergeSessionClientInfo;
+  static { setStructureKeys(this, '_keys', keysSessionClientInfo); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeSessionClientInfo); }
   readonly session: Session;
 
   clientString: string = 'unknown';

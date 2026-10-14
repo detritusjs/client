@@ -7,6 +7,7 @@ import { DetritusKeys, DiscordKeys } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Channel } from './channel';
 import { Emoji } from './emoji';
@@ -34,7 +35,7 @@ const keysReaction = new BaseSet<string>([
  * @category Structure
  */
 export class Reaction extends BaseStructure {
-  readonly _keys = keysReaction;
+  static { setStructureKeys(this, '_keys', keysReaction); }
 
   burstColors!: BaseSet<string>;
   burstCount: number = 0;

@@ -9,6 +9,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 
 
@@ -26,7 +27,7 @@ const keysApplicationRoleConnectionMetadata = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationRoleConnectionMetadata extends BaseStructure {
-  readonly _keys = keysApplicationRoleConnectionMetadata;
+  static { setStructureKeys(this, '_keys', keysApplicationRoleConnectionMetadata); }
 
   description: string = '';
   descriptionLocalizations?: Record<string, string>;

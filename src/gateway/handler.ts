@@ -364,7 +364,9 @@ export class GatewayDispatchHandler {
       permission = this.client.applicationCommandPermissions.get(data['guild_id'], data['id'])!;
       if (isListening) {
         differences = permission.differences(data);
-        old = permission.clone();
+        if (differences) {
+          old = permission.clone();
+        }
       }
       permission.merge(data);
       if (!permission.permissions.length) {
@@ -463,7 +465,9 @@ export class GatewayDispatchHandler {
         rule = guild.autoModerationRules.get(data['id'])!;
         if (isListening) {
           differences = rule.differences(data);
-          old = rule.clone();
+          if (differences) {
+            old = rule.clone();
+          }
         }
         rule.merge(data);
       } else {
@@ -640,7 +644,9 @@ export class GatewayDispatchHandler {
       channel = this.client.channels.get(data['id'])!;
       if (isListening) {
         differences = channel.differences(data);
-        old = channel.clone();
+        if (differences) {
+          old = channel.clone();
+        }
       }
       channel.merge(data);
     } else {
@@ -1119,7 +1125,10 @@ export class GatewayDispatchHandler {
         } else {
           differences = memberDifferences;
         }
-        old = member.clone();
+        // the old member also carries the old user, so clone if either changed
+        if (differences) {
+          old = member.clone();
+        }
       }
       member.merge(data);
     } else {
@@ -1313,7 +1322,9 @@ export class GatewayDispatchHandler {
         role = guild.roles.get(roleId)!;
         if (isListening) {
           differences = role.differences(data['role']);
-          old = role.clone();
+          if (differences) {
+            old = role.clone();
+          }
         }
         role.merge(data['role']);
       } else {
@@ -1381,7 +1392,9 @@ export class GatewayDispatchHandler {
         event = guild.guildScheduledEvents.get(eventId)!;
         if (isListening) {
           differences = event.differences(data);
-          old = event.clone();
+          if (differences) {
+            old = event.clone();
+          }
         }
         event.merge(data);
       } else {
@@ -1553,7 +1566,9 @@ export class GatewayDispatchHandler {
       sound = guild.soundboardSounds.get(soundId)!;
       if (isListening) {
         differences = sound.differences(data);
-        old = sound.clone();
+        if (differences) {
+          old = sound.clone();
+        }
       }
       sound.merge(data);
     } else {
@@ -1614,7 +1629,9 @@ export class GatewayDispatchHandler {
       guild = this.client.guilds.get(data['id'])!;
       if (isListening) {
         differences = guild.differences(data);
-        old = guild.clone();
+        if (differences) {
+          old = guild.clone();
+        }
       }
       guild.merge(data);
     } else {
@@ -2074,7 +2091,9 @@ export class GatewayDispatchHandler {
       message = this.client.messages.get(messageId)!;
       if (isListening) {
         differences = message.differences(data);
-        old = message.clone();
+        if (differences) {
+          old = message.clone();
+        }
       }
       const editedTimestampUnixOld = message.editedTimestampUnix;
       message.merge(data);
@@ -2102,7 +2121,6 @@ export class GatewayDispatchHandler {
     const guildId = data['guild_id'] || null;
     let isGuildPresence = !!guildId;
     let member: Member | null = null;
-    let old: Presence | null = null;
     let oldUser: User | null = null;
     let presence: Presence;
     let userId = data['user']['id'];
@@ -2111,10 +2129,10 @@ export class GatewayDispatchHandler {
     if (this.client.hasEventListener(ClientEvents.USERS_UPDATE)) {
       if (this.client.users.has(userId)) {
         const user = this.client.users.get(userId)!;
-        oldUser = user.clone();
         const userDifferences = user.differences(data['user']);
         if (userDifferences) {
           differences = {user: userDifferences};
+          oldUser = user.clone();
         }
       }
     }
@@ -2128,7 +2146,6 @@ export class GatewayDispatchHandler {
         } else {
           differences = presenceDifferences;
         }
-        old = oldPresence.clone();
       }
     }
     presence = this.client.presences.insert(data);
@@ -2195,7 +2212,9 @@ export class GatewayDispatchHandler {
       relationship = this.client.relationships.get(userId)!;
       if (this.client.hasEventListener(ClientEvents.RELATIONSHIP_ADD)) {
         differences = relationship.differences(data);
-        old = relationship.clone();
+        if (differences) {
+          old = relationship.clone();
+        }
       }
       relationship.merge(data);
     } else {
@@ -2272,7 +2291,9 @@ export class GatewayDispatchHandler {
         stageInstance = guild.stageInstances.get(data['id'])!;
         if (isListening) {
           differences = stageInstance.differences(data);
-          old = stageInstance.clone();
+          if (differences) {
+            old = stageInstance.clone();
+          }
         }
         stageInstance.merge(data);
       } else {
@@ -2489,7 +2510,9 @@ export class GatewayDispatchHandler {
         threadMember = thread.member;
         if (isListening) {
           differences = threadMember.differences(data);
-          old = threadMember.clone();
+          if (differences) {
+            old = threadMember.clone();
+          }
         }
         threadMember.merge(data);
       } else {
@@ -2559,7 +2582,9 @@ export class GatewayDispatchHandler {
       thread = this.client.channels.get(data['id'])!;
       if (isListening) {
         differences = thread.differences(data);
-        old = thread.clone();
+        if (differences) {
+          old = thread.clone();
+        }
       }
       thread.merge(data);
     } else {
@@ -2603,7 +2628,9 @@ export class GatewayDispatchHandler {
       user = this.client.user;
       if (this.client.hasEventListener(ClientEvents.USER_UPDATE)) {
         differences = user.differences(data);
-        old = user.clone();
+        if (differences) {
+          old = user.clone();
+        }
       }
       user.merge(data);
     } else {
@@ -2706,7 +2733,9 @@ export class GatewayDispatchHandler {
     if (channel) {
       if (this.client.hasEventListener(event)) {
         differences = channel.differences(data);
-        old = channel.clone();
+        if (differences) {
+          old = channel.clone();
+        }
       }
       channel.merge(data);
     }
@@ -2734,7 +2763,9 @@ export class GatewayDispatchHandler {
       voiceState = this.client.voiceStates.get(serverId, data['user_id'])!;
       if (this.client.hasEventListener(ClientEvents.VOICE_STATE_UPDATE)) {
         differences = voiceState.differences(data);
-        old = voiceState.clone();
+        if (differences) {
+          old = voiceState.clone();
+        }
       }
       voiceState.merge(data);
       if (!data['channel_id']) {

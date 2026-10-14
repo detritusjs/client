@@ -10,6 +10,7 @@ import {
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { User } from './user';
@@ -26,7 +27,7 @@ const keysGuildBan = new BaseSet<string>([
  * @category Structure
  */
 export class GuildBan extends BaseStructure {
-  readonly _keys = keysGuildBan;
+  static { setStructureKeys(this, '_keys', keysGuildBan); }
 
   guildId: string = '';
   reason: string | null = null;

@@ -8,7 +8,7 @@ import {
   MAX_COMPONENTS_ACTION_ROW_INPUT_TEXTS,
   MAX_COMPONENTS_ACTION_ROW_SELECT_MENUS,
 } from '../../constants';
-import { Structure } from '../../structures/basestructure';
+import { Structure, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
 import { ComponentButton } from './button';
@@ -31,7 +31,7 @@ const keysComponentActionRow = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentActionRow extends Structure {
-  readonly _keys = keysComponentActionRow;
+  static { setStructureKeys(this, '_keys', keysComponentActionRow); }
 
   components: Array<ComponentButton | ComponentInputText | ComponentSelectMenu> = [];
   type = MessageComponentTypes.ACTION_ROW;

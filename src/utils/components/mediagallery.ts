@@ -2,7 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { BaseSet } from '../../collections/baseset';
 import { DetritusKeys, DiscordKeys, MessageComponentTypes } from '../../constants';
-import { BaseStructureData, Structure } from '../../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentUnfurledMedia, ComponentUnfurledMediaData } from './unfurledmedia';
 
@@ -25,7 +25,7 @@ const keysComponentMediaGallery = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentMediaGallery extends Structure {
-  readonly _keys = keysComponentMediaGallery;
+  static { setStructureKeys(this, '_keys', keysComponentMediaGallery); }
 
   id?: number;
   items: Array<ComponentMediaGalleryItem> = [];
@@ -99,7 +99,7 @@ const keysComponentMediaGalleryItem = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentMediaGalleryItem extends Structure {
-  readonly _keys = keysComponentMediaGalleryItem;
+  static { setStructureKeys(this, '_keys', keysComponentMediaGalleryItem); }
 
   description?: string;
   media = new ComponentUnfurledMedia();

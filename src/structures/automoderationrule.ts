@@ -16,6 +16,7 @@ import { Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { User } from './user';
@@ -40,7 +41,7 @@ const keysAutoModerationRule = new BaseSet<string>([
  * @category Structure
  */
 export class AutoModerationRule extends BaseStructure {
-  readonly _keys = keysAutoModerationRule;
+  static { setStructureKeys(this, '_keys', keysAutoModerationRule); }
 
   actions = new BaseCollection<number, AutoModerationRuleAction>();
   creatorId: string = '';
@@ -152,18 +153,17 @@ const keysAutoModerationRuleAction = new BaseSet<string>([
  * @category Structure
  */
 export class AutoModerationRuleAction extends BaseStructure {
-  readonly _keys = keysAutoModerationRuleAction;
+  static { setStructureKeys(this, '_keys', keysAutoModerationRuleAction); }
 
-  readonly rule: AutoModerationRule;
+  declare readonly rule: AutoModerationRule;
 
   metadata?: AutoModerationRuleActionMetadata;
   type!: AutoModerationRuleActionTypes;
 
   constructor(rule: AutoModerationRule, data: BaseStructureData) {
     super(rule.client, undefined, rule._clone);
-    this.rule = rule;
+    Object.defineProperty(this, 'rule', {configurable: true, enumerable: false, writable: false, value: rule});
     this.merge(data);
-    Object.defineProperty(this, 'rule', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -194,9 +194,9 @@ const keysAutoModerationRuleActionMetadata = new BaseSet<string>([
  * @category Structure
  */
 export class AutoModerationRuleActionMetadata extends BaseStructure {
-  readonly _keys = keysAutoModerationRuleActionMetadata;
+  static { setStructureKeys(this, '_keys', keysAutoModerationRuleActionMetadata); }
 
-  readonly action: AutoModerationRuleAction;
+  declare readonly action: AutoModerationRuleAction;
 
   channelId: string = '';
   customMessage?: string;
@@ -204,9 +204,8 @@ export class AutoModerationRuleActionMetadata extends BaseStructure {
 
   constructor(action: AutoModerationRuleAction, data: BaseStructureData) {
     super(action.client, undefined, action._clone);
-    this.action = action;
+    Object.defineProperty(this, 'action', {configurable: true, enumerable: false, writable: false, value: action});
     this.merge(data);
-    Object.defineProperty(this, 'action', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {
@@ -242,9 +241,9 @@ const keysAutoModerationRuleTriggerMetadata = new BaseSet<string>([
  * @category Structure
  */
 export class AutoModerationRuleTriggerMetadata extends BaseStructure {
-  readonly _keys = keysAutoModerationRuleTriggerMetadata;
+  static { setStructureKeys(this, '_keys', keysAutoModerationRuleTriggerMetadata); }
 
-  readonly rule: AutoModerationRule;
+  declare readonly rule: AutoModerationRule;
 
   allowList?: BaseSet<string>;
   keywordFilter?: BaseSet<string>;
@@ -255,9 +254,8 @@ export class AutoModerationRuleTriggerMetadata extends BaseStructure {
 
   constructor(rule: AutoModerationRule, data: BaseStructureData) {
     super(rule.client, undefined, rule._clone);
-    this.rule = rule;
+    Object.defineProperty(this, 'rule', {configurable: true, enumerable: false, writable: false, value: rule});
     this.merge(data);
-    Object.defineProperty(this, 'rule', {enumerable: false, writable: false});
   }
 
   merge(data?: BaseStructureData): void {

@@ -5,6 +5,7 @@ import { DetritusKeys, DiscordKeys } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 
 
@@ -22,7 +23,7 @@ const keysVoiceRegion = new BaseSet<string>([
  * @category Structure
  */
 export class VoiceRegion extends BaseStructure {
-  readonly _keys = keysVoiceRegion;
+  static { setStructureKeys(this, '_keys', keysVoiceRegion); }
 
   custom: boolean = false;
   deprecated: boolean = false;

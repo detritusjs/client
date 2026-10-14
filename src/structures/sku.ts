@@ -17,6 +17,7 @@ import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Application } from './application';
 
@@ -50,7 +51,7 @@ const keysSku = new BaseSet<string>([
  * @category Structure
  */
 export class Sku extends BaseStructure {
-  readonly _keys = keysSku;
+  static { setStructureKeys(this, '_keys', keysSku); }
 
   accessType: number = 0;
   application?: Application;

@@ -10,6 +10,7 @@ import { Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Guild } from './guild';
 import { User } from './user';
@@ -33,7 +34,7 @@ const keysEntitlement = new BaseSet<string>([
  * @category Structure
  */
 export class Entitlement extends BaseStructure {
-  readonly _keys = keysEntitlement;
+  static { setStructureKeys(this, '_keys', keysEntitlement); }
 
   applicationId: string = '';
   consumed?: boolean;

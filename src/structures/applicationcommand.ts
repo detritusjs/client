@@ -21,6 +21,7 @@ import { KeyGenerator } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { Channel } from './channel';
 import { Member } from './member';
@@ -52,7 +53,7 @@ const keysApplicationCommand = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationCommand extends BaseStructure {
-  readonly _keys = keysApplicationCommand;
+  static { setStructureKeys(this, '_keys', keysApplicationCommand); }
 
   applicationId: string = '';
   contexts?: Array<InteractionContextTypes> | null;
@@ -195,8 +196,8 @@ const keysApplicationCommandOption = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationCommandOption extends BaseStructure {
-  readonly _keys = keysApplicationCommandOption;
-  readonly command: ApplicationCommand;
+  static { setStructureKeys(this, '_keys', keysApplicationCommandOption); }
+  declare readonly command: ApplicationCommand;
 
   autocomplete?: boolean;
   channelTypes?: Array<ChannelTypes | number>;
@@ -216,9 +217,8 @@ export class ApplicationCommandOption extends BaseStructure {
 
   constructor(command: ApplicationCommand, data: BaseStructureData, isClone?: boolean) {
     super(command.client, undefined, isClone);
-    this.command = command;
+    Object.defineProperty(this, 'command', {configurable: true, enumerable: false, writable: true, value: command});
     this.merge(data);
-    Object.defineProperty(this, 'command', {enumerable: false});
   }
 
   get key(): string {
@@ -329,8 +329,8 @@ const keysApplicationCommandOptionChoice = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationCommandOptionChoice extends BaseStructure {
-  readonly _keys = keysApplicationCommandOptionChoice;
-  readonly option: ApplicationCommandOption;
+  static { setStructureKeys(this, '_keys', keysApplicationCommandOptionChoice); }
+  declare readonly option: ApplicationCommandOption;
 
   name: string = '';
   nameLocalizations: Record<string, string | undefined> | null = null;
@@ -338,9 +338,8 @@ export class ApplicationCommandOptionChoice extends BaseStructure {
 
   constructor(option: ApplicationCommandOption, data: BaseStructureData, isClone?: boolean) {
     super(option.client, undefined, isClone);
-    this.option = option;
+    Object.defineProperty(this, 'option', {configurable: true, enumerable: false, writable: true, value: option});
     this.merge(data);
-    Object.defineProperty(this, 'option', {enumerable: false});
   }
 
   get key(): string {
@@ -378,7 +377,7 @@ const keysApplicationCommandPermissions = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationCommandPermissions extends BaseStructure {
-  readonly _keys = keysApplicationCommandPermissions;
+  static { setStructureKeys(this, '_keys', keysApplicationCommandPermissions); }
 
   applicationId: string = '';
   guildId: string = '';
@@ -480,8 +479,8 @@ const keysApplicationCommandPermission = new BaseSet<string>([
  * @category Structure
  */
 export class ApplicationCommandPermission extends BaseStructure {
-  readonly _keys = keysApplicationCommandPermission;
-  readonly commandPermissions: ApplicationCommandPermissions;
+  static { setStructureKeys(this, '_keys', keysApplicationCommandPermission); }
+  declare readonly commandPermissions: ApplicationCommandPermissions;
 
   id: string = '';
   permission: boolean = false;
@@ -489,9 +488,8 @@ export class ApplicationCommandPermission extends BaseStructure {
 
   constructor(commandPermissions: ApplicationCommandPermissions, data: BaseStructureData, isClone?: boolean) {
     super(commandPermissions.client, undefined, isClone);
-    this.commandPermissions = commandPermissions;
+    Object.defineProperty(this, 'commandPermissions', {configurable: true, enumerable: false, writable: true, value: commandPermissions});
     this.merge(data);
-    Object.defineProperty(this, 'commandPermissions', {enumerable: false});
   }
 
   isForAllChannels(): boolean {

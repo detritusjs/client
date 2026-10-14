@@ -6,6 +6,7 @@ import { Snowflake } from '../utils';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 
 
@@ -117,7 +118,7 @@ const keysAttachment = new BaseSet<string>([
  */
 export class Attachment extends BaseStructure {
   readonly _uncloneable = true;
-  readonly _keys = keysAttachment;
+  static { setStructureKeys(this, '_keys', keysAttachment); }
 
   // partial application, only on clips
   application?: any;

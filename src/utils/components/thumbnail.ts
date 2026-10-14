@@ -2,7 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { BaseSet } from '../../collections/baseset';
 import { DetritusKeys, DiscordKeys, MessageComponentTypes } from '../../constants';
-import { BaseStructureData, Structure } from '../../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentUnfurledMedia, ComponentUnfurledMediaData } from './unfurledmedia';
 
@@ -29,7 +29,7 @@ const keysComponentThumbnail = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentThumbnail extends Structure {
-  readonly _keys = keysComponentThumbnail;
+  static { setStructureKeys(this, '_keys', keysComponentThumbnail); }
 
   description?: string;
   id?: number;

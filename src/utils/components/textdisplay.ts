@@ -2,7 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { BaseSet } from '../../collections/baseset';
 import { DetritusKeys, DiscordKeys, MessageComponentTypes } from '../../constants';
-import { BaseStructureData, Structure } from '../../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../../structures/basestructure';
 
 
 export interface ComponentTextDisplayData {
@@ -23,7 +23,7 @@ const keysComponentTextDisplay = new BaseSet<string>([
  * @category Utils
  */
  export class ComponentTextDisplay extends Structure {
-  readonly _keys = keysComponentTextDisplay;
+  static { setStructureKeys(this, '_keys', keysComponentTextDisplay); }
 
   content: string = '';
   id?: number;

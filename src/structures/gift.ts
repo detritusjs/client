@@ -10,6 +10,7 @@ import { DetritusKeys, DiscordKeys } from '../constants';
 import {
   BaseStructure,
   BaseStructureData,
+  setStructureKeys,
 } from './basestructure';
 import { StoreListing } from './store';
 import { User } from './user';
@@ -38,8 +39,8 @@ const keysMergeGift = new BaseSet<string>([
  * @category Structure
  */
 export class Gift extends BaseStructure {
-  readonly _keys = keysGift;
-  readonly _keysMerge = keysMergeGift;
+  static { setStructureKeys(this, '_keys', keysGift); }
+  static { setStructureKeys(this, '_keysMerge', keysMergeGift); }
 
   applicationId: string = '';
   code: string = '';
@@ -149,7 +150,7 @@ const keysSubscriptionPlan = new BaseSet<string>([
  * @category Structure
  */
 export class SubscriptionPlan extends BaseStructure {
-  readonly _keys = keysSubscriptionPlan;
+  static { setStructureKeys(this, '_keys', keysSubscriptionPlan); }
 
   currency: string = 'usd';
   id: string = '';

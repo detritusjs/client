@@ -2,7 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 
 import { BaseSet } from '../../collections/baseset';
 import { DetritusKeys, DiscordKeys, MessageComponentTypes } from '../../constants';
-import { BaseStructureData, Structure } from '../../structures/basestructure';
+import { BaseStructureData, Structure, setStructureKeys } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
 import { ComponentCheckbox, ComponentCheckboxGroup } from './checkbox';
@@ -39,7 +39,7 @@ const keysComponentLabel = new BaseSet<string>([
  * @category Utils
  */
 export class ComponentLabel extends Structure {
-  readonly _keys = keysComponentLabel;
+  static { setStructureKeys(this, '_keys', keysComponentLabel); }
 
   component?: ComponentLabelChild;
   description?: null | string;
