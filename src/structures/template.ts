@@ -67,7 +67,10 @@ export class Template extends BaseStructure {
   }
 
   get isUpdated(): boolean {
-    return this.createdAt === this.updatedAt;
+    if (!this.createdAt || !this.updatedAt) {
+      return false;
+    }
+    return this.createdAt.getTime() !== this.updatedAt.getTime();
   }
 
   get longUrl(): string {

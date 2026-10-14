@@ -215,7 +215,7 @@ export interface ListFilterOptions extends MarkupFilterOptions {
 
 const defaultListFilter: ListFilter = Object.freeze(Object.assign({}, defaultMarkupFilter, {
   limit: 1998,
-  replacement: Replacements[Strings.QUOTE],
+  replacement: Replacements[Strings.LIST],
 }));
 
 export function list(text: string, options: ListFilterOptions = {}): string {
@@ -318,15 +318,20 @@ export function subtext(text: string, options: SubtextFilterOptions = {}): strin
 
 export function timestamp(timestamp: Date | number | string | null, format?: MarkupTimestampStyles): string {
   let unixTimestamp: number;
-  if (timestamp) {
-    if (typeof(timestamp) === 'number' || typeof(timestamp) === 'string') {
-      const timestampNumber = parseInt(timestamp as any);
-      if (!isNaN(timestampNumber)) {
-        timestamp = timestampNumber;
+  if (timestamp || timestamp === 0) {
+    if (typeof(timestamp) === 'string') {
+      // numeric strings are treated as milliseconds, anything else gets parsed as a date string
+      if (/^-?\d+$/.test(timestamp.trim())) {
+        timestamp = parseInt(timestamp);
       }
+    }
+    if (typeof(timestamp) === 'number' || typeof(timestamp) === 'string') {
       timestamp = new Date(timestamp);
     }
     unixTimestamp = Math.floor(timestamp.getTime() / 1000);
+    if (isNaN(unixTimestamp)) {
+      throw new Error('Invalid Date');
+    }
   } else {
     unixTimestamp = Math.floor(Date.now() / 1000)
   }
@@ -363,8 +368,13 @@ export function trueSlice(
   text: string,
   limit?: number,
 ): string {
-  if (limit) {
-    return Buffer.from(text).slice(0, limit).toString();
+  // slices by UTF-16 code units (how discord counts message length) without splitting a surrogate pair
+  if (limit && text.length > limit) {
+    const code = text.charCodeAt(limit - 1);
+    if (0xD800 <= code && code <= 0xDBFF) {
+      limit--;
+    }
+    return text.slice(0, limit);
   }
   return text;
 }
@@ -449,7 +459,7 @@ export const escape = Object.freeze({
     return text;
   },
   list: (text: string, options: ListFilterOptions = {}): string => {
-    const filter: ListFilter = Object.assign({}, defaultSubtextFilter, options);
+    const filter: ListFilter = Object.assign({}, defaultListFilter, options);
 
     text = text.replace(Regexes[Strings.LIST], filter.replacement);
     if (!filter.multiline) {

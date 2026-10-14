@@ -245,16 +245,23 @@ export class GuildScheduledEventUser extends BaseStructure {
     if (DiscordKeys.MEMBER in data) {
       const value = data[DiscordKeys.MEMBER];
       const guildId = value[DiscordKeys.GUILD_ID];
+      // the member object here doesn't always include the user, it's sent separately
+      const userId = (value.user) ? value.user.id : (this.user) ? this.user.id : null;
 
-      let member: Member;
-      if (this.client.members.has(guildId, value.user.id)) {
-        member = this.client.members.get(guildId, value.user.id)!;
-        member.merge(value);
-      } else {
-        member = new Member(this.client, value);
-        member.user = this.user;
+      // without a user id we can't key the member, so skip it
+      if (userId) {
+        let member: Member;
+        if (this.client.members.has(guildId, userId)) {
+          member = this.client.members.get(guildId, userId)!;
+          member.merge(value);
+        } else {
+          member = new Member(this.client, value);
+          if (this.user) {
+            member.user = this.user;
+          }
+        }
+        (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
       }
-      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = member;
     }
   }
 }

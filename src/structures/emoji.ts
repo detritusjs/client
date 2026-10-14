@@ -9,6 +9,7 @@ import { ShardClient } from '../client';
 import {
   DetritusKeys,
   DiscordKeys,
+  IMAGE_FORMATS,
   ImageFormats,
 } from '../constants';
 import { addQuery, getQueryForImage, Snowflake, UrlQuery } from '../utils';
@@ -136,10 +137,10 @@ export class Emoji extends BaseStructure {
         format = this.client.imageFormat || ImageFormats.PNG;
       }
     }
+    format = (format as string).toLowerCase();
 
-    const valid = [ImageFormats.PNG, ImageFormats.GIF];
-    if (!valid.includes(format as ImageFormats)) {
-      throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(valid)}`);
+    if (!IMAGE_FORMATS.includes(format)) {
+      throw new Error(`Invalid format: '${format}', valid: ${JSON.stringify(IMAGE_FORMATS)}`);
     }
     return addQuery(
       Endpoints.CDN.URL + Endpoints.CDN.EMOJI(this.id, format),
@@ -252,7 +253,7 @@ export class Emoji extends BaseStructure {
 
       let user: User;
       if (this.isClone) {
-        user = new User(this.client, value);
+        user = new User(this.client, value, this.isClone);
       } else {
         if (this.client.users.has(value.id)) {
           user = this.client.users.get(value.id)!;

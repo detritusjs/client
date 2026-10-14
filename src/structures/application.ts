@@ -463,6 +463,10 @@ export class Application extends BaseStructure {
     if (DiscordKeys.GUILD in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_PARTIAL]] = data[DiscordKeys.GUILD];
     }
+    if (DiscordKeys.GUILD_PARTIAL in data) {
+      // from `toJSON()`/`clone()`, which writes it back out under its `_keys` name
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_PARTIAL]] = data[DiscordKeys.GUILD_PARTIAL];
+    }
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
     }
@@ -646,7 +650,7 @@ export class ApplicationIntegrationTypeConfiguration extends BaseStructure {
 
   readonly application: Application;
 
-  oauth2_install_params?: ApplicationInstallParams;
+  oauth2InstallParams?: ApplicationInstallParams;
 
   constructor(application: Application, data: BaseStructureData) {
     super(application.client, undefined, application._clone);

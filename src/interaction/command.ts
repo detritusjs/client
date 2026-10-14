@@ -507,6 +507,7 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
       }
       this._options.clear();
       for (let option of value) {
+        option._transferValuesToChildren(this);
         this._options.set(option.name, option);
       }
     } else {
@@ -871,16 +872,16 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   get length(): number {
-    return this.description.length + this.name.length + this.lengthOptions;
+    return this.description.length + this.name.length + this.lengthChoices + this.lengthOptions;
   }
 
   get lengthChoices(): number {
     if (this.choices) {
       return this.choices.reduce((x, choice) => {
         if (this.type === ApplicationCommandOptionTypes.INTEGER) {
-          return choice.name.length;
+          return x + choice.name.length;
         }
-        return choice.length;
+        return x + choice.length;
       }, 0);
     }
     return 0;
@@ -909,9 +910,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
         option._transferValuesToChildren(this);
         this._options.set(option.name, option);
       }
-      if (this._options.some((option) => option.isSubCommand)) {
-        this.type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
-      }
+      this._setTypeFromOptions();
     } else {
       this._options = undefined;
     }
@@ -978,8 +977,8 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
   }
 
   addOption(value: InteractionCommandOption | InteractionCommandOptionOptions | typeof InteractionCommandOption): InteractionCommandOption {
-    if (!this.options) {
-      this.options = [];
+    if (!this._options) {
+      this._options = new BaseCollection<string, InteractionCommandOption>();
     }
     let option: InteractionCommandOption;
     if (typeof(value) === 'function') {
@@ -989,7 +988,9 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     } else {
       option = new InteractionCommandOption(value);
     }
-    this.options.push(option);
+    option._transferValuesToChildren(this);
+    this._options.set(option.name, option);
+    this._setTypeFromOptions();
     return option;
   }
 
@@ -1023,6 +1024,16 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
     return this;
   }
 
+  _setTypeFromOptions(): void {
+    if (this._options) {
+      if (this._options.some((option) => option.isSubCommand)) {
+        this.type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
+      } else {
+        this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
+      }
+    }
+  }
+
   _transferValuesToChildren(parent: InteractionCommand | InteractionCommandOption): void {
     Object.defineProperty(this, 'parent', {value: parent});
     if (this.isSubCommand || this.isSubCommandGroup) {
@@ -1048,12 +1059,13 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
           }
         }
       }
-      if (this.isSubCommandGroup && this._options) {
+      if (this._options) {
         for (let [name, option] of this._options) {
           option._transferValuesToChildren(this);
         }
       }
     } else {
+      // an inherited `onAutoComplete` doesn't enable autocomplete, only the option's own one (or `autocomplete: true`) does
       for (let name of ON_FUNCTION_NAMES_FOR_OPTION) {
         if (typeof((this as any)[name]) !== 'function') {
           (this as any)[name] = (parent as any)[name];
@@ -1097,10 +1109,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
             option._transferValuesToChildren(this);
             this._options.set(option.name, option);
           }
-          this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
-          if (this._options.some((option) => option.isSubCommand)) {
-            this.type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
-          }
+          this._setTypeFromOptions();
         } else {
           this._options = undefined;
         }

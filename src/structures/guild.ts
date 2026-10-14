@@ -514,7 +514,7 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.removeGuildMember(this.id, userId, options);
   }
 
-  async removeMemberRole(userId: string, roleId: string, options: RequestTypes.RemoveGuildBan = {}) {
+  async removeMemberRole(userId: string, roleId: string, options: RequestTypes.RemoveGuildMemberRole = {}) {
     return this.client.rest.removeGuildMemberRole(this.id, userId, roleId, options);
   }
 
@@ -691,8 +691,10 @@ export class GuildPartial extends BaseGuild {
 
     if (DiscordKeys.WELCOME_SCREEN in data) {
       const value = data[DiscordKeys.WELCOME_SCREEN];
-      let welcomeScreen: GuildWelcomeScreen;
-      if (this.isClone) {
+      let welcomeScreen: GuildWelcomeScreen | null;
+      if (!value) {
+        welcomeScreen = null;
+      } else if (this.isClone) {
         welcomeScreen = new GuildWelcomeScreen(this.client, value, this.isClone);
       } else {
         if (this.welcomeScreen) {
@@ -1129,7 +1131,7 @@ export class Guild extends GuildPartial {
       member = this.me;
     }
     if (member) {
-      const total = this.permissionsFor(member, options.channel);
+      const total = this.permissionsFor(member, options.channel, {ignoreAdministrator, ignoreOwner});
       if (!ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
         return true;
       }
@@ -1149,7 +1151,7 @@ export class Guild extends GuildPartial {
     }
     query = getQueryForImage(query);
     format = getFormatFromHash(hash, format, this.client.imageFormat);
-    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_SPLASH(this.id, hash, format), query);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.GUILD_DISCOVERY_SPLASH(this.id, hash, format), query);
   }
 
   hasSystemChannelFlag(flag: number): boolean {
@@ -1160,12 +1162,23 @@ export class Guild extends GuildPartial {
     return this.ownerId === userId;
   }
 
-  permissionsFor(member: Member, channel?: Channel | string): bigint {
-    if (this.isOwner(member.user.id)) {
+  permissionsFor(
+    member: Member,
+    channel?: Channel | string,
+    options: {ignoreAdministrator?: boolean, ignoreOwner?: boolean} = {},
+  ): bigint {
+    if (!options.ignoreOwner && this.isOwner(member.user.id)) {
       return PERMISSIONS_ALL;
     }
 
     let permissions: bigint = Permissions.NONE;
+    {
+      // the @everyone role (id === guild id) is never in `member._roles`
+      const role = this.roles.get(this.id);
+      if (role) {
+        permissions |= role.permissions;
+      }
+    }
     if (member._roles) {
       for (let roleId of member._roles) {
         const role = this.roles.get(roleId);
@@ -1173,6 +1186,9 @@ export class Guild extends GuildPartial {
           permissions |= role.permissions;
         }
       }
+    }
+    if (!options.ignoreAdministrator && PermissionTools.checkPermissions(permissions, Permissions.ADMINISTRATOR)) {
+      return PERMISSIONS_ALL;
     }
     if (channel) {
       permissions = member.permissionsIn(channel, permissions);
@@ -1187,6 +1203,42 @@ export class Guild extends GuildPartial {
       throw new Error('Couldn\'t find this server\'s region from discord.');
     }
     return region;
+  }
+
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.INCIDENTS_DATA: {
+        if (value === undefined) {
+          return false;
+        }
+        const old = this.incidentsData;
+        const incidentsData = createGuildIncidentsData(value);
+        if (!old || !incidentsData) {
+          return old !== incidentsData;
+        }
+        return (
+          old.dmSpamDetectedAt !== incidentsData.dmSpamDetectedAt ||
+          old.dmsDisabledUntil !== incidentsData.dmsDisabledUntil ||
+          old.invitesDisabledUntil !== incidentsData.invitesDisabledUntil ||
+          old.raidDetectedAt !== incidentsData.raidDetectedAt
+        );
+      };
+    }
+    return super.hasDifference(key, value);
+  }
+
+  toJSON() {
+    const data = super.toJSON() as any;
+    // write `incidents_data` back out in discord's shape so `clone()` round-trips
+    if (this.incidentsData) {
+      data[DiscordKeys.INCIDENTS_DATA] = {
+        [DiscordKeys.DM_SPAM_DETECTED_AT]: this.incidentsData.dmSpamDetectedAt,
+        [DiscordKeys.DMS_DISABLED_UNTIL]: this.incidentsData.dmsDisabledUntil,
+        [DiscordKeys.INVITES_DISABLED_UNTIL]: this.incidentsData.invitesDisabledUntil,
+        [DiscordKeys.RAID_DETECTED_AT]: this.incidentsData.raidDetectedAt,
+      };
+    }
+    return data;
   }
 
   merge(data?: BaseStructureData): void {
@@ -1223,6 +1275,9 @@ export class Guild extends GuildPartial {
     }
     if (DiscordKeys.AFK_TIMEOUT in data) {
       (this as any)[DetritusKeys[DiscordKeys.AFK_TIMEOUT]] = data[DiscordKeys.AFK_TIMEOUT];
+    }
+    if (DiscordKeys.APPLICATION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
     }
     if (DiscordKeys.CHANNELS in data) {
       this._channelIds.clear();
@@ -1293,6 +1348,9 @@ export class Guild extends GuildPartial {
         }
       }
     }
+    if (DiscordKeys.IS_PARTIAL in data) {
+      this.isPartial = !!data[DiscordKeys.IS_PARTIAL];
+    }
     if (DiscordKeys.JOINED_AT in data) {
       const value = data[DiscordKeys.JOINED_AT];
       this.joinedAtUnix = (value) ? (new Date(value)).getTime() : 0;
@@ -1326,13 +1384,7 @@ export class Guild extends GuildPartial {
       (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_PRESENCE_COUNT]] = data[DiscordKeys.APPROXIMATE_PRESENCE_COUNT];
     }
     if (DiscordKeys.INCIDENTS_DATA in data) {
-      const value = data[DiscordKeys.INCIDENTS_DATA];
-      this.incidentsData = (value) ? {
-        dmSpamDetectedAt: value[DiscordKeys.DM_SPAM_DETECTED_AT] || null,
-        dmsDisabledUntil: value[DiscordKeys.DMS_DISABLED_UNTIL] || null,
-        invitesDisabledUntil: value[DiscordKeys.INVITES_DISABLED_UNTIL] || null,
-        raidDetectedAt: value[DiscordKeys.RAID_DETECTED_AT] || null,
-      } : null;
+      this.incidentsData = createGuildIncidentsData(data[DiscordKeys.INCIDENTS_DATA]);
     }
     if (DiscordKeys.MEMBER_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.MEMBER_COUNT]] = data[DiscordKeys.MEMBER_COUNT];
@@ -1647,6 +1699,19 @@ export interface GuildIncidentsData {
   dmsDisabledUntil: null | string,
   invitesDisabledUntil: null | string,
   raidDetectedAt: null | string,
+}
+
+// accepts the raw snake_case object from discord or our camelCase one (from `differencesBetween()`)
+function createGuildIncidentsData(value: any): GuildIncidentsData | null {
+  if (!value) {
+    return null;
+  }
+  return {
+    dmSpamDetectedAt: value[DiscordKeys.DM_SPAM_DETECTED_AT] || value.dmSpamDetectedAt || null,
+    dmsDisabledUntil: value[DiscordKeys.DMS_DISABLED_UNTIL] || value.dmsDisabledUntil || null,
+    invitesDisabledUntil: value[DiscordKeys.INVITES_DISABLED_UNTIL] || value.invitesDisabledUntil || null,
+    raidDetectedAt: value[DiscordKeys.RAID_DETECTED_AT] || value.raidDetectedAt || null,
+  };
 }
 
 

@@ -306,27 +306,29 @@ export class VoiceConnection extends EventSpewer {
       }
     }
 
-    if (this.opusDecoder !== null) {
-      const noChanges = OpusProperties.every((property) => {
-        return (<any> options)[property] === (<any> this.opusDecoder)[property];
-      });
-      if (noChanges) {
-        return;
-      }
-    }
-
     const value: OpusDecoderSettings = {
       application: options.application || Opus.Applications.AUDIO,
       channels: options.channels || this.formats.audio.channels,
       sampleRate: options.sampleRate || this.formats.audio.sampleRate,
       use: options.use,
     };
+
+    if (this.opusDecoder !== null) {
+      const noChanges = OpusProperties.every((property) => {
+        return (<any> value)[property] === (<any> this.opusDecoder)[property];
+      });
+      if (noChanges) {
+        return;
+      }
+    }
+
     Object.defineProperty(this, 'opusDecoder', {value});
 
+    // decoders get lazily recreated with the new settings in `fetchOpusDecoder()`
     for (let [userId, decoder] of this.opusDecoders) {
       decoder.delete();
-      this.fetchOpusDecoder(userId);
     }
+    this.opusDecoders.clear();
   }
 
   setOpusEncoder(options: boolean | OpusOptions = {}): void {
@@ -348,24 +350,34 @@ export class VoiceConnection extends EventSpewer {
       }
     }
 
+    const settings = {
+      application: options.application || Opus.Applications.AUDIO,
+      channels: options.channels || this.formats.audio.channels,
+      sampleRate: options.sampleRate || this.formats.audio.sampleRate,
+      use: options.use,
+    };
+
     if (this.opusEncoder !== null) {
-      const anyChanges = OpusProperties.some((property) => {
-        return (<any> options)[property] !== (<any> this.opusEncoder)[property];
+      const noChanges = OpusProperties.every((property) => {
+        return (<any> settings)[property] === (<any> this.opusEncoder)[property];
       });
-      if (anyChanges) {
-        this.opusEncoder.delete();
-        Object.defineProperty(this, 'opusEncoder', {value: null});
+      if (noChanges) {
+        // keep the current encoder, anything referencing it stays valid
+        return;
       }
     }
 
     const opusEncoder = new Opus.AudioOpus(
-      options.sampleRate || this.formats.audio.sampleRate,
-      options.channels || this.formats.audio.channels,
+      settings.sampleRate,
+      settings.channels,
       {
-        application: options.application || Opus.Applications.AUDIO,
-        use: options.use,
+        application: settings.application,
+        use: settings.use,
       },
     );
+    if (this.opusEncoder !== null) {
+      this.opusEncoder.delete();
+    }
     Object.defineProperty(this, 'opusEncoder', {value: opusEncoder});
   }
 
@@ -374,6 +386,7 @@ export class VoiceConnection extends EventSpewer {
   async setSpeaking(
     options: {
       delay?: number,
+      priority?: boolean,
       ssrc?: number,
       soundshare?: boolean,
       voice?: boolean,

@@ -1,4 +1,4 @@
-import { Endpoints } from 'detritus-client-rest';
+import { Endpoints, RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
@@ -75,9 +75,9 @@ export class StickerItem extends BaseStructure {
       format = this.format;
     }
     if (this.formatType === StickerFormats.GIF) {
-      return addQuery(Endpoints.Urls.MEDIA.slice(0, -1) + Endpoints.CDN.STICKER(this.id, this.format), query);
+      return addQuery(Endpoints.Urls.MEDIA.slice(0, -1) + Endpoints.CDN.STICKER(this.id, format), query);
     }
-    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.STICKER(this.id, this.format), query);
+    return addQuery(Endpoints.CDN.URL + Endpoints.CDN.STICKER(this.id, format), query);
   }
 
   merge(data?: BaseStructureData): void {
@@ -169,11 +169,11 @@ export class Sticker extends StickerItem {
     return this.client.rest.deleteGuildSticker(this.guildId, this.id);
   }
 
-  async edit() {
+  async edit(options: RequestTypes.EditGuildSticker = {}) {
     if (!this.guildId) {
       throw new Error('Can\'t edit a global sticker!');
     }
-    return this.client.rest.editGuildSticker(this.guildId, this.id);
+    return this.client.rest.editGuildSticker(this.guildId, this.id, options);
   }
 
   async fetch() {

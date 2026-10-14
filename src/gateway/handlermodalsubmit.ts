@@ -3,6 +3,7 @@
 import { Timers } from 'detritus-utils';
 
 import { BaseCollection } from '../collections';
+import { INTERACTION_TIMEOUT } from '../constants';
 import {
   Attachment,
   ComponentActionRow,
@@ -103,10 +104,12 @@ export class ModalSubmitHandler {
     if (listener.id) {
       const listenerId = ModalSubmitHandler.getKey(listener.id, userId);
       this.delete(listenerId);
-      if (listener.timeout) {
+      {
+        // always expire listeners, capped at 15 minutes (a timeout of 0 or less means the max)
+        const amount = (0 < listener.timeout) ? Math.min(listener.timeout, INTERACTION_TIMEOUT) : INTERACTION_TIMEOUT;
         const timeout = new Timers.Timeout();
         this.timeouts.set(listenerId, timeout);
-        timeout.start(listener.timeout, async () => {
+        timeout.start(amount, async () => {
           if (this.listeners.get(listenerId) === listener) {
             this.delete(listenerId);
 

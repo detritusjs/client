@@ -681,6 +681,13 @@ export class InteractionCommandClient extends EventSpewer {
           }
         } else if (option.value !== undefined) {
           let value: any = option.value;
+          // primitives are converted whether or not `resolved` exists, so the type of a value doesn't depend on other options
+          switch (option.type) {
+            case ApplicationCommandOptionTypes.BOOLEAN: value = Boolean(value); break;
+            // discord integers are within +-2^53 and numbers are doubles, both fit in a js number
+            case ApplicationCommandOptionTypes.INTEGER: value = parseInt(value); break;
+            case ApplicationCommandOptionTypes.NUMBER: value = Number(value); break;
+          }
           if (resolved) {
             switch (option.type) {
               case ApplicationCommandOptionTypes.ATTACHMENT: {
@@ -693,8 +700,6 @@ export class InteractionCommandClient extends EventSpewer {
                   value = resolved.channels.get(value) || value;
                 }
               }; break;
-              case ApplicationCommandOptionTypes.BOOLEAN: value = Boolean(value); break;
-              case ApplicationCommandOptionTypes.INTEGER: value = parseInt(value); break;
               case ApplicationCommandOptionTypes.MENTIONABLE: {
                 if (resolved.roles && resolved.roles.has(value)) {
                   value = resolved.roles.get(value);
@@ -704,24 +709,17 @@ export class InteractionCommandClient extends EventSpewer {
                   value = resolved.users.get(value);
                 }
               }; break;
-              case ApplicationCommandOptionTypes.NUMBER: {
-                value = String(value);
-                if (value.includes('.')) {
-                  value = parseFloat(value);
-                } else {
-                  value = BigInt(value);
-                }
-              }; break;
               case ApplicationCommandOptionTypes.ROLE: {
                 if (resolved.roles) {
                   value = resolved.roles.get(value) || value;
                 }
               }; break;
               case ApplicationCommandOptionTypes.USER: {
-                if (resolved.members) {
-                  value = resolved.members.get(value) || value;
-                } else if (resolved.users) {
-                  value = resolved.users.get(value) || value;
+                // a non-member user (or one without member data) is only in `users`
+                if (resolved.members && resolved.members.has(value)) {
+                  value = resolved.members.get(value);
+                } else if (resolved.users && resolved.users.has(value)) {
+                  value = resolved.users.get(value);
                 }
               }; break;
             }
@@ -830,29 +828,45 @@ export class InteractionCommandClient extends EventSpewer {
     }
   }
 
+  findCommand(
+    data: InteractionDataApplicationCommand,
+    interactionGuildId?: string | null,
+  ): InteractionCommand | undefined {
+    const guildIds = (interactionGuildId) ? [interactionGuildId, LOCAL_GUILD_ID] : [LOCAL_GUILD_ID];
+    for (let guildId of guildIds) {
+      if (this.commandsById.has(guildId)) {
+        const localCommands = this.commandsById.get(guildId)!;
+        let command: InteractionCommand | undefined;
+        if (this.strictCommandCheck) {
+          command = localCommands.find((cmd) => cmd.ids.get(guildId) === data.id);
+          if (!command) {
+            // ids are only known after the commands were checked (`checkCommands: false` never fills them)
+            // so match commands without a known id by name, type and scope instead of ignoring them
+            const isScopeMatch = (guildId === LOCAL_GUILD_ID) ? !data.guildId : data.guildId === guildId;
+            if (isScopeMatch) {
+              command = localCommands.find((cmd) => {
+                return !cmd.ids.has(guildId) && cmd.name === data.name && cmd.type === data.type;
+              });
+            }
+          }
+        } else {
+          command = localCommands.find((cmd) => cmd.name === data.name && cmd.type === data.type);
+        }
+        if (command) {
+          return command;
+        }
+      }
+    }
+    return undefined;
+  }
+
   async handleApplicationCommand(event: GatewayClientEvents.InteractionCreate): Promise<void> {
     const { interaction } = event;
 
     // assume the interaction is global for now
     const data = interaction.data as InteractionDataApplicationCommand;
 
-    let command: InteractionCommand | undefined;
-
-    const guildIds = (interaction.guildId) ? [interaction.guildId, LOCAL_GUILD_ID] : [LOCAL_GUILD_ID];
-    for (let guildId of guildIds) {
-      if (this.commandsById.has(guildId)) {
-        const localCommands = this.commandsById.get(guildId)!;
-        if (this.strictCommandCheck) {
-          command = localCommands.find((cmd) => cmd.ids.get(guildId) === data.id);
-        } else {
-          command = localCommands.find((cmd) => cmd.name === data.name && cmd.type === data.type);
-        }
-        if (command) {
-          break;
-        }
-      }
-    }
-
+    const command = this.findCommand(data, interaction.guildId);
     if (!command) {
       return;
     }
@@ -917,47 +931,6 @@ export class InteractionCommandClient extends EventSpewer {
         const payload: InteractionCommandEvents.CommandError = {command, context, error};
         this.emit(ClientEvents.COMMAND_ERROR, payload);
         return;
-      }
-    }
-
-    if (this.ratelimits.length || (invoker.ratelimits && invoker.ratelimits.length)) {
-      const now = Date.now();
-      {
-        const ratelimits = this.ratelimiter.getExceeded(context, this.ratelimits, now);
-        if (ratelimits.length) {
-          const global = true;
-
-          const payload: InteractionCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
-          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
-
-          if (typeof(invoker.onRatelimit) === 'function') {
-            try {
-              await Promise.resolve(invoker.onRatelimit(context, ratelimits, {global, now}));
-            } catch(error) {
-              // do something with this error?
-            }
-          }
-          return;
-        }
-      }
-
-      if (invoker.ratelimits && invoker.ratelimits.length) {
-        const ratelimits = this.ratelimiter.getExceeded(context, invoker.ratelimits, now);
-        if (ratelimits.length) {
-          const global = false;
-
-          const payload: InteractionCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
-          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
-
-          if (typeof(invoker.onRatelimit) === 'function') {
-            try {
-              await Promise.resolve(invoker.onRatelimit(context, ratelimits, {global, now}));
-            } catch(error) {
-              // do something with this error?
-            }
-          }
-          return;
-        }
       }
     }
 
@@ -1055,6 +1028,47 @@ export class InteractionCommandClient extends EventSpewer {
       }
     }
 
+    if (this.ratelimits.length || (invoker.ratelimits && invoker.ratelimits.length)) {
+      const now = Date.now();
+      {
+        const ratelimits = this.ratelimiter.getExceeded(context, this.ratelimits, now);
+        if (ratelimits.length) {
+          const global = true;
+
+          const payload: InteractionCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(invoker.onRatelimit) === 'function') {
+            try {
+              await Promise.resolve(invoker.onRatelimit(context, ratelimits, {global, now}));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+
+      if (invoker.ratelimits && invoker.ratelimits.length) {
+        const ratelimits = this.ratelimiter.getExceeded(context, invoker.ratelimits, now);
+        if (ratelimits.length) {
+          const global = false;
+
+          const payload: InteractionCommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(invoker.onRatelimit) === 'function') {
+            try {
+              await Promise.resolve(invoker.onRatelimit(context, ratelimits, {global, now}));
+            } catch(error) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+    }
+
     if (typeof(invoker.onBefore) === 'function') {
       try {
         const shouldContinue = await Promise.resolve(invoker.onBefore(context));
@@ -1116,11 +1130,19 @@ export class InteractionCommandClient extends EventSpewer {
       // 404 interaction unknown most likely, do nothing
     }
 
-    const [args, errors] = await this.parseArgs(context, data);
+    let args: ParsedArgs = {};
     try {
+      // inside the try so a parsing failure goes through `onError`/COMMAND_FAIL instead of rejecting unhandled
+      let errors: ParsedErrors | null;
+      [args, errors] = await this.parseArgs(context, data);
       if (errors) {
         if (typeof(invoker.onValueError) === 'function') {
-          await Promise.resolve(invoker.onValueError(context, args, errors));
+          try {
+            await Promise.resolve(invoker.onValueError(context, args, errors));
+          } catch(error: any) {
+            const payload: InteractionCommandEvents.CommandError = {command, context, error, extra: errors};
+            this.emit(ClientEvents.COMMAND_ERROR, payload);
+          }
         }
 
         const error = new Error('Command errored out while converting args');
@@ -1155,7 +1177,12 @@ export class InteractionCommandClient extends EventSpewer {
         const payload: InteractionCommandEvents.CommandRunError = {args, command, context, error};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(invoker.onRunError) === 'function') {
-          await Promise.resolve(invoker.onRunError(context, args, error));
+          try {
+            await Promise.resolve(invoker.onRunError(context, args, error));
+          } catch(e: any) {
+            const payload: InteractionCommandEvents.CommandError = {command, context, error: e};
+            this.emit(ClientEvents.COMMAND_ERROR, payload);
+          }
         }
         return;
       }
@@ -1168,7 +1195,12 @@ export class InteractionCommandClient extends EventSpewer {
 
     } catch(error: any) {
       if (typeof(invoker.onError) === 'function') {
-        await Promise.resolve(invoker.onError(context, args, error));
+        try {
+          await Promise.resolve(invoker.onError(context, args, error));
+        } catch(e: any) {
+          const payload: InteractionCommandEvents.CommandError = {command, context, error: e};
+          this.emit(ClientEvents.COMMAND_ERROR, payload);
+        }
       }
       const payload: InteractionCommandEvents.CommandFail = {args, command, context, error};
       this.emit(ClientEvents.COMMAND_FAIL, payload);
@@ -1179,23 +1211,7 @@ export class InteractionCommandClient extends EventSpewer {
     const { interaction } = event;
     const data = interaction.data as InteractionDataApplicationCommand;
 
-    let command: InteractionCommand | undefined;
-
-    const guildIds = (interaction.guildId) ? [interaction.guildId, LOCAL_GUILD_ID] : [LOCAL_GUILD_ID];
-    for (let guildId of guildIds) {
-      if (this.commandsById.has(guildId)) {
-        const localCommands = this.commandsById.get(guildId)!;
-        if (this.strictCommandCheck) {
-          command = localCommands.find((cmd) => cmd.ids.get(guildId) === data.id);
-        } else {
-          command = localCommands.find((cmd) => cmd.name === data.name && cmd.type === data.type);
-        }
-        if (command) {
-          break;
-        }
-      }
-    }
-
+    const command = this.findCommand(data, interaction.guildId);
     if (!command) {
       return;
     }
@@ -1211,7 +1227,12 @@ export class InteractionCommandClient extends EventSpewer {
         await Promise.resolve(invoker.onAutoComplete(context));
       } catch(error: any) {
         if (typeof(invoker.onAutoCompleteError) === 'function') {
-          await Promise.resolve(invoker.onAutoCompleteError(context, error));
+          try {
+            await Promise.resolve(invoker.onAutoCompleteError(context, error));
+          } catch(e: any) {
+            const payload: InteractionCommandEvents.CommandError = {command, context: context as any, error: e};
+            this.emit(ClientEvents.COMMAND_ERROR, payload);
+          }
         }
         // emit the error?
       }

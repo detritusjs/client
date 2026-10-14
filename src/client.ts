@@ -489,11 +489,7 @@ export class ShardClient extends EventSpewer {
     };
     let key = `${guildId}:${options.limit}:${options.query}:${options.presences}`;
     if (options.userIds && options.userIds.length) {
-      if (options.userIds.length <= 10) {
-        key += `:${options.userIds.join('.')}`;
-      } else {
-        key += `:amount.${options.userIds.length}`;
-      }
+      key += `:${options.userIds.slice().sort().join('.')}`;
     }
     const nonce = options.nonce = Crypto.createHash('md5').update(key).digest('hex');
     let cache: ChunkWaiting;
@@ -523,13 +519,16 @@ export class ShardClient extends EventSpewer {
       timeout.start(options.timeout, () => {
         reject(new Error(`Guild chunking took longer than ${options.timeout}ms.`));
         cache.waiting--;
-        if (cache.waiting <= 0) {
+        if (cache.waiting <= 0 && this.gatewayHandler._chunksWaiting.get(nonce) === cache) {
           this.gatewayHandler._chunksWaiting.delete(nonce);
         }
       });
-    }).then(() => {
+    }).finally(() => {
       timeout.stop();
-      this.gatewayHandler._chunksWaiting.delete(nonce);
+    }).then(() => {
+      if (this.gatewayHandler._chunksWaiting.get(nonce) === cache) {
+        this.gatewayHandler._chunksWaiting.delete(nonce);
+      }
       return {
         members: cache.members,
         nonce,
@@ -632,10 +631,28 @@ export class ShardClient extends EventSpewer {
         this.voiceConnections.insert(payload.connection);
 
         if (options.wait || options.wait === undefined) {
-          return new Promise((resolve) => {
-            payload.connection.once('ready', () => {
+          return new Promise((resolve, reject) => {
+            const timeout = new Timers.Timeout();
+            const onReady = () => {
+              timeout.stop();
+              payload.connection.removeListener('killed', onKilled);
               resolve(payload);
-            });
+            };
+            const onKilled = () => {
+              timeout.stop();
+              payload.connection.removeListener('ready', onReady);
+              reject(new Error('Voice connection was killed before it was ready.'));
+            };
+            payload.connection.once('ready', onReady);
+            payload.connection.once('killed', onKilled);
+            if (options.timeout) {
+              timeout.start(options.timeout, () => {
+                payload.connection.removeListener('ready', onReady);
+                payload.connection.removeListener('killed', onKilled);
+                reject(new Error(`Voice connection took longer than ${options.timeout}ms to be ready.`));
+                payload.connection.kill();
+              });
+            }
           });
         } else {
           return payload;

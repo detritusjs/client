@@ -5,6 +5,7 @@ import { Snowflake } from 'detritus-utils';
 import { guildIdToShardId } from 'detritus-utils/lib/tools';
 
 import { BaseCollection } from '../collections/basecollection';
+import { normalizeContexts, normalizeIntegrationTypes, normalizeLocalizations } from './applicationcommands';
 import {
   DiscordRegex,
   DiscordRegexNames,
@@ -30,6 +31,7 @@ import { Role } from '../structures/role';
 import { User } from '../structures/user';
 
 
+import { toCamelCase } from './casing';
 import * as Markup from './markup';
 import * as PermissionTools from './permissions';
 
@@ -229,7 +231,7 @@ export function getFirstArgument(value: string): [string, string] {
   // check to see if this word starts with any of the quote starts
   // if yes, then continue onto the next word
   if (Quotes.START.includes(result)) {
-    let index = value.indexOf((QuotesAll as any)[result], 1);
+    let index = value.indexOf((QuotesAll as any)[result]);
     if (index !== -1) {
       result = value.slice(0, index);
       value = value.slice(index + 1).trim();
@@ -488,16 +490,8 @@ export function rgbToInt(r: number, g: number, b: number): number {
   return ((r & 0x0ff) << 16) | ((g & 0x0ff) << 8) | (b & 0x0ff);
 }
 
-export function toCamelCase(value: string): string {
-  if (!value.includes('_')) {
-    return value;
-  }
-  value = value
-    .split('_')
-    .map((v) => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase())
-    .join('');
-  return value.charAt(0).toLowerCase() + value.slice(1);
-}
+// kept in its own module so `structures/basestructure` can import it without loading every structure
+export { toCamelCase };
 
 
 
@@ -508,12 +502,12 @@ export const KeyGenerator = Object.freeze({
       command.description,
       command.type,
       (command.options) ? command.options.map((x) => x.key).join(':') : '',
-      JSON.stringify(command.descriptionLocalizations),
-      JSON.stringify(command.nameLocalizations),
+      JSON.stringify(normalizeLocalizations(command.descriptionLocalizations)),
+      JSON.stringify(normalizeLocalizations(command.nameLocalizations)),
       command.defaultMemberPermissions,
-      (command.dmPermission === undefined) ? true : !command.dmPermission,
-      command.contexts || null,
-      (command.integrationTypes) ? command.integrationTypes.sort() : null,
+      (command.dmPermission === undefined || command.dmPermission === null) ? true : !!command.dmPermission,
+      normalizeContexts(command.contexts),
+      normalizeIntegrationTypes(command.integrationTypes),
       Boolean(command.nsfw),
     ].join('-');
   },
@@ -526,8 +520,8 @@ export const KeyGenerator = Object.freeze({
       !!option.autocomplete,
       (option.options) ? option.options.map((x) => x.key).join(':') : '',
       (option.choices) ? option.choices.map((x) => x.key).join(':') : '',
-      JSON.stringify(option.descriptionLocalizations),
-      JSON.stringify(option.nameLocalizations),
+      JSON.stringify(normalizeLocalizations(option.descriptionLocalizations)),
+      JSON.stringify(normalizeLocalizations(option.nameLocalizations)),
       JSON.stringify(option.channelTypes),
       option.maxValue,
       option.minValue,
@@ -536,6 +530,6 @@ export const KeyGenerator = Object.freeze({
     ].join('-');
   },
   ApplicationCommandOptionChoice: (choice: ApplicationCommandOptionChoice | InteractionCommandOptionChoice): string => {
-    return `${choice.name}-${choice.value}-${typeof(choice.value)}-${JSON.stringify(choice.nameLocalizations)}`;
+    return `${choice.name}-${choice.value}-${typeof(choice.value)}-${JSON.stringify(normalizeLocalizations(choice.nameLocalizations))}`;
   },
 });

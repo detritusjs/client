@@ -6,6 +6,7 @@ import {
   DiscordKeys,
   InteractionCallbackTypes,
   MessageComponentTypes,
+  INTERACTION_TIMEOUT,
 } from '../../constants';
 
 import { BaseSet } from '../../collections/baseset';
@@ -68,7 +69,7 @@ export class InteractionModal extends Structure {
 
   components = new Components();
   customId: string = '';
-  timeout: number = 10 * (60 * 1000); // 10 minutes
+  timeout: number = INTERACTION_TIMEOUT;
   title: string = '';
 
   onTimeout?(): unknown;
@@ -84,6 +85,10 @@ export class InteractionModal extends Structure {
       (data as any)[DiscordKeys.CUSTOM_ID] = Snowflake.generate().id;
     }
     this.merge(data);
+    // not in `_keys` since it shouldn't be sent to discord
+    if (data.timeout !== undefined) {
+      this.timeout = data.timeout;
+    }
     this.run = data.run || this.run;
     this.onError = data.onError || this.onError;
     this.onTimeout = data.onTimeout || this.onTimeout;

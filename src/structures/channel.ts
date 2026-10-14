@@ -115,6 +115,9 @@ export function createChannelFromData(
       case ChannelTypes.GUILD_FORUM: {
         Class = ChannelGuildForum;
       }; break;
+      case ChannelTypes.GUILD_MEDIA: {
+        Class = ChannelGuildMedia;
+      }; break;
     }
   }
   return new Class(client, data, isClone);
@@ -150,7 +153,7 @@ export class ChannelBase extends BaseStructure {
   bitrate?: number;
   defaultAutoArchiveDuration?: number;
   defaultForumLayout?: number;
-  defaultReactionEmoji?: ChannelDefaultReactionEmoji;
+  defaultReactionEmoji?: ChannelDefaultReactionEmoji | null;
   defaultSortOrder?: number | null;
   defaultThreadRateLimitPerUser?: number;
   deleted: boolean = false;
@@ -371,7 +374,8 @@ export class ChannelBase extends BaseStructure {
       (this.isGuildThreadPublic) ||
       (this.isGuildStageVoice) || 
       (this.isGuildDirectory) ||
-      (this.isGuildForum);
+      (this.isGuildForum) ||
+      (this.isGuildMedia);
   }
 
   get isGuildDirectory(): boolean {
@@ -447,7 +451,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   get isText(): boolean {
-    return this.isDm || this.isGuildText || this.isGuildVoice || this.isGuildNews || this.isGuildThread;
+    return this.isDm || this.isGuildText || this.isGuildVoice || this.isGuildStageVoice || this.isGuildNews || this.isGuildThread;
   }
 
   get isVoice(): boolean {
@@ -620,7 +624,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   async bulkDelete(messageIds: Array<string>) {
-    if (!this.isGuildText) {
+    if (!this.isGuildText && !this.isGuildNews && !this.isGuildVoice && !this.isGuildStageVoice && !this.isGuildThread) {
       throw new Error('Channel type doesn\'t support this.');
     }
     return this.client.rest.bulkDeleteMessages(this.id, messageIds);
@@ -662,7 +666,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   async createThread(options: RequestTypes.CreateChannelThread) {
-    if (!this.isGuildText) {
+    if (!this.isGuildText && !this.isGuildNews && !this.isGuildForum && !this.isGuildMedia) {
       throw new Error('Channel type doesn\'t support this.');
     }
     return this.client.rest.createChannelThread(this.id, options);
@@ -842,7 +846,7 @@ export class ChannelBase extends BaseStructure {
   }
 
   async fetchWebhooks() {
-    if (!this.isGuildText) {
+    if (!this.isGuildText && !this.isGuildNews && !this.isGuildVoice && !this.isGuildStageVoice && !this.isGuildForum && !this.isGuildMedia) {
       throw new Error('Channel type doesn\'t support this.');
     }
     return this.client.rest.fetchChannelWebhooks(this.id);
@@ -1034,7 +1038,9 @@ export class ChannelDM extends ChannelBase {
 
   get name(): string {
     if (!this._name) {
-      return this.recipients.join(', ') || 'DM Channel';
+      const userId = this.client.userId;
+      const recipients = this.recipients.filter((recipient) => recipient.id !== userId);
+      return ((recipients.length) ? recipients : this.recipients.toArray()).join(', ') || 'DM Channel';
     }
     return this._name;
   }
@@ -1048,7 +1054,9 @@ export class ChannelDM extends ChannelBase {
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.recipients.size) {
-      const user = this.recipients.first()!;
+      // the client user is inserted first into the recipients, use the other user's avatar
+      const userId = this.client.userId;
+      const user = this.recipients.find((recipient) => recipient.id !== userId) || this.recipients.first()!;
       return user.avatarUrlFormat(format, query);
     }
     return null;
@@ -1180,7 +1188,7 @@ export class ChannelDMGroup extends ChannelDM {
     query = getQueryForImage(query);
     format = getFormatFromHash(hash, format, this.client.imageFormat);
     return addQuery(
-      Endpoints.CDN.URL + Endpoints.CDN.DM_ICON(this.id, hash, format),
+      Endpoints.CDN.URL + Endpoints.CDN.CHANNEL_ICON(this.id, hash, format),
       query,
     );
   }
@@ -1438,12 +1446,12 @@ export class ChannelGuildBase extends ChannelBase {
   ): boolean {
     let total: bigint = Permissions.NONE;
     if (memberOrRole instanceof Role) {
-      total = memberOrRole.permissions;
       if (!ignoreAdministrator) {
-        if (PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+        if (PermissionTools.checkPermissions(memberOrRole.permissions, Permissions.ADMINISTRATOR)) {
           return true;
         }
       }
+      total = memberOrRole.permissionsIn(this, {ignoreAdministrator});
     } else {
       if (!memberOrRole) {
         if (!this.client.user) {
@@ -1467,7 +1475,15 @@ export class ChannelGuildBase extends ChannelBase {
           return true;
         }
       }
-      total = memberOrRole.permissionsIn(this);
+      const guild = this.guild;
+      if (ignoreAdministrator && guild) {
+        total = guild.permissionsFor(memberOrRole, this, {ignoreAdministrator, ignoreOwner: true});
+      } else if (ignoreAdministrator) {
+        // passing the starting permissions skips `permissionsIn()`'s administrator shortcut
+        total = memberOrRole.permissionsIn(this, memberOrRole.permissions);
+      } else {
+        total = memberOrRole.permissionsIn(this);
+      }
     }
 
     return PermissionTools.checkPermissions(total, permissions);
@@ -1700,7 +1716,7 @@ export class ChannelGuildVoice extends ChannelGuildBase {
   get joined(): boolean {
     if (this.client.voiceConnections.has(this.guildId)) {
       const voiceConnection = this.client.voiceConnections.get(this.guildId)!;
-      return voiceConnection.guildId === this.id;
+      return voiceConnection.channelId === this.id;
     }
     return false;
   }
@@ -1853,6 +1869,44 @@ export class ChannelGuildStageVoice extends ChannelGuildVoice {
 }
 
 
+function permissionChecksToBigInt(
+  permissions: PermissionTools.PermissionChecks,
+): bigint {
+  if (Array.isArray(permissions)) {
+    return permissions.reduce((total: bigint, permission) => total | permissionChecksToBigInt(permission), Permissions.NONE);
+  }
+  if (typeof(permissions) === 'string') {
+    const key = permissions.toUpperCase();
+    return (key in Permissions) ? (Permissions as any)[key] as bigint : Permissions.NONE;
+  }
+  return BigInt(permissions);
+}
+
+
+function toThreadPermissionChecks(
+  permissions: PermissionTools.PermissionChecks,
+): PermissionTools.PermissionChecks {
+  if (Array.isArray(permissions)) {
+    return permissions.map((permission) => toThreadPermissionChecks(permission) as bigint | number | string);
+  }
+  switch (typeof(permissions)) {
+    case 'bigint':
+    case 'number': {
+      const value = BigInt(permissions);
+      if ((value & Permissions.SEND_MESSAGES) === Permissions.SEND_MESSAGES) {
+        return (value & ~Permissions.SEND_MESSAGES) | Permissions.SEND_MESSAGES_IN_THREADS;
+      }
+    }; break;
+    case 'string': {
+      if (permissions.toUpperCase() === 'SEND_MESSAGES') {
+        return 'SEND_MESSAGES_IN_THREADS';
+      }
+    }; break;
+  }
+  return permissions;
+}
+
+
 const keysChannelGuildThread = new BaseSet<string>([
   ...keysChannelGuildBase,
   DiscordKeys.APPLIED_TAGS,
@@ -1898,6 +1952,50 @@ export class ChannelGuildThread extends ChannelGuildBase {
     return false;
   }
 
+  can(
+    permissions: PermissionTools.PermissionChecks,
+    memberOrRole?: Member | Role,
+    options: {ignoreAdministrator?: boolean, ignoreOwner?: boolean} = {},
+  ): boolean {
+    // threads have no overwrites of their own, they inherit the parent channel's computed permissions
+    // and use SEND_MESSAGES_IN_THREADS in place of SEND_MESSAGES
+    const parent = this.parent;
+    const can = (checks: PermissionTools.PermissionChecks): boolean => {
+      if (parent instanceof ChannelGuildBase) {
+        return parent.can(checks, memberOrRole, options);
+      }
+      return super.can(checks, memberOrRole, options);
+    };
+
+    const checks = toThreadPermissionChecks(permissions);
+    if (!can(checks)) {
+      return false;
+    }
+    const requested = permissionChecksToBigInt(checks);
+
+    // private threads are only visible to thread members, only the client user's membership is cached
+    if (this.isGuildThreadPrivate && PermissionTools.checkPermissions(requested, Permissions.VIEW_CHANNEL)) {
+      let isThreadMember = false;
+      if (!(memberOrRole instanceof Role)) {
+        const userId = (memberOrRole) ? memberOrRole.id : this.client.userId;
+        isThreadMember = !!this.member && !!userId && this.member.userId === userId;
+      }
+      if (!isThreadMember && !can(Permissions.MANAGE_THREADS)) {
+        return false;
+      }
+    }
+
+    // sending in a locked thread (or unarchiving one) requires MANAGE_THREADS
+    // unarchiving an unlocked thread only requires SEND_MESSAGES_IN_THREADS, which was checked above
+    const metadata = this.threadMetadata;
+    if (metadata && PermissionTools.checkPermissions(requested, Permissions.SEND_MESSAGES_IN_THREADS)) {
+      if (metadata.locked && !can(Permissions.MANAGE_THREADS)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   merge(data?: BaseStructureData): void {
     super.merge(data);
     if (!data) {
@@ -1923,6 +2021,16 @@ export class ChannelGuildThread extends ChannelGuildBase {
     }
     if (DiscordKeys.MEMBER in data) {
       const value = data[DiscordKeys.MEMBER];
+      if (value) {
+        // the thread member object inside of GUILD_CREATE/THREAD_LIST_SYNC threads is missing `id` and `user_id`
+        // it is always the current user's membership of this thread
+        if (!value[DiscordKeys.ID]) {
+          value[DiscordKeys.ID] = this.id;
+        }
+        if (!value[DiscordKeys.USER_ID] && this.client.user) {
+          value[DiscordKeys.USER_ID] = this.client.user.id;
+        }
+      }
       (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = new ThreadMember(this.client, value);
     }
     if (DiscordKeys.MEMBER_COUNT in data) {
@@ -1982,6 +2090,7 @@ const keysChannelGuildForum = new BaseSet<string>([
   DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.TEMPLATE,
+  DiscordKeys.TOPIC,
 ].sort());
 
 
@@ -2027,6 +2136,7 @@ export class ChannelGuildForum extends ChannelGuildBase {
         if (!this._availableTags) {
           this._availableTags = new BaseCollection<string, ChannelAvailableTag>();
         }
+        this._availableTags.clear();
         for (let raw of value) {
           raw[DiscordKeys.CHANNEL_ID] = this.id;
           const tag = new ChannelAvailableTag(this.client, raw);
@@ -2046,8 +2156,8 @@ export class ChannelGuildForum extends ChannelGuildBase {
       (this as any)[DetritusKeys[DiscordKeys.DEFAULT_FORUM_LAYOUT]] = data[DiscordKeys.DEFAULT_FORUM_LAYOUT];
     }
     if (DiscordKeys.DEFAULT_REACTION_EMOJI in data) {
-      const value = new ChannelDefaultReactionEmoji(this.client, data[DiscordKeys.DEFAULT_REACTION_EMOJI]);
-      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_REACTION_EMOJI]] = value;
+      const value = data[DiscordKeys.DEFAULT_REACTION_EMOJI];
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_REACTION_EMOJI]] = (value) ? new ChannelDefaultReactionEmoji(this.client, value) : null;
     }
     if (DiscordKeys.DEFAULT_SORT_ORDER in data) {
       (this as any)[DetritusKeys[DiscordKeys.DEFAULT_SORT_ORDER]] = data[DiscordKeys.DEFAULT_SORT_ORDER];
@@ -2060,6 +2170,9 @@ export class ChannelGuildForum extends ChannelGuildBase {
     }
     if (DiscordKeys.TEMPLATE in data) {
       (this as any)[DetritusKeys[DiscordKeys.TEMPLATE]] = data[DiscordKeys.TEMPLATE];
+    }
+    if (DiscordKeys.TOPIC in data) {
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
     }
   }
 }
@@ -2113,6 +2226,15 @@ export class ChannelAvailableTag extends BaseStructure {
   moderated: boolean = false;
   name: string = '';
 
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
@@ -2155,6 +2277,15 @@ export class ChannelDefaultReactionEmoji extends BaseStructure {
 
   emojiId: string | null = null;
   emojiName: string = '';
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
 
   merge(data?: BaseStructureData): void {
     if (!data) {

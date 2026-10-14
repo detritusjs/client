@@ -107,11 +107,19 @@ export class GatewayHandler {
       for (let event of Object.values(GatewayDispatchEvents)) {
         this.disabledEvents.add(event);
       }
+      // some handlers are keyed by names that aren't in the published enum
+      for (let event of Object.getOwnPropertyNames(GatewayDispatchHandler.prototype)) {
+        if (/^[A-Z_]+$/.test(event)) {
+          this.disabledEvents.add(event);
+        }
+      }
       for (let event of options.whitelistedEvents) {
         this.disabledEvents.delete(event.toUpperCase());
       }
     }
     this.disabledEvents.delete(GatewayDispatchEvents.READY);
+    this.disabledEvents.delete(GatewayDispatchEvents.RESUMED);
+    this.disabledEvents.delete(GatewayDispatchEvents.GUILD_MEMBERS_CHUNK);
   }
 
   get shouldLoadAllMembers(): boolean {
@@ -543,20 +551,31 @@ export class GatewayDispatchHandler {
     }
     channel.deleted = true;
 
-    if (channel.isText) {
-      for (let [messageId, message] of this.client.messages) {
-        if (message.channelId === channel.id) {
-          message.deleted = true;
-          this.client.messages.delete(messageId);
-          this.handler._handlers.component.delete(messageId);
-        }
-      }
-    }
-
     // `guild.channels` is a computed collection, remove the id from the backing set instead
     const guild = channel.guild;
     if (guild) {
       guild._channelIds.delete(channel.id);
+    }
+
+    // threads go away with their parent channel
+    const channelIds = new BaseSet<string>([channel.id]);
+    for (let [threadId, thread] of this.client.channels) {
+      if (thread.isGuildThread && thread.parentId === channel.id) {
+        thread.deleted = true;
+        this.client.channels.delete(threadId);
+        if (guild) {
+          guild._threadIds.delete(threadId);
+        }
+        channelIds.add(threadId);
+      }
+    }
+
+    for (let [messageId, message] of this.client.messages) {
+      if (channelIds.has(message.channelId)) {
+        message.deleted = true;
+        this.client.messages.delete(messageId);
+        this.handler._handlers.component.delete(messageId);
+      }
     }
 
     const payload: GatewayClientEvents.ChannelDelete = {channel};
@@ -627,6 +646,10 @@ export class GatewayDispatchHandler {
     } else {
       channel = createChannelFromData(this.client, data);
       this.client.channels.insert(channel);
+      const guild = channel.guild;
+      if (guild) {
+        guild._channelIds.add(channel.id);
+      }
     }
 
     const payload: GatewayClientEvents.ChannelUpdate = {channel, differences, old};
@@ -820,6 +843,11 @@ export class GatewayDispatchHandler {
           this.client.interactions.delete(interactionId);
         }
       }
+      this.client.applicationCommandPermissions.delete(guildId);
+      if (this.client.voiceConnections.has(guildId)) {
+        const connection = this.client.voiceConnections.get(guildId)!;
+        connection.kill();
+      }
     }
 
     if (!isNew || !this.client.guilds.enabled) {
@@ -842,6 +870,7 @@ export class GatewayDispatchHandler {
                 typings.delete(userId);
               }
               typings.clear();
+              this.client.typings.delete(channelId);
             }
           }
         }
@@ -1045,7 +1074,7 @@ export class GatewayDispatchHandler {
 
     // do a guild sweep for mutual guilds
     const sharesGuilds = this.client.guilds.some((guild) => guild.members.has(userId));
-    if (!sharesGuilds) {
+    if (!sharesGuilds && !(this.client.user && this.client.user.id === userId)) {
       // do a channel sweep for mutual dms
       const sharesDms = this.client.channels.some((channel) => channel.recipients.has(userId));
       if (!sharesDms) {
@@ -2386,6 +2415,9 @@ export class GatewayDispatchHandler {
       for (let threadId of guild._threadIds) {
         if (this.client.channels.has(threadId)) {
           const thread = this.client.channels.get(threadId)!;
+          if (thread.threadMetadata && thread.threadMetadata.archived) {
+            continue;
+          }
           if (!channelIds || (thread.parentId && channelIds.includes(thread.parentId))) {
             removed.set(threadId, thread);
           }
@@ -2415,6 +2447,16 @@ export class GatewayDispatchHandler {
       this.client.channels.delete(threadId);
       if (guild) {
         guild._threadIds.delete(threadId);
+      }
+    }
+
+    if (removed.length) {
+      for (let [messageId, message] of this.client.messages) {
+        if (removed.has(message.channelId)) {
+          message.deleted = true;
+          this.client.messages.delete(messageId);
+          this.handler._handlers.component.delete(messageId);
+        }
       }
     }
 
@@ -2523,6 +2565,10 @@ export class GatewayDispatchHandler {
     } else {
       thread = createChannelFromData(this.client, data);
       this.client.channels.insert(thread);
+      const guild = thread.guild;
+      if (guild) {
+        guild._threadIds.add(thread.id);
+      }
     }
 
     const payload: GatewayClientEvents.ThreadUpdate = {differences, old, thread};

@@ -1,6 +1,10 @@
 import { Timers } from 'detritus-utils';
 
 
+// return (or resolve with) this from a throttled function that decided not to run, so it doesn't use up a slot
+export const BucketSkip = Symbol('BucketSkip');
+
+
 export class Bucket {
   readonly queue: Array<Function> = [];
   readonly timeout = new Timers.Timeout();
@@ -66,9 +70,11 @@ export class Bucket {
         this.executing = true;
         Promise.resolve(throttled())
           .catch(() => {})
-          .then(() => {
+          .then((result) => {
             this.executing = false;
-            this.tryLock();
+            if (result !== BucketSkip) {
+              this.tryLock();
+            }
             this.shift();
           });
       } else {

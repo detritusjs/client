@@ -129,14 +129,18 @@ export class Entitlement extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.CONSUMED]] = !!data[DiscordKeys.CONSUMED];
     }
 
-    (this as any)[DetritusKeys[DiscordKeys.DELETED]] = !!data[DiscordKeys.DELETED];
+    if (DiscordKeys.DELETED in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DELETED]] = !!data[DiscordKeys.DELETED];
+    }
 
     if (DiscordKeys.ENDS_AT in data) {
       const value = data[DiscordKeys.ENDS_AT];
       this.endsAtUnix = (value) ? Date.parse(value) : 0;
     }
 
-    (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID] || null;
+    if (DiscordKeys.ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
+    }
 
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];

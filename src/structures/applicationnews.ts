@@ -43,12 +43,13 @@ export class ApplicationNews extends BaseStructure {
   description: string = '';
   flags: number = 0;
   footer?: MessageEmbedFooter;
-  gameId: string = this.applicationId;
+  gameId: string = '';
   id: string = '';
   thumbnail?: MessageEmbedThumbnail;
   timestamp!: Date;
   title: string = '';
   type: string = MessageEmbedTypes.APPLICATION_NEWS;
+  url?: string;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
@@ -62,6 +63,10 @@ export class ApplicationNews extends BaseStructure {
 
     if (DiscordKeys.APPLICATION_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
+      if (!(DiscordKeys.GAME_ID in data)) {
+        // game_id is the application id
+        (this as any)[DetritusKeys[DiscordKeys.GAME_ID]] = data[DiscordKeys.APPLICATION_ID];
+      }
     }
     if (DiscordKeys.CATEGORY in data) {
       (this as any)[DetritusKeys[DiscordKeys.CATEGORY]] = data[DiscordKeys.CATEGORY];

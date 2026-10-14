@@ -1,9 +1,11 @@
 import { inspect } from 'util';
 
 import { ShardClient } from '../client';
-import { BaseCollection, BaseSet } from '../collections';
+// imported from their own modules, the `collections` and `utils` indexes load structures that extend this one (circular import)
+import { BaseCollection } from '../collections/basecollection';
+import { BaseSet } from '../collections/baseset';
 import { DetritusKeys } from '../constants';
-import { toCamelCase } from '../utils';
+import { toCamelCase } from '../utils/casing';
 
 
 export function convertKey(snake: string): string {
@@ -146,7 +148,7 @@ export class Structure {
           // assume we either got a Date, Int, or Date String
           if (value instanceof Date) {
             // we got a Date object, usually from Structure.differencesBetween(Structure)
-            return old.getTime() === value.getTime();
+            return old.getTime() !== value.getTime();
           } else if (typeof(value) === 'number') {
             // we got a number, unsure of from where but might as well check
             return old.getTime() !== value;
@@ -176,7 +178,7 @@ export class Structure {
               return true;
             }
             // compare each value inside of the object
-            return newKeys.every((key: string) => old[key] === value[key]);
+            return !newKeys.every((key: string) => old[key] === value[key]);
           } else {
             return true;
           }

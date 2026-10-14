@@ -60,10 +60,7 @@ export class Argument {
       this.metadata = Object.assign({}, options.metadata);
     }
     if (options.prefix !== undefined) {
-      if (!options.prefixes) {
-        options.prefixes = [];
-      }
-      options.prefixes.push(options.prefix);
+      options.prefixes = (options.prefixes || []).concat(options.prefix);
     }
     if (options.prefixes) {
       this.setPrefixes(options.prefixes, options.prefixSpace);
@@ -168,7 +165,15 @@ export class Argument {
     const info = {index: -1, name: ''};
 
     for (let name of this.names) {
-      const index = content.indexOf(name);
+      let index = content.indexOf(name);
+      while (index !== -1) {
+        // only match whole flags, so `-u` doesn't match inside of `--user`
+        const end = index + name.length;
+        if ((index === 0 || /\s/.test(content[index - 1])) && (end === content.length || /\s/.test(content[end]))) {
+          break;
+        }
+        index = content.indexOf(name, index + 1);
+      }
       if (index !== -1) {
         info.index = index;
         info.name = name;
@@ -177,6 +182,13 @@ export class Argument {
     }
 
     return info;
+  }
+
+  async getDefault(context: Context): Promise<any> {
+    if (typeof(this.default) === 'function') {
+      return Promise.resolve(this.default(context));
+    }
+    return this.default;
   }
 
   getName(content: string): null | string {
@@ -260,19 +272,24 @@ export class Argument {
       try {
         switch (this.type) {
           case CommandArgumentTypes.BOOL: {
-            parsedValue = !this.default;
+            parsedValue = !(await this.getDefault(context));
           }; break;
-          case CommandArgumentTypes.FLOAT: {
-            parsedValue = parseFloat(value);
-          }; break;
+          case CommandArgumentTypes.FLOAT:
           case CommandArgumentTypes.NUMBER: {
-            parsedValue = parseInt(value);
+            if (value) {
+              parsedValue = (this.type === CommandArgumentTypes.FLOAT) ? parseFloat(value) : parseInt(value);
+              if (isNaN(parsedValue)) {
+                throw new Error(`${value} is not a valid number`);
+              }
+            } else {
+              parsedValue = await this.getDefault(context);
+            }
           }; break;
           case CommandArgumentTypes.STRING: {
-            parsedValue = value || this.default || value;
+            parsedValue = value || (await this.getDefault(context)) || value;
           }; break;
           default: {
-            parsedValue = value || this.default;
+            parsedValue = value || (await this.getDefault(context));
           }; break;
         }
       } catch(error: any) {

@@ -121,8 +121,8 @@ export class Integration extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.SUBSCRIBER_COUNT]] = data[DiscordKeys.SUBSCRIBER_COUNT];
     }
     if (DiscordKeys.SYNCED_AT in data) {
-      const value = new Date(data[DiscordKeys.SYNCED_AT]);
-      (this as any)[DetritusKeys[DiscordKeys.SYNCED_AT]] = value;
+      const value = data[DiscordKeys.SYNCED_AT];
+      (this as any)[DetritusKeys[DiscordKeys.SYNCED_AT]] = (value) ? new Date(value) : undefined;
     }
     if (DiscordKeys.SYNCING in data) {
       (this as any)[DetritusKeys[DiscordKeys.SYNCING]] = data[DiscordKeys.SYNCING];

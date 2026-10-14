@@ -426,7 +426,7 @@ export class ComponentFile extends BaseStructure {
 
   file!: ComponentUnfurledMedia;
   id?: number;
-  spoiler?: number;
+  spoiler?: boolean;
   type: MessageComponentTypes.FILE = MessageComponentTypes.FILE;
 
   constructor(
@@ -964,7 +964,7 @@ export class ComponentSelectMenu extends BaseStructure {
       this.options.clear();
       for (let raw of value) {
         const option = new ComponentSelectMenuOption(this, raw);
-        this.options.set(option.label, option);
+        this.options.set(option.value, option);
       }
     }
     if (DiscordKeys.PLACEHOLDER in data) {

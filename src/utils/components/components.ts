@@ -2,7 +2,7 @@ import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import { BaseSet } from '../../collections/baseset';
-import { DetritusKeys, DiscordKeys, MessageComponentTypes } from '../../constants';
+import { DetritusKeys, DiscordKeys, MessageComponentTypes, INTERACTION_TIMEOUT } from '../../constants';
 import { BaseStructureData, Structure } from '../../structures/basestructure';
 
 import { ComponentActionData } from './actionbase';
@@ -60,7 +60,7 @@ export class Components extends Structure {
 
   components: Array<ComponentActionRow | ComponentContainer | ComponentFile | ComponentLabel | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];
   id?: string;
-  timeout: number = 10 * (60 * 1000); // 10 minutes
+  timeout: number = INTERACTION_TIMEOUT;
 
   onTimeout?(): unknown;
   run?(context: ComponentContext): unknown;

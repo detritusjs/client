@@ -227,10 +227,15 @@ export class Interaction extends BaseStructure {
 
     const response = new Promise((resolve, reject) => {
       if (this.isFromMessageComponent) {
-        const toAssignData = (typeof(options) === 'object' && !(options instanceof InteractionModal)) ? options.data || data : data;
-        if (typeof(toAssignData) === 'object' && 'components' in toAssignData) {
-          const listenerId = (this.message) ? this.message.id : '';
-          Object.assign(toAssignData, {listenerId});
+        // key the component listener by the message, on a copy so the caller's options/data (or modal) aren't changed
+        const listenerId = (this.message) ? this.message.id : '';
+        const hasComponents = (value: any) => typeof(value) === 'object' && value !== null && !(value instanceof InteractionModal) && 'components' in value;
+        if (typeof(options) === 'object' && !(options instanceof InteractionModal) && options.data) {
+          if (hasComponents(options.data)) {
+            options = Object.assign({}, options, {data: copyWith(options.data, {listenerId})});
+          }
+        } else if (data && hasComponents(data)) {
+          data = copyWith(data as object, {listenerId}) as InteractionResponseData;
         }
       }
 
@@ -372,6 +377,10 @@ export class Interaction extends BaseStructure {
     }
     if (DiscordKeys.GUILD in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_PARTIAL]] = data[DiscordKeys.GUILD];
+    }
+    if (DiscordKeys.GUILD_PARTIAL in data) {
+      // from `toJSON()`/`clone()`, which writes it back out under its `_keys` name
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_PARTIAL]] = data[DiscordKeys.GUILD_PARTIAL];
     }
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
@@ -994,4 +1003,10 @@ export class InteractionCallbackResource extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
   }
+}
+
+
+// shallow copy that keeps the prototype (so `toJSON()` and friends still work) with extra fields
+function copyWith<T extends object>(value: T, extra: object): T {
+  return Object.assign(Object.create(Object.getPrototypeOf(value)), value, extra);
 }

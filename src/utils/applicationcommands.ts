@@ -1,4 +1,8 @@
-import { ApplicationCommandTypes } from '../constants';
+import {
+  ApplicationCommandTypes,
+  ApplicationIntegrationTypes,
+  InteractionContextTypes,
+} from '../constants';
 import type {
   InteractionCommand,
   InteractionCommandOption,
@@ -21,7 +25,18 @@ export interface NormalizeApplicationCommandOptions {
 }
 
 
-function normalizeLocalizations(value?: Record<string, string | undefined> | null): Record<string, string> | null {
+// what discord uses when a command doesn't set them
+const DEFAULT_CONTEXTS = Object.freeze([
+  InteractionContextTypes.GUILD,
+  InteractionContextTypes.BOT_DM,
+  InteractionContextTypes.PRIVATE_CHANNEL,
+]);
+const DEFAULT_INTEGRATION_TYPES = Object.freeze([
+  ApplicationIntegrationTypes.GUILD_INSTALL,
+]);
+
+
+export function normalizeLocalizations(value?: Record<string, string | undefined> | null): Record<string, string> | null {
   if (!value) {
     return null;
   }
@@ -51,6 +66,22 @@ function normalizeUnorderedArray<T>(value?: Array<T> | null): Array<T> | null {
   return [...value].sort();
 }
 
+function normalizeDefaultArray<T>(value: Array<T> | null | undefined, defaults: ReadonlyArray<T>): Array<T> | null {
+  const array = normalizeUnorderedArray(value);
+  if (array && array.length === defaults.length && defaults.every((x) => array.includes(x))) {
+    return null;
+  }
+  return array;
+}
+
+export function normalizeContexts(value?: Array<InteractionContextTypes> | null): Array<InteractionContextTypes> | null {
+  return normalizeDefaultArray(value, DEFAULT_CONTEXTS);
+}
+
+export function normalizeIntegrationTypes(value?: Array<ApplicationIntegrationTypes> | null): Array<ApplicationIntegrationTypes> | null {
+  return normalizeDefaultArray(value, DEFAULT_INTEGRATION_TYPES);
+}
+
 
 /**
  * Converts a local or remote command into the same plain payload shape, with defaults filled in and
@@ -72,9 +103,9 @@ export function normalizeApplicationCommand(
     type: command.type || ApplicationCommandTypes.CHAT_INPUT,
   };
   if (!options.isGuild) {
-    data.contexts = normalizeUnorderedArray(command.contexts);
+    data.contexts = normalizeContexts(command.contexts);
     data.dm_permission = (command.dmPermission === undefined || command.dmPermission === null) ? true : !!command.dmPermission;
-    data.integration_types = normalizeUnorderedArray(command.integrationTypes);
+    data.integration_types = normalizeIntegrationTypes(command.integrationTypes);
   }
   return data;
 }
@@ -156,7 +187,7 @@ export function diffApplicationCommands(
   local.toJSON();
   const localData = normalizeApplicationCommand(local, options);
   const remoteData = normalizeApplicationCommand(remote, options);
-  if (!options.isGuild && localData.integration_types === null) {
+  if (!options.isGuild && !(local.integrationTypes && local.integrationTypes.length)) {
     // we let discord pick the default and copy it over afterwards
     remoteData.integration_types = null;
   }

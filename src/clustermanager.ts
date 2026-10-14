@@ -4,7 +4,8 @@ import { Client as DetritusRestClient } from 'detritus-client-rest';
 import { EventSpewer, EventSubscription } from 'detritus-utils';
 
 import { Bucket } from './bucket';
-import { ClusterProcess } from './cluster/process';
+import { ClusterProcess, ClusterProcessRunOptions, IDENTIFY_READY_TIMEOUT } from './cluster/process';
+import { BROADCAST_EVAL_TIMEOUT } from './cluster/processchild';
 import { BaseCollection } from './collections/basecollection';
 import { AuthTypes, ClientEvents, DEFAULT_SHARD_LAUNCH_DELAY } from './constants';
 import { ClusterIPCError } from './errors';
@@ -34,6 +35,7 @@ export interface ClusterManagerRestCachePayload {
 }
 
 export class ClusterManager extends EventSpewer {
+  _respawningAll: Promise<void> | null = null;
   buckets = new BaseCollection<number, Bucket>();
   // node arguments passed to each cluster process (e.g. `--max-old-space-size=4096`), defaults to the manager's `process.execArgv`
   execArgv?: Array<string>;
@@ -96,7 +98,9 @@ export class ClusterManager extends EventSpewer {
   }
 
   get clusterCount(): number {
-    return Math.ceil(this.shardCount / this.shardsPerCluster);
+    // only count the clusters this manager spawns (`shards` may be a subset of `shardCount`)
+    const shardEnd = (this.shardEnd === -1) ? this.shardCount - 1 : this.shardEnd;
+    return Math.max(Math.ceil((shardEnd - this.shardStart + 1) / this.shardsPerCluster), 0);
   }
 
   async run(
@@ -171,9 +175,10 @@ export class ClusterManager extends EventSpewer {
   async broadcastEvalRaw(
     code: Function | string,
     nonce: string = Snowflake.generate().id,
+    timeout: number = BROADCAST_EVAL_TIMEOUT,
   ): Promise<Array<[any, boolean]>> {
     const promises = this.processes.map((clusterProcess) => {
-      return clusterProcess.eval(code, nonce);
+      return clusterProcess.eval(code, nonce, timeout);
     });
     const results: Array<[any, boolean]> = await Promise.all(promises);
     return results.filter((item) => item);
@@ -182,14 +187,44 @@ export class ClusterManager extends EventSpewer {
   async broadcastEval(
     code: Function | string,
     nonce: string = Snowflake.generate().id,
+    timeout: number = BROADCAST_EVAL_TIMEOUT,
   ): Promise<Array<any>> {
-    const results = await this.broadcastEvalRaw(code, nonce);
+    const results = await this.broadcastEvalRaw(code, nonce, timeout);
     return results.map(([result, isError]) => {
       if (isError) {
         return new ClusterIPCError(result);
       }
       return result;
     });
+  }
+
+  async respawnAll(
+    options: ClusterProcessRunOptions = {},
+  ): Promise<void> {
+    if (this._respawningAll) {
+      return this._respawningAll;
+    }
+    // one at a time, like `run()`, so the clusters don't all go down at once
+    // default to a timeout so one cluster that never readies can't hang the whole respawn (each shard gets the identify ready timeout)
+    if (options.timeout === undefined && (options.wait || options.wait === undefined)) {
+      options = Object.assign({}, options, {timeout: Math.max(this.shardsPerCluster, 1) * IDENTIFY_READY_TIMEOUT});
+    }
+    const promise = this._respawningAll = (async () => {
+      for (let [clusterId, clusterProcess] of this.processes) {
+        try {
+          await clusterProcess.respawn(options);
+        } catch(error) {
+          clusterProcess.emit('warn', {error});
+        }
+      }
+    })();
+    try {
+      await promise;
+    } finally {
+      if (this._respawningAll === promise) {
+        this._respawningAll = null;
+      }
+    }
   }
 
   getRatelimitKey(shardId: number): number {

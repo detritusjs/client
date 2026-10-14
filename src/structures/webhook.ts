@@ -81,6 +81,7 @@ export class Webhook extends BaseStructure {
   }
 
   get defaultAvatarUrl(): string {
+    // webhooks have the legacy `0000` discriminator, so this matches `User.defaultAvatarUrl` for the messages they send
     return Endpoints.CDN.URL + Endpoints.CDN.AVATAR_DEFAULT(parseInt(this.discriminator) % 5);
   }
 

@@ -109,6 +109,10 @@ export class VoiceCall extends BaseStructure {
       return;
     }
 
+    // set the channel id first, the voice states are cached under it
+    if (DiscordKeys.CHANNEL_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
+    }
     if (DiscordKeys.VOICE_STATES in data) {
       // cannot clone the voice states since it's not stored on the object
       if (this.client.voiceStates.enabled && !this.isClone) {
@@ -123,9 +127,6 @@ export class VoiceCall extends BaseStructure {
           }
         }
       }
-    }
-    if (DiscordKeys.CHANNEL_ID in data) {
-      (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
     }
     if (DiscordKeys.MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.MESSAGE_ID]] = data[DiscordKeys.MESSAGE_ID];

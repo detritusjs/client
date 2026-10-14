@@ -66,6 +66,23 @@ import {
 import { RestResponses } from './types';
 
 
+/**
+ * OR the IS_COMPONENTS_V2 flag into an interaction response payload without clobbering existing flags
+ * `toJSON`-able payloads are wrapped so the flag gets added to their serialized output
+ */
+function addComponentsV2Flag(payload: any): any {
+  if (typeof(payload.toJSON) === 'function') {
+    return {
+      toJSON: () => {
+        const json = payload.toJSON() || {};
+        return Object.assign({}, json, {flags: (json.flags || 0) | MessageFlags.IS_COMPONENTS_V2});
+      },
+    };
+  }
+  payload.flags = (payload.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
+  return payload;
+}
+
 export class RestClient {
   readonly client: ShardClient;
   readonly raw: Client;
@@ -655,17 +672,33 @@ export class RestClient {
       this.client.gatewayHandler._handlers.modal.insert(listener, (interaction) ? interaction.userId : undefined);
       return this._createInteractionCallbackResponse(interactionId, rawData);
     } else {
+      if (typeof(data) === 'string') {
+        data = {content: data};
+      }
+      const optionsData: any = (typeof(options) === 'object') ? options.data : undefined;
+      // look at the payload the way the raw client will merge it, a plain `data` gets assigned onto a plain `options.data`
+      let mergedData: any = optionsData;
+      if (data) {
+        if ('toJSON' in data || !optionsData || 'toJSON' in optionsData) {
+          mergedData = data;
+        } else {
+          mergedData = Object.assign({}, optionsData, data);
+        }
+      }
       // if type is edit message, do not use interactionId (maybe fetch message id if listenerId isnt given)
-      const listenerData = createComponentListenerOrNone((typeof(options) === 'object') ? options.data || data : data, interactionId);
+      const listenerData = createComponentListenerOrNone(mergedData, interactionId);
       if (listenerData && listenerData[2]) {
-        if (typeof(data) === 'string') {
-          data = {content: data};
+        if (data) {
+          // the raw client merges a plain `data` into a plain `options.data` (Object.assign), so carry over the caller's flags
+          if (!('toJSON' in data) && optionsData && !('toJSON' in optionsData) && (data as any).flags === undefined) {
+            (data as any).flags = optionsData.flags;
+          }
+          data = addComponentsV2Flag(data);
+        } else if (typeof(options) === 'object' && optionsData) {
+          options.data = addComponentsV2Flag(optionsData);
+        } else {
+          data = {flags: MessageFlags.IS_COMPONENTS_V2};
         }
-        // add checks for options.data.flag
-        if (!data) {
-          data = {};
-        }
-        data.flags = (data.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
       }
 
       const rawData = await this.raw.createInteractionResponse(interactionId, token, options, data);
@@ -2211,7 +2244,10 @@ export class RestClient {
   async fetchChannelThreadsActive(
     channelId: string,
   ): Promise<RestResponses.FetchChannelThreadsActive> {
-    const data = await this.raw.fetchChannelThreadsActive(channelId);
+    // the raw client filters the guild's active threads (the channel route was removed in api v10)
+    // pass the cached guild id so it doesn't have to fetch the channel first
+    const channel = this.client.channels.get(channelId);
+    const data = await this.raw.fetchChannelThreadsActive(channelId, {guildId: (channel && channel.guildId) || undefined});
     const hasMore = data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
     const threads = new BaseCollection<string, ChannelGuildThread>();
@@ -2224,6 +2260,7 @@ export class RestClient {
         collection = members.get(threadMember.id)!;
       } else {
         collection = new BaseCollection();
+        members.set(threadMember.id, collection);
       }
       collection.set(threadMember.userId, threadMember);
     }
@@ -2253,6 +2290,7 @@ export class RestClient {
         collection = members.get(threadMember.id)!;
       } else {
         collection = new BaseCollection();
+        members.set(threadMember.id, collection);
       }
       collection.set(threadMember.userId, threadMember);
     }
@@ -2282,6 +2320,7 @@ export class RestClient {
         collection = members.get(threadMember.id)!;
       } else {
         collection = new BaseCollection();
+        members.set(threadMember.id, collection);
       }
       collection.set(threadMember.userId, threadMember);
     }
@@ -2311,6 +2350,7 @@ export class RestClient {
         collection = members.get(threadMember.id)!;
       } else {
         collection = new BaseCollection();
+        members.set(threadMember.id, collection);
       }
       collection.set(threadMember.userId, threadMember);
     }
@@ -2341,8 +2381,9 @@ export class RestClient {
 
   fetchConnectionAuthorizeUrl(
     platform: string,
+    options: RequestTypes.FetchConnectionAuthorizeUrl = {},
   ) {
-    return this.raw.fetchConnectionAuthorizeUrl(platform);
+    return this.raw.fetchConnectionAuthorizeUrl(platform, options);
   }
 
   fetchDiscoverableGuilds() {
@@ -2897,7 +2938,7 @@ export class RestClient {
     scheduledEventId: string,
     options: RequestTypes.FetchGuildScheduledEventUsers = {},
   ): Promise<BaseCollection<string, GuildScheduledEventUser>> {
-    const data = await this.raw.fetchGuildScheduledEvents(guildId);
+    const data = await this.raw.fetchGuildScheduledEventUsers(guildId, scheduledEventId, options);
     const collection = new BaseCollection<string, GuildScheduledEventUser>();
   
     for (let raw of data) {

@@ -79,6 +79,22 @@ export interface CommandReply {
 }
 
 
+function getPrefixEnd(content: string, contentLower: string, prefix: string): number {
+  if (!contentLower.startsWith(prefix)) {
+    return -1;
+  }
+  // find where the prefix ends in the original content, some characters change length when lowercased
+  let index = 0;
+  let length = 0;
+  while (length < prefix.length && index < content.length) {
+    const character = String.fromCodePoint(content.codePointAt(index)!);
+    index += character.length;
+    length += character.toLowerCase().length;
+  }
+  return (length === prefix.length) ? index : -1;
+}
+
+
 /**
  * Command Client, hooks onto a ClusterClient or ShardClient to provide easier command handling
  * Flow is `onMessageCheck` -> `onPrefixCheck` -> `onCommandCheck`
@@ -94,6 +110,7 @@ export class CommandClient extends EventSpewer {
   ignoreMe: boolean = true;
   maxEditDuration: number = 5 * 60 * 1000;
   mentionsEnabled: boolean = true;
+  prefixSpace: boolean = false;
   prefixes: {
     custom: BaseSet<string>,
     mention: BaseSet<string>,
@@ -155,9 +172,10 @@ export class CommandClient extends EventSpewer {
 
     this.activateOnEdits = !!options.activateOnEdits || this.activateOnEdits;
     this.commands = [];
-    this.ignoreMe = options.ignoreMe || this.ignoreMe;
-    this.maxEditDuration = +(options.maxEditDuration || this.maxEditDuration);
+    this.ignoreMe = (options.ignoreMe !== undefined) ? !!options.ignoreMe : this.ignoreMe;
+    this.maxEditDuration = +((options.maxEditDuration !== undefined) ? options.maxEditDuration : this.maxEditDuration);
     this.mentionsEnabled = !!(options.mentionsEnabled || options.mentionsEnabled === undefined);
+    this.prefixSpace = !!options.prefixSpace;
     this.prefixes = Object.freeze({
       custom: new BaseSet<string>(),
       mention: new BaseSet<string>(),
@@ -181,8 +199,9 @@ export class CommandClient extends EventSpewer {
     if (options.prefixes !== undefined) {
       options.prefixes.sort((x: string, y: string) => y.length - x.length);
       for (let prefix of options.prefixes) {
-        prefix = prefix.trim();
-        if (options.prefixSpace) {
+        // message content is lowercased before matching, so prefixes have to be too
+        prefix = prefix.trim().toLowerCase();
+        if (this.prefixSpace) {
           prefix += ' ';
         }
         this.prefixes.custom.add(prefix);
@@ -241,6 +260,10 @@ export class CommandClient extends EventSpewer {
 
   setMaxEditDuration(value: number): void {
     Object.defineProperty(this, 'maxEditDuration', {value});
+    if (value) {
+      this.replies.setIntervalTimeout(Math.min(value, 5000));
+    }
+    this.replies.setExpire(value);
   }
 
   setMentionsEnabled(value: boolean): void {
@@ -428,12 +451,14 @@ export class CommandClient extends EventSpewer {
     }
 
     let prefix: string = '';
+    let prefixEnd: number = -1;
     if (this.mentionsEnabled) {
       if (!this.prefixes.mention.length) {
         this.addMentionPrefixes();
       }
       for (let mention of this.prefixes.mention) {
-        if (contentLower.startsWith(mention)) {
+        prefixEnd = getPrefixEnd(content, contentLower, mention);
+        if (prefixEnd !== -1) {
           prefix = mention;
           break;
         }
@@ -442,14 +467,19 @@ export class CommandClient extends EventSpewer {
     if (!prefix) {
       const customPrefixes = await Promise.resolve(this.getPrefixes(context));
       for (let custom of customPrefixes) {
-        if (contentLower.startsWith(custom)) {
-          prefix = custom;
-          break;
+        // lowercase again in case `prefixes.custom` was added to directly
+        custom = custom.toLowerCase();
+        if (custom) {
+          prefixEnd = getPrefixEnd(content, contentLower, custom);
+          if (prefixEnd !== -1) {
+            prefix = custom;
+            break;
+          }
         }
       }
     }
     if (prefix) {
-      content = content.substring(prefix.length).trim();
+      content = content.substring(prefixEnd).trim();
       return {content, prefix};
     }
     return null;
@@ -486,6 +516,9 @@ export class CommandClient extends EventSpewer {
       } else {
         throw new Error('Invalid Prefixes Type Received');
       }
+      // used as-is (no trimming or `prefixSpace`, so a trailing space like `"bot "` is kept)
+      // only lowercased since message content is lowercased before matching
+      sorted = sorted.map((prefix) => prefix.toLowerCase());
       return new BaseSet(sorted.sort((x, y) => y.length - x.length));
     }
     return this.prefixes.custom;
@@ -560,6 +593,11 @@ export class CommandClient extends EventSpewer {
     }
 
     if (name === ClientEvents.MESSAGE_UPDATE) {
+      // only edits that can re-run a command should tell listeners to delete the old reply (not pins, etc)
+      const { differences } = event as GatewayClientEvents.MessageUpdate;
+      if (!this.activateOnEdits || !differences || !differences.content) {
+        return;
+      }
       if (this.replies.has(message.id)) {
         const { command, context, reply } = this.replies.get(message.id)!;
         const payload: CommandEvents.CommandDelete = {command, context, reply};
@@ -687,48 +725,6 @@ export class CommandClient extends EventSpewer {
       return;
     }
 
-    if (this.ratelimits.length || command.ratelimits.length) {
-      const now = Date.now();
-      {
-        const ratelimits = this.ratelimiter.getExceeded(context, this.ratelimits, now);
-        if (ratelimits.length) {
-          const global = true;
-
-          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
-          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
-
-          if (typeof(command.onRatelimit) === 'function') {
-            try {
-              await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
-            } catch(error: any) {
-              // do something with this error?
-            }
-          }
-          return;
-        }
-      }
-
-      {
-        const ratelimits = this.ratelimiter.getExceeded(context, command.ratelimits, now);
-        if (ratelimits.length) {
-          const global = false;
-
-          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
-          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
-
-          if (typeof(command.onRatelimit) === 'function') {
-            try {
-              const reply = await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
-              this.storeReply(message.id, command, context, reply);
-            } catch(error: any) {
-              // do something with this error?
-            }
-          }
-          return;
-        }
-      }
-    }
-
     if (context.inDm) {
       if (command.disableDm) {
         if (typeof(command.onDmBlocked) === 'function') {
@@ -837,6 +833,49 @@ export class CommandClient extends EventSpewer {
       }
     }
 
+    if (this.ratelimits.length || command.ratelimits.length) {
+      const now = Date.now();
+      {
+        const ratelimits = this.ratelimiter.getExceeded(context, this.ratelimits, now);
+        if (ratelimits.length) {
+          const global = true;
+
+          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(command.onRatelimit) === 'function') {
+            try {
+              const reply = await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+              this.storeReply(message.id, command, context, reply);
+            } catch(error: any) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+
+      {
+        const ratelimits = this.ratelimiter.getExceeded(context, command.ratelimits, now);
+        if (ratelimits.length) {
+          const global = false;
+
+          const payload: CommandEvents.CommandRatelimit = {command, context, global, ratelimits, now};
+          this.emit(ClientEvents.COMMAND_RATELIMIT, payload);
+
+          if (typeof(command.onRatelimit) === 'function') {
+            try {
+              const reply = await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
+              this.storeReply(message.id, command, context, reply);
+            } catch(error: any) {
+              // do something with this error?
+            }
+          }
+          return;
+        }
+      }
+    }
+
     if (typeof(command.onBefore) === 'function') {
       try {
         const shouldContinue = await Promise.resolve(command.onBefore(context));
@@ -858,8 +897,13 @@ export class CommandClient extends EventSpewer {
     const {errors, parsed: args} = await command.getArgs(attributes, context);
     if (Object.keys(errors).length) {
       if (typeof(command.onTypeError) === 'function') {
-        const reply = await Promise.resolve(command.onTypeError(context, args, errors));
-        this.storeReply(message.id, command, context, reply);
+        try {
+          const reply = await Promise.resolve(command.onTypeError(context, args, errors));
+          this.storeReply(message.id, command, context, reply);
+        } catch(error: any) {
+          const payload: CommandEvents.CommandError = {command, context, error, extra: errors};
+          this.emit(ClientEvents.COMMAND_ERROR, payload);
+        }
       }
       const error = new Error('Command errored out while converting args');
       const payload: CommandEvents.CommandError = {command, context, error, extra: errors};
@@ -935,8 +979,13 @@ export class CommandClient extends EventSpewer {
         const payload: CommandEvents.CommandRunError = {args, command, context, error, prefix};
         this.emit(ClientEvents.COMMAND_RUN_ERROR, payload);
         if (typeof(command.onRunError) === 'function') {
-          const reply = await Promise.resolve(command.onRunError(context, args, error));
-          this.storeReply(message.id, command, context, reply);
+          try {
+            const reply = await Promise.resolve(command.onRunError(context, args, error));
+            this.storeReply(message.id, command, context, reply);
+          } catch(e: any) {
+            const payload: CommandEvents.CommandError = {command, context, error: e, extra: error};
+            this.emit(ClientEvents.COMMAND_ERROR, payload);
+          }
         }
         return;
       }
@@ -948,7 +997,12 @@ export class CommandClient extends EventSpewer {
       }
     } catch(error: any) {
       if (typeof(command.onError) === 'function') {
-        await Promise.resolve(command.onError(context, args, error));
+        try {
+          await Promise.resolve(command.onError(context, args, error));
+        } catch(e: any) {
+          const payload: CommandEvents.CommandError = {command, context, error: e, extra: error};
+          this.emit(ClientEvents.COMMAND_ERROR, payload);
+        }
       }
       const payload: CommandEvents.CommandFail = {args, command, context, error, prefix};
       this.emit(ClientEvents.COMMAND_FAIL, payload);

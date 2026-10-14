@@ -121,7 +121,8 @@ export class ComponentHandler {
     const listenerId = listener.id;
     if (listenerId) {
       this.delete(listenerId);
-      if (listener.timeout) {
+      // no timeout means the listener lives until the next READY, each click is a new interaction so there's no 15 minute cap
+      if (0 < listener.timeout) {
         const timeout = listener._timeout = new Timers.Timeout();
         timeout.start(listener.timeout, async () => {
           if (!listener.id) {

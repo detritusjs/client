@@ -554,7 +554,7 @@ export class UserExtended extends UserWithFlags {
 
   get isClaimed(): boolean {
     // isClaimed if bot or has email
-    return !!this.bot || !this.email;
+    return !!this.bot || !!this.email;
   }
 
   get hasNitroClassic(): boolean {

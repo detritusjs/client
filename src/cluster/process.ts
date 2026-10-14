@@ -3,12 +3,17 @@ import { ChildProcess, fork } from 'child_process';
 import { EventSpewer, Timers } from 'detritus-utils';
 
 import { ClusterManager, ClusterManagerRestCachePayload } from '../clustermanager';
+import { BucketSkip } from '../bucket';
 import { BaseCollection } from '../collections/basecollection';
 import { ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 
 import { ClusterIPCTypes } from './ipctypes';
+import { BROADCAST_EVAL_TIMEOUT } from './processchild';
 
+
+// max time a shard can hold its identify bucket while we wait for it to be ready
+export const IDENTIFY_READY_TIMEOUT = 30 * 1000;
 
 export interface ClusterProcessOptions {
   clusterId: number,
@@ -25,10 +30,13 @@ export interface ClusterProcessRunOptions {
 
 export class ClusterProcess extends EventSpewer {
   readonly _evalsWaiting = new BaseCollection<string, {
+    child: ChildProcess,
+    listener: (message: any) => void,
     promise: Promise<any>,
     resolve: Function,
     reject: Function,
   }>();
+  readonly _shardsIdentifyAttempt = new BaseCollection<number, number>();
   readonly _shardsWaiting = new BaseCollection<number, {resolve: Function, reject: Function}>();
   readonly clusterId: number = -1;
   readonly manager: ClusterManager;
@@ -74,10 +82,15 @@ export class ClusterProcess extends EventSpewer {
         switch (message.op) {
           case ClusterIPCOpCodes.CLOSE: {
             const data: ClusterIPCTypes.Close = message.data;
-            const waiting = this._shardsWaiting.get(data.shardId);
-            if (waiting) {
-              this._shardsWaiting.delete(data.shardId);
-              waiting.reject(new Error(`shard ${data.shardId} closed before ready: ${data.code}`));
+            // a stale socket closing late says nothing about the shard's current socket (or its queued identify)
+            if (!data.stale) {
+              // any identify job still queued for this shard is for the socket that just closed
+              this._shardsIdentifyAttempt.set(data.shardId, (this._shardsIdentifyAttempt.get(data.shardId) || 0) + 1);
+              const waiting = this._shardsWaiting.get(data.shardId);
+              if (waiting) {
+                this._shardsWaiting.delete(data.shardId);
+                waiting.reject(new Error(`shard ${data.shardId} closed before ready: ${data.code}`));
+              }
             }
             this.emit('shardClose', data);
           }; return;
@@ -88,6 +101,7 @@ export class ClusterProcess extends EventSpewer {
                 const results = await this.manager.broadcastEvalRaw(
                   data.code,
                   data.nonce,
+                  (data.timeout === undefined) ? BROADCAST_EVAL_TIMEOUT : data.timeout,
                 );
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
                   ...data,
@@ -96,11 +110,7 @@ export class ClusterProcess extends EventSpewer {
               } catch(error: any) {
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
                   ...data,
-                  error: {
-                    message: error.message,
-                    name: error.name,
-                    stack: error.stack,
-                  },
+                  error: ClusterIPCTypes.serializeError(error),
                 });
               }
             }
@@ -122,19 +132,49 @@ export class ClusterProcess extends EventSpewer {
             const ratelimitKey = this.manager.getRatelimitKey(shardId);
             const bucket = this.manager.buckets.get(ratelimitKey);
             if (!bucket) {
-              this.emit('warn', new Error(`no identify bucket for ratelimit key ${ratelimitKey} (shard ${shardId})`));
+              this.emit('warn', {error: new Error(`no identify bucket for ratelimit key ${ratelimitKey} (shard ${shardId})`)});
               return;
             }
+            // only the latest request for a shard is valid, older queued jobs become stale
+            const attempt = (this._shardsIdentifyAttempt.get(shardId) || 0) + 1;
+            this._shardsIdentifyAttempt.set(shardId, attempt);
+
             const waiting = this._shardsWaiting.get(shardId);
             if (waiting) {
               await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
             } else {
+              const child = this.process;
               bucket.add(() => {
+                if (this._shardsIdentifyAttempt.get(shardId) !== attempt || !child || this.process !== child) {
+                  // stale job, skip it without using up an identify slot
+                  return Promise.resolve(BucketSkip);
+                }
                 return new Promise((resolve, reject) => {
-                  this._shardsWaiting.set(shardId, {resolve, reject});
+                  const timeout = new Timers.Timeout();
+                  const item = {
+                    resolve: (value?: any) => {
+                      timeout.stop();
+                      resolve(value);
+                    },
+                    reject: (error: any) => {
+                      timeout.stop();
+                      reject(error);
+                    },
+                  };
+                  const clear = () => {
+                    if (this._shardsWaiting.get(shardId) === item) {
+                      this._shardsWaiting.delete(shardId);
+                    }
+                  };
+                  // never let one shard hold the bucket (shared across clusters) forever
+                  timeout.start(IDENTIFY_READY_TIMEOUT, () => {
+                    clear();
+                    item.reject(new Error(`shard ${shardId} did not ready within ${IDENTIFY_READY_TIMEOUT}ms of identifying`));
+                  });
+                  this._shardsWaiting.set(shardId, item);
                   this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId}).catch((error) => {
-                    this._shardsWaiting.delete(shardId);
-                    reject(error);
+                    clear();
+                    item.reject(error);
                   });
                 });
               });
@@ -144,7 +184,7 @@ export class ClusterProcess extends EventSpewer {
             this.emit('ready');
           }; return;
           case ClusterIPCOpCodes.RESPAWN_ALL: {
-
+            await this.manager.respawnAll();
           }; return;
           case ClusterIPCOpCodes.REST_REQUEST: {
             const data: ClusterIPCTypes.RestRequest = message.data;
@@ -162,26 +202,29 @@ export class ClusterProcess extends EventSpewer {
                     promise: (this.manager.rest as any)[data.name](...(data.args || [])),
                   };
                   this.manager.restCache.set(data.hash, payload);
-                  payload.result = await payload.promise;
+                  try {
+                    payload.result = await payload.promise;
+                  } catch(error) {
+                    if (this.manager.restCache.get(data.hash) === payload) {
+                      this.manager.restCache.delete(data.hash);
+                    }
+                    throw error;
+                  }
                   payload.promise = undefined;
                 }
                 await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
                   result: payload.result,
                   hash: data.hash,
                   name: data.name,
-                }, false, message.shardId, message.clusterId);
+                }, false, message.shard, message.clusterId);
               } else {
                 throw Error('Invalid rest function name');
               }
             } catch(error: any) {
               await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
                 ...data,
-                error: {
-                  message: error.message,
-                  name: error.name,
-                  stack: error.stack,
-                },
-              }, false, message.shardId, message.clusterId);
+                error: ClusterIPCTypes.serializeError(error),
+              }, false, message.shard, message.clusterId);
             }
           }; return;
           case ClusterIPCOpCodes.SHARD_STATE: {
@@ -205,16 +248,22 @@ export class ClusterProcess extends EventSpewer {
     this.emit('message', message);
   }
 
-  async onExit(code: number, signal: string): Promise<void> {
+  async onExit(code: number, signal: string, child: ChildProcess | null = this.process): Promise<void> {
+    const error = new Error(`Process has closed with '${code}' code and '${signal}' signal.`);
+    for (let [nonce, item] of this._evalsWaiting) {
+      if (item.child === child) {
+        // these results may be sent to another cluster over ipc, which would drop the error's message/stack
+        item.resolve([ClusterIPCTypes.serializeError(error), true]);
+      }
+    }
+
+    // a child that was killed on purpose or replaced shouldn't touch (or respawn) the current one
+    if (!child || child !== this.process) {
+      return;
+    }
     this.emit('close', {code, signal});
     Object.defineProperty(this, 'ran', {value: false});
     this.process = null;
-
-    const error = new Error(`Process has closed with '${code}' code and '${signal}' signal.`);
-    for (let [nonce, item] of this._evalsWaiting) {
-      item.resolve([error, true]);
-      this._evalsWaiting.delete(nonce);
-    }
 
     for (let [shardId, item] of this._shardsWaiting) {
       item.reject(error);
@@ -233,6 +282,7 @@ export class ClusterProcess extends EventSpewer {
   async eval(
     code: Function | string,
     nonce: string,
+    timeout?: number,
   ): Promise<[any, boolean] | null> {
     if (this.process === null) {
       throw new Error('Cannot eval without a child!');
@@ -243,49 +293,103 @@ export class ClusterProcess extends EventSpewer {
     // incase the process dies
     const child = this.process;
 
-    return new Promise((resolve, reject) => {
-      const promise: Promise<[any, boolean] | null> = new Promise(async (res, rej) => {
-        const listener = (
-          message: ClusterIPCTypes.IPCMessage | any,
-        ) => {
-          if (message && typeof(message) === 'object') {
-            switch (message.op) {
-              case ClusterIPCOpCodes.EVAL: {
-                const data: ClusterIPCTypes.Eval = message.data;
-                if (data.nonce === nonce) {
-                  child.removeListener('message', listener);
-                  this._evalsWaiting.delete(nonce);
-  
-                  if (data.ignored) {
-                    res(null);
+    let resolve!: Function;
+    let reject!: Function;
+    const promise: Promise<[any, boolean] | null> = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    const timer = new Timers.Timeout();
+    const waiting = {
+      child,
+      listener: (
+        message: ClusterIPCTypes.IPCMessage | any,
+      ) => {
+        if (message && typeof(message) === 'object') {
+          switch (message.op) {
+            case ClusterIPCOpCodes.EVAL: {
+              const data: ClusterIPCTypes.Eval = message.data;
+              if (data.nonce === nonce) {
+                if (data.ignored) {
+                  waiting.resolve(null);
+                } else {
+                  if (data.error) {
+                    waiting.resolve([data.error, true]);
                   } else {
-                    if (data.error) {
-                      res([data.error, true]);
-                    } else {
-                      res([data.result, false]);
-                    }
+                    waiting.resolve([data.result, false]);
                   }
                 }
-              }; break;
-            }
+              }
+            }; break;
           }
-        };
-        child.addListener('message', listener);
-  
-        if (typeof(code) === 'function') {
-          code = `(${String(code)})(this)`;
         }
-        try {
-          await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
-        } catch(error) {
-          child.removeListener('message', listener);
-          rej(error);
+      },
+      promise,
+      resolve: (value: [any, boolean] | null) => {
+        timer.stop();
+        child.removeListener('message', waiting.listener);
+        if (this._evalsWaiting.get(nonce) === waiting) {
+          this._evalsWaiting.delete(nonce);
         }
+        resolve(value);
+      },
+      reject: (error: any) => {
+        timer.stop();
+        child.removeListener('message', waiting.listener);
+        if (this._evalsWaiting.get(nonce) === waiting) {
+          this._evalsWaiting.delete(nonce);
+        }
+        reject(error);
+      },
+    };
+    this._evalsWaiting.set(nonce, waiting);
+    child.addListener('message', waiting.listener);
+    if (timeout) {
+      timer.start(timeout, () => {
+        const error = new Error(`Eval timed out after ${timeout}ms`);
+        waiting.resolve([ClusterIPCTypes.serializeError(error), true]);
       });
+    }
 
-      this._evalsWaiting.set(nonce, {promise, resolve, reject});
-      promise.then(resolve).catch(reject);
-    });
+    if (typeof(code) === 'function') {
+      code = `(${String(code)})(this)`;
+    }
+    try {
+      await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
+    } catch(error) {
+      waiting.reject(error);
+    }
+    return promise;
+  }
+
+  kill(signal?: NodeJS.Signals | number): boolean {
+    const child = this.process;
+    if (!child) {
+      return false;
+    }
+    // detach it first so its exit doesn't respawn it
+    this.process = null;
+    const error = new Error('Process was killed.');
+    for (let [shardId, item] of this._shardsWaiting) {
+      item.reject(error);
+      this._shardsWaiting.delete(shardId);
+    }
+    return child.kill(signal);
+  }
+
+  async respawn(
+    options: ClusterProcessRunOptions = {},
+  ): Promise<ChildProcess> {
+    const child = this.process;
+    if (child) {
+      const exited = (child.exitCode !== null || child.signalCode !== null) ? Promise.resolve() : new Promise((resolve) => {
+        child.once('exit', resolve);
+      });
+      if (this.kill()) {
+        await exited;
+      }
+    }
+    return this.run(options);
   }
 
   async send(message: any): Promise<void> {
@@ -321,25 +425,41 @@ export class ClusterProcess extends EventSpewer {
     }
     const process = fork(this.file, [], {env: this.env, execArgv: this.execArgv});
     this.process = process;
-    this.process.on('message', this.onMessage.bind(this));
-    this.process.on('exit', this.onExit.bind(this));
+    const onMessage = this.onMessage.bind(this);
+    const onExit = (code: number, signal: string) => {
+      process.removeListener('message', onMessage);
+      process.removeListener('exit', onExit);
+      return this.onExit(code, signal, process);
+    };
+    process.on('message', onMessage);
+    process.on('exit', onExit);
 
     if (options.wait || options.wait === undefined) {
       return new Promise((resolve, reject) => {
         const timeout = new Timers.Timeout();
+        const onReady = () => {
+          timeout.stop();
+          process.removeListener('exit', onExitBeforeReady);
+          resolve(process);
+        };
+        // the child dying before it readies would otherwise leave this promise pending forever
+        const onExitBeforeReady = (code: number | null, signal: string | null) => {
+          timeout.stop();
+          this.removeListener('ready', onReady);
+          reject(new Error(`Cluster Child exited before readying up (code: ${code}, signal: ${signal})`));
+        };
         if (options.timeout) {
           timeout.start(options.timeout, () => {
+            this.removeListener('ready', onReady);
+            process.removeListener('exit', onExitBeforeReady);
             if (this.process === process) {
-              this.process.kill();
-              this.process = null;
+              this.kill();
             }
             reject(new Error('Cluster Child took too long to ready up'));
           });
         }
-        this.once('ready', () => {
-          timeout.stop();
-          resolve(process);
-        });
+        this.once('ready', onReady);
+        process.once('exit', onExitBeforeReady);
       });
     }
     return process;

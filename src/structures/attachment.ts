@@ -56,14 +56,15 @@ export const MimeClassTypes: Array<{
     regex: /\.(?:txt|rtf|doc|docx|md|pages|ppt|pptx|pptm|key|log)$/i,
   },
   {
-    type: 'mime',
-    classType: 'image',
-    regex: /^image\//,
-  },
-  {
+    // before `image` since it's an `image/` mimetype too
     type: 'mime',
     classType: 'photoshop',
     regex: /^image\/vnd.adobe.photoshop/,
+  },
+  {
+    type: 'mime',
+    classType: 'image',
+    regex: /^image\//,
   },
   {
     type: 'name',
@@ -206,7 +207,7 @@ export class Attachment extends BaseStructure {
   }
 
   get mimetype(): string {
-    return '';
+    return this.contentType || '';
   }
 
   merge(data?: BaseStructureData): void {

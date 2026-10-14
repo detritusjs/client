@@ -327,7 +327,7 @@ export class Presence extends BaseStructure {
     }
     if (DiscordKeys.GUILD_IDS in data) {
       // we just cloned
-      const value = data[DiscordKeys.GUILD_ID];
+      const value = data[DiscordKeys.GUILD_IDS];
       if (value.length) {
         if (value.length === 1) {
           this._guildIds = value[0];
@@ -481,7 +481,7 @@ export class PresenceActivity extends BaseStructure {
           continue;
         }
         for (let [activityId, activity] of presence.activities) {
-          if (activity.party && activity.party.id === this.id) {
+          if (activity.party && activity.party.id === this.party.id) {
             group.set(userId, presence.user);
             break;
           }
@@ -664,10 +664,13 @@ export class PresenceActivity extends BaseStructure {
     if (!this.sessionId) {
       throw new Error('Activity has no Session Id');
     }
+    if (!this.applicationId) {
+      throw new Error('Activity has no Application Id');
+    }
     return this.client.rest.fetchUserActivityMetadata(
       this.user.id,
       this.sessionId,
-      String(this.position),
+      String(this.applicationId),
     );
   }
 
@@ -724,6 +727,7 @@ export class PresenceActivity extends BaseStructure {
     (this as any)[DetritusKeys[DiscordKeys.BUTTONS]] = data[DiscordKeys.BUTTONS];
     (this as any)[DetritusKeys[DiscordKeys.CREATED_AT]] = data[DiscordKeys.CREATED_AT];
     (this as any)[DetritusKeys[DiscordKeys.DETAILS]] = data[DiscordKeys.DETAILS];
+    (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS] || 0;
     if (DiscordKeys.GUILD_IDS in data) {
       const value = data[DiscordKeys.GUILD_IDS];
       if (value.length) {

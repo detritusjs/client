@@ -651,7 +651,7 @@ export class Message extends BaseStructure {
           if (raw.user) {
             // we just cloned the message object so we got the full member object
             // {...memberWithUser}
-            const member = new Member(this.client, raw);
+            const member = new Member(this.client, raw, this.isClone);
             this._mentions.set(member.id, member);
           } else if (raw.member) {
             // member object exists in the mention (is from a guild message create)
@@ -847,6 +847,10 @@ export class Message extends BaseStructure {
         this.interaction = new MessageInteraction(this, value);
       }
     }
+    if (DiscordKeys.INTERACTION_METADATA in data) {
+      const value = data[DiscordKeys.INTERACTION_METADATA];
+      (this as any)[DetritusKeys[DiscordKeys.INTERACTION_METADATA]] = (value) ? new MessageInteractionMetadata(this, value) : value;
+    }
     if (DiscordKeys.MEMBER in data) {
       const value = data[DiscordKeys.MEMBER];
   
@@ -1021,7 +1025,9 @@ export class Message extends BaseStructure {
           const guildId = raw.guild_id;
 
           let sticker: Sticker;
-          if (guildId && this.client.stickers.has(guildId, raw.id)) {
+          if (this.isClone) {
+            sticker = new Sticker(this.client, raw, this.isClone);
+          } else if (guildId && this.client.stickers.has(guildId, raw.id)) {
             sticker = this.client.stickers.get(guildId, raw.id)!;
             sticker.merge(raw);
           } else {
@@ -1044,7 +1050,7 @@ export class Message extends BaseStructure {
         }
         this._stickerItems.clear();
         for (let raw of value) {
-          const sticker = new StickerItem(this.client, raw);
+          const sticker = new StickerItem(this.client, raw, this.isClone);
           this.stickerItems.set(sticker.id, sticker);
         }
       } else {
@@ -1056,7 +1062,7 @@ export class Message extends BaseStructure {
     }
     if (DiscordKeys.THREAD in data) {
       // maybe put it in cache?
-      const channel = createChannelFromData(this.client, data[DiscordKeys.THREAD]);
+      const channel = createChannelFromData(this.client, data[DiscordKeys.THREAD], this.isClone);
       (this as any)[DetritusKeys[DiscordKeys.THREAD]] = channel;
     }
     if (DiscordKeys.TIMESTAMP in data) {
@@ -1177,8 +1183,9 @@ export class MessageCall extends BaseStructure {
 
   get duration(): number {
     if (this.endedTimestampUnix) {
-      // i dont think this is correct, maybe base it off message creation
-      return Math.max(Date.now() - this.endedTimestampUnix, 0);
+      // the call started when the message was created
+      const startedTimestampUnix = this.message.timestampUnix || this.message.createdAtUnix;
+      return Math.max(this.endedTimestampUnix - startedTimestampUnix, 0);
     }
     return 0;
   }
@@ -1258,7 +1265,9 @@ export class MessageInteraction extends BaseStructure {
       const value = data[DiscordKeys.USER];
 
       let user: User;
-      if (this.client.users.has(value.id)) {
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else if (this.client.users.has(value.id)) {
         user = this.client.users.get(value.id)!;
         user.merge(value);
       } else {
@@ -1361,7 +1370,13 @@ export class MessageInteractionMetadata extends BaseStructure {
     }
     if (DiscordKeys.TARGET_USER in data) {
       const value = data[DiscordKeys.TARGET_USER];
-      (this as any)[DetritusKeys[DiscordKeys.TARGET_USER]] = this.client.users.get(value.id) || new User(this.client, value);
+      let user: User;
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else {
+        user = this.client.users.get(value.id) || new User(this.client, value);
+      }
+      (this as any)[DetritusKeys[DiscordKeys.TARGET_USER]] = user;
     }
     if (DiscordKeys.TRIGGERING_INTERACTION_METADATA in data) {
       const value = new MessageInteractionMetadata(this.message, data[DiscordKeys.TRIGGERING_INTERACTION_METADATA]);
@@ -1374,7 +1389,9 @@ export class MessageInteractionMetadata extends BaseStructure {
       const value = data[DiscordKeys.USER];
 
       let user: User;
-      if (this.client.users.has(value.id)) {
+      if (this.isClone) {
+        user = new User(this.client, value, this.isClone);
+      } else if (this.client.users.has(value.id)) {
         user = this.client.users.get(value.id)!;
         user.merge(value);
       } else {
@@ -1566,6 +1583,19 @@ export class MessagePollResults extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.IS_FINALIZED]] = data[DiscordKeys.IS_FINALIZED];
     }
   }
+
+  toJSON() {
+    const data = super.toJSON() as any;
+    // write the answer counts back out in discord's shape so the parent message's `clone()` round-trips
+    data[DiscordKeys.ANSWER_COUNTS] = this.answerCounts.map((answerCount) => {
+      return {
+        [DiscordKeys.COUNT]: answerCount.count,
+        [DiscordKeys.ID]: answerCount.id,
+        [DiscordKeys.ME_VOTED]: answerCount.meVoted,
+      };
+    });
+    return data;
+  }
 }
 
 
@@ -1651,7 +1681,7 @@ export class MessagePollMedia extends BaseStructure {
     }
 
     if (DiscordKeys.EMOJI in data) {
-      const value = new Emoji(this.client, data[DiscordKeys.EMOJI]);
+      const value = new Emoji(this.client, data[DiscordKeys.EMOJI], this.isClone);
       (this as any)[DetritusKeys[DiscordKeys.EMOJI]] = value;
     }
     if (DiscordKeys.TEXT in data) {
@@ -1785,7 +1815,9 @@ export class MessageResolvedData extends BaseStructure {
       this.users.clear();
       for (let userId in value) {
         let user: User;
-        if (this.client.users.has(userId)) {
+        if (this.isClone) {
+          user = new User(this.client, value[userId], this.isClone);
+        } else if (this.client.users.has(userId)) {
           user = this.client.users.get(userId)!;
           user.merge(value[userId]);
         } else {
@@ -1802,7 +1834,7 @@ export class MessageResolvedData extends BaseStructure {
       }
       this.attachments.clear();
       for (let attachmentId in value) {
-        const attachment = new Attachment(this.client, value[attachmentId]);
+        const attachment = new Attachment(this.client, value[attachmentId], this.isClone);
         this.attachments.set(attachmentId, attachment);
       }
     }
@@ -1816,7 +1848,7 @@ export class MessageResolvedData extends BaseStructure {
       for (let channelId in value) {
         // always create it cause of the 'permissions' field sent in
         value[channelId][DiscordKeys.GUILD_ID] = this.guildId;
-        const channel = createChannelFromData(this.client, value[channelId]);
+        const channel = createChannelFromData(this.client, value[channelId], this.isClone);
         this.channels.set(channelId, channel);
       }
     }
@@ -1858,7 +1890,7 @@ export class MessageResolvedData extends BaseStructure {
       this.roles.clear();
       for (let roleId in value) {
         value[roleId][DiscordKeys.GUILD_ID] = this.guildId;
-        const role = new Role(this.client, value[roleId]);
+        const role = new Role(this.client, value[roleId], this.isClone);
         this.roles.set(roleId, role);
       }
     }
@@ -1951,12 +1983,29 @@ export class MessageSnapshot extends BaseStructure {
         message = this.client.messages.get(value.id)!.clone();
         // message.merge(value);
       } else {
-        message = new Message(this.client, value);
+        message = new Message(this.client, value, this.isClone);
       }
 
       (this as any)[DetritusKeys[DiscordKeys.MESSAGE]] = message;
     }
   }
+}
+
+
+function formatCallDuration(milliseconds: number): string {
+  const seconds = Math.floor(milliseconds / 1000);
+  const units: Array<[string, number]> = [
+    ['hour', Math.floor(seconds / 3600)],
+    ['minute', Math.floor((seconds % 3600) / 60)],
+    ['second', seconds % 60],
+  ];
+  const parts = units.filter(([unit, amount]) => amount).map(([unit, amount]) => {
+    return `${amount} ${unit}${(amount === 1) ? '' : 's'}`;
+  });
+  if (!parts.length) {
+    return 'a few seconds';
+  }
+  return parts.join(', ');
 }
 
 
@@ -1994,7 +2043,7 @@ export function messageSystemContent(
           } else {
             content = SystemMessages.CallMissedWithDuration;
           }
-          content = content.replace(/:duration:/g, String(message.call.duration));
+          content = content.replace(/:duration:/g, formatCallDuration(message.call.duration));
         } else {
           if (!message.call.participants.includes(message.author.id)) {
             content = SystemMessages.CallMissed;
@@ -2048,8 +2097,9 @@ export function messageSystemContent(
       content = content.replace(/:premiumTier:/g, (PremiumGuildTierNames as any)[premiumTier]);
     }; break;
     case MessageTypes.CHANNEL_FOLLOW_ADD: {
+      const webhookName = content;
       content = SystemMessages.ChannelFollowAdd.replace(/:user:/g, message.author.mention);
-      content = content.replace(/:webhookName:/g, message.content);
+      content = content.replace(/:webhookName:/g, webhookName);
     }; break;
     case MessageTypes.GUILD_DISCOVERY_DISQUALIFIED: {
       content = SystemMessages.GuildDiscoveryDisqualified;

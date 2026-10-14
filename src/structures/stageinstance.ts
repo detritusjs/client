@@ -1,9 +1,9 @@
 import { RequestTypes } from 'detritus-client-rest';
 
 import { ShardClient } from '../client';
-import { BaseCollection, emptyBaseCollection } from '../collections/basecollection';
+import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DetritusKeys, DiscordKeys, StagePrivacyLevels } from '../constants';
+import { DetritusKeys, DiscordKeys, Permissions, StagePrivacyLevels } from '../constants';
 
 import {
   BaseStructure,
@@ -13,6 +13,12 @@ import { Channel } from './channel';
 import { Guild } from './guild';
 import { VoiceState } from './voicestate';
 
+
+const PERMISSIONS_STAGE_MODERATOR = [
+  Permissions.MANAGE_CHANNELS,
+  Permissions.MOVE_MEMBERS,
+  Permissions.MUTE_MEMBERS,
+];
 
 const keysStageInstance = new BaseSet<string>([
   DiscordKeys.CHANNEL_ID,
@@ -69,22 +75,51 @@ export class StageInstance extends BaseStructure {
   }
 
   get listeners(): BaseCollection<string, VoiceState> {
-    return emptyBaseCollection;
+    const collection = new BaseCollection<string, VoiceState>();
+    for (let [userId, voiceState] of this.voiceStates) {
+      if (voiceState.suppress) {
+        collection.set(userId, voiceState);
+      }
+    }
+    return collection;
   }
 
   get moderators(): BaseCollection<string, VoiceState> {
-    return emptyBaseCollection;
+    const collection = new BaseCollection<string, VoiceState>();
+    const channel = this.channel;
+    if (channel) {
+      for (let [userId, voiceState] of this.voiceStates) {
+        const member = voiceState.member || this.client.members.get(this.guildId, userId);
+        if (member && channel.can(PERMISSIONS_STAGE_MODERATOR, member)) {
+          collection.set(userId, voiceState);
+        }
+      }
+    }
+    return collection;
   }
 
   get speakers(): BaseCollection<string, VoiceState> {
-    return emptyBaseCollection;
+    const collection = new BaseCollection<string, VoiceState>();
+    for (let [userId, voiceState] of this.voiceStates) {
+      if (!voiceState.suppress) {
+        collection.set(userId, voiceState);
+      }
+    }
+    return collection;
   }
 
   get voiceStates(): BaseCollection<string, VoiceState> {
-    if (this.client.voiceStates.has(this.channelId)) {
-      return this.client.voiceStates.get(this.channelId) as BaseCollection<string, VoiceState>;
+    // guild voice states are cached under the guild id
+    const collection = new BaseCollection<string, VoiceState>();
+    const voiceStates = this.client.voiceStates.get(this.guildId);
+    if (voiceStates) {
+      for (let [userId, voiceState] of voiceStates) {
+        if (voiceState.channelId === this.channelId) {
+          collection.set(userId, voiceState);
+        }
+      }
     }
-    return emptyBaseCollection;
+    return collection;
   }
 
   async edit(options: RequestTypes.EditStageInstance = {}) {

@@ -2,7 +2,7 @@ import {
   SocketCloseCodes,
   SocketEvents,
 } from 'detritus-client-socket/lib/constants';
-import { EventSpewer } from 'detritus-utils';
+import { EventSpewer, Timers } from 'detritus-utils';
 
 import { ClusterClient } from '../clusterclient';
 import { BaseCollection } from '../collections/basecollection';
@@ -15,6 +15,13 @@ import { Snowflake } from '../utils';
 import { ClusterIPCTypes } from './ipctypes';
 
 
+// how long to wait for the manager to answer a rest request
+export const REST_REQUEST_TIMEOUT = 60 * 1000;
+// how long each cluster gets to answer a broadcast eval, clusters that don't answer in time are reported as errors
+export const BROADCAST_EVAL_TIMEOUT = 60 * 1000;
+// extra time to wait for the manager to send the (partial) results back
+export const BROADCAST_EVAL_TIMEOUT_GRACE = 5 * 1000;
+
 export class ClusterProcessChild extends EventSpewer {
   readonly _restRequestsWaiting = new BaseCollection<string | number, {
     promise: Promise<any>,
@@ -24,6 +31,7 @@ export class ClusterProcessChild extends EventSpewer {
   readonly _shardsIdentifying = new BaseSet<number>();
   readonly cluster: ClusterClient;
 
+  broadcastEvalTimeout: number = BROADCAST_EVAL_TIMEOUT;
   clusterCount: number = 1;
   clusterId: number = 0;
   clusterShardsPer: number = 1;
@@ -37,7 +45,7 @@ export class ClusterProcessChild extends EventSpewer {
 
     process.on('message', this.onMessage.bind(this));
     process.on('message', this.emit.bind(this, 'ipc'));
-    this.cluster.on('ready', () => this.sendIPC(ClusterIPCOpCodes.READY));
+    this.cluster.on('ready', () => this.sendIPCOrWarn(ClusterIPCOpCodes.READY));
     this.cluster.on('shard', ({shard}) => {
       shard.gateway.on(SocketEvents.STATE, async ({state}) => {
         const { shardId } = shard;
@@ -47,9 +55,11 @@ export class ClusterProcessChild extends EventSpewer {
         const data: ClusterIPCTypes.ShardState = {shardId, state};
         await this.sendIPCOrWarn(ClusterIPCOpCodes.SHARD_STATE, data, false);
       });
-      shard.gateway.on(SocketEvents.CLOSE, async (payload: {code: number, reason: string}) => {
+      shard.gateway.on(SocketEvents.CLOSE, async (payload: {code: number, reason: string, stale?: boolean}) => {
         const { shardId } = shard;
-        this._shardsIdentifying.delete(shardId);
+        if (!payload.stale) {
+          this._shardsIdentifying.delete(shardId);
+        }
         const data: ClusterIPCTypes.Close = {
           ...payload,
           shardId,
@@ -111,11 +121,7 @@ export class ClusterProcessChild extends EventSpewer {
               } catch(error: any) {
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
                   ...data,
-                  error: {
-                    message: error.message,
-                    name: error.name,
-                    stack: error.stack,
-                  },
+                  error: ClusterIPCTypes.serializeError(error),
                 });
               }
             }
@@ -123,6 +129,7 @@ export class ClusterProcessChild extends EventSpewer {
         }; return;
         case ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS: {
           const { data }: ClusterIPCTypes.FillApplicationEmojis = message.data;
+          this.cluster._refresh.applicationEmojis.data = data;
           this.cluster._refresh.applicationEmojis.last = Date.now();
           for (let [shardId, shard] of this.cluster.shards) {
             await shard.applicationEmojis.fill(data);
@@ -138,7 +145,8 @@ export class ClusterProcessChild extends EventSpewer {
           // we received an ok to identify
           const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
           const shard = this.cluster.shards.get(shardId);
-          if (shard) {
+          // identify() ignores the call unless the socket is open or resuming
+          if (shard && !shard.gateway.killed && (shard.gateway.state === SocketStates.OPEN || shard.gateway.state === SocketStates.RESUMING)) {
             this._shardsIdentifying.add(shardId);
             shard.gateway.identify();
           }
@@ -155,7 +163,6 @@ export class ClusterProcessChild extends EventSpewer {
                 waiting.resolve(result);
               }
             }
-            this._restRequestsWaiting.delete(hash);
           }
         }; return;
       }
@@ -204,7 +211,9 @@ export class ClusterProcessChild extends EventSpewer {
   async broadcastEval(code: Function | string, ...args: any[]): Promise<Array<any>> {
     const parent = process as any;
     const nonce = Snowflake.generate().id;
+    const timeout = this.broadcastEvalTimeout;
     return new Promise(async (resolve, reject) => {
+      const timer = new Timers.Timeout();
       const listener = (
         message: ClusterIPCTypes.IPCMessage | any,
       ) => {
@@ -216,6 +225,7 @@ export class ClusterProcessChild extends EventSpewer {
             case ClusterIPCOpCodes.EVAL: {
               const data: ClusterIPCTypes.Eval = message.data;
               if (data.nonce === nonce) {
+                timer.stop();
                 parent.removeListener('message', listener);
 
                 if (data.error) {
@@ -245,7 +255,14 @@ export class ClusterProcessChild extends EventSpewer {
               evalArgs.push(`${arg}`);
             }; break;
             case 'object': {
-              evalArgs.push(`JSON.parse(${JSON.stringify(arg)})`);
+              // double stringify so the eval'd code gets a string literal to parse
+              evalArgs.push(`JSON.parse(${JSON.stringify(JSON.stringify(arg))})`);
+            }; break;
+            case 'string': {
+              evalArgs.push(JSON.stringify(arg));
+            }; break;
+            case 'undefined': {
+              evalArgs.push('undefined');
             }; break;
             default: {
               evalArgs.push(`"${arg}"`);
@@ -254,9 +271,16 @@ export class ClusterProcessChild extends EventSpewer {
         }
         code = `(${String(code)})(${evalArgs.join(', ')})`;
       }
+      if (timeout) {
+        timer.start(timeout + BROADCAST_EVAL_TIMEOUT_GRACE, () => {
+          parent.removeListener('message', listener);
+          reject(new Error(`Broadcast eval timed out after ${timeout}ms`));
+        });
+      }
       try {
-        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
+        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce, timeout}, true);
       } catch(error) {
+        timer.stop();
         parent.removeListener('message', listener);
         reject(error);
       }
@@ -264,17 +288,43 @@ export class ClusterProcessChild extends EventSpewer {
   }
 
   async sendRestRequest(name: string, args?: Array<any>): Promise<any> {
-    // add a timeout
     const hash = (args) ? `${name}-${JSON.stringify(args)}` : name;
-    const promise = new Promise(async (resolve, reject) => {
-      if (this._restRequestsWaiting.has(hash)) {
-        const waiting = this._restRequestsWaiting.get(hash)!;
-        resolve(waiting.promise);
-      } else {
-        await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {args, hash, name}, true);
-        const waiting = {promise, reject, resolve};
-        this._restRequestsWaiting.set(hash, waiting);
-      }
+    if (this._restRequestsWaiting.has(hash)) {
+      // share the in-flight request instead of overwriting its waiter
+      return this._restRequestsWaiting.get(hash)!.promise;
+    }
+
+    let resolve!: Function;
+    let reject!: Function;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    const timeout = new Timers.Timeout();
+    const waiting = {
+      promise,
+      resolve: (value: any) => {
+        timeout.stop();
+        if (this._restRequestsWaiting.get(hash) === waiting) {
+          this._restRequestsWaiting.delete(hash);
+        }
+        resolve(value);
+      },
+      reject: (error: any) => {
+        timeout.stop();
+        if (this._restRequestsWaiting.get(hash) === waiting) {
+          this._restRequestsWaiting.delete(hash);
+        }
+        reject(error);
+      },
+    };
+    // register before sending so the response (or a duplicate call) can't miss it
+    this._restRequestsWaiting.set(hash, waiting);
+    timeout.start(REST_REQUEST_TIMEOUT, () => {
+      waiting.reject(new Error(`Rest request ${name} timed out after ${REST_REQUEST_TIMEOUT}ms`));
+    });
+    this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {args, hash, name}, true).catch((error) => {
+      waiting.reject(error);
     });
     return promise;
   }

@@ -3,7 +3,7 @@ import { Endpoints, RequestTypes } from 'detritus-client-rest';
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { DetritusKeys, DiscordKeys, Permissions, RoleFlags } from '../constants';
+import { DetritusKeys, DiscordKeys, Permissions, PERMISSIONS_ALL, RoleFlags } from '../constants';
 import {
   addQuery,
   getFormatFromHash,
@@ -40,6 +40,24 @@ const keysRole = new BaseSet<string>([
   DiscordKeys.UNICODE_EMOJI,
 ]);
 
+export interface RoleColors {
+  primaryColor: number,
+  secondaryColor: null | number,
+  tertiaryColor: null | number,
+}
+
+// accepts the raw snake_case object from discord or our camelCase one (from `differencesBetween()`)
+function createRoleColors(value: any): RoleColors | null {
+  if (!value) {
+    return null;
+  }
+  return {
+    primaryColor: value[DiscordKeys.PRIMARY_COLOR] ?? value.primaryColor ?? 0,
+    secondaryColor: value[DiscordKeys.SECONDARY_COLOR] ?? value.secondaryColor ?? null,
+    tertiaryColor: value[DiscordKeys.TERTIARY_COLOR] ?? value.tertiaryColor ?? null,
+  };
+}
+
 /**
  * Guild Role Structure, used in [Guild]
  * @category Structure
@@ -49,7 +67,7 @@ export class Role extends BaseStructure {
 
   color: number = 0;
   // role gradients, `secondaryColor` and `tertiaryColor` are null for a plain color
-  colors: {primaryColor: number, secondaryColor: null | number, tertiaryColor: null | number} | null = null;
+  colors: RoleColors | null = null;
   flags: number = 0;
   guildId: string = '';
   hoist: boolean = false;
@@ -181,7 +199,10 @@ export class Role extends BaseStructure {
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.ROLE_ICON(this.id, hash, format), query);
   }
 
-  permissionsIn(channelId: ChannelGuildBase | string): bigint {
+  permissionsIn(
+    channelId: ChannelGuildBase | string,
+    {ignoreAdministrator}: {ignoreAdministrator?: boolean} = {},
+  ): bigint {
     let channel: ChannelGuildBase;
     if (channelId instanceof ChannelGuildBase) {
       channel = channelId;
@@ -193,13 +214,27 @@ export class Role extends BaseStructure {
       }
     }
 
-    let allow = Permissions.NONE, deny = Permissions.NONE;
+    let total = this.permissions;
+    if (!this.isDefault) {
+      const guild = this.guild;
+      const everyone = (guild) ? guild.roles.get(this.guildId) : null;
+      if (everyone) {
+        total |= everyone.permissions;
+      }
+    }
+    if (!ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+      return PERMISSIONS_ALL;
+    }
+
+    if (!this.isDefault && channel.permissionOverwrites.has(this.guildId)) {
+      const overwrite = channel.permissionOverwrites.get(this.guildId)!;
+      total = (total & ~overwrite.deny) | overwrite.allow;
+    }
     if (channel.permissionOverwrites.has(this.id)) {
       const overwrite = channel.permissionOverwrites.get(this.id)!;
-      allow |= overwrite.allow;
-      deny |= overwrite.deny;
+      total = (total & ~overwrite.deny) | overwrite.allow;
     }
-    return (this.permissions & ~deny) | allow;
+    return total;
   }
 
   delete(options: RequestTypes.DeleteGuildRole = {}) {
@@ -212,6 +247,27 @@ export class Role extends BaseStructure {
 
   editPosition(position: number, options?: RequestTypes.EditGuildRolePositionsExtra) {
     return this.client.rest.editGuildRolePositions(this.guildId, [{id: this.id, position}], options);
+  }
+
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.COLORS: {
+        if (value === undefined) {
+          return false;
+        }
+        const old = this.colors;
+        const colors = createRoleColors(value);
+        if (!old || !colors) {
+          return old !== colors;
+        }
+        return (
+          old.primaryColor !== colors.primaryColor ||
+          old.secondaryColor !== colors.secondaryColor ||
+          old.tertiaryColor !== colors.tertiaryColor
+        );
+      };
+    }
+    return super.hasDifference(key, value);
   }
 
   merge(data?: BaseStructureData): void {
@@ -235,12 +291,7 @@ export class Role extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.COLOR]] = data[DiscordKeys.COLOR];
     }
     if (DiscordKeys.COLORS in data) {
-      const value = data[DiscordKeys.COLORS];
-      this.colors = (value) ? {
-        primaryColor: value[DiscordKeys.PRIMARY_COLOR],
-        secondaryColor: value[DiscordKeys.SECONDARY_COLOR] ?? null,
-        tertiaryColor: value[DiscordKeys.TERTIARY_COLOR] ?? null,
-      } : null;
+      this.colors = createRoleColors(data[DiscordKeys.COLORS]);
     }
     if (DiscordKeys.FLAGS in data) {
       (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
@@ -278,6 +329,19 @@ export class Role extends BaseStructure {
     }
   }
 
+  toJSON() {
+    const data = super.toJSON() as any;
+    // write `colors` back out in discord's shape so `clone()` round-trips
+    if (this.colors) {
+      data[DiscordKeys.COLORS] = {
+        [DiscordKeys.PRIMARY_COLOR]: this.colors.primaryColor,
+        [DiscordKeys.SECONDARY_COLOR]: this.colors.secondaryColor,
+        [DiscordKeys.TERTIARY_COLOR]: this.colors.tertiaryColor,
+      };
+    }
+    return data;
+  }
+
   toString(): string {
     return this.name;
   }
@@ -307,6 +371,15 @@ export class RoleTags extends BaseStructure {
   integrationId?: string;
   premiumSubscriber?: boolean;
   subscriptionListingId?: string;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
 
   merge(data?: BaseStructureData): void {
     if (!data) {

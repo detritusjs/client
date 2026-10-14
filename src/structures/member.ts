@@ -277,7 +277,7 @@ export class Member extends UserMixin {
   }
 
   get isPartial(): boolean {
-    return !!this.joinedAtUnix;
+    return !this.joinedAtUnix;
   }
 
   get joinedAt(): Date | null {
@@ -312,6 +312,7 @@ export class Member extends UserMixin {
     if (this.isOwner) {
       return PERMISSIONS_ALL;
     }
+    // the raw bitfield from the member's roles, administrator doesn't expand it (`can()`/`permissionsIn()` handle that)
     return this.roles.reduce((total: bigint, role: null | Role) => {
       if (role) {
         return total | role.permissions;
@@ -395,7 +396,11 @@ export class Member extends UserMixin {
     if (guild) {
       return guild.can(permissions, this, options);
     }
-    return PermissionTools.checkPermissions(this.permissions, permissions);
+    const total = this.permissions;
+    if (!options.ignoreAdministrator && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+      return true;
+    }
+    return PermissionTools.checkPermissions(total, permissions);
   }
 
   /* just checks who has the higher role, doesn't check permissions */
@@ -450,6 +455,9 @@ export class Member extends UserMixin {
     const guildId = channel.guildId || '';
 
     let total = (startingPermissions !== undefined) ? startingPermissions : this.permissions;
+    if (startingPermissions === undefined && PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+      return PERMISSIONS_ALL;
+    }
     if (channel.permissionOverwrites.has(guildId)) {
       const overwrite = channel.permissionOverwrites.get(guildId)!;
       total = (total & ~overwrite.deny) | overwrite.allow;

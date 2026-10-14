@@ -144,15 +144,27 @@ export class Typing extends BaseStructure {
 
       const amount = (value + TYPING_TIMEOUT) - Date.now();
       if (0 < amount && !this.isClone) {
-        this.timeout.start(TYPING_TIMEOUT, () => this._stop());
+        this.timeout.start(Math.max(0, amount), () => this._stop());
       }
       (this as any)[DetritusKeys[DiscordKeys.TIMESTAMP]] = value;
     }
     if (DiscordKeys.USER in data) {
-      (this as any)[DetritusKeys[DiscordKeys.USER]] = data[DiscordKeys.USER];
+      // `user` is a getter-only accessor, so just pull the id from it (from `clone()`/`toJSON()`)
+      const value = data[DiscordKeys.USER];
+      if (value && value.id && !this.userId) {
+        this.userId = value.id;
+      }
     }
     if (DiscordKeys.USER_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.USER_ID]] = data[DiscordKeys.USER_ID];
     }
+  }
+
+  toJSON() {
+    const data = super.toJSON() as any;
+    if (DiscordKeys.TIMESTAMP in data) {
+      data[DiscordKeys.TIMESTAMP] = this.timestamp / 1000;
+    }
+    return data;
   }
 }

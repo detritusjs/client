@@ -53,17 +53,24 @@ export class ArgumentParser {
           try {
             let value: string = '';
             let content: string = '';
-            if (arg.consume || i === this.args.length) {
+            if (!attributes.content && (i !== 0 || arg.default !== undefined || arg.required)) {
+              // our content is clean, let the default/required checks below handle this arg
+              // (only the first element without a default/required gets parsed with an empty value)
+              continue;
+            }
+            if (arg.consume || i === this.args.length - 1) {
               value = attributes.content;
               content = '';
-            } else {
-              if (attributes.content) {
-                // get first value from attributes.content;
-                [ value, content ] = getFirstArgument(attributes.content);
-              } else if (i !== 0) {
-                // parse our first element but skip the rest since our content is clean
-                continue;
+              if (!arg.consume && value) {
+                // last argument consumes the rest, but strip the quotes if it's a single quoted value
+                const [ first, rest ] = getFirstArgument(value);
+                if (!rest) {
+                  value = first;
+                }
               }
+            } else {
+              // get first value from attributes.content;
+              [ value, content ] = getFirstArgument(attributes.content);
             }
             const parsedValue = await arg.parse(value.trim(), context);
             if (Array.isArray(parsedValue) && parsedValue.length === 2 && parsedValue[0] === true) {
@@ -86,7 +93,7 @@ export class ArgumentParser {
         for (const {arg, info} of args) {
           const value = attributes.content.slice(info.index + info.name.length);
           // incase something like `.command -argSOMEVALUE` happens, we the arg
-          if (value && !value.startsWith(' ')) {
+          if (value && !/^\s/.test(value)) {
             continue;
           }
           attributes.content = attributes.content.slice(0, info.index).trim();

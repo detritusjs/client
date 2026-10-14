@@ -399,18 +399,18 @@ export class ApplicationCommandPermissions extends BaseStructure {
       return true;
     }
 
-    // channel id and role id can be the same for old guilds
-    if (this.permissions.has(channel.id) && !this.permissions.get(channel.id)!.permission) {
-      return false;
-    }
-
-    if (channel.parentId && this.permissions.has(channel.parentId) && !this.permissions.get(channel.parentId)!.permission) {
-      return false;
-    }
-
-    const allChannelsId = this.allChannelsId;
-    if (this.permissions.has(allChannelsId) && !this.permissions.get(allChannelsId)!.permission) {
-      return false;
+    // channel-specific overwrites take precedence over the all-channels (`guildId - 1`) one
+    // channel id and role id can be the same for old guilds, so check the type too
+    for (let channelId of [channel.id, channel.parentId, this.allChannelsId]) {
+      if (channelId && this.permissions.has(channelId)) {
+        const commandPermission = this.permissions.get(channelId)!;
+        if (commandPermission.isChannel) {
+          if (!commandPermission.permission) {
+            return false;
+          }
+          break;
+        }
+      }
     }
 
     if (this.permissions.has(member.id)) {
@@ -421,7 +421,8 @@ export class ApplicationCommandPermissions extends BaseStructure {
     for (let [commandPermissionId, commandPermission] of this.permissions) {
       switch (commandPermission.type) {
         case ApplicationCommandPermissionTypes.ROLE: {
-          if (member.roles.has(commandPermission.id)) {
+          // skip the @everyone role (member.roles includes it), it's checked last as the fallback
+          if (commandPermission.id !== this.guildId && member.roles.has(commandPermission.id)) {
             isRoleAllowed = isRoleAllowed || commandPermission.permission;
           }
         }; break;
@@ -436,7 +437,7 @@ export class ApplicationCommandPermissions extends BaseStructure {
     }
 
     // channel id and role id can be the same for old guilds
-    if (this.permissions.has(this.guildId)) {
+    if (this.permissions.has(this.guildId) && this.permissions.get(this.guildId)!.isRole) {
       return this.permissions.get(this.guildId)!.permission;
     }
 

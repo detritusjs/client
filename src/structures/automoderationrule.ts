@@ -172,7 +172,8 @@ export class AutoModerationRuleAction extends BaseStructure {
     }
   
     if (DiscordKeys.METADATA in data) {
-      (this as any)[DetritusKeys[DiscordKeys.METADATA]] = data[DiscordKeys.METADATA];
+      const value = data[DiscordKeys.METADATA];
+      (this as any)[DetritusKeys[DiscordKeys.METADATA]] = (value) ? new AutoModerationRuleActionMetadata(this, value) : value;
     }
     if (DiscordKeys.TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];

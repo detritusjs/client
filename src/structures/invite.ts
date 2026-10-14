@@ -96,9 +96,9 @@ export class Invite extends BaseStructure {
 
   get expired(): boolean {
     if (this.expiresAt) {
-      return Date.now() <= this.expiresAtUnix;
+      return this.expiresAtUnix <= Date.now();
     }
-    return !!this.expiresIn;
+    return this.expiresIn === 0;
   }
 
   get expiresAtUnix(): number {
@@ -107,14 +107,14 @@ export class Invite extends BaseStructure {
 
   get expiresIn(): number {
     if (this.createdAt && this.maxAge) {
-      return Math.max((this.createdAtUnix + this.maxAge) - Date.now(), 0);
+      return Math.max((this.createdAtUnix + (this.maxAge * 1000)) - Date.now(), 0);
     }
     return Infinity;
   }
 
   get expiresInUnix(): number {
     if (this.createdAt && this.maxAge) {
-      return this.createdAtUnix + this.maxAge;
+      return this.createdAtUnix + (this.maxAge * 1000);
     }
     return Infinity;
   }

@@ -16,6 +16,7 @@ import { VoiceConnection } from './voiceconnection';
 export class MediaHandler {
   connection: VoiceConnection;
   opHandler: MediaGatewayOpHandler;
+  transport: MediaUdp.Socket | null = null;
 
   constructor(connection: VoiceConnection) {
     this.connection = connection;
@@ -24,7 +25,7 @@ export class MediaHandler {
     this.gateway.on('packet', this.onPacket.bind(this));
     this.gateway.on('warn', this.connection.emit.bind(this.connection, 'warn'));
     this.gateway.once('killed', this.connection.kill.bind(this.connection));
-    this.gateway.once('transportReady', this.onTransportReady.bind(this));
+    this.gateway.on('transportReady', this.onTransportReady.bind(this));
   }
 
   get client(): ShardClient {
@@ -43,6 +44,10 @@ export class MediaHandler {
 
   onTransportReady(transport: MediaUdp.Socket): void {
     this.connection.emit('ready');
+    if (this.transport === transport) {
+      return;
+    }
+    this.transport = transport;
     transport.on('log', this.connection.emit.bind(this.connection, 'log'));
     transport.on('packet', this.onTransportPacket.bind(this));
     transport.on('warn', this.connection.emit.bind(this.connection, 'warn'));
@@ -119,6 +124,10 @@ export class MediaGatewayOpHandler {
       const opusDecoder = this.connection.opusDecoders.get(userId) as Opus.AudioOpus;
       opusDecoder.delete();
       this.connection.opusDecoders.delete(userId);
+    }
+    const voiceState = this.client.voiceStates.get(this.connection.serverId, userId);
+    if (voiceState) {
+      voiceState._isSpeaking = false;
     }
     const user = this.client.users.get(userId) || null;
 
