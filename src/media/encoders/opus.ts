@@ -1,6 +1,5 @@
 export const DependencyTypes = Object.freeze({
   DISCORDJS_OPUS: '@discordjs/opus',
-  NODE_OPUS: 'node-opus',
   OPUSSCRIPT: 'opusscript',
 });
 
@@ -115,8 +114,7 @@ export class AudioOpus {
 
     let opus: any;
     switch (this.use) {
-      case DependencyTypes.DISCORDJS_OPUS:
-      case DependencyTypes.NODE_OPUS: {
+      case DependencyTypes.DISCORDJS_OPUS: {
         opus = new this.module.OpusEncoder(this.sampleRate, this.channels, this.application);
       }; break;
       case DependencyTypes.OPUSSCRIPT: {
@@ -186,12 +184,11 @@ export class AudioOpus {
       throw new Error('Object was deleted, reinitialize with recreate()');
     }
     switch (this.use) {
-      case DependencyTypes.DISCORDJS_OPUS:
-      case DependencyTypes.NODE_OPUS: {
-        this.opus.applyEncoderCTL([flag, value]);
+      case DependencyTypes.DISCORDJS_OPUS: {
+        this.opus.applyEncoderCTL(flag, value);
       }; break;
       case DependencyTypes.OPUSSCRIPT: {
-        this.opus.encoderCTL([flag, value]);
+        this.opus.encoderCTL(flag, value);
       }; break;
     }
     return this;
@@ -204,15 +201,10 @@ export class AudioOpus {
     if (!this.enabled) {
       throw new Error('Object was deleted, reinitialize with recreate()');
     }
-    const frameSize = (this.sampleRate / 1000) * frameDuration;
-
     let packet: Buffer;
     switch (this.use) {
       case DependencyTypes.DISCORDJS_OPUS: {
         packet = this.opus.decode(buf);
-      }; break;
-      case DependencyTypes.NODE_OPUS: {
-        packet = this.opus.decode(buf, frameSize);
       }; break;
       case DependencyTypes.OPUSSCRIPT: {
         packet = this.opus.decode(buf);
@@ -237,9 +229,6 @@ export class AudioOpus {
     switch (this.use) {
       case DependencyTypes.DISCORDJS_OPUS: {
         packet = this.opus.encode(buf);
-      }; break;
-      case DependencyTypes.NODE_OPUS: {
-        packet = this.opus.encode(buf, frameSize);
       }; break;
       case DependencyTypes.OPUSSCRIPT: {
         packet = this.opus.encode(buf, frameSize);

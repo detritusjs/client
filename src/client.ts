@@ -659,10 +659,11 @@ export class ShardClient extends EventSpewer {
               payload.connection.removeListener('killed', onKilled);
               resolve(payload);
             };
-            const onKilled = () => {
+            const onKilled = (killed?: {error?: Error}) => {
               timeout.stop();
               payload.connection.removeListener('ready', onReady);
-              reject(new Error('Voice connection was killed before it was ready.'));
+              // pass along why the media gateway died (close code, missing dave, etc) when it gave a reason
+              reject((killed && killed.error) || new Error('Voice connection was killed before it was ready.'));
             };
             payload.connection.once('ready', onReady);
             payload.connection.once('killed', onKilled);

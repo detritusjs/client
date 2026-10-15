@@ -25,7 +25,7 @@ export class MediaHandler {
 
     this.gateway.on('packet', this.onPacket.bind(this));
     this.gateway.on('warn', this.connection.emit.bind(this.connection, 'warn'));
-    this.gateway.once('killed', this.connection.kill.bind(this.connection));
+    this.gateway.once('killed', (payload: {error?: Error}) => this.connection.kill(payload && payload.error));
     this.gateway.on('transportReady', this.onTransportReady.bind(this));
   }
 

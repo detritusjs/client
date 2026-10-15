@@ -243,7 +243,7 @@ export class VoiceConnection extends EventSpewer {
     return opusDecoder;
   }
 
-  kill(): void {
+  kill(error?: Error): void {
     // a newer connection for the same server may have replaced us in the cache
     if (this.client.voiceConnections.get(this.serverId) === this) {
       this.client.voiceConnections.delete(this.serverId);
@@ -251,7 +251,7 @@ export class VoiceConnection extends EventSpewer {
     this.gateway.kill();
     this.setOpusEncoder({kill: true});
     this.setOpusDecoder({kill: true});
-    this.emit('killed');
+    this.emit('killed', {error});
     this.removeAllListeners();
   }
 
@@ -456,6 +456,7 @@ export class VoiceConnection extends EventSpewer {
   on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'connect', listener: (payload: any) => any): this;
   on(event: 'disconnect', listener: (payload: any) => any): this;
+  on(event: 'killed', listener: (payload: {error?: Error}) => any): this;
   on(event: 'speaking', listener: (payload: any) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
