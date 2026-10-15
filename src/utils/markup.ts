@@ -22,19 +22,24 @@ export const Regexes = Object.freeze({
   [Strings.CODEBLOCK]: new RegExp(Strings.CODEBLOCK, 'g'),
   [Strings.CODESTRING]: new RegExp(Strings.CODESTRING, 'g'),
   [Strings.ESCAPE]: /\\/g,
-  [Strings.HEADER]: /^(\s*)?#/g, // maybe support the other markup types with the spaces?
+  // `m` so every line's start gets escaped, not just the text's
+  [Strings.HEADER]: /^(\s*)#/gm,
   [Strings.ITALICS]: /(_|\*)/g,
   [Strings.LIST]: /(-|\*)/g,
   [Strings.QUOTE]: />/g,
   [Strings.SPOILER]: /\|\|/g,
   [Strings.STRIKE]: new RegExp(Strings.STRIKE, 'g'),
-  [Strings.SUBTEXT]: /^(\s*)?(-?#)/g, // maybe support the other markup types with the spaces?
+  [Strings.SUBTEXT]: /^(\s*)(-?#)/gm,
   [Strings.UNDERLINE]: new RegExp(Strings.UNDERLINE, 'g'),
   EVERYONE: /@(everyone|here)/g,
   LINK: /\]\(/g,
+  LINK_TEXT: /[\[\]]/g,
+  // list markers at the start of a line (`- `, `* `, `1. `)
+  LIST_LINE_START: /^(\s*)([-*]|\d+\.)(?=\s)/gm,
   MENTION: /<@([!&]?[0-9]{16,21})>/g,
   MENTION_HARDCORE: /@/g,
-  URL: /\)/g,
+  // anything that would end the link's url early
+  URL: /[()\s]/g,
 });
 
 export const Replacements = Object.freeze({
@@ -42,6 +47,7 @@ export const Replacements = Object.freeze({
   [Strings.CODEBLOCK]: '``\u200b`',
   [Strings.CODESTRING]: '\\`',
   [Strings.ESCAPE]: '\\\\',
+  LINK_TEXT: '\\$&',
   [Strings.HEADER]: '$1\\#',
   [Strings.ITALICS]: '\\$1',
   [Strings.LIST]: '\\$1',
@@ -126,13 +132,20 @@ export function codestring(text: string, options: MarkupFilterOptions = {}): str
   let wrap: string = Strings.CODESTRING;
   if (text.includes(Strings.CODESTRING)) {
     options = Object.assign({
-      limit: 1995,
+      limit: 1993,
       replacement: Strings.CODESTRING + Replacements.MENTION,
     }, options);
     text = escape.codestring(text, options);
     wrap = Strings.CODESTRING_DOUBLE;
-    if (text.endsWith(Strings.CODESTRING)) {
-      text += Replacements.MENTION;
+    // a backtick next to the `` wrap would turn it into a ``` run, put a space between them instead
+    // (discord strips a space that's next to a backtick inside inline code)
+    if (text.endsWith(Strings.CODESTRING + Replacements.MENTION)) {
+      text = text.slice(0, -Replacements.MENTION.length) + ' ';
+    } else if (text.endsWith(Strings.CODESTRING)) {
+      text += ' ';
+    }
+    if (text.startsWith(Strings.CODESTRING)) {
+      text = ' ' + text;
     }
   } else {
     text = escape.codestring(text, options);
@@ -355,9 +368,11 @@ export function underline(text: string, options: MarkupFilterOptions = {}): stri
 
 
 export function url(text: string, url: string, comment?: string): string {
+  // brackets in the text would end it early, so would quotes in the comment
+  text = text.replace(Regexes.LINK_TEXT, Replacements.LINK_TEXT);
   url = escape.url(url);
   if (comment) {
-    return `[${text}](${url} '${comment}')`;
+    return `[${text}](${url} '${comment.replace(/[\\']/g, '\\$&')}')`;
   }
   return `[${text}](${url})`;
 }
@@ -374,7 +389,16 @@ export function trueSlice(
     if (0xD800 <= code && code <= 0xDBFF) {
       limit--;
     }
-    return text.slice(0, limit);
+    text = text.slice(0, limit);
+    // an odd number of backslashes at the cut would leave one escaping whatever comes after the text
+    let backslashes = 0;
+    while (backslashes < text.length && text.charCodeAt(text.length - 1 - backslashes) === 92) {
+      backslashes++;
+    }
+    if (backslashes % 2) {
+      text = text.slice(0, -1);
+    }
+    return text;
   }
   return text;
 }
@@ -394,6 +418,10 @@ export const escape = Object.freeze({
 
     text = text.replace(Regexes[Strings.QUOTE], Replacements[Strings.QUOTE]);
     text = text.replace(Regexes[Strings.SUBTEXT], Replacements[Strings.SUBTEXT]); // this includes header
+    // `\-`/`\*` for bullets, numbered ones escape the dot (`1\.`), a backslash before a digit isn't an escape and would show
+    text = text.replace(Regexes.LIST_LINE_START, (match: string, space: string, marker: string) => {
+      return (marker.endsWith('.')) ? `${space}${marker.slice(0, -1)}\\.` : `${space}\\${marker}`;
+    });
 
     if (filter.links) {
       text = escape.links(text, filter.mentionEscapeCharacter);
@@ -406,6 +434,8 @@ export const escape = Object.freeze({
   bold: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultBoldFilter, options);
 
+    // backslashes first, a trailing one would escape the closing marker
+    text = text.replace(Regexes[Strings.ESCAPE], Replacements[Strings.ESCAPE]);
     text = text.replace(Regexes[Strings.BOLD], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -448,6 +478,8 @@ export const escape = Object.freeze({
   italics: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultItalicsFilter, options);
 
+    // backslashes first, a trailing one would escape the closing marker
+    text = text.replace(Regexes[Strings.ESCAPE], Replacements[Strings.ESCAPE]);
     text = text.replace(Regexes[Strings.ITALICS], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -489,6 +521,8 @@ export const escape = Object.freeze({
   spoiler: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultSpoilerFilter, options);
 
+    // backslashes first, a trailing one would escape the closing marker
+    text = text.replace(Regexes[Strings.ESCAPE], Replacements[Strings.ESCAPE]);
     text = text.replace(Regexes[Strings.SPOILER], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -498,6 +532,8 @@ export const escape = Object.freeze({
   strike: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultStrikeFilter, options);
 
+    // backslashes first, a trailing one would escape the closing marker
+    text = text.replace(Regexes[Strings.ESCAPE], Replacements[Strings.ESCAPE]);
     text = text.replace(Regexes[Strings.STRIKE], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -519,6 +555,8 @@ export const escape = Object.freeze({
   underline: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultUnderlineFilter, options);
 
+    // backslashes first, a trailing one would escape the closing marker
+    text = text.replace(Regexes[Strings.ESCAPE], Replacements[Strings.ESCAPE]);
     text = text.replace(Regexes[Strings.UNDERLINE], filter.replacement);
     if (filter.mentions) {
       text = escape.mentions(text, filter.mentionEscapeCharacter);
@@ -527,7 +565,7 @@ export const escape = Object.freeze({
   },
   url: (text: string, options: MarkupFilterOptions = {}): string => {
     text = text.replace(Regexes.URL, (match: string) => {
-      return '%' + match.charCodeAt(0).toString(16);
+      return '%' + match.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0');
     });
     return text;
   },

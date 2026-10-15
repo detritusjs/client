@@ -68,7 +68,6 @@ export class CommandRatelimit {
     }
 
     if (typeof(this.type) === 'string' && !COMMAND_RATELIMIT_TYPES.includes(this.type)) {
-      // maybe error instead?
       this.type = CommandRatelimitTypes.USER;
     }
 

@@ -30,10 +30,10 @@ export class ApplicationRoleConnectionMetadata extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysApplicationRoleConnectionMetadata); }
 
   description: string = '';
-  descriptionLocalizations?: Record<string, string>;
+  declare descriptionLocalizations?: Record<string, string>;
   key: string = '';
   name: string = '';
-  nameLocalizations?: Record<string, string>;
+  declare nameLocalizations?: Record<string, string>;
   type!: ApplicationRoleConnectionMetadataTypes;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {

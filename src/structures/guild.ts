@@ -43,6 +43,7 @@ import {
   BaseStructureData,
   convertKey,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 import {
   createChannelFromData,
@@ -780,6 +781,15 @@ const keysSkipDifferenceGuild = new BaseSet<string>([
   DiscordKeys.STICKERS,
 ]);
 
+// large (or computed from the client's whole cache) and never changed by a GUILD_UPDATE, so `clone()` doesn't copy them
+const keysCloneSkipGuild = new BaseSet<string>([
+  DiscordKeys.CHANNELS,
+  DiscordKeys.MEMBERS,
+  DiscordKeys.PRESENCES,
+  DiscordKeys.THREADS,
+  DiscordKeys.VOICE_STATES,
+]);
+
 /**
  * Guild Structure
  * @category Structure
@@ -789,13 +799,15 @@ export class Guild extends GuildPartial {
   static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferenceGuild); }
   readonly _channelIds = new BaseSet<string>();
   readonly _threadIds = new BaseSet<string>();
+  // if any of our presences could have this guild, clearing them means going through every cached presence
+  _hasPresences: boolean = false;
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
-  applicationId?: null | string;
+  declare applicationId?: null | string;
   // only sent when fetched with `withCounts`
-  approximateMemberCount?: number;
-  approximatePresenceCount?: number;
+  declare approximateMemberCount?: number;
+  declare approximatePresenceCount?: number;
   autoModerationRules: BaseCollection<string, AutoModerationRule>;
   banner: null | string = null;
   defaultMessageNotifications: number = 0;
@@ -817,7 +829,7 @@ export class Guild extends GuildPartial {
   maxMembers: number = DEFAULT_MAX_MEMBERS;
   maxPresences: number = DEFAULT_MAX_PRESENCES;
   incidentsData: GuildIncidentsData | null = null;
-  maxStageVideoChannelUsers?: number;
+  declare maxStageVideoChannelUsers?: number;
   maxVideoChannelUsers: number = DEFAULT_MAX_VIDEO_CHANNEL_USERS;
   memberCount: number = 0;
   members: BaseCollection<string, Member>;
@@ -1228,8 +1240,37 @@ export class Guild extends GuildPartial {
     return super.hasDifference(key, value);
   }
 
+  /**
+   * Copies everything except the channels, members, presences, threads and voice states
+   * serializing those took hundreds of milliseconds on big guilds, for every GUILD_UPDATE with a listener
+   * the copy keeps the channel/thread ids (its `channels`/`threads` read the client's cache like any guild) and shares the live `members` collection
+   */
+  clone(): this {
+    const keys: Array<string> = [];
+    if (this._keys) {
+      for (let key of this._keys) {
+        if (!keysCloneSkipGuild.has(key)) {
+          keys.push(key);
+        }
+      }
+    }
+    const data = this._writeIncidentsData(this._toJSONKeys(keys));
+    const guild = new Guild(this.client, JSON.parse(JSON.stringify(data)), true);
+    for (let channelId of this._channelIds) {
+      guild._channelIds.add(channelId);
+    }
+    for (let threadId of this._threadIds) {
+      guild._threadIds.add(threadId);
+    }
+    guild.members = this.members;
+    return guild as this;
+  }
+
   toJSON() {
-    const data = super.toJSON() as any;
+    return this._writeIncidentsData(super.toJSON() as any);
+  }
+
+  _writeIncidentsData(data: any): any {
     // write `incidents_data` back out in discord's shape so `clone()` round-trips
     if (this.incidentsData) {
       data[DiscordKeys.INCIDENTS_DATA] = {
@@ -1452,12 +1493,17 @@ export class Guild extends GuildPartial {
       if (!this.isClone) {
         // drop the presences when cloning the guild..
 
-        this.client.presences.clearGuildId(this.id);
+        // only a guild that loaded presences before (a resync) has old ones to clear, not every guild coming in at startup
+        if (this._hasPresences) {
+          this.client.presences.clearGuildId(this.id);
+          this._hasPresences = false;
+        }
         if (this.client.presences.enabled) {
           for (let raw of value) {
             raw[DiscordKeys.GUILD_ID] = this.id;
             this.client.presences.insert(raw);
           }
+          this._hasPresences = true;
         }
       }
     }
@@ -1631,8 +1677,8 @@ export class GuildMe extends BaseGuild {
   static { setStructureKeys(this, '_keys', keysGuildMe); }
 
   // only sent when fetched with `withCounts`
-  approximateMemberCount?: number;
-  approximatePresenceCount?: number;
+  declare approximateMemberCount?: number;
+  declare approximatePresenceCount?: number;
   banner: null | string = null;
   owner: boolean = false;
   permissions: bigint = Permissions.NONE;
@@ -1727,7 +1773,7 @@ const keysGuildWelcomeScreen = new BaseSet<string>([
  * @category Structure
  */
 export class GuildWelcomeScreen extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysGuildWelcomeScreen); }
 
   description: string = '';
@@ -1776,14 +1822,14 @@ const keysGuildWelcomeScreenChannel = new BaseSet<string>([
  * @category Structure
  */
 export class GuildWelcomeScreenChannel extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysGuildWelcomeScreenChannel); }
 
   declare readonly guildWelcomeScreen: GuildWelcomeScreen;
 
   channelId: string = '';
   description: string = '';
-  emojiId?: string;
+  declare emojiId?: string;
   emojiName: string | null = null;
 
   constructor(guildWelcomeScreen: GuildWelcomeScreen, data: BaseStructureData) {

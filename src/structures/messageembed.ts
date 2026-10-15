@@ -35,21 +35,21 @@ const keysMessageEmbed = new BaseSet<string>([
 export class MessageEmbed extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysMessageEmbed); }
 
-  author?: MessageEmbedAuthor;
-  color?: number;
-  description?: string;
-  fields?: BaseCollection<number, MessageEmbedField>;
-  flags?: number;
-  footer?: MessageEmbedFooter;
-  image?: MessageEmbedImage;
-  provider?: MessageEmbedProvider;
-  referenceId?: string;
-  thumbnail?: MessageEmbedThumbnail;
-  timestamp?: Date;
-  title?: string;
+  declare author?: MessageEmbedAuthor;
+  declare color?: number;
+  declare description?: string;
+  declare fields?: BaseCollection<number, MessageEmbedField>;
+  declare flags?: number;
+  declare footer?: MessageEmbedFooter;
+  declare image?: MessageEmbedImage;
+  declare provider?: MessageEmbedProvider;
+  declare referenceId?: string;
+  declare thumbnail?: MessageEmbedThumbnail;
+  declare timestamp?: Date;
+  declare title?: string;
   type: MessageEmbedTypes = MessageEmbedTypes.RICH;
-  url?: string;
-  video?: MessageEmbedVideo;
+  declare url?: string;
+  declare video?: MessageEmbedVideo;
 
   constructor(
     client: ShardClient,
@@ -216,10 +216,10 @@ const keysMessageEmbedAuthor = new BaseSet<string>([
 export class MessageEmbedAuthor extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysMessageEmbedAuthor); }
 
-  iconUrl?: string;
-  name?: string;
-  proxyIconUrl?: string;
-  url?: string;
+  declare iconUrl?: string;
+  declare name?: string;
+  declare proxyIconUrl?: string;
+  declare url?: string;
 
   constructor(
     client: ShardClient,
@@ -308,8 +308,8 @@ const keysMessageEmbedFooter = new BaseSet<string>([
 export class MessageEmbedFooter extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysMessageEmbedFooter); }
 
-  iconUrl?: string;
-  proxyIconUrl?: string;
+  declare iconUrl?: string;
+  declare proxyIconUrl?: string;
   text: string = '';
 
   constructor(
@@ -358,13 +358,13 @@ const keysMessageEmbedImage = new BaseSet<string>([
 export class MessageEmbedImage extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysMessageEmbedImage); }
 
-  contentType?: string;
-  description?: string;
-  flags?: number;
+  declare contentType?: string;
+  declare description?: string;
+  declare flags?: number;
   height: number = 0;
-  placeholder?: string;
-  placeholderVersion?: number;
-  proxyUrl?: string;
+  declare placeholder?: string;
+  declare placeholderVersion?: number;
+  declare proxyUrl?: string;
   url: string = '';
   width: number = 0;
 
@@ -429,8 +429,8 @@ const keysMessageEmbedProvider = new BaseSet<string>([
 export class MessageEmbedProvider extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysMessageEmbedProvider); }
 
-  name?: string;
-  url?: string;
+  declare name?: string;
+  declare url?: string;
 
   constructor(
     client: ShardClient,

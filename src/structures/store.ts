@@ -15,6 +15,7 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 import { Application } from './application';
 import { Sku } from './sku';
@@ -48,19 +49,19 @@ export class StoreListing extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysStore); }
 
   assets = new BaseCollection<string, StoreListingAsset>();
-  boxArt?: StoreListingAsset;
-  carouselItems?: Array<{asset_id?: string, youtube_video_id?: string}>;
-  description?: string;
-  entitlementBranchId?: string;
-  headerBackground?: StoreListingAsset;
-  headerLogoDarkTheme?: StoreListingAsset;
-  heroBackground?: StoreListingAsset;
-  heroVideo?: StoreListingAsset;
+  declare boxArt?: StoreListingAsset;
+  declare carouselItems?: Array<{asset_id?: string, youtube_video_id?: string}>;
+  declare description?: string;
+  declare entitlementBranchId?: string;
+  declare headerBackground?: StoreListingAsset;
+  declare headerLogoDarkTheme?: StoreListingAsset;
+  declare heroBackground?: StoreListingAsset;
+  declare heroVideo?: StoreListingAsset;
   id: string = '';
-  previewVideo?: StoreListingAsset;
+  declare previewVideo?: StoreListingAsset;
   sku!: Sku;
   summary: string = '';
-  tagline?: string;
+  declare tagline?: string;
   thumbnail!: StoreListingAsset;
 
   constructor(
@@ -158,7 +159,7 @@ const keysStoreListingAsset = new BaseSet<string>([
  * @category Structure
  */
 export class StoreListingAsset extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysStoreListingAsset); }
   declare readonly storeListing: StoreListing;
 

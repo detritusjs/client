@@ -366,12 +366,12 @@ export class RoleTags extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysRoleTags); }
 
   // `availableForPurchase`, `guildConnections`, and `premiumSubscriber` are sent as `null` when true and omitted when false
-  availableForPurchase?: boolean;
-  botId?: string;
-  guildConnections?: boolean;
-  integrationId?: string;
-  premiumSubscriber?: boolean;
-  subscriptionListingId?: string;
+  declare availableForPurchase?: boolean;
+  declare botId?: string;
+  declare guildConnections?: boolean;
+  declare integrationId?: string;
+  declare premiumSubscriber?: boolean;
+  declare subscriptionListingId?: string;
 
   constructor(
     client: ShardClient,
@@ -393,5 +393,33 @@ export class RoleTags extends BaseStructure {
     (this as any)[DetritusKeys[DiscordKeys.INTEGRATION_ID]] = data[DiscordKeys.INTEGRATION_ID];
     (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIBER]] = (DiscordKeys.PREMIUM_SUBSCRIBER in data) || undefined;
     (this as any)[DetritusKeys[DiscordKeys.SUBSCRIPTION_LISTING_ID]] = data[DiscordKeys.SUBSCRIPTION_LISTING_ID];
+  }
+
+  // the flags are true when their key is there at all (sent as `null`), the generic compare would see `true` vs `null` as a change
+  differences(data?: BaseStructureData): null | object {
+    if (!data) {
+      return null;
+    }
+    let hasDifferences = false;
+    const obj: BaseStructureData = {};
+    for (let key of [DiscordKeys.AVAILABLE_FOR_PURCHASE, DiscordKeys.GUILD_CONNECTIONS, DiscordKeys.PREMIUM_SUBSCRIBER]) {
+      const old = (this as any)[DetritusKeys[key]];
+      if (!!old !== (key in data)) {
+        obj[DetritusKeys[key]] = old;
+        hasDifferences = true;
+      }
+    }
+    for (let key of [DiscordKeys.BOT_ID, DiscordKeys.INTEGRATION_ID, DiscordKeys.SUBSCRIPTION_LISTING_ID]) {
+      const old = (this as any)[DetritusKeys[key]];
+      if (old !== data[key]) {
+        obj[DetritusKeys[key]] = old;
+        hasDifferences = true;
+      }
+    }
+    return (hasDifferences) ? obj : null;
+  }
+
+  hasDifferences(data?: BaseStructureData): boolean {
+    return !!this.differences(data);
   }
 }

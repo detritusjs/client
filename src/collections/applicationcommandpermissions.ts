@@ -32,10 +32,11 @@ export class ApplicationCommandPermissionsCache extends BaseClientCollectionCach
 
   async fill(guildId: string, force: boolean = false): Promise<void> {
     if (this.enabled && (!this.has(guildId) || force) && this.client.applicationId) {
+      // fetch before clearing, so `isAllowed` keeps the old permissions while we wait
+      // and a failed fetch doesn't leave an empty (allow everything) cache that `has()` says is filled
+      const permissions = await this.client.rest.fetchApplicationGuildCommandsPermissions(this.client.applicationId, guildId);
       const collection = this.insertCache(guildId);
       collection.clear();
-
-      const permissions = await this.client.rest.fetchApplicationGuildCommandsPermissions(this.client.applicationId, guildId);
       for (let [permissionId, permission] of permissions) {
         collection.set(permission.id, permission);
       }

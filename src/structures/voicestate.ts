@@ -57,9 +57,9 @@ export class VoiceState extends BaseStructure {
   // only declared, the constructor adds it (see `voiceStateHiddenProperties`)
   declare _isSpeaking: boolean;
 
-  channelId?: null | string;
+  declare channelId?: null | string;
   deaf: boolean = false;
-  guildId?: null | string;
+  declare guildId?: null | string;
   member: Member | null = null;
   mute: boolean = false;
   requestToSpeakTimestampUnix: number = 0;

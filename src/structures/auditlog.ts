@@ -17,6 +17,7 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 import { ApplicationCommand } from './applicationcommand';
 import { AutoModerationRule } from './automoderationrule';
@@ -47,19 +48,19 @@ const keysAuditLog = new BaseSet<string>([
  * @category Structure
  */
 export class AuditLog extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysAuditLog); }
 
   actionType!: AuditLogActions;
   changes = new BaseCollection<string, any>();
   id: string = '';
   guildId: string = '';
-  options?: AuditLogOptions;
-  reason?: string;
-  target?: ApplicationCommand | AutoModerationRule | GuildScheduledEvent | Integration | ChannelGuildThread | User | Webhook;
-  targetId?: string;
-  user?: User;
-  userId?: string;
+  declare options?: AuditLogOptions;
+  declare reason?: string;
+  declare target?: ApplicationCommand | AutoModerationRule | GuildScheduledEvent | Integration | ChannelGuildThread | User | Webhook;
+  declare targetId?: string;
+  declare user?: User;
+  declare userId?: string;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
@@ -133,7 +134,7 @@ const keysAuditLogChange = new BaseSet<string>([
  * @category Structure
  */
 export class AuditLogChange extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysAuditLogChange); }
 
   declare readonly log: AuditLog;
@@ -187,24 +188,24 @@ const keysAuditLogOptions = new BaseSet<string>([
  * @category Structure
  */
 export class AuditLogOptions extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysAuditLogOptions); }
 
   declare readonly log: AuditLog;
 
-  applicationId?: string;
-  autoModerationRuleName?: string;
-  autoModerationRuleTriggerType?: string;
-  channelId?: string;
-  count?: number;
-  deleteMemberDays?: number;
-  id?: string;
-  integrationType?: string;
-  membersRemoved?: number;
-  messageId?: string;
-  roleName?: string;
-  status?: string;
-  type?: string;
+  declare applicationId?: string;
+  declare autoModerationRuleName?: string;
+  declare autoModerationRuleTriggerType?: string;
+  declare channelId?: string;
+  declare count?: number;
+  declare deleteMemberDays?: number;
+  declare id?: string;
+  declare integrationType?: string;
+  declare membersRemoved?: number;
+  declare messageId?: string;
+  declare roleName?: string;
+  declare status?: string;
+  declare type?: string;
 
   constructor(log: AuditLog, data: BaseStructureData) {
     super(log.client, undefined, log._clone);

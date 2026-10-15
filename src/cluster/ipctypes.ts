@@ -67,6 +67,8 @@ export namespace ClusterIPCTypes {
     result?: any,
 
     args?: Array<any>,
+    // skip the manager's rest cache, fetch fresh and replace the cached result
+    force?: boolean,
     hash: string,
     name: string,
   }

@@ -244,12 +244,13 @@ export class Context {
     return this.message.guildId;
   }
 
-  get hasServerPermissions() {
-    return true;
-  }
-
   get inDm() {
     return this.message.inDm;
+  }
+
+  // message commands only come from where the bot user is
+  get isBotPresent() {
+    return true;
   }
 
   get maxAttachmentSize(): number {
@@ -317,7 +318,7 @@ export class Context {
       options = Object.assign({attachments: [], components: [], content: '', embeds: []}, options);
       const old = this.commandClient.replies.get(this.messageId)!;
 
-      let shouldReplyWithNew = !old.reply.canEdit || options.activity || options.applicationId;
+      let shouldReplyWithNew = old.reply.deleted || !old.reply.canEdit || options.activity || options.applicationId;
       if (!shouldReplyWithNew) {
         // you can edit from non-components-v2 to components-v2, but not the other way around
         // must have empty embeds and content though if you do
@@ -344,12 +345,25 @@ export class Context {
 
       if (shouldReplyWithNew) {
         // maybe add checks for flag IS_VOICE_MESSAGE since you cant edit that flag in
-        if (options.delete || options.delete === undefined) {
-          await old.reply.delete();
+        if (!old.reply.deleted && (options.delete || options.delete === undefined)) {
+          try {
+            await old.reply.delete();
+          } catch(error) {
+            // it might've been deleted already (like by a COMMAND_DELETE listener), still send the new reply
+          }
         }
         reply = await this.message.reply(options);
       } else {
-        reply = await old.reply.edit(options);
+        try {
+          reply = await old.reply.edit(options);
+        } catch(error: any) {
+          // the old reply got deleted out from under us, send a new one instead
+          if (error && error.response && error.response.statusCode === 404) {
+            reply = await this.message.reply(options);
+          } else {
+            throw error;
+          }
+        }
       }
     } else {
       reply = await this.message.reply(options);

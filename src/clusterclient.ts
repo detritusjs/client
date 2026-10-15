@@ -35,13 +35,14 @@ export interface ClusterClientRunOptions extends ShardClientRunOptions {
 
 export class ClusterClient extends EventSpewer {
   readonly _refresh: {
-    applicationEmojis: {data: {items: Array<any>} | null, last: number, promise: Promise<{items: Array<any>}> | null, time: number},
-    applications: {data: Array<any> | null, last: number, promise: Promise<Array<any>> | null, time: number},
-    oauth2Application: {last: number, time: number},
+    // `forced` is whether the in-flight `promise` skipped the manager's rest cache
+    applicationEmojis: {data: {items: Array<any>} | null, forced: boolean, last: number, promise: Promise<{items: Array<any>}> | null, time: number},
+    applications: {data: Array<any> | null, forced: boolean, last: number, promise: Promise<Array<any>> | null, time: number},
+    oauth2Application: {data: any, last: number, promise: Promise<any> | null, time: number},
   } = {
-    applicationEmojis: {data: null, last: 0, promise: null, time: 4 * (60 * 60) * 1000},
-    applications: {data: null, last: 0, promise: null, time: 4 * (60 * 60) * 1000},
-    oauth2Application: {last: 0, time: 4 * (60 * 60) * 1000},
+    applicationEmojis: {data: null, forced: false, last: 0, promise: null, time: 4 * (60 * 60) * 1000},
+    applications: {data: null, forced: false, last: 0, promise: null, time: 4 * (60 * 60) * 1000},
+    oauth2Application: {data: null, last: 0, promise: null, time: 4 * (60 * 60) * 1000},
   };
   readonly _shardsIdentifyAttempt = new BaseCollection<number, number>();
   readonly _shardsWaiting = new BaseCollection<number, {resolve: Function, reject: Function}>();
@@ -173,6 +174,10 @@ export class ClusterClient extends EventSpewer {
     Object.defineProperty(this, 'ran', {value: false});
     this.emit(ClientEvents.KILLED, {error});
     this.removeAllListeners();
+    if (this.manager) {
+      // the manager's hooks were removed with everything else, a rerun still has to identify through it
+      this.manager.hookCluster();
+    }
   }
 
   hookedHasEventListener(shard: ShardClient, name: string): boolean {
@@ -197,30 +202,40 @@ export class ClusterClient extends EventSpewer {
     if (enabled && applicationId) {
       let data: {items: Array<any>};
       let fetched = false;
-      if (refresh.promise) {
+      // a forced refresh can't share an in-flight normal one, the manager may be answering that one from its cache
+      if (refresh.promise && (refresh.forced || !force)) {
         data = await refresh.promise;
       } else if (!force && refresh.data && Date.now() - refresh.last < refresh.time) {
         data = refresh.data;
       } else {
         const promise = refresh.promise = (async () => {
           if (this.manager && this.manager.hasMultipleClusters) {
-            const data: {items: Array<any>} = await this.manager.sendRestRequest('fetchApplicationEmojis', [applicationId]);
-            this.manager.sendIPCOrWarn(ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS, {data});
-            return data;
+            // forced ones skip the manager's rest cache too
+            return this.manager.sendRestRequest('fetchApplicationEmojis', [applicationId], force);
           }
           return this.rest.fetchApplicationEmojis(applicationId);
         })();
+        refresh.forced = force;
+        let superseded = false;
         try {
           data = await promise;
         } finally {
-          if (refresh.promise === promise) {
+          superseded = (refresh.promise !== promise);
+          if (!superseded) {
             refresh.promise = null;
           }
+        }
+        if (superseded) {
+          // a forced refresh started while ours was running, don't let our older result overwrite its newer one
+          return this.fillApplicationEmojis();
         }
         // only mark as refreshed once the fetch succeeded, so failures can be retried
         refresh.data = data;
         refresh.last = Date.now();
         fetched = true;
+        if (this.manager && this.manager.hasMultipleClusters) {
+          this.manager.sendIPCOrWarn(ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS, {data});
+        }
       }
       for (let [shardId, shard] of this.shards) {
         // shards that (re)identified had their cache reset, fill them from the last fetch
@@ -238,24 +253,33 @@ export class ClusterClient extends EventSpewer {
     if (enabled) {
       let applications: Array<any>;
       let fetched = false;
-      if (refresh.promise) {
+      // a forced refresh can't share an in-flight normal one, the manager may be answering that one from its cache
+      if (refresh.promise && (refresh.forced || !force)) {
         applications = await refresh.promise;
       } else if (!force && refresh.data && Date.now() - refresh.last < refresh.time) {
         applications = refresh.data;
       } else {
         const promise = refresh.promise = (async () => {
           if (this.manager && this.manager.hasMultipleClusters) {
-            const applications: Array<any> = await this.manager.sendRestRequest('fetchApplicationsDetectable');
+            // forced ones skip the manager's rest cache too
+            const applications: Array<any> = await this.manager.sendRestRequest('fetchApplicationsDetectable', undefined, force);
             return applications;
           }
           return this.rest.fetchApplicationsDetectable();
         })();
+        refresh.forced = force;
+        let superseded = false;
         try {
           applications = await promise;
         } finally {
-          if (refresh.promise === promise) {
+          superseded = (refresh.promise !== promise);
+          if (!superseded) {
             refresh.promise = null;
           }
+        }
+        if (superseded) {
+          // a forced refresh started while ours was running, don't let our older result overwrite its newer one
+          return this.fillApplications();
         }
         // only mark as refreshed once the fetch succeeded, so failures can be retried
         refresh.data = applications;
@@ -271,15 +295,33 @@ export class ClusterClient extends EventSpewer {
     }
   }
 
-  async fillOauth2Application(): Promise<void> {
+  async fillOauth2Application(force: boolean = false): Promise<void> {
     const refresh = this._refresh.oauth2Application;
-    if (Date.now() - refresh.last < refresh.time) {
-      return;
+    let data: any;
+    let fetched = false;
+    if (refresh.promise) {
+      data = await refresh.promise;
+    } else if (!force && refresh.data && Date.now() - refresh.last < refresh.time) {
+      data = refresh.data;
+    } else {
+      // share one fetch between shards that ready at the same time
+      const promise = refresh.promise = this.rest.fetchOauth2Application();
+      try {
+        data = await promise;
+      } finally {
+        if (refresh.promise === promise) {
+          refresh.promise = null;
+        }
+      }
+      refresh.data = data;
+      refresh.last = Date.now();
+      fetched = true;
     }
-    const data = await this.rest.fetchOauth2Application();
-    refresh.last = Date.now();
     for (let [shardId, shard] of this.shards) {
-      shard._mergeOauth2Application(data);
+      // shards made by a rerun (after kill()) still need the last fetch
+      if (fetched || !shard.application) {
+        shard._mergeOauth2Application(data);
+      }
     }
   }
 
@@ -301,14 +343,20 @@ export class ClusterClient extends EventSpewer {
 
     let maxConcurrency: number = +(options.maxConcurrency || this.maxConcurrency);
     let shardCount: number = options.shardCount || this.shardCount || 0;
-    if (options.url === undefined || !shardCount || !maxConcurrency) {
-      const data = await this.rest.fetchGatewayBot();
-      maxConcurrency = data.session_start_limit.max_concurrency;
-      shardCount = shardCount || data.shards;
-      options.url = options.url || data.url;
-    }
-    if (!shardCount) {
-      throw new Error('Shard Count cannot be 0, pass in one via the options or the constructor.');
+    try {
+      if (options.url === undefined || !shardCount || !maxConcurrency) {
+        const data = await this.rest.fetchGatewayBot();
+        maxConcurrency = data.session_start_limit.max_concurrency;
+        shardCount = shardCount || data.shards;
+        options.url = options.url || data.url;
+      }
+      if (!shardCount) {
+        throw new Error('Shard Count cannot be 0, pass in one via the options or the constructor.');
+      }
+    } catch(error) {
+      // nothing was started yet, let a later run() try again
+      Object.defineProperty(this, 'ran', {value: false});
+      throw error;
     }
     this.maxConcurrency = maxConcurrency;
     this.setShardCount(shardCount);
@@ -347,6 +395,8 @@ export class ClusterClient extends EventSpewer {
           if (stale) {
             return;
           }
+          // any identify job still queued for this shard is for the socket that just closed
+          this._shardsIdentifyAttempt.set(shardId, (this._shardsIdentifyAttempt.get(shardId) || 0) + 1);
           const waiting = this._shardsWaiting.get(shardId);
           if (waiting) {
             this._shardsWaiting.delete(shardId);
@@ -354,6 +404,7 @@ export class ClusterClient extends EventSpewer {
           }
         });
         shard.gateway.on(SocketEvents.KILLED, ({error}) => {
+          this._shardsIdentifyAttempt.set(shardId, (this._shardsIdentifyAttempt.get(shardId) || 0) + 1);
           const waiting = this._shardsWaiting.get(shardId);
           if (waiting) {
             this._shardsWaiting.delete(shardId);

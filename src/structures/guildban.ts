@@ -66,7 +66,6 @@ export class GuildBan extends BaseStructure {
         user.merge(value);
       } else {
         user = new User(this.client, value);
-        // maybe insert?
       }
       (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }

@@ -36,10 +36,10 @@ export class SoundboardSound extends BaseStructure {
   available: boolean = true;
   emojiId: null | string = null;
   emojiName: null | string = null;
-  guildId?: string;
+  declare guildId?: string;
   name: string = '';
   soundId: string = '';
-  user?: User;
+  declare user?: User;
   volume: number = 1;
 
   constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {

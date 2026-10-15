@@ -30,12 +30,17 @@ export interface ClusterManagerRunOptions {
 }
 
 export interface ClusterManagerRestCachePayload {
+  // made by a forced request, so it's safe for other forced requests to share while it's in flight
+  forced?: boolean,
+  // when the result came back
+  last?: number,
   promise?: Promise<any>,
   result?: any,
 }
 
 export class ClusterManager extends EventSpewer {
   _respawningAll: Promise<void> | null = null;
+  _running: Promise<ClusterManager> | null = null;
   buckets = new BaseCollection<number, Bucket>();
   // node arguments passed to each cluster process (e.g. `--max-old-space-size=4096`), defaults to the manager's `process.execArgv`
   execArgv?: Array<string>;
@@ -109,6 +114,23 @@ export class ClusterManager extends EventSpewer {
     if (this.ran) {
       return this;
     }
+    // a second run() while the first is still spawning would spawn every cluster twice
+    if (this._running) {
+      return this._running;
+    }
+    const promise = this._running = this._run(options);
+    try {
+      return await promise;
+    } finally {
+      if (this._running === promise) {
+        this._running = null;
+      }
+    }
+  }
+
+  async _run(
+    options: ClusterManagerRunOptions,
+  ): Promise<ClusterManager> {
     options = Object.assign({
       delay: DEFAULT_SHARD_LAUNCH_DELAY,
     }, options);
@@ -158,7 +180,12 @@ export class ClusterManager extends EventSpewer {
       this.processes.set(clusterId, clusterProcess);
       this.emit(ClientEvents.CLUSTER_PROCESS, {clusterProcess});
 
-      await clusterProcess.run();
+      try {
+        await clusterProcess.run();
+      } catch(error) {
+        // the child died before readying, its exit handler respawns it so keep starting the other clusters
+        clusterProcess.emit('warn', {error});
+      }
       clusterId++;
     }
     Object.defineProperty(this, 'ran', {value: true});

@@ -43,14 +43,14 @@ export class ApplicationNews extends BaseStructure {
   category: null = null;
   description: string = '';
   flags: number = 0;
-  footer?: MessageEmbedFooter;
+  declare footer?: MessageEmbedFooter;
   gameId: string = '';
   id: string = '';
-  thumbnail?: MessageEmbedThumbnail;
+  declare thumbnail?: MessageEmbedThumbnail;
   timestamp!: Date;
   title: string = '';
   type: string = MessageEmbedTypes.APPLICATION_NEWS;
-  url?: string;
+  declare url?: string;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);

@@ -92,7 +92,8 @@ export type CommandCallbackFinally = (context: InteractionContext) => unknown;
 /**
  * @category InteractionCommand
  */
-export type CommandCallbackError = (context: InteractionContext, error: any) => unknown;
+// called as `onError(context, args, error)`, same as the class methods
+export type CommandCallbackError = (context: InteractionContext, args: ParsedArgs, error: any) => unknown;
 
 /**
  * @category InteractionCommand

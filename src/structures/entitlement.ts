@@ -37,15 +37,15 @@ export class Entitlement extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysEntitlement); }
 
   applicationId: string = '';
-  consumed?: boolean;
+  declare consumed?: boolean;
   deleted: boolean = false;
   endsAtUnix: number = 0;
-  guildId?: string;
+  declare guildId?: string;
   id: string = '';
   skuId: string = '';
   startsAtUnix: number = 0;
   type: number = EntitlementTypes.APPLICATION_SUBSCRIPTION;
-  userId?: string;
+  declare userId?: string;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);

@@ -209,10 +209,6 @@ export class ComponentContext {
     return this.interaction.guildPartial;
   }
 
-  get hasServerPermissions() {
-    return this.interaction.hasServerPermissions;
-  }
-
   get id() {
     return this.interaction.id;
   }
@@ -231,6 +227,18 @@ export class ComponentContext {
 
   get interactionId() {
     return this.interaction.id;
+  }
+
+  get isBotPresent() {
+    return this.interaction.isBotPresent;
+  }
+
+  get isFromGuildInstall() {
+    return this.interaction.isFromGuildInstall;
+  }
+
+  get isFromUserInstall() {
+    return this.interaction.isFromUserInstall;
   }
 
   get locale() {

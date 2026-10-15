@@ -43,7 +43,7 @@ export class Reaction extends BaseStructure {
   count: number = 0;
   countDetails!: {burst: number, normal: number};
   emoji!: Emoji;
-  guildId?: string;
+  declare guildId?: string;
   isPartial: boolean = false;
   messageId: string = '';
   me: boolean = false;
@@ -130,12 +130,13 @@ export class Reaction extends BaseStructure {
     if (DiscordKeys.EMOJI in data) {
       const value = data[DiscordKeys.EMOJI];
 
-      const emojiId = value.id || value.name;
-      const guildId = this.guildId || null;
+      const guildId = this.guildId;
 
       let emoji: Emoji;
-      if (this.client.emojis.has(guildId, emojiId)) {
-        emoji = this.client.emojis.get(guildId, emojiId) as Emoji;
+      // only custom emojis are cached, and only under their guild
+      // (without a guild id the lookup would go through every guild's emojis, like for every dm reaction)
+      if (guildId && value.id && this.client.emojis.has(guildId, value.id)) {
+        emoji = this.client.emojis.get(guildId, value.id) as Emoji;
       } else {
         emoji = new Emoji(this.client, value);
       }

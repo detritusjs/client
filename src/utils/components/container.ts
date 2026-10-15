@@ -59,7 +59,7 @@ const keysComponentContainer = new BaseSet<string>([
   constructor(data: ComponentContainerData = {}) {
     super();
     if (DetritusKeys[DiscordKeys.ACCENT_COLOR] in data) {
-      (data as any)[DiscordKeys.ACCENT_COLOR] = (data as any)[DetritusKeys[DiscordKeys.ACCENT_COLOR]];
+      data = Object.assign({}, data, {[DiscordKeys.ACCENT_COLOR]: (data as any)[DetritusKeys[DiscordKeys.ACCENT_COLOR]]});
     }
     this.merge(data);
     this.type = MessageComponentTypes.CONTAINER;

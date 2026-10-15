@@ -6,7 +6,6 @@ import { EventSpewer, Timers } from 'detritus-utils';
 
 import { ClusterClient } from '../clusterclient';
 import { BaseCollection } from '../collections/basecollection';
-import { BaseSet } from '../collections/baseset';
 import { ClientEvents, ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 import { GatewayClientEvents } from '../gateway/clientevents';
@@ -21,14 +20,35 @@ export const REST_REQUEST_TIMEOUT = 60 * 1000;
 export const BROADCAST_EVAL_TIMEOUT = 60 * 1000;
 // extra time to wait for the manager to send the (partial) results back
 export const BROADCAST_EVAL_TIMEOUT_GRACE = 5 * 1000;
+// max time a shard can hold its identify bucket while we wait for it to be ready
+export const IDENTIFY_READY_TIMEOUT = 30 * 1000;
+
+/**
+ * Eval results go over ipc as json, BigInts would throw there so send them as strings
+ * (structures go through their `toJSON()` either way)
+ */
+function toIPCSafe(value: any): any {
+  if (value === undefined) {
+    return value;
+  }
+  const json = JSON.stringify(value, (key, item) => (typeof(item) === 'bigint') ? String(item) : item);
+  return (json === undefined) ? undefined : JSON.parse(json);
+}
+
+// forced rest requests wait on their own key, so a forced one never shares (or answers) a normal one's waiter
+function getRestRequestKey(hash: string, force?: boolean): string {
+  return (force) ? `${hash}.force` : hash;
+}
 
 export class ClusterProcessChild extends EventSpewer {
+  readonly _broadcastEvalsWaiting = new BaseCollection<string, (data: ClusterIPCTypes.Eval) => void>();
   readonly _restRequestsWaiting = new BaseCollection<string | number, {
     promise: Promise<any>,
     reject: Function,
     resolve: Function,
   }>();
-  readonly _shardsIdentifying = new BaseSet<number>();
+  // shard id -> when the manager let it identify
+  readonly _shardsIdentifying = new BaseCollection<number, number>();
   readonly cluster: ClusterClient;
 
   broadcastEvalTimeout: number = BROADCAST_EVAL_TIMEOUT;
@@ -45,6 +65,23 @@ export class ClusterProcessChild extends EventSpewer {
 
     process.on('message', this.onMessage.bind(this));
     process.on('message', this.emit.bind(this, 'ipc'));
+    this.hookCluster();
+
+    Object.defineProperties(this, {
+      cluster: {enumerable: false, writable: false},
+      clusterId: {writable: false},
+    });
+  }
+
+  get hasMultipleClusters(): boolean {
+    return 1 < this.clusterCount;
+  }
+
+  /**
+   * Attach our listeners to the cluster client
+   * `ClusterClient.kill()` removes every listener, so it calls this again to keep a rerun coordinated with the manager
+   */
+  hookCluster(): void {
     this.cluster.on('ready', () => this.sendIPCOrWarn(ClusterIPCOpCodes.READY));
     this.cluster.on('shard', ({shard}) => {
       shard.gateway.on(SocketEvents.STATE, async ({state}) => {
@@ -77,23 +114,19 @@ export class ClusterProcessChild extends EventSpewer {
       });
       shard.gateway.onIdentifyCheck = async () => {
         const { shardId } = shard;
-        if (this._shardsIdentifying.has(shardId)) {
-          return true;
-        } else {
-          await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
+        const allowedAt = this._shardsIdentifying.get(shardId);
+        if (allowedAt !== undefined) {
+          // the manager stops holding the identify bucket for us after this, so ask again instead of identifying on our own
+          // (like an INVALID_SESSION reconnect, which closes the old socket as stale and never readies)
+          if (Date.now() - allowedAt < IDENTIFY_READY_TIMEOUT) {
+            return true;
+          }
+          this._shardsIdentifying.delete(shardId);
         }
+        await this.sendIPC(ClusterIPCOpCodes.IDENTIFY_REQUEST, {shardId});
         return false;
       };
     });
-
-    Object.defineProperties(this, {
-      cluster: {enumerable: false, writable: false},
-      clusterId: {writable: false},
-    });
-  }
-
-  get hasMultipleClusters(): boolean {
-    return 1 < this.clusterCount;
   }
 
   async onMessage(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {
@@ -103,7 +136,14 @@ export class ClusterProcessChild extends EventSpewer {
     try {
       switch (message.op) {
         case ClusterIPCOpCodes.EVAL: {
-          if (message.request) {
+          if (!message.request) {
+            // the manager answering one of our broadcast evals
+            const data: ClusterIPCTypes.Eval = message.data;
+            const waiting = (data) ? this._broadcastEvalsWaiting.get(data.nonce) : undefined;
+            if (waiting) {
+              waiting(data);
+            }
+          } else {
             // we received a request to eval from the parent
             const data: ClusterIPCTypes.Eval = message.data;
             if (message.shard != null && !this.cluster.shards.has(message.shard)) {
@@ -113,7 +153,7 @@ export class ClusterProcessChild extends EventSpewer {
               });
             } else {
               try {
-                const result = await Promise.resolve(this.cluster._eval(data.code));
+                const result = toIPCSafe(await Promise.resolve(this.cluster._eval(data.code)));
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
                   ...data,
                   result,
@@ -147,16 +187,17 @@ export class ClusterProcessChild extends EventSpewer {
           const shard = this.cluster.shards.get(shardId);
           // identify() ignores the call unless the socket is open or resuming
           if (shard && !shard.gateway.killed && (shard.gateway.state === SocketStates.OPEN || shard.gateway.state === SocketStates.RESUMING)) {
-            this._shardsIdentifying.add(shardId);
+            this._shardsIdentifying.set(shardId, Date.now());
             shard.gateway.identify();
           }
         }; return;
         case ClusterIPCOpCodes.REST_REQUEST: {
           const { clusterId } = message;
           if (clusterId === this.clusterId) {
-            const { error, hash, result }: ClusterIPCTypes.RestRequest = message.data;
-            if (this._restRequestsWaiting.has(hash)) {
-              const waiting = this._restRequestsWaiting.get(hash)!;
+            const { error, force, hash, result }: ClusterIPCTypes.RestRequest = message.data;
+            const key = getRestRequestKey(hash, force);
+            if (this._restRequestsWaiting.has(key)) {
+              const waiting = this._restRequestsWaiting.get(key)!;
               if (error) {
                 waiting.reject(new ClusterIPCError(error));
               } else {
@@ -209,89 +250,88 @@ export class ClusterProcessChild extends EventSpewer {
   }
 
   async broadcastEval(code: Function | string, ...args: any[]): Promise<Array<any>> {
-    const parent = process as any;
-    const nonce = Snowflake.generate().id;
-    const timeout = this.broadcastEvalTimeout;
-    return new Promise(async (resolve, reject) => {
-      const timer = new Timers.Timeout();
-      const listener = (
-        message: ClusterIPCTypes.IPCMessage | any,
-      ) => {
-        if (message && typeof(message) === 'object') {
-          if (message.request) {
-            return;
-          }
-          switch (message.op) {
-            case ClusterIPCOpCodes.EVAL: {
-              const data: ClusterIPCTypes.Eval = message.data;
-              if (data.nonce === nonce) {
-                timer.stop();
-                parent.removeListener('message', listener);
+    if (typeof(code) === 'function') {
+      // build the code first, an argument that can't be serialized (circular, BigInt inside an object) rejects right here
+      const evalArgs = ['this'];
+      for (let arg of args) {
+        switch (typeof(arg)) {
+          case 'bigint': {
+            evalArgs.push(`${arg}n`);
+          }; break;
+          case 'boolean':
+          case 'number': {
+            evalArgs.push(`${arg}`);
+          }; break;
+          case 'object': {
+            // double stringify so the eval'd code gets a string literal to parse
+            evalArgs.push(`JSON.parse(${JSON.stringify(JSON.stringify(arg))})`);
+          }; break;
+          case 'string': {
+            evalArgs.push(JSON.stringify(arg));
+          }; break;
+          case 'undefined': {
+            evalArgs.push('undefined');
+          }; break;
+          default: {
+            evalArgs.push(JSON.stringify(String(arg)));
+          };
+        }
+      }
+      code = `(${String(code)})(${evalArgs.join(', ')})`;
+    }
 
-                if (data.error) {
-                  reject(new ClusterIPCError(data.error));
-                } else {
-                  const results = (data.results || []).map(([result, isError]) => {
-                    if (isError) {
-                      return new ClusterIPCError(result);
-                    }
-                    return result;
-                  });
-                  resolve(results);
-                }
-              }
-            }; break;
-          }
+    // every cluster generates snowflakes with the same worker/process ids, so prefix ours to not collide with another cluster's eval
+    const nonce = `${this.clusterId}.${Snowflake.generate().id}`;
+    const timeout = this.broadcastEvalTimeout;
+    return new Promise((resolve, reject) => {
+      const timer = new Timers.Timeout();
+      const clear = () => {
+        timer.stop();
+        if (this._broadcastEvalsWaiting.get(nonce) === onResult) {
+          this._broadcastEvalsWaiting.delete(nonce);
         }
       };
-      parent.addListener('message', listener);
-
-      if (typeof(code) === 'function') {
-        const evalArgs = ['this'];
-        for (let arg of args) {
-          switch (typeof(arg)) {
-            case 'boolean':
-            case 'number': {
-              evalArgs.push(`${arg}`);
-            }; break;
-            case 'object': {
-              // double stringify so the eval'd code gets a string literal to parse
-              evalArgs.push(`JSON.parse(${JSON.stringify(JSON.stringify(arg))})`);
-            }; break;
-            case 'string': {
-              evalArgs.push(JSON.stringify(arg));
-            }; break;
-            case 'undefined': {
-              evalArgs.push('undefined');
-            }; break;
-            default: {
-              evalArgs.push(`"${arg}"`);
-            };
-          }
+      const onResult = (data: ClusterIPCTypes.Eval) => {
+        clear();
+        if (data.error) {
+          reject(new ClusterIPCError(data.error));
+        } else {
+          const results = (data.results || []).map(([result, isError]) => {
+            if (isError) {
+              return new ClusterIPCError(result);
+            }
+            return result;
+          });
+          resolve(results);
         }
-        code = `(${String(code)})(${evalArgs.join(', ')})`;
-      }
+      };
+      this._broadcastEvalsWaiting.set(nonce, onResult);
+
       if (timeout) {
         timer.start(timeout + BROADCAST_EVAL_TIMEOUT_GRACE, () => {
-          parent.removeListener('message', listener);
+          clear();
           reject(new Error(`Broadcast eval timed out after ${timeout}ms`));
         });
       }
-      try {
-        await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce, timeout}, true);
-      } catch(error) {
-        timer.stop();
-        parent.removeListener('message', listener);
+      this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce, timeout}, true).catch((error) => {
+        clear();
         reject(error);
-      }
+      });
     });
   }
 
-  async sendRestRequest(name: string, args?: Array<any>): Promise<any> {
+  /**
+   * Ask the manager to make a rest request for us, its results are cached and shared between every cluster
+   * `force` skips the manager's cache and replaces the cached result with a fresh one
+   */
+  async sendRestRequest(name: string, args?: Array<any>, force: boolean = false): Promise<any> {
     const hash = (args) ? `${name}-${JSON.stringify(args)}` : name;
-    if (this._restRequestsWaiting.has(hash)) {
-      // share the in-flight request instead of overwriting its waiter
-      return this._restRequestsWaiting.get(hash)!.promise;
+    const key = getRestRequestKey(hash, force);
+    // share the in-flight request instead of overwriting its waiter
+    // a forced request only shares another forced one, an older normal one may be answered from the manager's cache
+    const shared = this._restRequestsWaiting.get(getRestRequestKey(hash, true)) || this._restRequestsWaiting.get(key);
+    if (shared) {
+      return shared.promise;
     }
 
     let resolve!: Function;
@@ -305,25 +345,25 @@ export class ClusterProcessChild extends EventSpewer {
       promise,
       resolve: (value: any) => {
         timeout.stop();
-        if (this._restRequestsWaiting.get(hash) === waiting) {
-          this._restRequestsWaiting.delete(hash);
+        if (this._restRequestsWaiting.get(key) === waiting) {
+          this._restRequestsWaiting.delete(key);
         }
         resolve(value);
       },
       reject: (error: any) => {
         timeout.stop();
-        if (this._restRequestsWaiting.get(hash) === waiting) {
-          this._restRequestsWaiting.delete(hash);
+        if (this._restRequestsWaiting.get(key) === waiting) {
+          this._restRequestsWaiting.delete(key);
         }
         reject(error);
       },
     };
     // register before sending so the response (or a duplicate call) can't miss it
-    this._restRequestsWaiting.set(hash, waiting);
+    this._restRequestsWaiting.set(key, waiting);
     timeout.start(REST_REQUEST_TIMEOUT, () => {
       waiting.reject(new Error(`Rest request ${name} timed out after ${REST_REQUEST_TIMEOUT}ms`));
     });
-    this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {args, hash, name}, true).catch((error) => {
+    this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {args, force, hash, name}, true).catch((error) => {
       waiting.reject(error);
     });
     return promise;

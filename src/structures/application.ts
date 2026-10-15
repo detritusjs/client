@@ -32,6 +32,7 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 import { Team } from './team';
 import { UserWithFlags, UserWithToken } from './user';
@@ -129,57 +130,57 @@ const keysApplication = new BaseSet<string>([
 export class Application extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysApplication); }
 
-  aliases?: BaseSet<string>;
-  approximateGuildCount?: number;
-  approximateUserAuthorizationCount?: number;
-  approximateUserInstallCount?: number;
-  bot?: UserWithToken;
-  botPublic?: boolean;
-  botRequireCodeGrant?: boolean;
-  coverImage?: string;
-  customInstallUrl?: string;
+  declare aliases?: BaseSet<string>;
+  declare approximateGuildCount?: number;
+  declare approximateUserAuthorizationCount?: number;
+  declare approximateUserInstallCount?: number;
+  declare bot?: UserWithToken;
+  declare botPublic?: boolean;
+  declare botRequireCodeGrant?: boolean;
+  declare coverImage?: string;
+  declare customInstallUrl?: string;
   description: string = '';
-  developers?: Array<ApplicationDeveloper>;
-  eulaId?: string;
-  eventWebhooksStatus?: ApplicationEventWebhookStatus;
-  eventWebhooksTypes?: Array<string>;
-  eventWebhooksUrl?: null | string;
-  executables?: Array<ApplicationExecutable>;
-  flags?: number;
-  flagsNew?: string;
-  guildId?: string;
-  guildPartial?: ApplicationGuildPartial;
-  hook?: boolean;
+  declare developers?: Array<ApplicationDeveloper>;
+  declare eulaId?: string;
+  declare eventWebhooksStatus?: ApplicationEventWebhookStatus;
+  declare eventWebhooksTypes?: Array<string>;
+  declare eventWebhooksUrl?: null | string;
+  declare executables?: Array<ApplicationExecutable>;
+  declare flags?: number;
+  declare flagsNew?: string;
+  declare guildId?: string;
+  declare guildPartial?: ApplicationGuildPartial;
+  declare hook?: boolean;
   icon: null | string = null;
   id: string = '';
-  installParams?: ApplicationInstallParams;
-  integrationTypesConfig?: BaseCollection<ApplicationIntegrationTypes, ApplicationIntegrationTypeConfiguration>;
-  interactionsEndpointUrl?: null | string;
-  isMonetized?: boolean;
-  isVerified?: boolean;
-  monetizationState?: ApplicationMonetizationStates;
+  declare installParams?: ApplicationInstallParams;
+  declare integrationTypesConfig?: BaseCollection<ApplicationIntegrationTypes, ApplicationIntegrationTypeConfiguration>;
+  declare interactionsEndpointUrl?: null | string;
+  declare isMonetized?: boolean;
+  declare isVerified?: boolean;
+  declare monetizationState?: ApplicationMonetizationStates;
   name: string = '';
-  overlay?: boolean;
-  overlayCompatibilityHook?: boolean;
-  owner?: UserWithFlags;
-  primarySkuId?: string;
-  privacyPolicyUrl?: string;
-  publishers?: Array<ApplicationPublisher>;
-  redirectUris?: Array<string>;
-  roleConnectionsVerificationUrl?: null | string;
-  rpcApplicationState?: number;
-  rpcOrigins?: BaseSet<string>;
-  secret?: string;
-  slug?: string;
-  splash?: string;
-  storeApplicationState?: StoreApplicationApprovalStates;
+  declare overlay?: boolean;
+  declare overlayCompatibilityHook?: boolean;
+  declare owner?: UserWithFlags;
+  declare primarySkuId?: string;
+  declare privacyPolicyUrl?: string;
+  declare publishers?: Array<ApplicationPublisher>;
+  declare redirectUris?: Array<string>;
+  declare roleConnectionsVerificationUrl?: null | string;
+  declare rpcApplicationState?: number;
+  declare rpcOrigins?: BaseSet<string>;
+  declare secret?: string;
+  declare slug?: string;
+  declare splash?: string;
+  declare storeApplicationState?: StoreApplicationApprovalStates;
   summary: string = '';
-  tags?: Array<string>;
-  team?: Team;
-  termsOfServiceUrl?: string;
-  thirdPartySkus?: BaseCollection<string, ApplicationThirdPartySku>;
+  declare tags?: Array<string>;
+  declare team?: Team;
+  declare termsOfServiceUrl?: string;
+  declare thirdPartySkus?: BaseCollection<string, ApplicationThirdPartySku>;
   verifyKey: string = '';
-  youtubeTrailerVideoId?: string;
+  declare youtubeTrailerVideoId?: string;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
@@ -602,6 +603,19 @@ export class Application extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.YOUTUBE_TRAILER_VIDEO_ID]] = data[DiscordKeys.YOUTUBE_TRAILER_VIDEO_ID];
     }
   }
+
+  toJSON() {
+    const data = super.toJSON() as any;
+    // discord sends this keyed by the integration type, a collection would serialize as an array (and lose the types)
+    if (this.integrationTypesConfig) {
+      const value: Record<string, any> = {};
+      for (let [type, config] of this.integrationTypesConfig) {
+        value[type] = config;
+      }
+      data[DiscordKeys.INTEGRATION_TYPES_CONFIG] = value;
+    }
+    return data;
+  }
 }
 
 
@@ -611,7 +625,7 @@ const keysApplicationInstallParams = new BaseSet<string>([
 ]);
 
 export class ApplicationInstallParams extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysApplicationInstallParams); }
 
   declare readonly application: Application;
@@ -645,12 +659,12 @@ const keysApplicationIntegrationTypeConfiguration = new BaseSet<string>([
 ]);
 
 export class ApplicationIntegrationTypeConfiguration extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysApplicationIntegrationTypeConfiguration); }
 
   declare readonly application: Application;
 
-  oauth2InstallParams?: ApplicationInstallParams;
+  declare oauth2InstallParams?: ApplicationInstallParams;
 
   constructor(application: Application, data: BaseStructureData) {
     super(application.client, undefined, application._clone);
@@ -679,7 +693,7 @@ const keysApplicationThirdPartySku = new BaseSet<string>([
 ]);
 
 export class ApplicationThirdPartySku extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysApplicationThirdPartySku); }
 
   declare readonly application: Application;
@@ -745,7 +759,7 @@ export class ApplicationThirdPartySku extends BaseStructure {
           return url(skuId);
         };
         case Distributors.TWITCH: {
-          // they shut down lol
+          // twitch shut down
         }; break;
         case Distributors.UPLAY: {
           const skuId = this.application.name;
@@ -841,7 +855,7 @@ export class ApplicationActivityLocation extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysApplicationActivityLocation); }
 
   channelId: string = '';
-  guildId?: null | string;
+  declare guildId?: null | string;
   id: string = '';
   kind: ActivityLocationKinds = ActivityLocationKinds.GUILD_CHANNEL;
 

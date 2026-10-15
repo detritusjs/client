@@ -68,7 +68,7 @@ export class User extends BaseStructure {
   id: string = '';
   primaryGuild: null | UserClan = null;
   publicFlags: number = 0;
-  system?: boolean;
+  declare system?: boolean;
   username: string = '';
 
   constructor(
@@ -537,9 +537,9 @@ const keysUserExtended = new BaseSet<string>([
 export class UserExtended extends UserWithFlags {
   static { setStructureKeys(this, '_keys', keysUserExtended); }
 
-  email?: string | null;
+  declare email?: string | null;
   flags: number = 0;
-  locale?: string | null;
+  declare locale?: string | null;
   mfaEnabled: boolean = false;
   premiumType: number = 0;
   verified: boolean = false;
@@ -609,8 +609,8 @@ const keysUserMe = new BaseSet<string>([
 export class UserMe extends UserExtended {
   static { setStructureKeys(this, '_keys', keysUserMe); }
 
-  analyticsToken?: string;
-  phone?: string;
+  declare analyticsToken?: string;
+  declare phone?: string;
 
   constructor(
     client: ShardClient,
@@ -1006,7 +1006,7 @@ const keysUserCollectibles = new BaseSet<string>([
  export class UserCollectibles extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysUserCollectibles); }
 
-  nameplate?: UserCollectiblesNameplate;
+  declare nameplate?: UserCollectiblesNameplate;
 
   constructor(
     client: ShardClient,
@@ -1026,7 +1026,8 @@ const keysUserCollectibles = new BaseSet<string>([
     if (DiscordKeys.NAMEPLATE in data) {
       const value = data[DiscordKeys.NAMEPLATE];
 
-      const nameplate = new UserCollectiblesNameplate(this.client, value, this.isClone);
+      // null means no nameplate, not an empty one
+      const nameplate = (value) ? new UserCollectiblesNameplate(this.client, value, this.isClone) : undefined;
       (this as any)[DetritusKeys[DiscordKeys.NAMEPLATE]] = nameplate;
     }
   }

@@ -8,11 +8,11 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
-import { ClientEvents, Permissions, FILE_EXTENSIONS_IMPORT, IS_IMPORT_AVAILABLE } from './constants';
+import { ClientEvents, Permissions, FILE_EXTENSIONS_IMPORT } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { InteractionCommandClient } from './interactioncommandclient';
-import { PermissionTools, getFiles } from './utils';
+import { PermissionTools, getFiles, requireOrImport } from './utils';
 
 import {
   Command,
@@ -375,7 +375,7 @@ export class CommandClient extends EventSpewer {
       }
       const filepath = path.resolve(directory, file);
       try {
-        let importedCommand: any = (IS_IMPORT_AVAILABLE) ? (await import(filepath)).default : require(filepath);
+        let importedCommand: any = await requireOrImport(filepath);
         if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
           importedCommand = importedCommand.default;
         }
@@ -530,6 +530,7 @@ export class CommandClient extends EventSpewer {
     const subscriptions = this._clientSubscriptions;
     subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_CREATE, this.handleMessageCreate.bind(this)));
     subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_DELETE, this.handleDelete.bind(this, ClientEvents.MESSAGE_DELETE)));
+    subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_DELETE_BULK, this.handleDeleteBulk.bind(this)));
     subscriptions.push(this.client.subscribe(ClientEvents.MESSAGE_UPDATE, this.handleMessageUpdate.bind(this)));
   }
 
@@ -569,6 +570,26 @@ export class CommandClient extends EventSpewer {
     return this.handle(ClientEvents.MESSAGE_CREATE, event);
   }
 
+  /**
+   * If a MESSAGE_UPDATE changed the message's content
+   */
+  isContentEdit(event: GatewayClientEvents.MessageUpdate): boolean {
+    const { differences, raw } = event;
+    if (differences) {
+      // `differences` holds the old values, an old content of '' (like an attachment only message) is still a change
+      return 'content' in differences;
+    }
+    // the message wasn't cached so there's nothing to compare with, go off of it being an edit with content
+    return !!raw && raw.content !== undefined && !!raw.edited_timestamp;
+  }
+
+  isWithinEditDuration(message: Message): boolean {
+    if (message.isEdited) {
+      return (message.editedAtUnix - message.timestampUnix) <= this.maxEditDuration;
+    }
+    return true;
+  }
+
   async handleMessageUpdate(event: GatewayClientEvents.MessageUpdate) {
     if (event.isEmbedUpdate) {
       return;
@@ -593,15 +614,9 @@ export class CommandClient extends EventSpewer {
     }
 
     if (name === ClientEvents.MESSAGE_UPDATE) {
-      // only edits that can re-run a command should tell listeners to delete the old reply (not pins, etc)
-      const { differences } = event as GatewayClientEvents.MessageUpdate;
-      if (!this.activateOnEdits || !differences || !differences.content) {
+      // only content edits can re-run a command (not pins, embeds loading, etc)
+      if (!this.activateOnEdits || !this.isContentEdit(event as GatewayClientEvents.MessageUpdate)) {
         return;
-      }
-      if (this.replies.has(message.id)) {
-        const { command, context, reply } = this.replies.get(message.id)!;
-        const payload: CommandEvents.CommandDelete = {command, context, reply};
-        this.emit(ClientEvents.COMMAND_DELETE, payload);
       }
     }
 
@@ -609,6 +624,14 @@ export class CommandClient extends EventSpewer {
     try {
       await this.handleContext(name, event, context);
     } finally {
+      if (name === ClientEvents.MESSAGE_UPDATE && !context.command && this.replies.has(message.id) && this.isWithinEditDuration(message)) {
+        // the edit doesn't run a command anymore, so its old reply is stale
+        // (an edit that re-runs one keeps the reply for `editOrReply()` to edit, telling listeners to delete it would race that)
+        const { command, context: oldContext, reply } = this.replies.get(message.id)!;
+        this.replies.delete(message.id);
+        const payload: CommandEvents.CommandDelete = {command, context: oldContext, reply};
+        this.emit(ClientEvents.COMMAND_DELETE, payload);
+      }
       const command = context.command;
       if (command && typeof(command.onFinally) === 'function') {
         try {
@@ -648,11 +671,7 @@ export class CommandClient extends EventSpewer {
     }
 
     if (name === ClientEvents.MESSAGE_UPDATE) {
-      if (!this.activateOnEdits) {
-        return;
-      }
-      const { differences } = event as GatewayClientEvents.MessageUpdate;
-      if (!differences || !differences.content) {
+      if (!this.activateOnEdits || !this.isContentEdit(event as GatewayClientEvents.MessageUpdate)) {
         return;
       }
     }
@@ -663,11 +682,8 @@ export class CommandClient extends EventSpewer {
         throw new Error('Message is not from a user.');
       }
 
-      if (message.isEdited) {
-        const difference = message.editedAtUnix - message.timestampUnix;
-        if (this.maxEditDuration < difference) {
-          throw new Error('Edit timestamp is higher than max edit duration');
-        }
+      if (!this.isWithinEditDuration(message)) {
+        throw new Error('Edit timestamp is higher than max edit duration');
       }
 
       attributes = await this.getAttributes(context);
@@ -785,7 +801,6 @@ export class CommandClient extends EventSpewer {
               const reply = await Promise.resolve(command.onPermissionsFailClient(context, failed));
               this.storeReply(message.id, command, context, reply);
             } catch(error: any) {
-              // do something with this error?
             }
           }
           return;
@@ -824,7 +839,6 @@ export class CommandClient extends EventSpewer {
                 const reply = await Promise.resolve(command.onPermissionsFail(context, failed));
                 this.storeReply(message.id, command, context, reply);
               } catch(error: any) {
-                // do something with this error?
               }
             }
             return;
@@ -848,7 +862,6 @@ export class CommandClient extends EventSpewer {
               const reply = await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
               this.storeReply(message.id, command, context, reply);
             } catch(error: any) {
-              // do something with this error?
             }
           }
           return;
@@ -868,7 +881,6 @@ export class CommandClient extends EventSpewer {
               const reply = await Promise.resolve(command.onRatelimit(context, ratelimits, {global, now}));
               this.storeReply(message.id, command, context, reply);
             } catch(error: any) {
-              // do something with this error?
             }
           }
           return;
@@ -947,7 +959,6 @@ export class CommandClient extends EventSpewer {
                   await context.triggerTyping();
                 }
               } catch(error) {
-                // do something maybe?
               }
             });
           } else {
@@ -958,7 +969,6 @@ export class CommandClient extends EventSpewer {
                 await context.triggerTyping();
               }
             } catch(error) {
-              // do something maybe?
             }
           }
         }
@@ -1025,6 +1035,28 @@ export class CommandClient extends EventSpewer {
           const payload: CommandEvents.CommandResponseDelete = { command, context, reply };
           this.emit(ClientEvents.COMMAND_RESPONSE_DELETE, payload);
         }
+      }
+    }
+  }
+
+  // purges, same as `handleDelete()` for each message but going over the replies once
+  async handleDeleteBulk(deletePayload: {raw: {ids: Array<string>}}): Promise<void> {
+    const messageIds = new Set(deletePayload.raw.ids);
+    for (let messageId of messageIds) {
+      if (this.replies.has(messageId)) {
+        const { command, context, reply } = this.replies.get(messageId)!;
+        this.replies.delete(messageId);
+
+        const payload: CommandEvents.CommandDelete = {command, context, reply};
+        this.emit(ClientEvents.COMMAND_DELETE, payload);
+      }
+    }
+    for (let [commandId, { command, context, reply }] of this.replies) {
+      if (messageIds.has(reply.id)) {
+        this.replies.delete(commandId);
+
+        const payload: CommandEvents.CommandResponseDelete = {command, context, reply};
+        this.emit(ClientEvents.COMMAND_RESPONSE_DELETE, payload);
       }
     }
   }

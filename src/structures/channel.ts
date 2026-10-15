@@ -141,48 +141,48 @@ const keysMergeChannelBase = new BaseSet<string>();
 export class ChannelBase extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysChannelBase); }
   static { setStructureKeys(this, '_keysMerge', keysMergeChannelBase); }
-  _appliedTags?: BaseSet<string>;
-  _availableTags?: BaseCollection<string, ChannelAvailableTag>;
+  declare _appliedTags?: BaseSet<string>;
+  declare _availableTags?: BaseCollection<string, ChannelAvailableTag>;
   _name: string = '';
-  _nicks?: BaseCollection<string, string>;
-  _nsfw?: boolean;
-  _permissions?: bigint;
-  _permissionOverwrites?: BaseCollection<string, Overwrite>;
-  _recipients?: BaseCollection<string, User>;
+  declare _nicks?: BaseCollection<string, string>;
+  declare _nsfw?: boolean;
+  declare _permissions?: bigint;
+  declare _permissionOverwrites?: BaseCollection<string, Overwrite>;
+  declare _recipients?: BaseCollection<string, User>;
 
-  applicationId?: null | string;
-  bitrate?: number;
-  defaultAutoArchiveDuration?: number;
-  defaultForumLayout?: number;
-  defaultReactionEmoji?: ChannelDefaultReactionEmoji | null;
-  defaultSortOrder?: number | null;
-  defaultThreadRateLimitPerUser?: number;
+  declare applicationId?: null | string;
+  declare bitrate?: number;
+  declare defaultAutoArchiveDuration?: number;
+  declare defaultForumLayout?: number;
+  declare defaultReactionEmoji?: ChannelDefaultReactionEmoji | null;
+  declare defaultSortOrder?: number | null;
+  declare defaultThreadRateLimitPerUser?: number;
   deleted: boolean = false;
-  flags?: number;
-  guildId?: string;
+  declare flags?: number;
+  declare guildId?: string;
   id: string = '';
-  icon?: null | string;
+  declare icon?: null | string;
   isPartial: boolean = false;
-  lastMessageId?: null | string;
-  lastPinTimestampUnix?: number;
-  managed?: boolean;
-  member?: ThreadMember;
-  memberCount?: number;
-  messageCount?: number;
-  ownerId?: string;
-  parentId?: null | string;
-  position?: number;
-  rateLimitPerUser?: number;
-  rtcRegion?: null | string;
-  status?: null | string;
-  template?: string;
-  totalMessageSent?: number;
-  threadMetadata?: ThreadMetadata;
+  declare lastMessageId?: null | string;
+  declare lastPinTimestampUnix?: number;
+  declare managed?: boolean;
+  declare member?: ThreadMember;
+  declare memberCount?: number;
+  declare messageCount?: number;
+  declare ownerId?: string;
+  declare parentId?: null | string;
+  declare position?: number;
+  declare rateLimitPerUser?: number;
+  declare rtcRegion?: null | string;
+  declare status?: null | string;
+  declare template?: string;
+  declare totalMessageSent?: number;
+  declare threadMetadata?: ThreadMetadata;
   topic: null | string = null;
   type: ChannelTypes = ChannelTypes.BASE;
-  userLimit?: number;
-  videoQualityMode?: ChannelVideoQualityModes;
-  voiceStartTime?: null | number;
+  declare userLimit?: number;
+  declare videoQualityMode?: ChannelVideoQualityModes;
+  declare voiceStartTime?: null | number;
 
   constructor(
     client: ShardClient,
@@ -1028,13 +1028,7 @@ export class ChannelDM extends ChannelBase {
   }
 
   get messages(): BaseCollection<string, Message> {
-    const collection = new BaseCollection<string, Message>();
-    for (let [messageId, message] of this.client.messages) {
-      if (message.channelId === this.id) {
-        collection.set(messageId, message);
-      }
-    }
-    return collection;
+    return this.client.messages.getChannelMessages(this.id);
   }
 
   get name(): string {
@@ -1101,7 +1095,6 @@ export class ChannelDM extends ChannelBase {
         }
         this._recipients.clear();
         if (this.client.user) {
-          // maybe add it in between the user ids as to preserve the sort
           this._recipients.set(this.client.user.id, this.client.user);
         }
 
@@ -1120,7 +1113,6 @@ export class ChannelDM extends ChannelBase {
           }
           this._recipients.set(user.id, user);
 
-          // unsure of this
           if (DiscordKeys.NICK in raw) {
             if (!this._nicks) {
               this._nicks = new BaseCollection<string, string>();
@@ -1464,26 +1456,23 @@ export class ChannelGuildBase extends ChannelBase {
         memberOrRole = this.client.members.get(this.guildId, this.client.user.id)!;
       }
 
+      const guild = this.guild;
       if (!ignoreOwner) {
-        const guild = this.guild;
         if (guild && guild.isOwner(memberOrRole.id)) {
           return true;
         }
       }
 
-      if (!ignoreAdministrator) {
-        if (PermissionTools.checkPermissions(memberOrRole.permissions, Permissions.ADMINISTRATOR)) {
-          return true;
-        }
-      }
-      const guild = this.guild;
       if (ignoreAdministrator && guild) {
         total = guild.permissionsFor(memberOrRole, this, {ignoreAdministrator, ignoreOwner: true});
-      } else if (ignoreAdministrator) {
-        // passing the starting permissions skips `permissionsIn()`'s administrator shortcut
-        total = memberOrRole.permissionsIn(this, memberOrRole.permissions);
       } else {
-        total = memberOrRole.permissionsIn(this);
+        // compute the member's role permissions once, `permissions` goes through every role each time it's read
+        const permissionsBase = memberOrRole.permissions;
+        if (!ignoreAdministrator && PermissionTools.checkPermissions(permissionsBase, Permissions.ADMINISTRATOR)) {
+          return true;
+        }
+        // passing the starting permissions skips `permissionsIn()`'s administrator shortcut (already checked above)
+        total = memberOrRole.permissionsIn(this, permissionsBase);
       }
     }
 
@@ -1638,13 +1627,7 @@ export class ChannelGuildText extends ChannelGuildBase {
   }
 
   get messages(): BaseCollection<string, Message> {
-    const collection = new BaseCollection<string, Message>();
-    for (let [messageId, message] of this.client.messages) {
-      if (message.channelId === this.id) {
-        collection.set(messageId, message);
-      }
-    }
-    return collection;
+    return this.client.messages.getChannelMessages(this.id);
   }
 
   merge(data?: BaseStructureData): void {
@@ -2032,7 +2015,17 @@ export class ChannelGuildThread extends ChannelGuildBase {
           value[DiscordKeys.USER_ID] = this.client.user.id;
         }
       }
-      (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = new ThreadMember(this.client, value);
+      if (value) {
+        // keep the same object so references to it stay up to date
+        if (this.member) {
+          this.member.merge(value);
+        } else {
+          (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = new ThreadMember(this.client, value);
+        }
+      } else {
+        // null means we aren't a member anymore, not an empty member
+        (this as any)[DetritusKeys[DiscordKeys.MEMBER]] = undefined;
+      }
     }
     if (DiscordKeys.MEMBER_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.MEMBER_COUNT]] = data[DiscordKeys.MEMBER_COUNT];

@@ -5,7 +5,6 @@ import {
   RestClientEvents,
 } from 'detritus-client-rest';
 import { AuthTypes, RestEvents } from 'detritus-client-rest/lib/constants';
-import { Snowflake } from 'detritus-utils';
 
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
@@ -486,7 +485,6 @@ export class RestClient {
     if (this.client.channels.has(data.id)) {
       channel = this.client.channels.get(data.id) as ChannelGuildThread;
       channel.merge(data);
-      // this should never happen lmao
     } else {
       channel = createChannelFromData(this.client, data) as ChannelGuildThread;
       this.client.channels.insert(channel);
@@ -509,7 +507,6 @@ export class RestClient {
     if (this.client.channels.has(data.id)) {
       channel = this.client.channels.get(data.id) as ChannelGuildThread;
       channel.merge(data);
-      // this should never happen lmao
     } else {
       channel = createChannelFromData(this.client, data) as ChannelGuildThread;
       this.client.channels.insert(channel);
@@ -525,7 +522,6 @@ export class RestClient {
     if (this.client.channels.has(data.id)) {
       channel = this.client.channels.get(data.id) as ChannelDM | ChannelDMGroup;
       channel.merge(data);
-      // this should never happen lmao
     } else {
       channel = createChannelFromData(this.client, data) as ChannelDM | ChannelDMGroup;
       this.client.channels.insert(channel);
@@ -562,7 +558,6 @@ export class RestClient {
     userId: string,
     options: RequestTypes.CreateGuildBan = {},
   ) {
-    // make into object?
     return this.raw.createGuildBan(guildId, userId, options);
   }
 
@@ -576,10 +571,11 @@ export class RestClient {
     if (updateCache && this.client.channels.has(data.id)) {
       channel = this.client.channels.get(data.id)!;
       channel.merge(data);
-      // this should never happen lmao
     } else {
       channel = createChannelFromData(this.client, data);
-      this.client.channels.insert(channel);
+      if (updateCache) {
+        this.client.channels.insert(channel);
+      }
     }
     return channel;
   }
@@ -598,7 +594,9 @@ export class RestClient {
     } else {
       data.guild_id = guildId;
       emoji = new Emoji(this.client, data);
-      this.client.emojis.insert(emoji);
+      if (updateCache) {
+        this.client.emojis.insert(emoji);
+      }
     }
     return emoji;
   }
@@ -623,7 +621,6 @@ export class RestClient {
     guildId: string,
     options: RequestTypes.CreateGuildIntegration,
   ) {
-    // make this into object?
     return this.raw.createGuildIntegration(guildId, options);
   }
 
@@ -782,6 +779,29 @@ export class RestClient {
     return this.raw.createMeBillingSubscription(options);
   }
 
+  /**
+   * Message objects from the rest api don't have a `guild_id`, fill it in so the message knows its guild
+   * from the caller (an interaction/webhook knows it), the message we already have cached, or its cached channel
+   */
+  fillMessageGuildId(raw: any, guildId?: null | string): void {
+    if (!raw || raw.guild_id) {
+      return;
+    }
+    if (guildId) {
+      raw.guild_id = guildId;
+      return;
+    }
+    const message = this.client.messages.cache.get(raw.id);
+    if (message && message.guildId) {
+      raw.guild_id = message.guildId;
+      return;
+    }
+    const channel = this.client.channels.get(raw.channel_id);
+    if (channel && channel.guildId) {
+      raw.guild_id = channel.guildId;
+    }
+  }
+
   async createMessage(
     channelId: string,
     options: RequestTypes.CreateMessage | string = {},
@@ -795,12 +815,7 @@ export class RestClient {
     }
 
     const data = await this.raw.createMessage(channelId, options);
-    if (this.client.channels.has(data.channel_id)) {
-      const channel = this.client.channels.get(data.channel_id)!;
-      if (channel.guildId) {
-        data.guild_id = channel.guildId;
-      }
-    }
+    this.fillMessageGuildId(data);
 
     const message = new Message(this.client, data);
     this.client.messages.insert(message);
@@ -859,7 +874,6 @@ export class RestClient {
   createTeam(
     options: RequestTypes.CreateTeam = {},
   ) {
-    // make this an object?
     return this.raw.createTeam(options);
   }
 
@@ -937,7 +951,6 @@ export class RestClient {
     } else {
       channel = createChannelFromData(this.client, data);
     }
-    // go through each message and mark them as deleted or wait for the event?
     return channel;
   }
 
@@ -960,7 +973,6 @@ export class RestClient {
     guildId: string,
     options: RequestTypes.DeleteGuild = {},
   ) {
-    // go through each message and mark them as deleted or wait for the event?
     return this.raw.deleteGuild(guildId, options);
   }
 
@@ -1339,7 +1351,6 @@ export class RestClient {
       channel.merge(data);
     } else {
       channel = createChannelFromData(this.client, data);
-      // insert? nah
     }
     return channel;
   }
@@ -1442,7 +1453,9 @@ export class RestClient {
     } else {
       data.guild_id = guildId;
       member = new Member(this.client, data);
-      this.client.members.insert(member);
+      if (updateCache) {
+        this.client.members.insert(member);
+      }
     }
     return member;
   }
@@ -1774,6 +1787,7 @@ export class RestClient {
     }
 
     const data = await this.raw.editMessage(channelId, messageId, options);
+    this.fillMessageGuildId(data);
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
       message = this.client.messages.get(data.id)!;
@@ -1781,7 +1795,9 @@ export class RestClient {
       // should we really merge? the message_update event wont have differences then
     } else {
       message = new Message(this.client, data);
-      this.client.messages.insert(message);
+      if (updateCache) {
+        this.client.messages.insert(message);
+      }
     }
 
     if (listenerData) {
@@ -1867,6 +1883,7 @@ export class RestClient {
     messageId: string,
     options: RequestTypes.EditWebhookTokenMessage = {},
     updateCache: boolean = true,
+    guildId?: null | string,
   ): Promise<Message> {
     const listenerData = createComponentListenerOrNone(options);
     if (listenerData && listenerData[2]) {
@@ -1877,6 +1894,7 @@ export class RestClient {
     }
 
     const data = await this.raw.editWebhookTokenMessage(webhookId, webhookToken, messageId, options);
+    this.fillMessageGuildId(data, guildId);
 
     let message: Message;
     if (updateCache && this.client.messages.has(data.id)) {
@@ -1884,7 +1902,9 @@ export class RestClient {
       message.merge(data);
     } else {
       message = new Message(this.client, data);
-      this.client.messages.insert(message);
+      if (updateCache) {
+        this.client.messages.insert(message);
+      }
     }
 
     const responseInteractionId = getResponseInteractionId(message);
@@ -1925,6 +1945,7 @@ export class RestClient {
     webhookToken: string,
     options: RequestTypes.ExecuteWebhook | string = {},
     compatibleType?: string,
+    guildId?: null | string,
   ): Promise<Message | null> {
     const listenerData = createComponentListenerOrNone(options);
     if (listenerData && listenerData[2]) {
@@ -1933,9 +1954,14 @@ export class RestClient {
       }
       options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
     }
+    if (listenerData && listenerData[1] && listenerData[1].hasRun && !listenerData[0] && typeof(options) === 'object') {
+      // the listener is keyed by the message id, without `wait` discord doesn't send the message back so it could never be matched
+      options = Object.assign({}, options, {wait: true});
+    }
 
     const data = await this.raw.executeWebhook(webhookId, webhookToken, options, compatibleType);
     if (data) {
+      this.fillMessageGuildId(data, guildId);
       const message = new Message(this.client, data);
       this.client.messages.insert(message);
 
@@ -1957,8 +1983,9 @@ export class RestClient {
     if (listenerData) {
       const [ lId, listener ] = listenerData;
 
-      if (listener) {
-        listener.id = lId || Snowflake.generate().id;
+      // only a custom listener id can be matched without the message
+      if (listener && lId) {
+        listener.id = lId;
         this.client.gatewayHandler._handlers.component.insert(listener);
       }
     }
@@ -2494,7 +2521,6 @@ export class RestClient {
       let value: ChannelGuildThread;
       if (this.client.channels.has(raw.id)) {
         value = this.client.channels.get(raw.id) as ChannelGuildThread;
-        // value.merge(raw);
       } else {
         value = new ChannelGuildThread(this.client, raw);
       }
@@ -2973,7 +2999,8 @@ export class RestClient {
   ): Promise<BaseCollection<string, Sticker>> {
     const data = await this.raw.fetchGuildStickers(guildId);
 
-    if (this.client.guilds.has(guildId)) {
+    // guild.merge drops stickers when the sticker cache is off
+    if (this.client.stickers.enabled && this.client.guilds.has(guildId)) {
       const guild = this.client.guilds.get(guildId)!;
       guild.merge({stickers: data});
       return guild.stickers;
@@ -3145,37 +3172,6 @@ export class RestClient {
     for (let raw of data) {
       const guild = new GuildMe(this.client, raw);
       collection.set(guild.id, guild);
-    }
-    return collection;
-  }
-
-  async fetchMentions(
-    options: RequestTypes.FetchMentions = {},
-  ): Promise<BaseCollection<string, Message>> {
-    const data = await this.raw.fetchMentions(options);
-
-    let guildId: string | undefined;
-    if (data.length) {
-      const raw = data[0];
-      if (this.client.channels.has(raw.channel_id)) {
-        const channel = this.client.channels.get(raw.channel_id)!;
-        if (channel.guildId) {
-          guildId = channel.guildId;
-        }
-      }
-    }
-
-    const collection = new BaseCollection<string, Message>();
-    for (let raw of data) {
-      let message: Message;
-      if (this.client.messages.has(raw.id)) {
-        message = this.client.messages.get(raw.id)!;
-        message.merge(raw);
-      } else {
-        raw.guild_id = guildId;
-        message = new Message(this.client, raw);
-      }
-      collection.set(message.id, message);
     }
     return collection;
   }
@@ -3416,7 +3412,7 @@ export class RestClient {
     const data = await this.raw.fetchTeams();
     const collection = new BaseCollection<string, Team>();
     for (let raw of data) {
-      const team = new Team(this.client, data);
+      const team = new Team(this.client, raw);
       collection.set(team.id, team);
     }
     return collection;
@@ -3562,23 +3558,16 @@ export class RestClient {
     webhookToken: string,
     messageId: string,
     options: RequestTypes.FetchWebhookTokenMessage = {},
+    guildId?: null | string,
   ): Promise<Message> {
     const data = await this.raw.fetchWebhookTokenMessage(webhookId, webhookToken, messageId, options);
-
-    let guildId: string | undefined;
-    if (this.client.channels.has(data.channel_id)) {
-      const channel = this.client.channels.get(data.channel_id)!;
-      if (channel.guildId) {
-        guildId = channel.guildId;
-      }
-    }
+    this.fillMessageGuildId(data, guildId);
 
     let message: Message;
     if (this.client.messages.has(data.id)) {
       message = this.client.messages.get(data.id)!;
       message.merge(data);
     } else {
-      data.guild_id = guildId;
       message = new Message(this.client, data);
     }
 

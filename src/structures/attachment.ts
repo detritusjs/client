@@ -7,13 +7,15 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 
 
+// anchored, these are matched against the whole extension (otherwise `gifts` would be an image)
 export const EmbeddableRegexes = Object.freeze({
-  audio: /mp3|ogg|wav|flac/i,
-  image: /png|jpe?g|webp|gif/i,
-  video: /mp4|webm|mov/i,
+  audio: /^(?:mp3|ogg|wav|flac)$/i,
+  image: /^(?:png|jpe?g|webp|gif)$/i,
+  video: /^(?:mp4|webm|mov)$/i,
 });
 
 export const MimeClassTypes: Array<{
@@ -117,31 +119,31 @@ const keysAttachment = new BaseSet<string>([
  * @category Structure
  */
 export class Attachment extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysAttachment); }
 
   // partial application, only on clips
-  application?: any;
+  declare application?: any;
   // only on clips, iso8601 timestamp
-  clipCreatedAt?: string;
+  declare clipCreatedAt?: string;
   // only on clips, raw users
-  clipParticipants?: Array<any>;
-  contentType?: string;
-  description?: string;
-  durationSecs?: number;
+  declare clipParticipants?: Array<any>;
+  declare contentType?: string;
+  declare description?: string;
+  declare durationSecs?: number;
   ephemeral: boolean = false;
   filename: string = '';
   flags: number = 0;
   height: number = 0;
   id: string = '';
-  placeholder?: string;
-  placeholderVersion?: number;
+  declare placeholder?: string;
+  declare placeholderVersion?: number;
   proxyUrl: string = '';
   size: number = 0;
   // the original filename, before discord sanitized it
-  title?: string;
+  declare title?: string;
   url: string = '';
-  waveform?: string;
+  declare waveform?: string;
   width: number = 0;
 
   constructor(
@@ -177,7 +179,9 @@ export class Attachment extends BaseStructure {
   }
 
   get extension(): string {
-    return this.filename.split('.').pop()!;
+    // no '.' means no extension, not the whole filename
+    const index = this.filename.lastIndexOf('.');
+    return (index === -1) ? '' : this.filename.slice(index + 1);
   }
 
   get hasSpoiler(): boolean {

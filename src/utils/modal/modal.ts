@@ -78,8 +78,9 @@ export class InteractionModal extends Structure {
 
   constructor(data: InteractionModalOptions = {}) {
     super();
-    Object.assign(data, {
-      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
+    // work on a copy, the generated custom id shouldn't end up in the caller's object
+    data = Object.assign({}, data, {
+      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] ?? (data as any)[DiscordKeys.CUSTOM_ID],
     });
     if (((data as any)[DiscordKeys.CUSTOM_ID] === undefined) && !this.customId) {
       (data as any)[DiscordKeys.CUSTOM_ID] = Snowflake.generate().id;

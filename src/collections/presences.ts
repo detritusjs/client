@@ -23,7 +23,7 @@ export class Presences extends BaseClientCollection<string, Presence> {
   insert(value: GatewayRawEvents.RawPresence): Presence {
     const guildId = value.guild_id || LOCAL_GUILD_ID;
     for (let activity of value.activities) {
-      Object.assign(activity, {guild_id: guildId});
+      (activity as any).guild_id = guildId;
     }
 
     let presence: Presence;
@@ -35,6 +35,11 @@ export class Presences extends BaseClientCollection<string, Presence> {
           if (presence._shouldDelete) {
             this.delete(presence.user.id);
             presence.merge(value);
+          } else {
+            // offline is for the user everywhere, keep the presence for its other guilds but with the new status
+            // `merge()` adds the guild back, so take it out again after
+            presence.merge(value);
+            presence._deleteGuildId(guildId);
           }
         } else {
           presence.merge(value);

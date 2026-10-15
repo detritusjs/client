@@ -36,23 +36,16 @@ export {
 
 export const Package = Object.freeze({
   URL: 'https://github.com/detritusjs/client',
-  VERSION: '0.17.0-beta.115',
+  VERSION: '0.17.0-beta.116',
 });
 
 export type Snowflake = number | string;
 
 
-let isImportAvailable = false;
-try {
-  import('detritus-utils');
-} catch(error: any) {
-  if (error.name === 'SyntaxError') {
-    isImportAvailable = true;
-  }
-}
-
 export const IS_TS_NODE = Symbol.for('ts-node.register.instance') in process;
-export const IS_IMPORT_AVAILABLE = isImportAvailable;
+// every supported node version has `import()`, command files are loaded with `requireOrImport()`
+// (this used to be found by firing an `import()` that never threw, and its rejection could crash the process)
+export const IS_IMPORT_AVAILABLE = true;
 
 export const DEFAULT_MAX_MEMBERS = 250000;
 export const DEFAULT_MAX_PRESENCES = 5000;
@@ -1080,7 +1073,9 @@ export enum Locales {
   FRENCH = 'fr',
   GERMAN = 'de',
   GREEK = 'el',
+  HINDI = 'hi',
   HUNGARIAN = 'hu',
+  INDONESIAN = 'id',
   ITALIAN = 'it',
   JAPANESE = 'ja',
   KOREAN = 'ko',
@@ -1091,6 +1086,7 @@ export enum Locales {
   ROMANIAN = 'ro',
   RUSSIAN = 'ru',
   SPANISH = 'es-ES',
+  SPANISH_LATAM = 'es-419',
   SWEDISH = 'sv-SE',
   THAI = 'th',
   TURKISH = 'tr',
@@ -1112,7 +1108,9 @@ export const LocalesText = Object.freeze({
   [Locales.FRENCH]: 'French',
   [Locales.GERMAN]: 'German',
   [Locales.GREEK]: 'Greek',
+  [Locales.HINDI]: 'Hindi',
   [Locales.HUNGARIAN]: 'Hungarian',
+  [Locales.INDONESIAN]: 'Indonesian',
   [Locales.ITALIAN]: 'Italian',
   [Locales.JAPANESE]: 'Japanese',
   [Locales.KOREAN]: 'Korean',
@@ -1123,6 +1121,7 @@ export const LocalesText = Object.freeze({
   [Locales.ROMANIAN]: 'Romanian',
   [Locales.RUSSIAN]: 'Russian',
   [Locales.SPANISH]: 'Spanish',
+  [Locales.SPANISH_LATAM]: 'Spanish, LATAM',
   [Locales.SWEDISH]: 'Swedish',
   [Locales.THAI]: 'Thai',
   [Locales.TURKISH]: 'Turkish',
@@ -1316,11 +1315,11 @@ export const MessageTypesDeletable: Readonly<Record<MessageTypes, boolean>> = Ob
   [MessageTypes.GUILD_PREMIUM_SUBSCRIPTION_TIER_3]: true,
   [MessageTypes.CHANNEL_FOLLOW_ADD]: true,
   [MessageTypes.GUILD_STREAM]: false,
-  [MessageTypes.GUILD_DISCOVERY_DISQUALIFIED]: false,
-  [MessageTypes.GUILD_DISCOVERY_REQUALIFIED]: false,
-  [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING]: false,
-  [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING]: false,
-  [MessageTypes.THREAD_CREATED]: false,
+  [MessageTypes.GUILD_DISCOVERY_DISQUALIFIED]: true,
+  [MessageTypes.GUILD_DISCOVERY_REQUALIFIED]: true,
+  [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING]: true,
+  [MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING]: true,
+  [MessageTypes.THREAD_CREATED]: true,
   [MessageTypes.REPLY]: true,
   [MessageTypes.CHAT_INPUT_COMMAND]: true,
   [MessageTypes.THREAD_STARTER_MESSAGE]: false,
@@ -1334,7 +1333,7 @@ export const MessageTypesDeletable: Readonly<Record<MessageTypes, boolean>> = Ob
   [MessageTypes.STAGE_SPEAKER]: true,
 
   [MessageTypes.STAGE_TOPIC]: true,
-  [MessageTypes.GUILD_APPLICATION_PREMIUM_SUBSCRIPTION]: false,
+  [MessageTypes.GUILD_APPLICATION_PREMIUM_SUBSCRIPTION]: true,
 
   [MessageTypes.GUILD_INCIDENT_ALERT_MODE_ENABLED]: true,
   [MessageTypes.GUILD_INCIDENT_ALERT_MODE_DISABLED]: true,
@@ -1788,8 +1787,8 @@ export const SystemMessages = Object.freeze({
   CallStarted: ':user: started a call.',
   CallStartedWithDuration: ':user: started a call that lasted :duration:.',
   ChannelFollowAdd: ':user: has added **:webhookName:** to this channel.',
-  ChannelIconChange: ':user: changed the channel name: **:name:**',
-  ChannelNameChange: ':user: changed the channel icon.',
+  ChannelIconChange: ':user: changed the channel icon.',
+  ChannelNameChange: ':user: changed the channel name: **:name:**',
   ChatInputCommandUsed: ':user: used /:command:.',
   ContextMenuCommandUsed: ':user: used /:command:.',
   GuildDiscoveryDisqualified: 'This server has been removed from Server Discovery because it no longer passes all the requirements. Check Server Settings for more details.',
@@ -2054,7 +2053,7 @@ export const DiscordKeys = Object.freeze({
   CONTEXTS: 'contexts',
   COUNT: 'count',
   COUNTRY: 'country',
-  COUNT_DETAILS: 'countDetails',
+  COUNT_DETAILS: 'count_details',
   COVER_IMAGE: 'cover_image',
   CREATE_TIMESTAMP: 'create_timestamp',
   CREATED_AT: 'created_at',

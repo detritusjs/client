@@ -48,13 +48,13 @@ export class Webhook extends BaseStructure {
   guildId: string = '';
   id: string = '';
   name: string = '';
-  sourceChannel?: Channel;
-  sourceGuild?: BaseGuild;
-  token?: null | string;
+  declare sourceChannel?: Channel;
+  declare sourceGuild?: BaseGuild;
+  declare token?: null | string;
   type: WebhookTypes = WebhookTypes.INCOMING;
   // only returned from the webhook oauth2 flow
-  url?: string;
-  user?: null | User;
+  declare url?: string;
+  declare user?: null | User;
 
   constructor(
     client: ShardClient,
@@ -148,7 +148,7 @@ export class Webhook extends BaseStructure {
     if (!this.token) {
       throw new Error('Webhook is missing its token');
     }
-    return this.client.rest.editWebhookTokenMessage(this.id, this.token, messageId, options);
+    return this.client.rest.editWebhookTokenMessage(this.id, this.token, messageId, options, true, this.guildId);
   }
 
   async execute(
@@ -158,14 +158,14 @@ export class Webhook extends BaseStructure {
     if (!this.token) {
       throw new Error('Webhook is missing its token');
     }
-    return this.client.rest.executeWebhook(this.id, this.token, options, compatibleType);
+    return this.client.rest.executeWebhook(this.id, this.token, options, compatibleType, this.guildId);
   }
 
   async fetchMessage(messageId: string, options: RequestTypes.FetchWebhookTokenMessage = {}) {
     if (!this.token) {
       throw new Error('Webhook is missing its token');
     }
-    return this.client.rest.fetchWebhookTokenMessage(this.id, this.token, messageId, options);
+    return this.client.rest.fetchWebhookTokenMessage(this.id, this.token, messageId, options, this.guildId);
   }
 
 

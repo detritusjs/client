@@ -42,9 +42,16 @@ const keysComponentButton = new BaseSet<string>([
   url?: null | string;
 
   constructor(data: ComponentActionData = {}) {
+    // work on a copy, the generated custom id (and key renames) shouldn't end up in the caller's object
+    data = Object.assign({}, data);
     super(data);
-    if ((data as any)[DiscordKeys.URL] && ((data as any)[DiscordKeys.CUSTOM_ID] === undefined)) {
-      (data as any)[DiscordKeys.CUSTOM_ID] = null;
+    if ((data as any)[DiscordKeys.URL]) {
+      if ((data as any)[DiscordKeys.STYLE] === undefined) {
+        (data as any)[DiscordKeys.STYLE] = MessageComponentButtonStyles.LINK;
+      }
+      if ((data as any)[DiscordKeys.CUSTOM_ID] === undefined) {
+        (data as any)[DiscordKeys.CUSTOM_ID] = null;
+      }
     }
     if ((data as any)[DiscordKeys.SKU_ID]) {
       (data as any)[DiscordKeys.STYLE] = MessageComponentButtonStyles.PREMIUM;
@@ -77,7 +84,7 @@ const keysComponentButton = new BaseSet<string>([
   }
 
   setSkuId(skuId: null | string): this {
-    this.merge({skuId});
+    this.merge({[DiscordKeys.SKU_ID]: skuId});
     if (skuId) {
       this.setStyle(MessageComponentButtonStyles.PREMIUM);
     }

@@ -24,7 +24,6 @@ import {
   MessageFlags,
   Permissions,
   FILE_EXTENSIONS_IMPORT,
-  IS_IMPORT_AVAILABLE,
   LOCAL_GUILD_ID,
 } from './constants';
 import { ImportedCommandsError } from './errors';
@@ -35,7 +34,7 @@ import {
   InteractionDataApplicationCommandOption,
   InteractionDataApplicationCommandResolved,
 } from './structures';
-import { PermissionTools, diffApplicationCommands, getFiles } from './utils';
+import { PermissionTools, diffApplicationCommands, getFiles, requireOrImport } from './utils';
 
 import {
   CommandRatelimit,
@@ -80,6 +79,13 @@ export interface InteractionCommandClientAddOptions extends InteractionCommandOp
   _class?: any,
 }
 
+export interface InteractionCommandIndex {
+  byId: Map<string, InteractionCommand>,
+  // `type.name` keys
+  byName: Map<string, InteractionCommand>,
+  byNameWithoutId: Map<string, InteractionCommand>,
+}
+
 export interface ApplicationCommandsPlan {
   changes: number,
   create: Array<InteractionCommand>,
@@ -104,6 +110,10 @@ export class InteractionCommandClient extends EventSpewer {
   client: ClusterClient | ShardClient;
   commands = new BaseSet<InteractionCommand>();
   commandsById = new BaseCollection<string, BaseSet<InteractionCommand>>();
+  // scope -> lookups for `findCommand()` so it isn't a scan per interaction, dropped whenever commands or their ids change
+  _commandIndex = new Map<string, InteractionCommandIndex>();
+  // every scope we've synced, a scope whose local commands were all removed (like on a reload) still needs its remote ones deleted
+  readonly _syncedScopes = new Set<string>();
   directories = new BaseCollection<string, {subdirectories: boolean}>();
   ran: boolean = false;
   ratelimits: Array<CommandRatelimit> = [];
@@ -259,6 +269,7 @@ export class InteractionCommandClient extends EventSpewer {
       }
       commands.add(command);
     }
+    this._commandIndex.clear();
 
     if (!this._clientSubscriptions.length) {
       this.setSubscriptions();
@@ -316,7 +327,7 @@ export class InteractionCommandClient extends EventSpewer {
       }
       const filepath = path.resolve(directory, file);
       try {
-        let importedCommand: any = (IS_IMPORT_AVAILABLE) ? (await import(filepath)).default : require(filepath);
+        let importedCommand: any = await requireOrImport(filepath);
         if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
           importedCommand = importedCommand.default;
         }
@@ -348,6 +359,7 @@ export class InteractionCommandClient extends EventSpewer {
       this.commandsById.delete(guildId);
     }
     this.commandsById.clear();
+    this._commandIndex.clear();
     this.clearSubscriptions();
   }
 
@@ -381,7 +393,11 @@ export class InteractionCommandClient extends EventSpewer {
     if (!this.client.ran) {
       return;
     }
-    for (let [guildId, localCommands] of this.commandsById) {
+    // also go over scopes without local commands, so the commands we no longer have get deleted from them
+    // (the global scope always, guilds once we've synced them)
+    const scopes = new Set<string>([LOCAL_GUILD_ID, ...this._syncedScopes, ...this.commandsById.keys()]);
+    for (let guildId of scopes) {
+      this._syncedScopes.add(guildId);
       const guildIdOrUndefined = (guildId === LOCAL_GUILD_ID) ? undefined : guildId;
 
       let commands: BaseCollection<string, ApplicationCommand>;
@@ -463,7 +479,6 @@ export class InteractionCommandClient extends EventSpewer {
   }
 
   async fetchApplicationCommands(guildId?: string): Promise<BaseCollection<string, ApplicationCommand>> {
-    // add ability for ClusterManager checks
     if (!this.client.ran) {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
@@ -490,7 +505,6 @@ export class InteractionCommandClient extends EventSpewer {
   }
 
   async uploadApplicationCommands(guildId?: string): Promise<BaseCollection<string, ApplicationCommand>> {
-    // add ability for ClusterManager
     if (!this.client.ran) {
       throw new Error('Client hasn\'t ran yet so we don\'t know our application id!');
     }
@@ -518,6 +532,7 @@ export class InteractionCommandClient extends EventSpewer {
       const localCommand = localCommands.find((cmd) => cmd.name === command.name && cmd.type === command.type);
       if (localCommand) {
         localCommand.ids.set(guildId || LOCAL_GUILD_ID, command.id);
+        this._commandIndex.delete(guildId || LOCAL_GUILD_ID);
         if (localCommand.integrationTypes === undefined) {
           localCommand.integrationTypes = command.integrationTypes;
         }
@@ -834,30 +849,58 @@ export class InteractionCommandClient extends EventSpewer {
   ): InteractionCommand | undefined {
     const guildIds = (interactionGuildId) ? [interactionGuildId, LOCAL_GUILD_ID] : [LOCAL_GUILD_ID];
     for (let guildId of guildIds) {
-      if (this.commandsById.has(guildId)) {
-        const localCommands = this.commandsById.get(guildId)!;
-        let command: InteractionCommand | undefined;
-        if (this.strictCommandCheck) {
-          command = localCommands.find((cmd) => cmd.ids.get(guildId) === data.id);
-          if (!command) {
-            // ids are only known after the commands were checked (`checkCommands: false` never fills them)
-            // so match commands without a known id by name, type and scope instead of ignoring them
-            const isScopeMatch = (guildId === LOCAL_GUILD_ID) ? !data.guildId : data.guildId === guildId;
-            if (isScopeMatch) {
-              command = localCommands.find((cmd) => {
-                return !cmd.ids.has(guildId) && cmd.name === data.name && cmd.type === data.type;
-              });
-            }
+      const index = this.getCommandIndex(guildId);
+      if (!index) {
+        continue;
+      }
+      const nameKey = `${data.type}.${data.name}`;
+      let command: InteractionCommand | undefined;
+      if (this.strictCommandCheck) {
+        command = index.byId.get(data.id);
+        if (!command) {
+          // ids are only known after the commands were checked (`checkCommands: false` never fills them)
+          // so match commands without a known id by name, type and scope instead of ignoring them
+          const isScopeMatch = (guildId === LOCAL_GUILD_ID) ? !data.guildId : data.guildId === guildId;
+          if (isScopeMatch) {
+            command = index.byNameWithoutId.get(nameKey);
           }
-        } else {
-          command = localCommands.find((cmd) => cmd.name === data.name && cmd.type === data.type);
         }
-        if (command) {
-          return command;
-        }
+      } else {
+        command = index.byName.get(nameKey);
+      }
+      if (command) {
+        return command;
       }
     }
     return undefined;
+  }
+
+  getCommandIndex(guildId: string): InteractionCommandIndex | null {
+    let index = this._commandIndex.get(guildId);
+    if (!index) {
+      const localCommands = this.commandsById.get(guildId);
+      if (!localCommands) {
+        return null;
+      }
+      index = {byId: new Map(), byName: new Map(), byNameWithoutId: new Map()};
+      // first one wins, same as the `.find()` this replaces
+      for (let command of localCommands) {
+        const commandId = command.ids.get(guildId);
+        const nameKey = `${command.type}.${command.name}`;
+        if (commandId) {
+          if (!index.byId.has(commandId)) {
+            index.byId.set(commandId, command);
+          }
+        } else if (!index.byNameWithoutId.has(nameKey)) {
+          index.byNameWithoutId.set(nameKey, command);
+        }
+        if (!index.byName.has(nameKey)) {
+          index.byName.set(nameKey, command);
+        }
+      }
+      this._commandIndex.set(guildId, index);
+    }
+    return index;
   }
 
   async handleApplicationCommand(event: GatewayClientEvents.InteractionCreate): Promise<void> {
@@ -935,7 +978,6 @@ export class InteractionCommandClient extends EventSpewer {
     }
 
     if (context.inDm) {
-      // dm checks? maybe add ability to disable it in dm?
       if (invoker.disableDm) {
         if (typeof(invoker.onDmBlocked) === 'function') {
           try {
@@ -981,7 +1023,6 @@ export class InteractionCommandClient extends EventSpewer {
             try {
               await Promise.resolve(invoker.onPermissionsFailClient(context, failed));
             } catch(error) {
-              // do something with this error?
             }
           }
           return;
@@ -1019,7 +1060,6 @@ export class InteractionCommandClient extends EventSpewer {
               try {
                 await Promise.resolve(invoker.onPermissionsFail(context, failed));
               } catch(error) {
-                // do something with this error?
               }
             }
             return;
@@ -1042,7 +1082,6 @@ export class InteractionCommandClient extends EventSpewer {
             try {
               await Promise.resolve(invoker.onRatelimit(context, ratelimits, {global, now}));
             } catch(error) {
-              // do something with this error?
             }
           }
           return;
@@ -1061,7 +1100,6 @@ export class InteractionCommandClient extends EventSpewer {
             try {
               await Promise.resolve(invoker.onRatelimit(context, ratelimits, {global, now}));
             } catch(error) {
-              // do something with this error?
             }
           }
           return;
@@ -1115,7 +1153,6 @@ export class InteractionCommandClient extends EventSpewer {
                 await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, data);
               }
             } catch(error) {
-              // do something maybe?
             }
           });
         } else {
@@ -1234,7 +1271,6 @@ export class InteractionCommandClient extends EventSpewer {
             this.emit(ClientEvents.COMMAND_ERROR, payload);
           }
         }
-        // emit the error?
       }
     }
   }

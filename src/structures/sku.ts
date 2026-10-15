@@ -54,25 +54,25 @@ export class Sku extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysSku); }
 
   accessType: number = 0;
-  application?: Application;
+  declare application?: Application;
   applicationId: string = '';
-  contentRating?: {descriptors: Array<number>, rating: number};
-  contentRatingAgency?: number;
+  declare contentRating?: {descriptors: Array<number>, rating: number};
+  declare contentRatingAgency?: number;
   dependentSkuId: null | string = null;
-  features?: Array<number>;
+  declare features?: Array<number>;
   flags: number = 0;
-  genres?: Array<number>;
+  declare genres?: Array<number>;
   id: string = '';
-  legalNotice?: string;
-  locales?: Array<string>;
-  manifestLabels?: Array<any> | null;
+  declare legalNotice?: string;
+  declare locales?: Array<string>;
+  declare manifestLabels?: Array<any> | null;
   name: string = '';
-  premium?: null;
-  price?: {amount: number, currency: string};
-  releaseDate?: null | string;
+  declare premium?: null;
+  declare price?: {amount: number, currency: string};
+  declare releaseDate?: null | string;
   showAgeGate: boolean = false;
   slug: string = '';
-  systemRequirements?: {[key: string]: {recommended: any, minimum: any}};
+  declare systemRequirements?: {[key: string]: {recommended: any, minimum: any}};
   type: SkuTypes = SkuTypes.BASE;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {

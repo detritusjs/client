@@ -7,6 +7,7 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 import { Application } from './application';
 import { User } from './user';
@@ -40,22 +41,22 @@ export class Integration extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysIntegration); }
 
   account!: IntegrationAccount;
-  application?: Application;
+  declare application?: Application;
   enabled: boolean = false;
-  enableEmoticons?: boolean;
-  expireBehavior?: IntegrationExpireBehaviors;
-  expireGracePeriod?: number;
+  declare enableEmoticons?: boolean;
+  declare expireBehavior?: IntegrationExpireBehaviors;
+  declare expireGracePeriod?: number;
   guildId: string = '';
   id: string = '';
   name: string = '';
-  scopes?: Array<Oauth2Scopes>;
-  revoked?: boolean;
-  roleId?: string;
-  subscriberCount?: number;
-  syncedAt?: Date;
-  syncing?: boolean;
+  declare scopes?: Array<Oauth2Scopes>;
+  declare revoked?: boolean;
+  declare roleId?: string;
+  declare subscriberCount?: number;
+  declare syncedAt?: Date;
+  declare syncing?: boolean;
   type: string = '';
-  user?: User;
+  declare user?: User;
 
   constructor(
     client: ShardClient,
@@ -84,7 +85,6 @@ export class Integration extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.ACCOUNT]] = value;
     }
     if (DiscordKeys.APPLICATION in data) {
-      // todo: maybe use our own application object if its ours?
       const value = new Application(this.client, data[DiscordKeys.APPLICATION]);
       (this as any)[DetritusKeys[DiscordKeys.APPLICATION]] = value;
     }
@@ -161,7 +161,7 @@ const keysIntegrationAccount = new BaseSet<string>([
  * @category Structure
  */
 export class IntegrationAccount extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysIntegrationAccount); }
   declare readonly integration: Integration;
 

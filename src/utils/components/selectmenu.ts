@@ -61,19 +61,21 @@ const keysComponentSelectMenu = new BaseSet<string>([
   type = MessageComponentTypes.SELECT_MENU;
 
   constructor(data: ComponentActionData = {}) {
+    // work on a copy, the generated custom id (and key renames) shouldn't end up in the caller's object
+    data = Object.assign({}, data);
     super(data);
     Object.assign(data, {
       [DiscordKeys.CHANNEL_TYPES]: (
-        (data as any)[DetritusKeys[DiscordKeys.CHANNEL_TYPES]] ||
+        (data as any)[DetritusKeys[DiscordKeys.CHANNEL_TYPES]] ??
         (data as any)[DiscordKeys.CHANNEL_TYPES]
       ),
-      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
+      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] ?? (data as any)[DiscordKeys.CUSTOM_ID],
       [DiscordKeys.DEFAULT_VALUES]: (
-        (data as any)[DetritusKeys[DiscordKeys.DEFAULT_VALUES]] ||
+        (data as any)[DetritusKeys[DiscordKeys.DEFAULT_VALUES]] ??
         (data as any)[DiscordKeys.DEFAULT_VALUES]
       ),
-      [DiscordKeys.MAX_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MAX_VALUES]] || (data as any)[DiscordKeys.MAX_VALUES],
-      [DiscordKeys.MIN_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MIN_VALUES]] || (data as any)[DiscordKeys.MIN_VALUES],
+      [DiscordKeys.MAX_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MAX_VALUES]] ?? (data as any)[DiscordKeys.MAX_VALUES],
+      [DiscordKeys.MIN_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MIN_VALUES]] ?? (data as any)[DiscordKeys.MIN_VALUES],
     });
     this.merge(data);
     switch (this.type) {
@@ -175,6 +177,10 @@ const keysComponentSelectMenu = new BaseSet<string>([
         }
       }; return;
       case DiscordKeys.OPTIONS: {
+        // the base constructor merges before our fields are set up
+        if (!this.options) {
+          this.options = [];
+        }
         this.options.length = 0;
         for (let raw of value) {
           const option = new ComponentSelectMenuOption(raw);

@@ -49,7 +49,7 @@ export class Template extends BaseStructure {
   description: string = '';
   isDirty: boolean = false;
   name: string = '';
-  serializedSourceGuild?: any;
+  declare serializedSourceGuild?: any;
   sourceGuildId: string = '';
   updatedAt!: Date;
   usageCount: number = 0;

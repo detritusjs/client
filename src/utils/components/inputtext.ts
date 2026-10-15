@@ -41,11 +41,13 @@ const keysComponentInputText = new BaseSet<string>([
   value?: string;
 
   constructor(data: ComponentActionData = {}) {
+    // work on a copy, the generated custom id (and key renames) shouldn't end up in the caller's object
+    data = Object.assign({}, data);
     super(data);
     Object.assign(data, {
-      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
-      [DiscordKeys.MAX_LENGTH]: (data as any)[DetritusKeys[DiscordKeys.MAX_LENGTH]] || (data as any)[DiscordKeys.MAX_LENGTH],
-      [DiscordKeys.MIN_LENGTH]: (data as any)[DetritusKeys[DiscordKeys.MIN_LENGTH]] || (data as any)[DiscordKeys.MIN_LENGTH],
+      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] ?? (data as any)[DiscordKeys.CUSTOM_ID],
+      [DiscordKeys.MAX_LENGTH]: (data as any)[DetritusKeys[DiscordKeys.MAX_LENGTH]] ?? (data as any)[DiscordKeys.MAX_LENGTH],
+      [DiscordKeys.MIN_LENGTH]: (data as any)[DetritusKeys[DiscordKeys.MIN_LENGTH]] ?? (data as any)[DiscordKeys.MIN_LENGTH],
     });
     this.merge(data);
     this.type = MessageComponentTypes.INPUT_TEXT;

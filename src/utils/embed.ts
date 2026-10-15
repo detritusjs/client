@@ -139,7 +139,8 @@ export class Embed extends Structure {
       timestamp = new Date(timestamp);
     }
     if (timestamp instanceof Date) {
-      timestamp = String(timestamp);
+      // `String(date)` drops the milliseconds
+      timestamp = timestamp.toISOString();
     }
     this.merge({timestamp});
     return this;
@@ -156,6 +157,10 @@ export class Embed extends Structure {
   }
 
   mergeValue(key: string, value: any): void {
+    // `toJSON()` includes keys that were never set, `new Embed(embed.toJSON())` shouldn't turn them into empty objects
+    if (value === undefined) {
+      return;
+    }
     switch (key) {
       case DiscordKeys.AUTHOR: {
         let author: EmbedAuthor;
@@ -172,8 +177,12 @@ export class Embed extends Structure {
           this.fields = new BaseCollection<number,EmbedField>();
         }
         this.fields.clear();
-        for (let i = 0; i < value.length; i++) {
-          this.fields.set(i, value[i]);
+        if (value) {
+          // could be another embed's fields collection (from its `toJSON()`)
+          const fields = (value instanceof BaseCollection) ? Array.from(value.values()) : value;
+          for (let i = 0; i < fields.length; i++) {
+            this.fields.set(i, fields[i]);
+          }
         }
       }; return;
       case DiscordKeys.FOOTER: {

@@ -4,6 +4,10 @@ export namespace MediaRawEvents {
     d: any,
   }
 
+  export interface ClientsConnect {
+    user_ids: Array<string>,
+  }
+
   export interface ClientConnect {
     audio_ssrc: number,
     user_id: string,

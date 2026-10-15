@@ -31,7 +31,7 @@ export class ThreadMember extends BaseStructure {
   flags: number = 0;
   id: string = '';
   joinTimestampUnix: number = 0;
-  member?: Member;
+  declare member?: Member;
   userId: string = '';
 
   constructor(
@@ -116,11 +116,11 @@ const keysThreadMetadata = new BaseSet<string>([
 
   archiveTimestampUnix: number = 0;
   archived: boolean = false;
-  archiverId?: string;
+  declare archiverId?: string;
   autoArchiveDuration: number = 60;
-  createTimestampUnix?: number;
-  invitable?: boolean;
-  locked?: boolean;
+  declare createTimestampUnix?: number;
+  declare invitable?: boolean;
+  declare locked?: boolean;
 
   constructor(
     channel: ChannelGuildThread,
@@ -130,6 +130,11 @@ const keysThreadMetadata = new BaseSet<string>([
     super(channel.client, undefined, isClone);
     this.channel = channel;
     this.merge(data);
+  }
+
+  // the generic `clone()` would pass the client in as the channel
+  clone(): this {
+    return new ThreadMetadata(this.channel, JSON.parse(JSON.stringify(this)), true) as this;
   }
 
   get archiver(): User | null {

@@ -44,12 +44,13 @@ export class Gift extends BaseStructure {
 
   applicationId: string = '';
   code: string = '';
-  expiresAt!: Date;
+  // null when the gift never expires
+  expiresAt: Date | null = null;
   maxUses: number = 0;
   redeemed: boolean = false;
   skuId: string = '';
-  storeListing?: StoreListing;
-  subscriptionPlan?: SubscriptionPlan;
+  declare storeListing?: StoreListing;
+  declare subscriptionPlan?: SubscriptionPlan;
   subscriptionPlanId: string = '';
   uses: number = 0;
   user!: User;
@@ -92,7 +93,8 @@ export class Gift extends BaseStructure {
       (this as any)[DetritusKeys[DiscordKeys.CODE]] = data[DiscordKeys.CODE];
     }
     if (DiscordKeys.EXPIRES_AT in data) {
-      const value = new Date(data[DiscordKeys.EXPIRES_AT]);
+      // `new Date(null)` would be 1970, making a gift with no expiry look expired
+      const value = (data[DiscordKeys.EXPIRES_AT]) ? new Date(data[DiscordKeys.EXPIRES_AT]) : null;
       (this as any)[DetritusKeys[DiscordKeys.EXPIRES_AT]] = value;
     }
     if (DiscordKeys.MAX_USES in data) {

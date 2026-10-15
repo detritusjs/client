@@ -89,7 +89,7 @@ const interactionHiddenProperties: PropertyDescriptorMap = Object.freeze({
 export class Interaction extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInteraction); }
   readonly _deleted: boolean = false;
-  _channel?: Channel;
+  declare _channel?: Channel;
   // only declared, the constructor adds them (see `interactionHiddenProperties`)
   declare _entitlements?: BaseCollection<string, Entitlement>;
   declare _responding: Promise<boolean> | null;
@@ -98,19 +98,19 @@ export class Interaction extends BaseStructure {
   applicationId: string = '';
   attachmentSizeLimit: number = 0;
   authorizingIntegrationOwners: Partial<Record<ApplicationIntegrationTypes, string>> = {};
-  channelId?: string;
-  context?: InteractionContextTypes;
-  data?: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
-  guildId?: string;
-  guildLocale?: string;
-  guildPartial?: {features: Array<string>, id: string, locale: string};
+  declare channelId?: string;
+  declare context?: InteractionContextTypes;
+  declare data?: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
+  declare guildId?: string;
+  declare guildLocale?: string;
+  declare guildPartial?: {features: Array<string>, id: string, locale: string};
   id: string = '';
-  locale?: string;
-  member?: Member;
-  message?: Message;
+  declare locale?: string;
+  declare member?: Member;
+  declare message?: Message;
   responded: boolean = false;
-  responseDeleted?: boolean;
-  responseId?: string;
+  declare responseDeleted?: boolean;
+  declare responseId?: string;
   token: string = '';
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
@@ -168,21 +168,6 @@ export class Interaction extends BaseStructure {
     return null;
   }
 
-  get hasServerPermissions(): boolean {
-    switch (this.context) {
-      case InteractionContextTypes.GUILD: {
-        return ApplicationIntegrationTypes.GUILD_INSTALL in this.authorizingIntegrationOwners;
-      };
-      case InteractionContextTypes.BOT_DM: {
-        return true;
-      };
-      case InteractionContextTypes.PRIVATE_CHANNEL: {
-        return false;
-      };
-    }
-    return false;
-  }
-
   get inDm(): boolean {
     return this.inDmWithBot || this.inDmWithUsers;
   }
@@ -195,8 +180,33 @@ export class Interaction extends BaseStructure {
     return this.context === InteractionContextTypes.PRIVATE_CHANNEL;
   }
 
+  /**
+   * If the bot user is in the interaction's location (a guild it's a member of or its own dm), so it can use the api there
+   * `authorizingIntegrationOwners` isn't used since it only says which install authorized the command, not if the bot user is in the guild
+   */
+  get isBotPresent(): boolean {
+    switch (this.context) {
+      case InteractionContextTypes.GUILD: {
+        // not 100% accurate if the guild cache is disabled, it'll always be false then
+        return !!this.guildId && this.client.guilds.has(this.guildId);
+      };
+      case InteractionContextTypes.BOT_DM: {
+        return true;
+      };
+      case InteractionContextTypes.PRIVATE_CHANNEL: {
+        return false;
+      };
+    }
+    return false;
+  }
+
   get isFromApplicationCommand() {
     return this.type === InteractionTypes.APPLICATION_COMMAND;
+  }
+
+  // also true in the bot's dm, where the value is `'0'` instead of a guild id
+  get isFromGuildInstall(): boolean {
+    return ApplicationIntegrationTypes.GUILD_INSTALL in this.authorizingIntegrationOwners;
   }
 
   get isFromModalSubmit() {
@@ -205,6 +215,10 @@ export class Interaction extends BaseStructure {
 
   get isFromMessageComponent() {
     return this.type === InteractionTypes.MESSAGE_COMPONENT;
+  }
+
+  get isFromUserInstall(): boolean {
+    return ApplicationIntegrationTypes.USER_INSTALL in this.authorizingIntegrationOwners;
   }
 
   get response(): Message | null {
@@ -219,7 +233,7 @@ export class Interaction extends BaseStructure {
   }
 
   createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
-    return this.client.rest.executeWebhook(this.applicationId, this.token, options);
+    return this.client.rest.executeWebhook(this.applicationId, this.token, options, undefined, this.guildId);
   }
 
   async createResponse(
@@ -272,7 +286,7 @@ export class Interaction extends BaseStructure {
   }
 
   editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
-    return this.client.rest.editWebhookTokenMessage(this.applicationId, this.token, messageId, options);
+    return this.client.rest.editWebhookTokenMessage(this.applicationId, this.token, messageId, options, true, this.guildId);
   }
 
   editResponse(options: RequestTypes.EditWebhookTokenMessage = {}) {
@@ -307,7 +321,7 @@ export class Interaction extends BaseStructure {
   }
 
   fetchMessage(messageId: string, options: RequestTypes.FetchWebhookTokenMessage = {}) {
-    return this.client.rest.fetchWebhookTokenMessage(this.applicationId, this.token, messageId, options);
+    return this.client.rest.fetchWebhookTokenMessage(this.applicationId, this.token, messageId, options, this.guildId);
   }
 
   fetchResponse() {
@@ -469,12 +483,12 @@ export class InteractionDataApplicationCommand extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInteractionDataApplicationCommand); }
   declare readonly interaction: Interaction;
 
-  guildId?: string;
+  declare guildId?: string;
   id: string = '';
   name: string = '';
-  options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
-  resolved?: InteractionDataApplicationCommandResolved;
-  targetId?: string;
+  declare options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
+  declare resolved?: InteractionDataApplicationCommandResolved;
+  declare targetId?: string;
   type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
 
   constructor(
@@ -572,11 +586,11 @@ export class InteractionDataApplicationCommandOption extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInteractionDataApplicationCommandOption); }
   declare readonly interactionData: InteractionDataApplicationCommand;
 
-  focused?: boolean;
+  declare focused?: boolean;
   name: string = '';
-  options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
+  declare options?: BaseCollection<string, InteractionDataApplicationCommandOption>;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.SUB_COMMAND;
-  value?: boolean | number | string;
+  declare value?: boolean | number | string;
 
   constructor(
     interactionData: InteractionDataApplicationCommand,
@@ -653,12 +667,12 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInteractionDataApplicationCommandResolved); }
   declare readonly interactionData: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal;
 
-  attachments?: BaseCollection<string, Attachment>;
-  channels?: BaseCollection<string, Channel>;
-  members?: BaseCollection<string, Member>;
-  messages?: BaseCollection<string, Message>;
-  roles?: BaseCollection<string, Role>;
-  users?: BaseCollection<string, User>;
+  declare attachments?: BaseCollection<string, Attachment>;
+  declare channels?: BaseCollection<string, Channel>;
+  declare members?: BaseCollection<string, Member>;
+  declare messages?: BaseCollection<string, Message>;
+  declare roles?: BaseCollection<string, Role>;
+  declare users?: BaseCollection<string, User>;
 
   constructor(
     interactionData: InteractionDataApplicationCommand | InteractionDataComponent | InteractionDataModal,
@@ -753,6 +767,22 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
       }
     }
   }
+
+  toJSON() {
+    const data = super.toJSON() as any;
+    // discord sends these keyed by id (and `merge()` reads them that way), a collection would serialize as an array
+    for (let key of [DiscordKeys.ATTACHMENTS, DiscordKeys.CHANNELS, DiscordKeys.MEMBERS, DiscordKeys.MESSAGES, DiscordKeys.ROLES, DiscordKeys.USERS]) {
+      const collection = (this as any)[DetritusKeys[key]];
+      if (collection instanceof BaseCollection) {
+        const value: Record<string, any> = {};
+        for (let [id, item] of collection) {
+          value[id] = item;
+        }
+        data[key] = value;
+      }
+    }
+    return data;
+  }
 }
 
 
@@ -773,8 +803,8 @@ export class InteractionDataComponent extends BaseStructure {
 
   componentType: MessageComponentTypes = MessageComponentTypes.BUTTON;
   customId: string = '';
-  resolved?: InteractionDataApplicationCommandResolved;
-  values?: Array<string>;
+  declare resolved?: InteractionDataApplicationCommandResolved;
+  declare values?: Array<string>;
 
   constructor(
     interaction: Interaction,
@@ -824,10 +854,10 @@ export type InteractionDataModalComponent = ComponentActionRow | ComponentLabel 
 export class InteractionDataModal extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInteractionDataModal); }
   declare readonly interaction: Interaction;
-  _components?: BaseCollection<number, InteractionDataModalComponent>;
+  declare _components?: BaseCollection<number, InteractionDataModalComponent>;
 
   customId: string = '';
-  resolved?: InteractionDataApplicationCommandResolved;
+  declare resolved?: InteractionDataApplicationCommandResolved;
 
   constructor(
     interaction: Interaction,
@@ -911,7 +941,7 @@ export class InteractionCallbackResponse extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInteractionCallbackResponse); }
 
   interaction!: InteractionCallback;
-  resource?: InteractionCallbackResource;
+  declare resource?: InteractionCallbackResource;
 
   constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
@@ -951,11 +981,11 @@ const keysInteractionCallback = new BaseSet<string>([
 export class InteractionCallback extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInteractionCallback); }
 
-  activityInstanceId?: string;
+  declare activityInstanceId?: string;
   id: string = '';
-  responseMessageEphemeral?: boolean;
-  responseMessageId?: string;
-  responseMessageLoading?: boolean;
+  declare responseMessageEphemeral?: boolean;
+  declare responseMessageId?: string;
+  declare responseMessageLoading?: boolean;
   type: InteractionTypes = InteractionTypes.PING;
 
   constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {
@@ -978,8 +1008,8 @@ const keysInteractionCallbackResource = new BaseSet<string>([
 export class InteractionCallbackResource extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInteractionCallbackResource); }
 
-  activityInstance?: {id: string};
-  message?: Message;
+  declare activityInstance?: {id: string};
+  declare message?: Message;
   type: InteractionCallbackTypes = InteractionCallbackTypes.PONG;
 
   constructor(client: ShardClient, data?: BaseStructureData, isClone?: boolean) {

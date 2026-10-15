@@ -63,6 +63,7 @@ const keysSkipDifferenceMember = new BaseSet<string>([
 
 // added to each member as a new property, redefining an existing (class field) one is a lot slower
 const memberHiddenProperties: PropertyDescriptorMap = Object.freeze({
+  _hoistedRoleId: {configurable: true, enumerable: false, writable: true, value: undefined},
   _roles: {configurable: true, enumerable: false, writable: true, value: undefined},
 });
 
@@ -78,7 +79,9 @@ export class Member extends UserMixin {
   _banner: null | string = null;
   _collectibles: null | UserCollectibles = null;
   _displayNameStyles: null | UserDisplayNameStyles = null;
-  // only declared, the constructor adds it (see `memberHiddenProperties`)
+  // only declared, the constructor adds these (see `memberHiddenProperties`)
+  // `_hoistedRoleId` is only set when discord sends `hoisted_role` (user accounts) or from a clone, otherwise it's worked out from the roles when read
+  declare _hoistedRoleId?: null | string;
   declare _roles?: Array<string>;
   _permissions?: bigint = 0n;
 
@@ -88,7 +91,6 @@ export class Member extends UserMixin {
   deaf: boolean = false;
   flags: number = 0;
   guildId: string = '';
-  hoistedRoleId: null | string = null;
   isPending: boolean = false;
   joinedAtUnix: number = 0;
   left: boolean = false;
@@ -256,10 +258,41 @@ export class Member extends UserMixin {
   }
 
   get hoistedRole(): null | Role {
-    if (this.hoistedRoleId) {
-      return this.roles.get(this.hoistedRoleId) || null;
+    const hoistedRoleId = this.hoistedRoleId;
+    if (hoistedRoleId) {
+      const guild = this.guild;
+      if (guild) {
+        return guild.roles.get(hoistedRoleId) || null;
+      }
     }
     return null;
+  }
+
+  /**
+   * The highest role that's displayed separately in the member list
+   * worked out from the guild's current roles when read (discord only sends `hoisted_role` to user accounts)
+   * so it doesn't go stale when roles get moved or edited, and merging stays cheap
+   */
+  get hoistedRoleId(): null | string {
+    if (this._hoistedRoleId !== undefined) {
+      return this._hoistedRoleId;
+    }
+    const guild = this.guild;
+    if (!guild || !this._roles) {
+      return null;
+    }
+    let hoisted: Role | null = null;
+    for (let roleId of this._roles) {
+      const role = guild.roles.get(roleId);
+      if (role && role.hoist && (!hoisted || hoisted.position < role.position)) {
+        hoisted = role;
+      }
+    }
+    return (hoisted) ? hoisted.id : null;
+  }
+
+  set hoistedRoleId(value: null | string) {
+    this._hoistedRoleId = value;
   }
 
   get isBoosting(): boolean {
@@ -319,12 +352,24 @@ export class Member extends UserMixin {
       return PERMISSIONS_ALL;
     }
     // the raw bitfield from the member's roles, administrator doesn't expand it (`can()`/`permissionsIn()` handle that)
-    return this.roles.reduce((total: bigint, role: null | Role) => {
-      if (role) {
-        return total | role.permissions;
+    // reads the guild's roles directly, the `roles` getter would build a new collection on every call
+    let total = Permissions.NONE;
+    const guild = this.guild;
+    if (guild) {
+      const defaultRole = guild.defaultRole;
+      if (defaultRole) {
+        total |= defaultRole.permissions;
       }
-      return total;
-    }, Permissions.NONE);
+      if (this._roles) {
+        for (let roleId of this._roles) {
+          const role = guild.roles.get(roleId);
+          if (role) {
+            total |= role.permissions;
+          }
+        }
+      }
+    }
+    return total;
   }
 
   get premiumSince(): Date | null {
@@ -660,26 +705,22 @@ export class Member extends UserMixin {
       (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }
 
-    // do this last because of roles being required
+    // only user accounts (and clones) get this, otherwise `hoistedRoleId` works it out when read
     if (DiscordKeys.HOISTED_ROLE in data) {
-      this.hoistedRoleId = data[DiscordKeys.HOISTED_ROLE];
-    } else {
-      // find the hoisted role since we got the member from rest or an interaction (which wont give us a hoisted role value)
-      const hoistedRole = (this.roles.filter((x) => !!x) as Array<Role>).sort((x, y) => y.position - x.position).find((x) => x.hoist);
-      if (hoistedRole) {
-        this.hoistedRoleId = hoistedRole.id;
-      }
+      this._hoistedRoleId = data[DiscordKeys.HOISTED_ROLE];
     }
   }
 
   toJSON(withRoles?: boolean) {
     const data = super.toJSON() as any;
-    if (!withRoles) {
+    // JSON.stringify calls this with the property key (like `"0"` inside an array), so only an actual `true` counts
+    if (withRoles !== true) {
       if (DiscordKeys.HOISTED_ROLE in data) {
         data[DiscordKeys.HOISTED_ROLE] = this.hoistedRoleId;
       }
       if (DiscordKeys.ROLES in data) {
-        data[DiscordKeys.ROLES] = Array.from(this.roles.keys());
+        // the raw role ids, the `roles` getter also has the @everyone role
+        data[DiscordKeys.ROLES] = (this._roles) ? this._roles.slice() : [];
       }
     }
     return data;

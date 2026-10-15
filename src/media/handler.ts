@@ -1,12 +1,13 @@
-import { Media, MediaUdp } from 'detritus-client-socket';
+import { Constants as SocketConstants, Media, MediaUdp } from 'detritus-client-socket';
 
 import { ShardClient } from '../client';
 import { MediaCodecs, MediaCodecTypes, MediaOpCodes, SpeakingFlags } from '../constants';
 
-import { Opus } from './encoders';
 import { MediaEvents } from './mediaevents';
 import { MediaRawEvents } from './rawevents';
 import { VoiceConnection } from './voiceconnection';
+
+const { MediaSSRCTypes } = SocketConstants;
 
 
 /**
@@ -67,7 +68,16 @@ export class MediaHandler {
             if (!this.connection.opusDecoder) {
               throw new Error('No Opus decoder provided');
             }
-            if (packet.userId !== null) {
+            // decoders are per stream (ssrc), so packets from before discord says whose they are still decode to pcm, with a null user id
+            const ssrc = (packet.rtp) ? packet.rtp.header.ssrc : null;
+            if (ssrc !== null) {
+              // client-socket sets this itself from 0.9.0-beta.14 on
+              (packet as any).ssrc = ssrc;
+              packet.data = this.connection.decode(ssrc, data);
+              if (packet.userId !== null) {
+                this.connection.opusDecoderSSRCs.set(packet.userId, ssrc);
+              }
+            } else if (packet.userId !== null) {
               packet.data = this.connection.decode(packet.userId, data);
             }
           }
@@ -108,6 +118,20 @@ export class MediaGatewayOpHandler {
     return this.handler.connection;
   }
 
+  [MediaOpCodes.CLIENTS_CONNECT](data: MediaRawEvents.ClientsConnect) {
+    // the current voice gateway sends this instead of CLIENT_CONNECT, it has no ssrcs so use what we already know (SPEAKING fills them in later)
+    const gateway = this.connection.gateway;
+    for (let userId of data['user_ids']) {
+      const payload: MediaEvents.ClientConnect = {
+        audioSSRC: gateway.userIdToSSRC(userId, MediaSSRCTypes.AUDIO) || 0,
+        user: this.client.users.get(userId) || null,
+        userId,
+        videoSSRC: gateway.userIdToSSRC(userId, MediaSSRCTypes.VIDEO) || 0,
+      };
+      this.connection.emit('connect', payload);
+    }
+  }
+
   [MediaOpCodes.CLIENT_CONNECT](data: MediaRawEvents.ClientConnect) {
     const payload: MediaEvents.ClientConnect = {
       audioSSRC: data['audio_ssrc'],
@@ -120,11 +144,7 @@ export class MediaGatewayOpHandler {
 
   [MediaOpCodes.CLIENT_DISCONNECT](data: MediaRawEvents.ClientDisconnect) {
     const userId = data['user_id'];
-    if (this.connection.opusDecoders.has(userId)) {
-      const opusDecoder = this.connection.opusDecoders.get(userId) as Opus.AudioOpus;
-      opusDecoder.delete();
-      this.connection.opusDecoders.delete(userId);
-    }
+    this.connection.deleteOpusDecoder(userId);
     const voiceState = this.client.voiceStates.get(this.connection.serverId, userId);
     if (voiceState) {
       voiceState._isSpeaking = false;

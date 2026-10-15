@@ -15,7 +15,6 @@ export namespace GatewayRawEvents {
   }
 
   export interface ActivityJoinRequest {
-    // maybe more
     user: RawUser,
   }
 

@@ -127,18 +127,18 @@ export class Sticker extends StickerItem {
   static { setStructureKeys(this, '_keys', keysSticker); }
 
   asset: string = '';
-  available?: boolean;
+  declare available?: boolean;
   description: string = '';
   formatType: StickerFormats = StickerFormats.UNKNOWN;
-  guildId?: string;
+  declare guildId?: string;
   id: string = '';
   name: string = '';
-  packId?: string;
+  declare packId?: string;
   previewAsset: null | string = null;
-  sortValue?: number;
+  declare sortValue?: number;
   tags: null | string = '';
   type: StickerTypes = StickerTypes.GUILD;
-  user?: User;
+  declare user?: User;
 
   constructor(
     client: ShardClient,

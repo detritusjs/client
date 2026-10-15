@@ -20,6 +20,7 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 import { Emoji } from './emoji';
 
@@ -43,11 +44,11 @@ const keysComponentActionRow = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentActionRow extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysComponentActionRow); }
 
   components = new BaseCollection<number, ComponentUnknown | ComponentButton | ComponentSelectMenu | ComponentInputText>();
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes = MessageComponentTypes.ACTION_ROW;
 
   constructor(
@@ -113,10 +114,10 @@ const keysComponentUnknown = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentUnknown extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysComponentUnknown); }
 
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes = MessageComponentTypes.BUTTON;
 
   constructor(
@@ -160,18 +161,18 @@ const keysComponentButton = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentButton extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysComponentButton); }
 
-  customId?: string;
-  disabled?: boolean;
-  emoji?: Emoji;
-  id?: number;
-  label?: string;
-  skuId?: string;
-  style?: MessageComponentButtonStyles;
+  declare customId?: string;
+  declare disabled?: boolean;
+  declare emoji?: Emoji;
+  declare id?: number;
+  declare label?: string;
+  declare skuId?: string;
+  declare style?: MessageComponentButtonStyles;
   type: MessageComponentTypes = MessageComponentTypes.BUTTON;
-  url?: string;
+  declare url?: string;
 
   constructor(
     client: ShardClient,
@@ -236,11 +237,11 @@ const keysMessageComponentCheckbox = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentCheckbox extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentCheckbox); }
 
   customId: string = '';
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes.CHECKBOX = MessageComponentTypes.CHECKBOX;
   value: boolean = false;
 
@@ -286,11 +287,11 @@ const keysMessageComponentCheckboxGroup = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentCheckboxGroup extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentCheckboxGroup); }
 
   customId: string = '';
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes.CHECKBOX_GROUP = MessageComponentTypes.CHECKBOX_GROUP;
   values: Array<string> = [];
 
@@ -337,13 +338,13 @@ const keysMessageComponentContainer = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentContainer extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentContainer); }
 
-  accentColor?: number;
+  declare accentColor?: number;
   components = new BaseCollection<number, ComponentActionRow | ComponentFile | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay | ComponentUnknown>();
-  id?: number;
-  spoiler?: boolean;
+  declare id?: number;
+  declare spoiler?: boolean;
   type: MessageComponentTypes.CONTAINER = MessageComponentTypes.CONTAINER;
 
   constructor(
@@ -422,12 +423,12 @@ const keysMessageComponentFile = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentFile extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentFile); }
 
   file!: ComponentUnfurledMedia;
-  id?: number;
-  spoiler?: boolean;
+  declare id?: number;
+  declare spoiler?: boolean;
   type: MessageComponentTypes.FILE = MessageComponentTypes.FILE;
 
   constructor(
@@ -473,11 +474,11 @@ const keysMessageComponentFileUpload = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentFileUpload extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentFileUpload); }
 
   customId: string = '';
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes.FILE_UPLOAD = MessageComponentTypes.FILE_UPLOAD;
   values: Array<string> = [];
 
@@ -523,13 +524,13 @@ const keysMessageComponentInputText = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentInputText extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentInputText); }
 
   customId: string = '';
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes.INPUT_TEXT = MessageComponentTypes.INPUT_TEXT;
-  value?: string;
+  declare value?: string;
 
   constructor(
     client: ShardClient,
@@ -577,11 +578,11 @@ export type ComponentLabelChild = (
  * @category Structure
  */
 export class ComponentLabel extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentLabel); }
 
-  component?: ComponentLabelChild;
-  id?: number;
+  declare component?: ComponentLabelChild;
+  declare id?: number;
   type: MessageComponentTypes.LABEL = MessageComponentTypes.LABEL;
 
   constructor(
@@ -652,10 +653,10 @@ const keysMessageComponentMediaGallery = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentMediaGallery extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentMediaGallery); }
 
-  id?: number;
+  declare id?: number;
   items = new BaseCollection<number, ComponentMediaGalleryItem>();
   type: MessageComponentTypes.MEDIA_GALLERY = MessageComponentTypes.MEDIA_GALLERY;
 
@@ -703,13 +704,13 @@ const keysComponentMediaGalleryItem = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentMediaGalleryItem extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysComponentMediaGalleryItem); }
   declare readonly mediaGallery: ComponentMediaGallery;
 
-  description?: string;
+  declare description?: string;
   media!: ComponentUnfurledMedia;
-  spoiler?: boolean;
+  declare spoiler?: boolean;
 
   constructor(mediaGallery: ComponentMediaGallery, data: BaseStructureData) {
     super(mediaGallery.client, undefined, mediaGallery._clone);
@@ -748,11 +749,11 @@ const keysMessageComponentRadioGroup = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentRadioGroup extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentRadioGroup); }
 
   customId: string = '';
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes.RADIO_GROUP = MessageComponentTypes.RADIO_GROUP;
   value: null | string = null;
 
@@ -798,12 +799,12 @@ const keysComponentSection = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentSection extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysComponentSection); }
 
   accessory!: ComponentButton | ComponentThumbnail | ComponentUnknown;
   components = new BaseCollection<number, ComponentTextDisplay | ComponentUnknown>();
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes = MessageComponentTypes.SECTION;
 
   constructor(
@@ -888,14 +889,14 @@ const keysMessageComponentSelectMenu = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentSelectMenu extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentSelectMenu); }
 
-  channelTypes?: Array<ChannelTypes>;
+  declare channelTypes?: Array<ChannelTypes>;
   customId: string = '';
-  defaultValues?: BaseCollection<string, ComponentSelectMenuDefaultValue>;
-  disabled?: boolean;
-  id?: number;
+  declare defaultValues?: BaseCollection<string, ComponentSelectMenuDefaultValue>;
+  declare disabled?: boolean;
+  declare id?: number;
   maxValues: number = 1;
   minValues: number = 1;
   options = new BaseCollection<string, ComponentSelectMenuOption>();
@@ -905,7 +906,7 @@ export class ComponentSelectMenu extends BaseStructure {
     MessageComponentTypes.ROLE_SELECT | MessageComponentTypes.MENTIONABLE_SELECT |
     MessageComponentTypes.CHANNEL_SELECT
   ) = MessageComponentTypes.SELECT_MENU;
-  values?: Array<string>;
+  declare values?: Array<string>;
 
   constructor(
     client: ShardClient,
@@ -990,7 +991,7 @@ const keysComponentSelectMenuDefaultValue = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentSelectMenuDefaultValue extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysComponentSelectMenuDefaultValue); }
   declare readonly selectMenu: ComponentSelectMenu;
 
@@ -1035,13 +1036,13 @@ const keysComponentSelectMenuOption = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentSelectMenuOption extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysComponentSelectMenuOption); }
   declare readonly selectMenu: ComponentSelectMenu;
 
   default: boolean = false;
-  description?: string;
-  emoji?: Emoji;
+  declare description?: string;
+  declare emoji?: Emoji;
   label: string = '';
   value: string = '';
 
@@ -1093,12 +1094,12 @@ const keysMessageComponentSeparator = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentSeparator extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentSeparator); }
 
-  divider?: boolean;
-  id?: number;
-  spacing?: number;
+  declare divider?: boolean;
+  declare id?: number;
+  declare spacing?: number;
   type: MessageComponentTypes.SEPARATOR = MessageComponentTypes.SEPARATOR;
 
   constructor(
@@ -1142,11 +1143,11 @@ const keysMessageComponentTextDisplay = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentTextDisplay extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentTextDisplay); }
 
   content: string = '';
-  id?: number;
+  declare id?: number;
   type: MessageComponentTypes.TEXT_DISPLAY = MessageComponentTypes.TEXT_DISPLAY;
 
   constructor(
@@ -1189,13 +1190,13 @@ const keysMessageComponentThumbnail = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentThumbnail extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentThumbnail); }
 
-  description?: string;
-  id?: number;
+  declare description?: string;
+  declare id?: number;
   media!: ComponentUnfurledMedia;
-  spoiler?: boolean;
+  declare spoiler?: boolean;
   type: MessageComponentTypes.THUMBNAIL = MessageComponentTypes.THUMBNAIL;
 
   constructor(
@@ -1245,14 +1246,14 @@ const keysMessageComponentUnfurledMedia = new BaseSet<string>([
  * @category Structure
  */
 export class ComponentUnfurledMedia extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentUnfurledMedia); }
 
-  contentType?: string;
-  height?: number;
-  proxyUrl?: string;
+  declare contentType?: string;
+  declare height?: number;
+  declare proxyUrl?: string;
   url: string = '';
-  width?: number;
+  declare width?: number;
 
   constructor(
     client: ShardClient,

@@ -51,14 +51,14 @@ export class Emoji extends BaseStructure {
   declare _roles?: Array<string>;
 
   animated: boolean = false;
-  available?: boolean;
-  guildId?: string;
+  declare available?: boolean;
+  declare guildId?: string;
   id: null | string = null;
-  managed?: boolean;
+  declare managed?: boolean;
   // can be null on reaction emojis
   name: null | string = '';
-  requireColons?: boolean;
-  user?: User;
+  declare requireColons?: boolean;
+  declare user?: User;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
@@ -281,9 +281,10 @@ export class Emoji extends BaseStructure {
 
   toJSON(withRoles?: boolean) {
     const data = super.toJSON() as any;
-    if (!withRoles) {
+    // JSON.stringify calls this with the property key (like `"0"` inside an array), so only an actual `true` counts
+    if (withRoles !== true) {
       if (DiscordKeys.ROLES in data) {
-        data[DiscordKeys.ROLES] = Array.from(this.roles.keys());
+        data[DiscordKeys.ROLES] = (this._roles) ? this._roles.slice() : [];
       }
     }
     return data;

@@ -6,6 +6,7 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 
 
@@ -20,7 +21,7 @@ const keysAttachmentDeferred = new BaseSet<string>([
  * @category Structure
  */
 export class AttachmentDeferred extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysAttachmentDeferred); }
 
   id: null | number = null;

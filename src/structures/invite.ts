@@ -56,27 +56,27 @@ export class Invite extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysInvite); }
   static { setStructureKeys(this, '_keysMerge', keysMergeInvite); }
 
-  approximateMemberCount?: number;
-  approximatePresenceCount?: number;
+  declare approximateMemberCount?: number;
+  declare approximatePresenceCount?: number;
   channel!: Channel;
   code: string = '';
-  createdAt?: Date;
-  expiresAt?: Date;
+  declare createdAt?: Date;
+  declare expiresAt?: Date;
   flags: number = 0;
-  guild?: GuildPartial;
-  guildScheduledEvent?: GuildScheduledEvent;
-  inviter?: User;
-  maxAge?: number;
-  maxUses?: number;
-  revoked?: boolean;
+  declare guild?: GuildPartial;
+  declare guildScheduledEvent?: GuildScheduledEvent;
+  declare inviter?: User;
+  declare maxAge?: number;
+  declare maxUses?: number;
+  declare revoked?: boolean;
   // partial roles given to whoever accepts the invite
-  roles?: Array<{id: string, name?: string, [key: string]: any}>;
-  targetApplication?: any;
-  targetType?: InviteTargetTypes;
-  targetUser?: User;
-  temporary?: boolean;
+  declare roles?: Array<{id: string, name?: string, [key: string]: any}>;
+  declare targetApplication?: any;
+  declare targetType?: InviteTargetTypes;
+  declare targetUser?: User;
+  declare temporary?: boolean;
   type: InviteTypes = InviteTypes.GUILD;
-  uses?: number;
+  declare uses?: number;
 
   constructor(
     client: ShardClient,

@@ -40,10 +40,15 @@ export class Overwrite extends BaseStructure {
   id: string = '';
   type!: OverwriteTypes;
 
-  constructor(channel: Channel, data: BaseStructureData) {
-    super(channel.client, undefined, channel._clone);
+  constructor(channel: Channel, data: BaseStructureData, isClone: boolean = !!channel._clone) {
+    super(channel.client, undefined, isClone);
     Object.defineProperty(this, 'channel', {configurable: true, enumerable: false, writable: true, value: channel});
     this.merge(data);
+  }
+
+  // the generic `clone()` would pass the client in as the channel
+  clone(): this {
+    return new Overwrite(this.channel, JSON.parse(JSON.stringify(this)), true) as this;
   }
 
   get channelId(): string {

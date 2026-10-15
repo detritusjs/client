@@ -38,14 +38,14 @@ const keysConnectedAccount = new BaseSet<string>([
 export class ConnectedAccount extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysConnectedAccount); }
 
-  accessToken?: string;
-  friendSync?: boolean;
+  declare accessToken?: string;
+  declare friendSync?: boolean;
   id: string = '';
-  integrations?: BaseCollection<string, Integration>;
+  declare integrations?: BaseCollection<string, Integration>;
   name: string = '';
-  revoked?: boolean;
-  showActivity?: boolean;
-  twoWayLink?: boolean;
+  declare revoked?: boolean;
+  declare showActivity?: boolean;
+  declare twoWayLink?: boolean;
   type!: PlatformTypes;
   verified: boolean = false;
   visibility: ConnectedAccountVisibilityTypes = ConnectedAccountVisibilityTypes.EVERYONE;

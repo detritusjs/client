@@ -9,11 +9,14 @@ import { ClusterIPCOpCodes, SocketStates } from '../constants';
 import { ClusterIPCError } from '../errors';
 
 import { ClusterIPCTypes } from './ipctypes';
-import { BROADCAST_EVAL_TIMEOUT } from './processchild';
+import { BROADCAST_EVAL_TIMEOUT, IDENTIFY_READY_TIMEOUT } from './processchild';
 
 
-// max time a shard can hold its identify bucket while we wait for it to be ready
-export const IDENTIFY_READY_TIMEOUT = 30 * 1000;
+export { IDENTIFY_READY_TIMEOUT };
+
+// a child that exits before readying gets respawned with a backoff, so one that crashes on startup doesn't fork in a tight loop
+export const RESPAWN_DELAY_MIN = 1000;
+export const RESPAWN_DELAY_MAX = 60 * 1000;
 
 export interface ClusterProcessOptions {
   clusterId: number,
@@ -38,6 +41,9 @@ export class ClusterProcess extends EventSpewer {
   }>();
   readonly _shardsIdentifyAttempt = new BaseCollection<number, number>();
   readonly _shardsWaiting = new BaseCollection<number, {resolve: Function, reject: Function}>();
+  readonly _respawnTimeout = new Timers.Timeout();
+  // how many times in a row the child exited before readying
+  _respawnFailures: number = 0;
   readonly clusterId: number = -1;
   readonly manager: ClusterManager;
 
@@ -62,6 +68,7 @@ export class ClusterProcess extends EventSpewer {
     });
 
     Object.defineProperties(this, {
+      _respawnTimeout: {enumerable: false},
       clusterId: {writable: false},
       manager: {enumerable: false, writable: false},
     });
@@ -181,6 +188,7 @@ export class ClusterProcess extends EventSpewer {
             }
           }; return;
           case ClusterIPCOpCodes.READY: {
+            this._respawnFailures = 0;
             this.emit('ready');
           }; return;
           case ClusterIPCOpCodes.RESPAWN_ALL: {
@@ -190,17 +198,32 @@ export class ClusterProcess extends EventSpewer {
             const data: ClusterIPCTypes.RestRequest = message.data;
             try {
               if (data.name in this.manager.rest && typeof((this.manager.rest as any)[data.name]) === 'function') {
-                let payload: ClusterManagerRestCachePayload;
-                if (this.manager.restCache.has(data.hash)) {
-                  payload = this.manager.restCache.get(data.hash)!;
+                let payload: ClusterManagerRestCachePayload | undefined = this.manager.restCache.get(data.hash);
+                if (payload) {
+                  if (payload.promise) {
+                    // a forced request can't share one that started before it (and may be answering from older data), unless that one was forced too
+                    if (data.force && !payload.forced) {
+                      payload = undefined;
+                    }
+                  } else {
+                    // `get()` keeps pushing back the collection's expiry, so check the result's age too
+                    const expire = this.manager.restCache.expire;
+                    if (data.force || (expire && expire < Date.now() - (payload.last || 0))) {
+                      payload = undefined;
+                    }
+                  }
+                }
+                if (payload) {
                   if (payload.promise) {
                     payload.result = await payload.promise;
                     payload.promise = undefined;
                   }
                 } else {
                   payload = {
+                    forced: !!data.force,
                     promise: (this.manager.rest as any)[data.name](...(data.args || [])),
                   };
+                  // replaces any older entry, so later requests get this fresher result
                   this.manager.restCache.set(data.hash, payload);
                   try {
                     payload.result = await payload.promise;
@@ -210,9 +233,11 @@ export class ClusterProcess extends EventSpewer {
                     }
                     throw error;
                   }
+                  payload.last = Date.now();
                   payload.promise = undefined;
                 }
                 await this.sendIPC(ClusterIPCOpCodes.REST_REQUEST, {
+                  force: data.force,
                   result: payload.result,
                   hash: data.hash,
                   name: data.name,
@@ -248,7 +273,7 @@ export class ClusterProcess extends EventSpewer {
     this.emit('message', message);
   }
 
-  async onExit(code: number, signal: string, child: ChildProcess | null = this.process): Promise<void> {
+  async onExit(code: number, signal: string, child: ChildProcess | null = this.process, readied: boolean = true): Promise<void> {
     const error = new Error(`Process has closed with '${code}' code and '${signal}' signal.`);
     for (let [nonce, item] of this._evalsWaiting) {
       if (item.child === child) {
@@ -271,10 +296,28 @@ export class ClusterProcess extends EventSpewer {
     }
 
     if (this.manager.respawn) {
-      try {
-        await this.run();
-      } catch(error) {
-        this.emit('warn', {error});
+      let delay = 0;
+      if (readied) {
+        this._respawnFailures = 0;
+      } else {
+        delay = Math.min(RESPAWN_DELAY_MIN * (2 ** this._respawnFailures), RESPAWN_DELAY_MAX);
+        this._respawnFailures++;
+      }
+      const respawn = async () => {
+        // something else (respawn(), run()) may have already started a child while we waited
+        if (this.process) {
+          return;
+        }
+        try {
+          await this.run();
+        } catch(error) {
+          this.emit('warn', {error});
+        }
+      };
+      if (delay) {
+        this._respawnTimeout.start(delay, respawn);
+      } else {
+        await respawn();
       }
     }
   }
@@ -285,7 +328,9 @@ export class ClusterProcess extends EventSpewer {
     timeout?: number,
   ): Promise<[any, boolean] | null> {
     if (this.process === null) {
-      throw new Error('Cannot eval without a child!');
+      // the cluster is respawning (or was killed), report it as this cluster's result instead of failing every cluster's eval
+      const error = new Error('Cannot eval without a child!');
+      return [ClusterIPCTypes.serializeError(error), true];
     }
     if (this._evalsWaiting.has(nonce)) {
       return <Promise<[any, boolean] | null>> (<any> this._evalsWaiting.get(nonce)).promise;
@@ -363,6 +408,8 @@ export class ClusterProcess extends EventSpewer {
   }
 
   kill(signal?: NodeJS.Signals | number): boolean {
+    // a pending backoff respawn shouldn't bring it back
+    this._respawnTimeout.stop();
     const child = this.process;
     if (!child) {
       return false;
@@ -423,16 +470,23 @@ export class ClusterProcess extends EventSpewer {
     if (this.process) {
       return this.process;
     }
+    this._respawnTimeout.stop();
     const process = fork(this.file, [], {env: this.env, execArgv: this.execArgv});
     this.process = process;
+    let readied = false;
+    const onReadied = () => {
+      readied = true;
+    };
     const onMessage = this.onMessage.bind(this);
     const onExit = (code: number, signal: string) => {
       process.removeListener('message', onMessage);
       process.removeListener('exit', onExit);
-      return this.onExit(code, signal, process);
+      this.removeListener('ready', onReadied);
+      return this.onExit(code, signal, process, readied);
     };
     process.on('message', onMessage);
     process.on('exit', onExit);
+    this.once('ready', onReadied);
 
     if (options.wait || options.wait === undefined) {
       return new Promise((resolve, reject) => {

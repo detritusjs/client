@@ -21,6 +21,7 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 import { Application } from './application';
 import { Emoji } from './emoji';
@@ -71,12 +72,12 @@ export class Presence extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysPresence); }
   static { setStructureKeys(this, '_keysMerge', keysMergePresence); }
   static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferencePresence); }
-  _activities?: BaseCollection<string, PresenceActivity>;
+  declare _activities?: BaseCollection<string, PresenceActivity>;
   _guildIds: BaseSet<string> | string = '';
 
-  clientStatus?: {desktop?: string, mobile?: string, web?: string};
+  declare clientStatus?: {desktop?: string, mobile?: string, web?: string};
   lastGuildId: string = LOCAL_GUILD_ID;
-  lastModified?: number;
+  declare lastModified?: number;
   status: string = PresenceStatuses.OFFLINE;
   user!: User;
 
@@ -394,34 +395,34 @@ const keysSkipDifferencePresenceActivity = new BaseSet<string>([
  * @category Structure
  */
 export class PresenceActivity extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysPresenceActivity); }
   static { setStructureKeys(this, '_keysMerge', keysMergePresenceActivity); }
   static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferencePresenceActivity); }
   readonly user: User;
   _guildIds: BaseSet<string> | string = '';
 
-  applicationId?: string;
-  assets?: PresenceActivityAssets;
-  buttons?: Array<string>;
-  createdAt?: number;
-  details?: string;
-  emoji?: Emoji;
+  declare applicationId?: string;
+  declare assets?: PresenceActivityAssets;
+  declare buttons?: Array<string>;
+  declare createdAt?: number;
+  declare details?: string;
+  declare emoji?: Emoji;
   flags: number = 0;
   id: string = '';
-  instance?: boolean;
-  metadata?: any;
+  declare instance?: boolean;
+  declare metadata?: any;
   name: string = '';
-  party?: {id?: string, size?: [number, number]};
-  platform?: ActivityPlatformTypes;
+  declare party?: {id?: string, size?: [number, number]};
+  declare platform?: ActivityPlatformTypes;
   position: number = 0;
-  secrets?: {join?: string, match?: string, spectate?: string};
-  sessionId?: string;
-  state?: string;
-  syncId?: string;
-  timestamps?: PresenceActivityTimestamps;
+  declare secrets?: {join?: string, match?: string, spectate?: string};
+  declare sessionId?: string;
+  declare state?: string;
+  declare syncId?: string;
+  declare timestamps?: PresenceActivityTimestamps;
   type: number = 0;
-  url?: string;
+  declare url?: string;
 
   constructor(user: User, data: BaseStructureData) {
     super(user.client, undefined, user._clone);
@@ -581,7 +582,6 @@ export class PresenceActivity extends BaseStructure {
   }
 
   get platformType(): string {
-    // should we check `isPlaying`? the client returns null if they aren't
     if (this.applicationIsXbox) {
       return ActivityPlatformTypes.XBOX;
     }
@@ -818,14 +818,14 @@ const keysPresenceActivityAssets = new BaseSet<string>([
  * @category Structure
  */
 export class PresenceActivityAssets extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysPresenceActivityAssets); }
   readonly activity: PresenceActivity;
 
-  largeImage?: string;
-  largeText?: string;
-  smallImage?: string;
-  smallText?: string;
+  declare largeImage?: string;
+  declare largeText?: string;
+  declare smallImage?: string;
+  declare smallText?: string;
 
   constructor(activity: PresenceActivity, data: BaseStructureData) {
     super(activity.client, undefined, activity._clone);
@@ -868,9 +868,16 @@ export class PresenceActivityAssets extends BaseStructure {
       this.client.imageFormat,
     );
 
-    if (hash.includes(':')) {
-      const [platform, id] = hash.split(':');
+    const separator = hash.indexOf(':');
+    if (separator !== -1) {
+      // split on the first ':' only, `mp:external/...` urls can contain more colons
+      const platform = hash.slice(0, separator);
+      const id = hash.slice(separator + 1);
       switch (platform) {
+        case 'mp': {
+          // media proxy asset, like `mp:external/...` or `mp:attachments/...`
+          return addQuery(Endpoints.Urls.MEDIA + id, query);
+        };
         case PlatformTypes.SPOTIFY: {
           return addQuery(
             Endpoints.CDN.CUSTOM_SPOTIFY(id),
@@ -935,7 +942,7 @@ const keysPresenceActivityTimestamps = new BaseSet<string>([
  * @category Structure
  */
 export class PresenceActivityTimestamps extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysPresenceActivityTimestamps); }
   readonly activity: PresenceActivity;
 
@@ -949,12 +956,11 @@ export class PresenceActivityTimestamps extends BaseStructure {
   }
 
   get elapsedTime(): number {
-    let elapsed: number;
-    if (this.start) {
-      elapsed = Math.max(Date.now() - this.start, 0);
-    } else {
-      elapsed = Date.now();
+    // without a start (like an end-only countdown) nothing has elapsed that we know of
+    if (!this.start) {
+      return 0;
     }
+    const elapsed = Math.max(Date.now() - this.start, 0);
 
     const total = this.totalTime;
     if (total) {
@@ -964,11 +970,9 @@ export class PresenceActivityTimestamps extends BaseStructure {
   }
 
   get totalTime(): number {
-    if (this.end) {
-      if (this.start) {
-        return this.end - this.start;
-      }
-      return this.end;
+    // `end` alone is an absolute timestamp, not a duration
+    if (this.end && this.start) {
+      return this.end - this.start;
     }
     return 0;
   }

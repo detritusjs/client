@@ -157,7 +157,7 @@ export class AutoModerationRuleAction extends BaseStructure {
 
   declare readonly rule: AutoModerationRule;
 
-  metadata?: AutoModerationRuleActionMetadata;
+  declare metadata?: AutoModerationRuleActionMetadata;
   type!: AutoModerationRuleActionTypes;
 
   constructor(rule: AutoModerationRule, data: BaseStructureData) {
@@ -199,7 +199,7 @@ export class AutoModerationRuleActionMetadata extends BaseStructure {
   declare readonly action: AutoModerationRuleAction;
 
   channelId: string = '';
-  customMessage?: string;
+  declare customMessage?: string;
   durationSeconds: number = 0;
 
   constructor(action: AutoModerationRuleAction, data: BaseStructureData) {
@@ -245,12 +245,12 @@ export class AutoModerationRuleTriggerMetadata extends BaseStructure {
 
   declare readonly rule: AutoModerationRule;
 
-  allowList?: BaseSet<string>;
-  keywordFilter?: BaseSet<string>;
-  mentionRaidProtectionEnabled?: boolean;
-  mentionTotalLimit?: number;
-  presets?: BaseSet<AutoModerationRuleKeywordPresetTypes>;
-  regexPatterns?: BaseSet<string>;
+  declare allowList?: BaseSet<string>;
+  declare keywordFilter?: BaseSet<string>;
+  declare mentionRaidProtectionEnabled?: boolean;
+  declare mentionTotalLimit?: number;
+  declare presets?: BaseSet<AutoModerationRuleKeywordPresetTypes>;
+  declare regexPatterns?: BaseSet<string>;
 
   constructor(rule: AutoModerationRule, data: BaseStructureData) {
     super(rule.client, undefined, rule._clone);

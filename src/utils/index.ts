@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { URLSearchParams } from 'url';
+import { URLSearchParams, pathToFileURL } from 'url';
 
 import { Snowflake } from 'detritus-utils';
 import { guildIdToShardId } from 'detritus-utils/lib/tools';
@@ -51,6 +51,23 @@ export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type UrlQuery = Record<string, any>;
+
+/**
+ * Loads a command file with `require()` (its cache can be cleared, so reloading commands works)
+ * and falls back to `import()` for es modules `require()` can't load (like `.mjs` on older node, or ones with top-level await)
+ */
+export async function requireOrImport(filepath: string): Promise<any> {
+  try {
+    return require(filepath);
+  } catch(error: any) {
+    if (error && (error.code === 'ERR_REQUIRE_ESM' || error.code === 'ERR_REQUIRE_ASYNC_MODULE')) {
+      const namespace = await import(pathToFileURL(filepath).href);
+      return ('default' in namespace) ? namespace.default : namespace;
+    }
+    throw error;
+  }
+}
+
 
 export function addQuery(url: string, query?: UrlQuery): string {
   if (query) {
@@ -348,7 +365,7 @@ export function parseMentionsInText(
         }
       }
     }
-    return '@unknown-user'; // return match;
+    return '@unknown-user';
   });
 
   if (escape) {

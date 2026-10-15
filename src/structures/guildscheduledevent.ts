@@ -52,23 +52,23 @@ export class GuildScheduledEvent extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysGuildScheduledEvent); }
 
   channelId: string | null = null;
-  creator?: User;
-  creatorId?: string;
+  declare creator?: User;
+  declare creatorId?: string;
   deleted: boolean = false;
-  description?: string | null;
+  declare description?: string | null;
   entityId: string | null = null;
   entityMetadata: any;
   entityType: GuildScheduledEventEntityTypes = GuildScheduledEventEntityTypes.STAGE_INSTANCE;
   guildId: string = '';
   id: string = '';
-  image?: string | null;
+  declare image?: string | null;
   name: string = '';
   privacyLevel: GuildScheduledEventPrivacyLevels = GuildScheduledEventPrivacyLevels.GUILD_ONLY;
   recurrenceRule: GuildScheduledEventRecurrenceRule | null = null;
-  scheduledEndTimeUnix?: number;
+  declare scheduledEndTimeUnix?: number;
   scheduledStartTimeUnix: number = 0;
   status: GuildScheduledEventStatusTypes = GuildScheduledEventStatusTypes.SCHEDULED;
-  userCount?: number;
+  declare userCount?: number;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
     super(client, undefined, isClone);
@@ -137,7 +137,6 @@ export class GuildScheduledEvent extends BaseStructure {
         user.merge(value);
       } else {
         user = new User(this.client, value);
-        // maybe insert?
       }
       (this as any)[DetritusKeys[DiscordKeys.CREATOR]] = user;
     }
@@ -155,7 +154,6 @@ export class GuildScheduledEvent extends BaseStructure {
     }
     if (DiscordKeys.ENTITY_METADATA in data) {
       const value = data[DiscordKeys.ENTITY_METADATA];
-      // make object using this.entityType;
       (this as any)[DetritusKeys[DiscordKeys.ENTITY_METADATA]] = value;
     }
     if (DiscordKeys.GUILD_ID in data) {
@@ -210,7 +208,7 @@ export class GuildScheduledEventUser extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysGuildScheduledEventUser); }
 
   guildScheduledEventId: string = '';
-  member?: Member;
+  declare member?: Member;
   user!: User;
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
@@ -239,7 +237,6 @@ export class GuildScheduledEventUser extends BaseStructure {
         user.merge(value);
       } else {
         user = new User(this.client, value);
-        // maybe insert?
       }
       (this as any)[DetritusKeys[DiscordKeys.USER]] = user;
     }

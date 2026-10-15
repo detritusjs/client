@@ -100,7 +100,10 @@ export class VoiceConnection extends EventSpewer {
   gateway: Media.Socket;
   handler: MediaHandler;
   opusDecoder: null | OpusDecoderSettings;
-  opusDecoders: BaseCollection<string, Opus.AudioOpus>;
+  // keyed by ssrc, each stream needs its own decoder (opus keeps state between frames)
+  opusDecoders: BaseCollection<number | string, Opus.AudioOpus>;
+  // user id -> the ssrc of their decoder, so it can be freed when they disconnect
+  opusDecoderSSRCs: Map<string, number>;
   opusEncoder: null | Opus.AudioOpus;
 
   constructor(
@@ -117,6 +120,7 @@ export class VoiceConnection extends EventSpewer {
     this.decodeAudio = !!options.decodeAudio;
     this.opusDecoder = null;
     this.opusDecoders = new BaseCollection();
+    this.opusDecoderSSRCs = new Map();
     this.opusEncoder = null;
 
     this.formats = {
@@ -143,6 +147,7 @@ export class VoiceConnection extends EventSpewer {
       handler: {enumerable: false, writable: false},
       opusDecoder: {configurable: true, enumerable: false, writable: false},
       opusDecoders: {enumerable: false, writable: false},
+      opusDecoderSSRCs: {enumerable: false, writable: false},
       opusEncoder: {configurable: true, enumerable: false, writable: false},
     });
   }
@@ -196,8 +201,11 @@ export class VoiceConnection extends EventSpewer {
     return (<undefined | VoiceState> this.client.voiceStates.get(this.serverId, this.userId)) || null;
   }
 
+  /**
+   * @param ssrc the packet's ssrc (`packet.ssrc`), a user id also works but discord sends packets before saying whose they are
+   */
   decode(
-    userId: string,
+    ssrc: number | string,
     data: Buffer,
     options: DecodeSettings = {},
   ): Buffer {
@@ -208,7 +216,7 @@ export class VoiceConnection extends EventSpewer {
     switch (format) {
       case MediaCodecTypes.AUDIO: {
         if (type === MediaCodecs.OPUS) {
-          const opusDecoder = this.fetchOpusDecoder(userId);
+          const opusDecoder = this.fetchOpusDecoder(ssrc);
           return opusDecoder.decode(data, frameDuration);
         }
       }; break;
@@ -216,12 +224,12 @@ export class VoiceConnection extends EventSpewer {
     throw new Error(`Cannot decode ${options.format}-${options.type} type data`);
   }
 
-  fetchOpusDecoder(userId: string): Opus.AudioOpus {
+  fetchOpusDecoder(ssrc: number | string): Opus.AudioOpus {
     if (!this.opusDecoder) {
       throw new Error('Create an opus decoder before trying to decode opus!');
     }
-    if (this.opusDecoders.has(userId)) {
-      return <Opus.AudioOpus> this.opusDecoders.get(userId);
+    if (this.opusDecoders.has(ssrc)) {
+      return <Opus.AudioOpus> this.opusDecoders.get(ssrc);
     }
     const opusDecoder = new Opus.AudioOpus(
       this.opusDecoder.sampleRate,
@@ -231,12 +239,15 @@ export class VoiceConnection extends EventSpewer {
         use: this.opusDecoder.use,
       },
     );
-    this.opusDecoders.set(userId, opusDecoder);
+    this.opusDecoders.set(ssrc, opusDecoder);
     return opusDecoder;
   }
 
   kill(): void {
-    this.client.voiceConnections.delete(this.serverId);
+    // a newer connection for the same server may have replaced us in the cache
+    if (this.client.voiceConnections.get(this.serverId) === this) {
+      this.client.voiceConnections.delete(this.serverId);
+    }
     this.gateway.kill();
     this.setOpusEncoder({kill: true});
     this.setOpusDecoder({kill: true});
@@ -279,6 +290,10 @@ export class VoiceConnection extends EventSpewer {
   }
 
   setDecodeAudio(value: boolean): void {
+    // without decoder settings every received audio packet would emit a 'No Opus decoder provided' warn
+    if (value && this.opusDecoder === null) {
+      this.setOpusDecoder();
+    }
     Object.defineProperty(this, 'decodeAudio', {value});
   }
 
@@ -324,13 +339,28 @@ export class VoiceConnection extends EventSpewer {
   }
 
   /**
-   * Frees every user's opus decoder, they get lazily recreated in `fetchOpusDecoder()`
+   * Frees every opus decoder, they get lazily recreated in `fetchOpusDecoder()`
    */
   clearOpusDecoders(): void {
-    for (let [userId, decoder] of this.opusDecoders) {
+    for (let [ssrc, decoder] of this.opusDecoders) {
       decoder.delete();
     }
     this.opusDecoders.clear();
+    this.opusDecoderSSRCs.clear();
+  }
+
+  /**
+   * Frees a user's opus decoder (like when they disconnect)
+   */
+  deleteOpusDecoder(userId: string): void {
+    const ssrc = this.opusDecoderSSRCs.get(userId);
+    this.opusDecoderSSRCs.delete(userId);
+    for (let key of [ssrc, userId]) {
+      if (key !== undefined && this.opusDecoders.has(key)) {
+        this.opusDecoders.get(key)!.delete();
+        this.opusDecoders.delete(key);
+      }
+    }
   }
 
   setOpusEncoder(options: boolean | OpusOptions = {}): void {

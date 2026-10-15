@@ -37,7 +37,7 @@ export class Subscription extends BaseStructure {
 
   canceledAtUnix: number = 0;
   // only present when fetched with a private oauth2 scope
-  country?: string;
+  declare country?: string;
   currentPeriodEndUnix: number = 0;
   currentPeriodStartUnix: number = 0;
   entitlementIds: Array<string> = [];

@@ -1,4 +1,5 @@
 import { CommandAttributes } from '../commandclient';
+import { CommandArgumentTypes } from '../constants';
 import { getFirstArgument } from '../utils';
 
 import {
@@ -69,7 +70,6 @@ export class ArgumentParser {
                 }
               }
             } else {
-              // get first value from attributes.content;
               [ value, content ] = getFirstArgument(attributes.content);
             }
             const parsedValue = await arg.parse(value.trim(), context);
@@ -85,6 +85,7 @@ export class ArgumentParser {
           }
         }
       } else {
+        const boolTrailing: Array<string> = [];
         const insensitive = attributes.content.toLowerCase();
         const args = this.args
           .map((arg) => ({arg, info: arg.getInfo(insensitive)}))
@@ -97,6 +98,11 @@ export class ArgumentParser {
             continue;
           }
           attributes.content = attributes.content.slice(0, info.index).trim();
+          if (arg.type === CommandArgumentTypes.BOOL && !arg.positionalArgs && value.trim()) {
+            // a bool flag doesn't take a value, so the text after it is still part of the content
+            // (added back once every flag is parsed, so an earlier flag doesn't take it as its value)
+            boolTrailing.unshift(value.trim());
+          }
           try {
             if (arg.positionalArgs) {
               const positional = await arg.positionalArgs.parse({content: value, prefix: ''}, context);
@@ -108,6 +114,9 @@ export class ArgumentParser {
           } catch(error) {
             errors[arg.label] = error;
           }
+        }
+        if (boolTrailing.length) {
+          attributes.content = [attributes.content, ...boolTrailing].filter((x) => x).join(' ');
         }
       }
 

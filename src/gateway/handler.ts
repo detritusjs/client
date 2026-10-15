@@ -183,6 +183,48 @@ export class GatewayDispatchHandler {
     return this.handler.client;
   }
 
+  /**
+   * Ids of every user we share a dm/group dm with
+   */
+  getDmRecipientIds(): Set<string> {
+    const userIds = new Set<string>();
+    for (let [channelId, channel] of this.client.channels) {
+      if (!channel.guildId) {
+        for (let userId of channel.recipients.keys()) {
+          userIds.add(userId);
+        }
+      }
+    }
+    return userIds;
+  }
+
+  /**
+   * If a user should stay cached after leaving a guild (or us leaving one)
+   * @param dmRecipientIds pass in `getDmRecipientIds()` when checking a lot of users at once
+   */
+  isUserStillShared(userId: string, dmRecipientIds?: Set<string>): boolean {
+    if (this.client.user && this.client.user.id === userId) {
+      return true;
+    }
+    // without the members cache we can't tell if they're in another guild with us
+    if (!this.client.members.enabled) {
+      return true;
+    }
+    // presences are only kept while the user is in one of our guilds (and reference the user)
+    if (this.client.presences.has(userId) || this.client.relationships.has(userId)) {
+      return true;
+    }
+    for (let [guildId, guild] of this.client.guilds) {
+      if (guild.members.has(userId)) {
+        return true;
+      }
+    }
+    if (dmRecipientIds) {
+      return dmRecipientIds.has(userId);
+    }
+    return this.client.channels.some((channel) => !channel.guildId && channel.recipients.has(userId));
+  }
+
   /* Dispatch Events */
   async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
     this.client.reset(false);
@@ -218,7 +260,6 @@ export class GatewayDispatchHandler {
     const authType = (this.client.isBot) ? AuthTypes.BOT : AuthTypes.USER;
     this.client.rest.setAuthType(authType);
 
-    // data['analytics_token']
     if (this.client.connectedAccounts.enabled && data['connected_accounts']) {
       for (let raw of data['connected_accounts']) {
         const account = new ConnectedAccount(this.client, raw);
@@ -502,6 +543,11 @@ export class GatewayDispatchHandler {
       const call = this.client.voiceCalls.get(channelId)!;
       call.kill();
     }
+    // an unavailable call (outage) comes back with a CALL_CREATE, an ended one is gone for good
+    if (!data['unavailable']) {
+      this.client.voiceCalls.delete(channelId);
+      this.client.voiceStates.delete(channelId);
+    }
 
     const payload: GatewayClientEvents.CallDelete = {channelId};
     this.client.emit(ClientEvents.CALL_DELETE, payload);
@@ -561,24 +607,25 @@ export class GatewayDispatchHandler {
       guild._channelIds.delete(channel.id);
     }
 
-    // threads go away with their parent channel
-    const channelIds = new BaseSet<string>([channel.id]);
-    for (let [threadId, thread] of this.client.channels) {
-      if (thread.isGuildThread && thread.parentId === channel.id) {
-        thread.deleted = true;
-        this.client.channels.delete(threadId);
-        if (guild) {
-          guild._threadIds.delete(threadId);
+    // threads go away with their parent channel, only this guild's channels need checking
+    const channelIds = [channel.id];
+    if (channel.guildId) {
+      for (let thread of this.client.channels.getGuildChannels(channel.guildId)) {
+        if (thread.isGuildThread && thread.parentId === channel.id) {
+          thread.deleted = true;
+          this.client.channels.delete(thread.id);
+          if (guild) {
+            guild._threadIds.delete(thread.id);
+          }
+          channelIds.push(thread.id);
         }
-        channelIds.add(threadId);
       }
     }
 
-    for (let [messageId, message] of this.client.messages) {
-      if (channelIds.has(message.channelId)) {
+    for (let channelId of channelIds) {
+      for (let message of this.client.messages.deleteChannel(channelId)) {
         message.deleted = true;
-        this.client.messages.delete(messageId);
-        this.handler._handlers.component.delete(messageId);
+        this.handler._handlers.component.delete(message.id);
       }
     }
 
@@ -678,11 +725,18 @@ export class GatewayDispatchHandler {
 
     if (this.client.channels.has(channelId)) {
       channel = this.client.channels.get(channelId) as ChannelDM;
-      channel.recipients.set(user.id, user);
+      // the getters hand back a shared frozen empty collection when the channel has none yet, writing to that does nothing
+      if (!channel._recipients) {
+        channel._recipients = new BaseCollection<string, User>();
+      }
+      channel._recipients.set(user.id, user);
       if (nick) {
-        channel.nicks.set(user.id, nick);
-      } else {
-        channel.nicks.delete(user.id);
+        if (!channel._nicks) {
+          channel._nicks = new BaseCollection<string, string>();
+        }
+        channel._nicks.set(user.id, nick);
+      } else if (channel._nicks) {
+        channel._nicks.delete(user.id);
       }
     }
 
@@ -861,42 +915,55 @@ export class GatewayDispatchHandler {
         channels = new BaseCollection<string, Channel>();
       }
 
-      for (let [channelId, channel] of this.client.channels) {
-        if (channel.guildId === guildId) {
-          if (channels) {
-            channels.set(channel.id, channel);
-          }
-          this.client.channels.delete(channelId);
+      // the collections keep per guild indexes, so only this guild's channels and messages get touched
+      for (let channel of this.client.channels.getGuildChannels(guildId)) {
+        const channelId = channel.id;
+        if (channels) {
+          channels.set(channelId, channel);
+        }
+        this.client.channels.delete(channelId);
 
-          if (channel.isText) {
-            if (this.client.typings.get(channelId)) {
-              const typings = this.client.typings.get(channelId)!;
-              for (let [userId, typing] of typings) {
-                typing.timeout.stop();
-                typings.delete(userId);
-              }
-              typings.clear();
-              this.client.typings.delete(channelId);
+        if (channel.isText) {
+          if (this.client.typings.get(channelId)) {
+            const typings = this.client.typings.get(channelId)!;
+            for (let [userId, typing] of typings) {
+              typing.timeout.stop();
+              typings.delete(userId);
             }
+            typings.clear();
+            this.client.typings.delete(channelId);
           }
         }
       }
 
-      for (let [messageId, message] of this.client.messages) {
-        if (message.guildId === guildId) {
-          message.deleted = true;
-          this.client.messages.delete(messageId);
-          this.handler._handlers.component.delete(messageId);
-        }
+      for (let message of this.client.messages.deleteGuild(guildId)) {
+        message.deleted = true;
+        this.handler._handlers.component.delete(message.id);
       }
 
-      this.client.presences.clearGuildId(guildId);
+      // a guild that never loaded presences has none to clear (a new guild object, from the guilds cache being off, might though)
+      if (guild._hasPresences || !this.client.guilds.enabled) {
+        this.client.presences.clearGuildId(guildId);
+        guild._hasPresences = false;
+      }
       this.client.voiceStates.delete(guildId);
 
+      // we left the guild, its members' users can go too unless we still share something with them
+      const userIds = (!isUnavailable && this.client.users.enabled) ? Array.from(guild.members.keys()) : null;
+
       guild.emojis.clear();
-      guild.members.clear(); // should we check each member and see if we should clear the user obj from cache too?
+      guild.members.clear();
       guild.roles.clear();
       guild.isReady = false;
+
+      if (userIds && userIds.length) {
+        const dmRecipientIds = this.getDmRecipientIds();
+        for (let userId of userIds) {
+          if (!this.isUserStillShared(userId, dmRecipientIds)) {
+            this.client.users.delete(userId);
+          }
+        }
+      }
     }
 
     if (!isUnavailable) {
@@ -919,6 +986,9 @@ export class GatewayDispatchHandler {
 
     if (this.client.guilds.has(guildId)) {
       guild = this.client.guilds.get(guildId)!;
+    }
+    // with the emojis cache off the guild never has any, so the payload gets built from what discord sent instead
+    if (guild && this.client.emojis.enabled) {
       if (this.client.hasEventListener(ClientEvents.GUILD_EMOJIS_UPDATE)) {
         differences = {
           created: new BaseCollection<string, Emoji>(),
@@ -1078,17 +1148,8 @@ export class GatewayDispatchHandler {
 
     this.client.voiceStates.delete(guildId, userId);
 
-    // do a guild sweep for mutual guilds
-    const sharesGuilds = this.client.guilds.some((guild) => guild.members.has(userId));
-    if (!sharesGuilds && !(this.client.user && this.client.user.id === userId)) {
-      // do a channel sweep for mutual dms
-      const sharesDms = this.client.channels.some((channel) => channel.recipients.has(userId));
-      if (!sharesDms) {
-        // relationship check
-        if (!this.client.relationships.has(userId)) {
-          this.client.users.delete(userId);
-        }
-      }
+    if (!this.isUserStillShared(userId)) {
+      this.client.users.delete(userId);
     }
 
     const payload: GatewayClientEvents.GuildMemberRemove = {guildId, isDuplicate, member, user, userId};
@@ -1185,7 +1246,6 @@ export class GatewayDispatchHandler {
     }
 
     if (data['members']) {
-      // we (the bot user) won't be in the chunk anyways, right?
       if (this.client.members.enabled || isListening) {
         members = new BaseCollection<string, Member>();
         for (let value of data['members']) {
@@ -1268,7 +1328,8 @@ export class GatewayDispatchHandler {
       } else {
         data['role']['guild_id'] = guildId;
         role = new Role(this.client, data['role']);
-        guild.roles.set(role.id, role);
+        // goes through the collection so a disabled roles cache stays empty
+        this.client.roles.insert(role);
       }
     } else {
       data['role']['guild_id'] = guildId;
@@ -1330,7 +1391,8 @@ export class GatewayDispatchHandler {
       } else {
         data['role']['guild_id'] = guildId;
         role = new Role(this.client, data['role']);
-        guild.roles.set(role.id, role);
+        // goes through the collection so a disabled roles cache stays empty
+        this.client.roles.insert(role);
       }
     } else {
       data['role']['guild_id'] = guildId;
@@ -1462,6 +1524,9 @@ export class GatewayDispatchHandler {
 
     if (this.client.guilds.has(guildId)) {
       guild = this.client.guilds.get(guildId)!;
+    }
+    // with the stickers cache off the guild never has any, so the payload gets built from what discord sent instead
+    if (guild && this.client.stickers.enabled) {
       if (this.client.hasEventListener(ClientEvents.GUILD_STICKERS_UPDATE)) {
         differences = {
           created: new BaseCollection<string, Sticker>(),
@@ -1758,7 +1823,7 @@ export class GatewayDispatchHandler {
     if (responseInteractionId) {
       if (this.client.interactions.has(responseInteractionId)) {
         const interaction = this.client.interactions.get(responseInteractionId)!;
-        interaction.responseId = message.id;
+        this.client.interactions.setResponseId(interaction, message.id);
       }
       this.handler._handlers.component.replaceId(responseInteractionId, message.id);
     }
@@ -1790,11 +1855,10 @@ export class GatewayDispatchHandler {
         this.handler._handlers.component.delete(responseInteractionId);
       }
     } else {
-      for (let [interactionId, interaction] of this.client.interactions) {
-        if (interaction.responseId === messageId) {
-          interaction.responseDeleted = true;
-          break;
-        }
+      // most deleted messages aren't cached anymore, look the interaction up by its response id instead of going through all of them
+      const interaction = this.client.interactions.getByResponseId(messageId);
+      if (interaction && interaction.responseId === messageId) {
+        interaction.responseDeleted = true;
       }
     }
 
@@ -1883,18 +1947,22 @@ export class GatewayDispatchHandler {
     const type = data['type'];
     const userId = data['user_id'];
 
-    if (this.client.users.has(userId)) {
-      user = this.client.users.get(userId)!;
-    }
-
     if (data.member) {
       if (this.client.members.has(guildId, userId)) {
         member = this.client.members.get(guildId, userId)!;
         member.merge(data.member);
       } else {
-        member = new Member(this.client, data.member);
+        // the reaction's member object doesn't have a guild id
+        member = new Member(this.client, Object.assign({}, data.member, {guild_id: guildId}));
         this.client.members.insert(member);
       }
+    }
+
+    // after the member, it might have just inserted the user
+    if (member) {
+      user = member.user;
+    } else if (this.client.users.has(userId)) {
+      user = this.client.users.get(userId)!;
     }
 
     const emojiId = data.emoji.id || data.emoji.name;
@@ -2100,7 +2168,10 @@ export class GatewayDispatchHandler {
       isEmbedUpdate = (editedTimestampUnixOld === message.editedTimestampUnix);
     } else {
       message = new Message(this.client, data);
-      this.client.messages.insert(message);
+      // updates can be partial (like embed updates), only cache full messages
+      if (data['author']) {
+        this.client.messages.insert(message);
+      }
     }
 
     const payload: GatewayClientEvents.MessageUpdate = {
@@ -2126,6 +2197,20 @@ export class GatewayDispatchHandler {
     let userId = data['user']['id'];
     let wentOffline: boolean = data['status'] === PresenceStatuses.OFFLINE;
 
+    if (
+      !this.client.presences.enabled &&
+      !this.client.hasEventListener(ClientEvents.PRESENCE_UPDATE) &&
+      !this.client.hasEventListener(ClientEvents.USERS_UPDATE)
+    ) {
+      // nothing caches or sees the presence, only update the member/user we already have
+      if (guildId && this.client.members.has(guildId, userId)) {
+        this.client.members.get(guildId, userId)!.merge(data);
+      } else if (this.client.users.has(userId)) {
+        this.client.users.get(userId)!.merge(data['user']);
+      }
+      return;
+    }
+
     if (this.client.hasEventListener(ClientEvents.USERS_UPDATE)) {
       if (this.client.users.has(userId)) {
         const user = this.client.users.get(userId)!;
@@ -2150,14 +2235,11 @@ export class GatewayDispatchHandler {
     }
     presence = this.client.presences.insert(data);
 
-    if (guildId) {
-      if (this.client.members.has(guildId, userId)) {
-        member = this.client.members.get(guildId, userId)!;
-        member.merge(data);
-      } else {
-        member = new Member(this.client, data);
-        this.client.members.insert(member);
-      }
+    // presences don't have the member's roles/nick/joined_at anymore, so only update members we already have
+    // creating one here would cache a member with no roles
+    if (guildId && this.client.members.has(guildId, userId)) {
+      member = this.client.members.get(guildId, userId)!;
+      member.merge(data);
     }
 
     if (differences && differences.user) {
@@ -2405,12 +2487,9 @@ export class GatewayDispatchHandler {
       guild._threadIds.delete(threadId);
     }
 
-    for (let [messageId, message] of this.client.messages) {
-      if (message.channelId === threadId) {
-        message.deleted = true;
-        this.client.messages.delete(messageId);
-        this.handler._handlers.component.delete(messageId);
-      }
+    for (let message of this.client.messages.deleteChannel(threadId)) {
+      message.deleted = true;
+      this.handler._handlers.component.delete(message.id);
     }
 
     const payload: GatewayClientEvents.ThreadDelete = {
@@ -2471,13 +2550,10 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (removed.length) {
-      for (let [messageId, message] of this.client.messages) {
-        if (removed.has(message.channelId)) {
-          message.deleted = true;
-          this.client.messages.delete(messageId);
-          this.handler._handlers.component.delete(messageId);
-        }
+    for (let threadId of removed.keys()) {
+      for (let message of this.client.messages.deleteChannel(threadId)) {
+        message.deleted = true;
+        this.handler._handlers.component.delete(message.id);
       }
     }
 
@@ -2596,6 +2672,16 @@ export class GatewayDispatchHandler {
       }
     }
 
+    // archived threads aren't part of the active thread list (THREAD_LIST_SYNC won't remove them), so stop caching them now
+    // they come back with a THREAD_UPDATE/THREAD_CREATE if they get unarchived
+    if (thread.threadMetadata && thread.threadMetadata.archived) {
+      this.client.channels.delete(thread.id);
+      const guild = thread.guild;
+      if (guild) {
+        guild._threadIds.delete(thread.id);
+      }
+    }
+
     const payload: GatewayClientEvents.ThreadUpdate = {differences, old, thread};
     this.client.emit(ClientEvents.THREAD_UPDATE, payload);
   }
@@ -2605,6 +2691,23 @@ export class GatewayDispatchHandler {
     const guildId = data['guild_id'];
     let typing: Typing;
     const userId = data['user_id'];
+
+    if (
+      !this.client.typings.enabled &&
+      !this.client.hasEventListener(ClientEvents.TYPING_START) &&
+      !this.client.hasEventListener(ClientEvents.TYPING_STOP)
+    ) {
+      // nothing would ever see the typing (or its 10 second stop timer), only keep the member it came with
+      const raw = data['member'];
+      if (guildId && raw && raw.user && this.client.members.enabled) {
+        if (this.client.members.has(guildId, raw.user.id)) {
+          this.client.members.get(guildId, raw.user.id)!.merge(raw);
+        } else {
+          this.client.members.insert(new Member(this.client, Object.assign({}, raw, {guild_id: guildId})));
+        }
+      }
+      return;
+    }
 
     if (this.client.typings.has(channelId, userId)) {
       typing = this.client.typings.get(channelId, userId)!;

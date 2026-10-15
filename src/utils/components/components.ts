@@ -74,6 +74,19 @@ export class Components extends Structure {
     this.onTimeout = data.onTimeout || this.onTimeout;
   }
 
+  // if anything here handles clicks (our own `run`, or a button/select's)
+  get hasRun(): boolean {
+    if (typeof(this.run) === 'function') {
+      return true;
+    }
+    for (let component of this.components) {
+      if ('hasRun' in component && component.hasRun) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   get isV2(): boolean {
     // add a check to see how many top-level components there are, if more than 5 then it is v2
     for (let component of this.components) {

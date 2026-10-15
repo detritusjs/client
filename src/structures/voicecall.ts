@@ -117,15 +117,26 @@ export class VoiceCall extends BaseStructure {
     if (DiscordKeys.VOICE_STATES in data) {
       // cannot clone the voice states since it's not stored on the object
       if (this.client.voiceStates.enabled && !this.isClone) {
-        const cache = this.client.voiceStates.insertCache(this.channelId);
-        cache.clear();
-
-        for (let raw of data[DiscordKeys.VOICE_STATES]) {
-          if (this.client.voiceStates.has(this.channelId, raw.user_id)) {
-            (this.client.voiceStates.get(this.channelId, raw.user_id) as VoiceState).merge(raw);
-          } else {
-            this.client.voiceStates.insert(new VoiceState(this.client, raw));
+        const value = data[DiscordKeys.VOICE_STATES] as Array<any>;
+        if (value.length) {
+          const cache = this.client.voiceStates.insertCache(this.channelId);
+          // drop the users that left, then merge the rest so existing voice state objects are kept
+          const userIds = new Set<string>(value.map((raw) => raw.user_id));
+          for (let userId of cache.keys()) {
+            if (!userIds.has(userId)) {
+              cache.delete(userId);
+            }
           }
+          for (let raw of value) {
+            if (cache.has(raw.user_id)) {
+              (cache.get(raw.user_id) as VoiceState).merge(raw);
+            } else {
+              this.client.voiceStates.insert(new VoiceState(this.client, raw));
+            }
+          }
+        } else {
+          // don't keep an empty cache around for calls nobody is in
+          this.client.voiceStates.delete(this.channelId);
         }
       }
     }
@@ -148,5 +159,14 @@ export class VoiceCall extends BaseStructure {
     if (DiscordKeys.UNAVAILABLE in data) {
       (this as any)[DetritusKeys[DiscordKeys.UNAVAILABLE]] = data[DiscordKeys.UNAVAILABLE];
     }
+  }
+
+  toJSON() {
+    const data = super.toJSON() as any;
+    // discord sends the ringing user ids, the collection would serialize as the users (and nulls)
+    if (DiscordKeys.RINGING in data) {
+      data[DiscordKeys.RINGING] = Array.from(this.ringing.keys());
+    }
+    return data;
   }
 }

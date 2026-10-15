@@ -31,9 +31,11 @@ export class ComponentRadioGroup extends ComponentActionBase {
   type = MessageComponentTypes.RADIO_GROUP;
 
   constructor(data: ComponentActionData = {}) {
+    // work on a copy, the generated custom id (and key renames) shouldn't end up in the caller's object
+    data = Object.assign({}, data);
     super(data);
     Object.assign(data, {
-      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
+      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] ?? (data as any)[DiscordKeys.CUSTOM_ID],
     });
     this.merge(data);
     this.type = MessageComponentTypes.RADIO_GROUP;

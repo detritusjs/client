@@ -25,8 +25,9 @@ export class ConnectedAccounts extends BaseClientCollection<string, ConnectedAcc
 
   async fill(): Promise<void> {
     if (this.enabled) {
-      this.clear();
+      // fetch before clearing, a failed fetch keeps the accounts we already had
       const accounts = await this.client.rest.fetchMeConnections();
+      this.clear();
       for (let [key, account] of accounts) {
         this.insert(account);
       }

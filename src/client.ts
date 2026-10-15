@@ -185,6 +185,9 @@ export interface VoiceConnectOptions extends VoiceConnectionOptions {
  * Shard Client, represents one gateway connection
  * @category Clients
  */
+// the voice connection wrapping each voice gateway, even when the `voiceConnections` cache is disabled
+const voiceConnectionsByGateway = new WeakMap<object, VoiceConnection>();
+
 export class ShardClient extends EventSpewer {
   /**
    * @ignore
@@ -277,7 +280,8 @@ export class ShardClient extends EventSpewer {
     this.gateway = new Gateway.Socket(token, options.gateway);
     this.gatewayHandler = new GatewayHandler(this, options.gateway);
     this.rest = new RestClient(token, Object.assign({
-      authType: (options.isBot) ? AuthTypes.BOT : AuthTypes.USER,
+      // `isBot` defaults to true, only an explicit `false` means a user token
+      authType: (options.isBot === false) ? AuthTypes.USER : AuthTypes.BOT,
     }, options.rest), this);
 
     if (options.isBot !== undefined) {
@@ -438,8 +442,6 @@ export class ShardClient extends EventSpewer {
       this.gateway.kill(error);
       this.reset(true);
       if (this.cluster) {
-        // must be a better way to handle this
-        // maybe kill the entire cluster?
         this.cluster.shards.delete(this.shardId);
       }
       this.emit(ClientEvents.KILLED, {error});
@@ -567,7 +569,12 @@ export class ShardClient extends EventSpewer {
     this.typings.clear();
     this.users.clear();
     this.voiceCalls.clear();
-    this.voiceConnections.clear();
+    // voice connections have their own sockets that outlive a re-identify (the gateway keeps them too), only drop the dead ones
+    for (let [serverId, connection] of this.voiceConnections) {
+      if (connection.killed) {
+        this.voiceConnections.delete(serverId);
+      }
+    }
     this.voiceStates.clear();
   }
 
@@ -584,8 +591,18 @@ export class ShardClient extends EventSpewer {
     if (options.url) {
       url = options.url as string;
     } else {
-      const data = await this.rest.fetchGateway();
-      url = data.url;
+      try {
+        const data = await this.rest.fetchGateway();
+        url = data.url;
+      } catch(error) {
+        // nothing was started yet, let a later run() try again
+        Object.defineProperty(this, 'ran', {value: false});
+        throw error;
+      }
+      if (this.killed) {
+        // killed while we were fetching, the gateway won't connect so don't wait on it forever
+        throw new Error('Client was killed before it could connect');
+      }
     }
 
     this.gateway.connect(url);
@@ -616,9 +633,12 @@ export class ShardClient extends EventSpewer {
     const gateway = await this.gateway.voiceConnect(guildId, channelId, options);
     const serverId = (guildId || channelId) as string;
     if (gateway) {
-      if (this.voiceConnections.has(serverId)) {
+      // the gateway gets reused when we're already connected, so reuse its connection too
+      // wrapping it again would double up the packet handling and wait on a 'ready' that already happened
+      const existing = voiceConnectionsByGateway.get(gateway) || this.voiceConnections.get(serverId);
+      if (existing && !existing.killed) {
         return {
-          connection: this.voiceConnections.get(serverId) as VoiceConnection,
+          connection: existing,
           isNew: false,
         };
       }
@@ -628,6 +648,7 @@ export class ShardClient extends EventSpewer {
           connection: new VoiceConnection(this, gateway, options),
           isNew: true,
         };
+        voiceConnectionsByGateway.set(gateway, payload.connection);
         this.voiceConnections.insert(payload.connection);
 
         if (options.wait || options.wait === undefined) {

@@ -41,7 +41,7 @@ export class Team extends BaseStructure {
   members = new BaseCollection<string, TeamMember>();
   name: string = '';
   ownerUserId: string = '';
-  payoutAccountStatus?: TeamPayoutAccountStatuses;
+  declare payoutAccountStatus?: TeamPayoutAccountStatuses;
 
   constructor(
     client: ShardClient,

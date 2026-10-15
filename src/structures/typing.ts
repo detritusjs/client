@@ -42,8 +42,8 @@ export class Typing extends BaseStructure {
   declare readonly timeout: Timers.Timeout;
 
   channelId: string = '';
-  guildId?: string;
-  member?: Member;
+  declare guildId?: string;
+  declare member?: Member;
   started: number = 0;
   stopped: number = 0;
   timestamp: number = 0;
@@ -143,7 +143,8 @@ export class Typing extends BaseStructure {
       }
 
       const amount = (value + TYPING_TIMEOUT) - Date.now();
-      if (0 < amount && !this.isClone) {
+      if (!this.isClone) {
+        // always start it, an already expired typing (replayed after a resume, clock skew) still has to be removed from the cache
         this.timeout.start(Math.max(0, amount), () => this._stop());
       }
       (this as any)[DetritusKeys[DiscordKeys.TIMESTAMP]] = value;

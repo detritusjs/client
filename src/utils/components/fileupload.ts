@@ -34,12 +34,14 @@ export class ComponentFileUpload extends ComponentActionBase {
   type = MessageComponentTypes.FILE_UPLOAD;
 
   constructor(data: ComponentActionData = {}) {
+    // work on a copy, the generated custom id (and key renames) shouldn't end up in the caller's object
+    data = Object.assign({}, data);
     super(data);
     Object.assign(data, {
-      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] || (data as any)[DiscordKeys.CUSTOM_ID],
-      [DiscordKeys.FILE_TYPES]: (data as any)[DetritusKeys[DiscordKeys.FILE_TYPES]] || (data as any)[DiscordKeys.FILE_TYPES],
-      [DiscordKeys.MAX_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MAX_VALUES]] || (data as any)[DiscordKeys.MAX_VALUES],
-      [DiscordKeys.MIN_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MIN_VALUES]] || (data as any)[DiscordKeys.MIN_VALUES],
+      [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] ?? (data as any)[DiscordKeys.CUSTOM_ID],
+      [DiscordKeys.FILE_TYPES]: (data as any)[DetritusKeys[DiscordKeys.FILE_TYPES]] ?? (data as any)[DiscordKeys.FILE_TYPES],
+      [DiscordKeys.MAX_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MAX_VALUES]] ?? (data as any)[DiscordKeys.MAX_VALUES],
+      [DiscordKeys.MIN_VALUES]: (data as any)[DetritusKeys[DiscordKeys.MIN_VALUES]] ?? (data as any)[DiscordKeys.MIN_VALUES],
     });
     this.merge(data);
     this.type = MessageComponentTypes.FILE_UPLOAD;

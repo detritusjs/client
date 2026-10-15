@@ -29,6 +29,7 @@ import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
+  setStructureUncloneable,
 } from './basestructure';
 import { Application } from './application';
 import { Attachment } from './attachment';
@@ -132,46 +133,46 @@ export class Message extends BaseStructure {
   // hidden ones are only declared here, the constructor adds them (see `messageHiddenProperties`)
   declare _content: string;
   declare _attachments?: BaseCollection<string, Attachment>;
-  _components?: BaseCollection<number, ComponentsTopLevel>;
+  declare _components?: BaseCollection<number, ComponentsTopLevel>;
   declare _embeds?: BaseCollection<number, MessageEmbed>;
   declare _mentions?: BaseCollection<string, Member | User>;
   declare _mentionChannels?: BaseCollection<string, Channel>;
   declare _mentionRoles?: BaseCollection<string, null | Role>;
-  _messageSnapshots?: BaseCollection<number, MessageSnapshot>;
+  declare _messageSnapshots?: BaseCollection<number, MessageSnapshot>;
   declare _reactions?: BaseCollection<string, Reaction>;
   declare _stickers?: BaseCollection<string, Sticker>;
   declare _stickerItems?: BaseCollection<string, StickerItem>;
 
-  activity?: MessageActivity;
-  application?: Application;
+  declare activity?: MessageActivity;
+  declare application?: Application;
   // for interaction or application-owned webhook messages
-  applicationId?: string;
+  declare applicationId?: string;
   author!: User;
-  call?: MessageCall;
+  declare call?: MessageCall;
   channelId: string = '';
   content: string = '';
   deleted: boolean = false;
   editedTimestampUnix: number = 0;
   flags: number = 0;
-  guildId?: string;
+  declare guildId?: string;
   id: string = '';
-  interaction?: MessageInteraction;
-  interactionMetadata?: MessageInteractionMetadata;
-  member?: Member;
+  declare interaction?: MessageInteraction;
+  declare interactionMetadata?: MessageInteractionMetadata;
+  declare member?: Member;
   mentionEveryone: boolean = false;
-  messageReference?: MessageReference;
-  nonce?: string;
+  declare messageReference?: MessageReference;
+  declare nonce?: string;
   pinned: boolean = false;
-  poll?: MessagePoll;
-  position?: number;
+  declare poll?: MessagePoll;
+  declare position?: number;
   referencedMessage: Message | null = null;
-  resolved?: MessageResolvedData;
-  roleSubscriptionData?: MessageRoleSubscriptionData;
-  thread?: ChannelGuildThread;
+  declare resolved?: MessageResolvedData;
+  declare roleSubscriptionData?: MessageRoleSubscriptionData;
+  declare thread?: ChannelGuildThread;
   timestampUnix: number = 0;
   tts: boolean = false;
   type: MessageTypes = MessageTypes.BASE;
-  webhookId?: string;
+  declare webhookId?: string;
 
   constructor(
     client: ShardClient,
@@ -442,7 +443,10 @@ export class Message extends BaseStructure {
     switch (this.type) {
       case MessageTypes.BASE:
       case MessageTypes.DEFAULT: 
-      case MessageTypes.REPLY: {
+      case MessageTypes.REPLY:
+      // command responses are normal messages from the bot, their content is the response
+      case MessageTypes.CHAT_INPUT_COMMAND:
+      case MessageTypes.CONTEXT_MENU_COMMAND: {
         return this.content;
       };
       default: {
@@ -670,7 +674,6 @@ export class Message extends BaseStructure {
             } else {
               if (this.client.members.has(guildId, raw.id)) {
                 member = this.client.members.get(guildId, raw.id)!;
-                // should we merge?
               } else {
                 member = new Member(this.client, raw.member);
                 member.merge({user: raw});
@@ -1066,7 +1069,6 @@ export class Message extends BaseStructure {
       }
     }
     if (DiscordKeys.THREAD in data) {
-      // maybe put it in cache?
       const channel = createChannelFromData(this.client, data[DiscordKeys.THREAD], this.isClone);
       (this as any)[DetritusKeys[DiscordKeys.THREAD]] = channel;
     }
@@ -1077,6 +1079,15 @@ export class Message extends BaseStructure {
     if (DiscordKeys.TTS in data) {
       (this as any)[DetritusKeys[DiscordKeys.TTS]] = data[DiscordKeys.TTS];
     }
+  }
+
+  toJSON() {
+    const data = super.toJSON() as any;
+    // discord sends role ids, the collection would serialize as the role objects
+    if (DiscordKeys.MENTION_ROLES in data) {
+      data[DiscordKeys.MENTION_ROLES] = (this._mentionRoles) ? Array.from(this._mentionRoles.keys()) : [];
+    }
+    return data;
   }
 
   toString(): string {
@@ -1097,7 +1108,7 @@ const keysMessageActivity = new BaseSet<string>([
  * @category Structure
  */
 export class MessageActivity extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageActivity); }
   declare readonly message: Message;
 
@@ -1171,7 +1182,7 @@ const keysMessageCall = new BaseSet<string>([
  * @category Structure
  */
 export class MessageCall extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageCall); }
   declare readonly message: Message;
 
@@ -1233,12 +1244,12 @@ const keysMessageInteraction = new BaseSet<string>([
  * @category Structure
  */
 export class MessageInteraction extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageInteraction); }
   declare readonly message: Message;
 
   id: string = '';
-  member?: Member;
+  declare member?: Member;
   name: string = '';
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
@@ -1310,19 +1321,19 @@ const keysMessageInteractionMetadata = new BaseSet<string>([
  * @category Structure
  */
 export class MessageInteractionMetadata extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageInteractionMetadata); }
   declare readonly message: Message;
 
-  authorizingIntegrationOwners?: Record<ApplicationIntegrationTypes, string>;
+  declare authorizingIntegrationOwners?: Record<ApplicationIntegrationTypes, string>;
   id: string = '';
-  interactedMessageId?: string;
-  originalResponseMessageId?: string;
+  declare interactedMessageId?: string;
+  declare originalResponseMessageId?: string;
   // message context menu commands
-  targetMessageId?: string;
+  declare targetMessageId?: string;
   // user context menu commands
-  targetUser?: User;
-  triggeringInteractionMetadata?: MessageInteractionMetadata;
+  declare targetUser?: User;
+  declare triggeringInteractionMetadata?: MessageInteractionMetadata;
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
 
@@ -1420,18 +1431,18 @@ const keysMessagePoll = new BaseSet<string>([
  * @category Structure
  */
 export class MessagePoll extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessagePoll); }
   declare readonly message: Message;
-  _answers?: BaseCollection<number, MessagePollAnswer>;
+  declare _answers?: BaseCollection<number, MessagePollAnswer>;
 
   allowMultiselect: boolean = false;
   duration: number = 0;
   expiryUnix: number = 0;
-  layoutType?: MessagePollLayoutTypes;
+  declare layoutType?: MessagePollLayoutTypes;
   question!: MessagePollMedia;
   // not sent if the poll's results haven't been calculated yet
-  results?: MessagePollResults;
+  declare results?: MessagePollResults;
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
@@ -1541,7 +1552,7 @@ const keysMessagePollResults = new BaseSet<string>([
  * @category Structure
  */
 export class MessagePollResults extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessagePollResults); }
   declare readonly poll: MessagePoll;
 
@@ -1608,7 +1619,7 @@ const keysMessagePollAnswer = new BaseSet<string>([
  * @category Structure
  */
 export class MessagePollAnswer extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessagePollAnswer); }
   declare readonly poll: MessagePoll;
 
@@ -1659,12 +1670,12 @@ const keysMessagePollMedia = new BaseSet<string>([
  * @category Structure
  */
 export class MessagePollMedia extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessagePollMedia); }
   declare readonly poll: MessagePoll;
 
-  emoji?: Emoji;
-  text?: string;
+  declare emoji?: Emoji;
+  declare text?: string;
 
   constructor(poll: MessagePoll, data: BaseStructureData) {
     super(poll.client, undefined, poll._clone);
@@ -1701,14 +1712,14 @@ const keysMessageReference = new BaseSet<string>([
  * @category Structure
  */
 export class MessageReference extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageReference); }
   declare readonly parent: Message;
 
   channelId: string = '';
   guildId?: string = '';
   messageId?: string = '';
-  type?: MessageReferenceTypes;
+  declare type?: MessageReferenceTypes;
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
@@ -1775,16 +1786,16 @@ const keysMessageResolvedData = new BaseSet<string>([
  * @category Structure
  */
 export class MessageResolvedData extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageResolvedData); }
   declare readonly message: Message;
 
-  attachments?: BaseCollection<string, Attachment>;
-  channels?: BaseCollection<string, Channel>;
-  members?: BaseCollection<string, Member>;
-  messages?: BaseCollection<string, Message>;
-  roles?: BaseCollection<string, Role>;
-  users?: BaseCollection<string, User>;
+  declare attachments?: BaseCollection<string, Attachment>;
+  declare channels?: BaseCollection<string, Channel>;
+  declare members?: BaseCollection<string, Member>;
+  declare messages?: BaseCollection<string, Message>;
+  declare roles?: BaseCollection<string, Role>;
+  declare users?: BaseCollection<string, User>;
 
   constructor(message: Message, data: BaseStructureData) {
     super(message.client, undefined, message._clone);
@@ -1905,7 +1916,7 @@ const keysMessageRoleSubscriptionData = new BaseSet<string>([
  * @category Structure
  */
 export class MessageRoleSubscriptionData extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageRoleSubscriptionData); }
   declare readonly message: Message;
 
@@ -1950,7 +1961,7 @@ const keysMessageSnapshot = new BaseSet<string>([
  * @category Structure
  */
 export class MessageSnapshot extends BaseStructure {
-  readonly _uncloneable = true;
+  static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageSnapshot); }
   declare readonly parent: Message;
 
@@ -1974,7 +1985,6 @@ export class MessageSnapshot extends BaseStructure {
       let message: Message;
       if (value.id && this.client.messages.has(value.id)) {
         message = this.client.messages.get(value.id)!.clone();
-        // message.merge(value);
       } else {
         message = new Message(this.client, value, this.isClone);
       }
@@ -2105,18 +2115,6 @@ export function messageSystemContent(
     }; break;
     case MessageTypes.GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING: {
       content = SystemMessages.GuildDiscoveryGracePeriodFinalWarning;
-    }; break;
-    case MessageTypes.CHAT_INPUT_COMMAND: {
-      content = SystemMessages.ChatInputCommandUsed.replace(/:user:/g, message.author.mention);
-      if (message.interaction) {
-        content = content.replace(/:command:/g, message.interaction.name);
-      }
-    }; break;
-    case MessageTypes.CONTEXT_MENU_COMMAND: {
-      content = SystemMessages.ContextMenuCommandUsed.replace(/:user:/g, message.author.mention);
-      if (message.interaction) {
-        content = content.replace(/:command:/g, message.interaction.name);
-      }
     }; break;
   }
   return content;

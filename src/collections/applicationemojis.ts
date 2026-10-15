@@ -43,9 +43,11 @@ export class ApplicationEmojis extends BaseClientCollection<string, Emoji> {
           return;
         }
         if (this.client.cluster && this.client.cluster.manager && this.client.cluster.manager.hasMultipleClusters) {
+          // a forced fill skips the manager's cached result
           data = await this.client.cluster.manager.sendRestRequest(
             'fetchApplicationEmojis',
             [applicationId],
+            force === true,
           ) as {items: Array<any>};
           this.client.cluster.manager.sendIPC(ClusterIPCOpCodes.FILL_APPLICATION_EMOJIS, {data});
         } else {

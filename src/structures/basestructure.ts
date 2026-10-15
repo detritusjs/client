@@ -40,6 +40,83 @@ export function setStructureKeys(structure: Function, name: StructureKeysName, k
   Object.defineProperty(structure.prototype, name, {configurable: true, value: keys, writable: true});
 }
 
+export function setStructureUncloneable(structure: Function): void {
+  // on the prototype so every instance doesn't carry its own `_uncloneable` slot (class fields are own properties)
+  Object.defineProperty(structure.prototype, '_uncloneable', {configurable: true, value: true});
+}
+
+/**
+ * Compares a cached collection with what discord sent (usually an array of objects with an `id`, or another collection from `differencesBetween()`)
+ * entries we can't match up by id (like embeds, keyed by their index) still count as different
+ */
+function isCollectionDifferent(old: BaseCollection<any, any>, value: any): boolean {
+  if (value instanceof BaseCollection) {
+    if (old.size !== value.size) {
+      return true;
+    }
+    for (let [key, item] of value) {
+      if (!old.has(key)) {
+        return true;
+      }
+      if (isItemDifferent(old.get(key), item)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  if (!Array.isArray(value) || old.size !== value.length) {
+    return true;
+  }
+  for (let item of value) {
+    if (!item || typeof(item) !== 'object' || !('id' in item) || !old.has(item.id)) {
+      return true;
+    }
+    if (isItemDifferent(old.get(item.id), item)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isArrayDifferent(old: Array<any>, value: any): boolean {
+  if (!Array.isArray(value) || old.length !== value.length) {
+    return true;
+  }
+  for (let i = 0; i < old.length; i++) {
+    if (isItemDifferent(old[i], value[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isItemDifferent(old: any, item: any): boolean {
+  if (old instanceof BaseStructure) {
+    return (item instanceof BaseStructure) ? old.hasDifferencesBetween(item) : old.hasDifferences(item);
+  }
+  if (old && typeof(old) === 'object') {
+    // some raw object we don't know how to compare
+    return true;
+  }
+  // primitives (ids, numbers like colors)
+  return old !== item;
+}
+
+function isSameBigInt(old: bigint, value: any): boolean {
+  if (typeof(value) === 'bigint') {
+    return old === value;
+  }
+  if (value === null || value === '') {
+    return false;
+  }
+  try {
+    return old === BigInt(value);
+  } catch(error) {
+    // not something BigInt() can parse, so it can't be the same value
+    return false;
+  }
+}
+
 
 export interface BaseStructureData {
   [key: string]: any,
@@ -71,10 +148,16 @@ export class Structure {
       const camelKey = convertKey(key);
       const old = (this as any)[camelKey];
       if (old !== undefined && old !== value) {
-        if (!!old !== !!value) {
+        if (typeof(old) === 'bigint') {
+          // checked before the truthy compare since `0n` is falsy but its string form `"0"` isn't
+          if (this.hasDifference(key, value)) {
+            return [true, old];
+          }
+        } else if (!!old !== !!value) {
           return [true, old];
         } else if (old instanceof BaseStructure) {
-          const differences = old.differences(value);
+          // `differencesBetween()` when comparing two structures (from `differencesBetween()`), `differences()` for raw data
+          const differences = (value instanceof BaseStructure) ? old.differencesBetween(value) : old.differences(value);
           if (differences) {
             return [true, differences];
           }
@@ -144,7 +227,11 @@ export class Structure {
       // -> We either receive [string|int] or [{id: string}] or other arrays from discord
       // -> We either parse them as BaseSet or BaseCollection with the ID as the key (sometimes the key is the array number like embeds)
       if (old !== undefined && old !== value) {
-        if (!!old !== !!value) {
+        if (typeof(old) === 'bigint') {
+          // assume we got a BigInt in a string
+          // checked before the truthy compare since `0n` is falsy but its string form `"0"` isn't
+          return !isSameBigInt(old, value);
+        } else if (!!old !== !!value) {
           // this makes sure we dont compare null to BaseStructure, null to Date, etc..
           return true;
         } else if (old instanceof BaseStructure) {
@@ -155,14 +242,7 @@ export class Structure {
             return old.hasDifferences(value);
           }
         } else if (old instanceof BaseCollection) {
-          // assume we got an array, maybe try looking to see if each object has {id}?
-          if (old.size !== value.length) {
-            // compare sizes first
-            return true;
-          } else if (old.size) {
-            // unknown of how to compare, so just see if the BaseCollection has a size
-            return true;
-          }
+          return isCollectionDifferent(old, value);
         } else if (old instanceof BaseSet) {
           // assume we got an array of [string] or [int]
           if (old.size !== value.length) {
@@ -181,14 +261,7 @@ export class Structure {
           }
           return old.getTime() !== (new Date(value)).getTime();
         } else if (Array.isArray(old)) {
-          // assume we got an array of something
-          if (old.length !== value.length) {
-            // compare sizes first
-            return true;
-          } else if (old.length) {
-            // unknown of how to compare, so just see if the Array has a size
-            return true;
-          }
+          return isArrayDifferent(old, value);
         } else if (typeof(old) === 'object') {
           // assume we got an object too
           // this would be a rare compare, like role.tags
@@ -208,9 +281,6 @@ export class Structure {
           } else {
             return true;
           }
-        } else if (typeof(old) === 'bigint') {
-          // assume we got a BigInt in a string
-          return old !== BigInt(value);
         } else {
           // good old compare
           return old !== value;
@@ -285,9 +355,17 @@ export class Structure {
   }
 
   toJSON(): object {
+    return this._toJSONKeys(this._keys);
+  }
+
+  /**
+   * `toJSON()` for only some of the keys, only these keys' values are read
+   * @ignore
+   */
+  _toJSONKeys(keys?: Iterable<string>): BaseStructureData {
     const obj: BaseStructureData = {};
-    if (this._keys) {
-      for (let key of this._keys) {
+    if (keys) {
+      for (let key of keys) {
         let value = this._getFromSnake(key);
         if (typeof(value) === 'bigint') {
           value = String(value);
@@ -327,7 +405,7 @@ export class Structure {
  */
 export class BaseStructure extends Structure {
   /** @ignore */
-  readonly _clone?: boolean;
+  declare readonly _clone?: boolean;
   /** @ignore */
   declare readonly _uncloneable?: boolean;
 

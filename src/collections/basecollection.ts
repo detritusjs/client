@@ -418,9 +418,42 @@ export class BaseClientGuildReferenceCache<K, V> extends BaseCollectionMixin<K, 
 }
 
 
+// the shared instance is frozen, so every method that writes to `this` (even `clear()` via `stopInterval()`) has to be a no-op
 export class EmptyBaseCollection extends BaseCollection<any, any> {
+  clear(): void {
+
+  }
+
   delete(): boolean {
     return false;
+  }
+
+  evict(): void {
+
+  }
+
+  getOrder(): Map<any, true> {
+    return new Map();
+  }
+
+  setExpire(): this {
+    return this;
+  }
+
+  setIntervalTimeout(): this {
+    return this;
+  }
+
+  setLimit(): this {
+    return this;
+  }
+
+  startInterval(): void {
+
+  }
+
+  stopInterval(): void {
+
   }
 
   has(): boolean {

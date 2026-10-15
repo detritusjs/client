@@ -56,21 +56,21 @@ export class ApplicationCommand extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysApplicationCommand); }
 
   applicationId: string = '';
-  contexts?: Array<InteractionContextTypes> | null;
+  declare contexts?: Array<InteractionContextTypes> | null;
   defaultMemberPermissions: bigint | null = null;
   defaultPermission: boolean = true;
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
   dmPermission: boolean = true;
-  guildId?: string;
+  declare guildId?: string;
   // only for `PRIMARY_ENTRY_POINT` commands
-  handler?: EntryPointCommandHandlerTypes;
+  declare handler?: EntryPointCommandHandlerTypes;
   id: string = '';
-  integrationTypes?: Array<ApplicationIntegrationTypes>;
+  declare integrationTypes?: Array<ApplicationIntegrationTypes>;
   name: string = '';
   nameLocalizations: Record<string, string | undefined> | null = null;
-  nsfw?: boolean;
-  options?: BaseCollection<string, ApplicationCommandOption>;
+  declare nsfw?: boolean;
+  declare options?: BaseCollection<string, ApplicationCommandOption>;
   type: ApplicationCommandTypes = ApplicationCommandTypes.CHAT_INPUT;
   version: string = '';
 
@@ -199,19 +199,19 @@ export class ApplicationCommandOption extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysApplicationCommandOption); }
   declare readonly command: ApplicationCommand;
 
-  autocomplete?: boolean;
-  channelTypes?: Array<ChannelTypes | number>;
-  choices?: BaseCollection<string, ApplicationCommandOptionChoice>;
+  declare autocomplete?: boolean;
+  declare channelTypes?: Array<ChannelTypes | number>;
+  declare choices?: BaseCollection<string, ApplicationCommandOptionChoice>;
   description: string = '';
   descriptionLocalizations: Record<string, string | undefined> | null = null;
-  fileTypes?: Array<string>;
-  maxLength?: number;
-  maxValue?: bigint | number;
-  minLength?: number;
-  minValue?: bigint | number;
+  declare fileTypes?: Array<string>;
+  declare maxLength?: number;
+  declare maxValue?: bigint | number;
+  declare minLength?: number;
+  declare minValue?: bigint | number;
   name: string = '';
   nameLocalizations: Record<string, string | undefined> | null = null;
-  options?: BaseCollection<string, ApplicationCommandOption>;
+  declare options?: BaseCollection<string, ApplicationCommandOption>;
   required: boolean = false;
   type: ApplicationCommandOptionTypes = ApplicationCommandOptionTypes.SUB_COMMAND;
 
@@ -382,6 +382,8 @@ export class ApplicationCommandPermissions extends BaseStructure {
   applicationId: string = '';
   guildId: string = '';
   id: string = '';
+  // keyed by `${type}.${id}` (see `permissionKey()`), not just the id
+  // old guilds share one id between the @everyone role (guild id) and their first channel, so an id alone would collide
   permissions = new BaseCollection<string, ApplicationCommandPermission>();
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {
@@ -389,8 +391,33 @@ export class ApplicationCommandPermissions extends BaseStructure {
     this.merge(data);
   }
 
+  static permissionKey(type: ApplicationCommandPermissionTypes, id: string): string {
+    return `${type}.${id}`;
+  }
+
   get allChannelsId(): string {
     return String(BigInt(this.guildId) - 1n);
+  }
+
+  getPermission(type: ApplicationCommandPermissionTypes, id: string): ApplicationCommandPermission | undefined {
+    return this.permissions.get(ApplicationCommandPermissions.permissionKey(type, id));
+  }
+
+  hasDifference(key: string, value: any): boolean {
+    if (key === DiscordKeys.PERMISSIONS && Array.isArray(value)) {
+      // the default compare looks raw entries up by `id`, but we key them by type too
+      if (this.permissions.size !== value.length) {
+        return true;
+      }
+      for (let raw of value) {
+        const old = (raw) ? this.getPermission(raw[DiscordKeys.TYPE], raw[DiscordKeys.ID]) : undefined;
+        if (!old || old.hasDifferences(raw)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return super.hasDifference(key, value);
   }
 
   isAllowed(channel: Channel, member: Member) {
@@ -399,21 +426,19 @@ export class ApplicationCommandPermissions extends BaseStructure {
     }
 
     // channel-specific overwrites take precedence over the all-channels (`guildId - 1`) one
-    // channel id and role id can be the same for old guilds, so check the type too
     for (let channelId of [channel.id, channel.parentId, this.allChannelsId]) {
-      if (channelId && this.permissions.has(channelId)) {
-        const commandPermission = this.permissions.get(channelId)!;
-        if (commandPermission.isChannel) {
-          if (!commandPermission.permission) {
-            return false;
-          }
-          break;
+      const commandPermission = (channelId) ? this.getPermission(ApplicationCommandPermissionTypes.CHANNEL, channelId) : undefined;
+      if (commandPermission) {
+        if (!commandPermission.permission) {
+          return false;
         }
+        break;
       }
     }
 
-    if (this.permissions.has(member.id)) {
-      return this.permissions.get(member.id)!.permission;
+    const userPermission = this.getPermission(ApplicationCommandPermissionTypes.USER, member.id);
+    if (userPermission) {
+      return userPermission.permission;
     }
 
     let isRoleAllowed: boolean | null = null;
@@ -435,9 +460,9 @@ export class ApplicationCommandPermissions extends BaseStructure {
       return isRoleAllowed;
     }
 
-    // channel id and role id can be the same for old guilds
-    if (this.permissions.has(this.guildId) && this.permissions.get(this.guildId)!.isRole) {
-      return this.permissions.get(this.guildId)!.permission;
+    const everyonePermission = this.getPermission(ApplicationCommandPermissionTypes.ROLE, this.guildId);
+    if (everyonePermission) {
+      return everyonePermission.permission;
     }
 
     return true;
@@ -461,7 +486,7 @@ export class ApplicationCommandPermissions extends BaseStructure {
       this.permissions.clear();
       for (let raw of data[DiscordKeys.PERMISSIONS]) {
         const permission = new ApplicationCommandPermission(this, raw, this.isClone);
-        this.permissions.set(permission.id, permission);
+        this.permissions.set(ApplicationCommandPermissions.permissionKey(permission.type, permission.id), permission);
       }
     }
   }
