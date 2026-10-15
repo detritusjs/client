@@ -7,7 +7,7 @@ export interface CommandArgs {
   amount: number,
 }
 
-export default class RollCommand extends BaseCommand<CommandArgs> {
+export default class RollCommand extends BaseCommand {
   constructor(client: CommandClient, options: Command.CommandOptions) {
     super(client, {
       ...options,

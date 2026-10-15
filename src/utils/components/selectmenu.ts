@@ -40,6 +40,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
   DiscordKeys.MIN_VALUES,
   DiscordKeys.OPTIONS,
   DiscordKeys.PLACEHOLDER,
+  DiscordKeys.REQUIRED,
   DiscordKeys.TYPE,
 ]);
 
@@ -58,6 +59,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
   minValues?: null | number;
   options: Array<ComponentSelectMenuOption> = [];
   placeholder?: null | string;
+  required?: boolean;
   type = MessageComponentTypes.SELECT_MENU;
 
   constructor(data: ComponentActionData = {}) {
@@ -158,6 +160,11 @@ const keysComponentSelectMenu = new BaseSet<string>([
 
   setPlaceholder(placeholder: null | string): this {
     this.merge({placeholder});
+    return this;
+  }
+
+  setRequired(required: boolean): this {
+    this.merge({required});
     return this;
   }
 

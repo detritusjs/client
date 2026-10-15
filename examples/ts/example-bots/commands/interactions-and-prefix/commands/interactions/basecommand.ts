@@ -4,7 +4,7 @@ const { Embed, Markup } = Utils;
 
 
 
-export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
+export class BaseInteractionCommand extends Interaction.InteractionCommand {
   error = 'Command';
 
   onDmBlocked(context: Interaction.InteractionContext) {
@@ -52,18 +52,18 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
 }
 
 
-export class BaseCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
+export class BaseCommandOption extends Interaction.InteractionCommandOption {
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
 }
 
 
-export class BaseCommandOptionGroup<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
+export class BaseCommandOptionGroup extends Interaction.InteractionCommandOption {
   type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
 }
 
 
 
-export class BaseSlashCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommand<ParsedArgsFinished> {
+export class BaseSlashCommand extends BaseInteractionCommand {
   error = 'Slash Command';
   type = ApplicationCommandTypes.CHAT_INPUT;
 }
@@ -73,7 +73,7 @@ export interface ContextMenuMessageArgs {
   message: Structures.Message,
 }
 
-export class BaseContextMenuMessageCommand extends BaseInteractionCommand<ContextMenuMessageArgs> {
+export class BaseContextMenuMessageCommand extends BaseInteractionCommand {
   error = 'Message Context Menu';
   type = ApplicationCommandTypes.MESSAGE;
 }
@@ -84,7 +84,7 @@ export interface ContextMenuUserArgs {
   user: Structures.User,
 }
 
-export class BaseContextMenuUserCommand extends BaseInteractionCommand<ContextMenuUserArgs> {
+export class BaseContextMenuUserCommand extends BaseInteractionCommand {
   error = 'User Context Menu';
   type = ApplicationCommandTypes.USER;
 }

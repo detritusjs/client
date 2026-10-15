@@ -3,7 +3,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
 
-export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
+export class BaseCommand extends Command.Command {
   permissionsIgnoreClientOwner = true;
   triggerTypingAfter = 2000;
 
@@ -60,7 +60,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
   }
 
-  async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
+  async onRunError(context: Command.Context, args: Command.ParsedArgs, error: any) {
     const embed = new Embed();
     embed.setTitle(`⚠ Command Error`);
     embed.setDescription(Markup.codestring(String(error)));
@@ -68,7 +68,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     return context.editOrReply({embed, reference: true});
   }
 
-  onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
+  onTypeError(context: Command.Context, args: Command.ParsedArgs, errors: Command.ParsedErrors) {
     const embed = new Embed();
     embed.setTitle('⚠ Command Argument Error');
 

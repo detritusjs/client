@@ -8,7 +8,7 @@ export interface CommandArgs {
   name: string,
 }
 
-export default class TagCommand extends BaseCommand<CommandArgs> {
+export default class TagCommand extends BaseCommand {
   constructor(client: CommandClient, options: Command.CommandOptions) {
     super(client, {
       ...options,

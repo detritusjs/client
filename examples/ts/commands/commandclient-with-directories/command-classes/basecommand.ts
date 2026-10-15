@@ -2,7 +2,7 @@ import { Command } from 'detritus-client';
 
 
 // Use this to have just one class handle all the type errors
-export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
+export class BaseCommand extends Command.Command {
   triggerTypingAfter = 1000;
 
   onTypeError(context: Command.Context, args: Command.ParsedArgs, errors: Command.ParsedErrors) {
