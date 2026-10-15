@@ -629,7 +629,7 @@ export class CommandClient extends EventSpewer {
         // (an edit that re-runs one keeps the reply for `editOrReply()` to edit, telling listeners to delete it would race that)
         const { command, context: oldContext, reply } = this.replies.get(message.id)!;
         this.replies.delete(message.id);
-        const payload: CommandEvents.CommandDelete = {command, context: oldContext, reply};
+        const payload: CommandEvents.CommandDelete = {command, context: oldContext, event: ClientEvents.MESSAGE_UPDATE, reply};
         this.emit(ClientEvents.COMMAND_DELETE, payload);
       }
       const command = context.command;
@@ -1019,13 +1019,13 @@ export class CommandClient extends EventSpewer {
     }
   }
 
-  async handleDelete(name: string, deletePayload: {raw: {id: string}}): Promise<void> {
+  async handleDelete(name: ClientEvents.MESSAGE_DELETE, deletePayload: {raw: {id: string}}): Promise<void> {
     const messageId = deletePayload.raw.id;
     if (this.replies.has(messageId)) {
       const { command, context, reply } = this.replies.get(messageId)!;
       this.replies.delete(messageId);
 
-      const payload: CommandEvents.CommandDelete = {command, context, reply};
+      const payload: CommandEvents.CommandDelete = {command, context, event: name, reply};
       this.emit(ClientEvents.COMMAND_DELETE, payload);
     } else {
       for (let [commandId, { command, context, reply }] of this.replies) {
@@ -1047,7 +1047,7 @@ export class CommandClient extends EventSpewer {
         const { command, context, reply } = this.replies.get(messageId)!;
         this.replies.delete(messageId);
 
-        const payload: CommandEvents.CommandDelete = {command, context, reply};
+        const payload: CommandEvents.CommandDelete = {command, context, event: ClientEvents.MESSAGE_DELETE_BULK, reply};
         this.emit(ClientEvents.COMMAND_DELETE, payload);
       }
     }

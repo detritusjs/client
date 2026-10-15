@@ -1,4 +1,5 @@
 import { CommandRatelimit as CommandRatelimitCache, CommandRatelimitItem } from '../commandratelimit';
+import { ClientEvents } from '../constants';
 import { Message } from '../structures';
 
 import { ParsedArgs, ParsedErrors } from './argumentparser';
@@ -10,6 +11,8 @@ export namespace CommandEvents {
   export interface CommandDelete {
     command: Command,
     context: Context,
+    // the gateway event that caused it (an edit means the message doesn't run a command anymore)
+    event: ClientEvents.MESSAGE_DELETE | ClientEvents.MESSAGE_DELETE_BULK | ClientEvents.MESSAGE_UPDATE,
     reply: Message,
   }
 
