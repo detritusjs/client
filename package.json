@@ -40,9 +40,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "types": "lib/index.d.ts",
-  "version": "0.17.0-beta.120",
+  "version": "0.17.0-beta.121",
   "dependencies": {
-    "detritus-client-rest": "^0.11.0-beta.33",
+    "detritus-client-rest": "^0.11.0-beta.34",
     "detritus-client-socket": "^0.9.0-beta.16",
     "detritus-utils": "^0.5.0-beta.5"
   },
