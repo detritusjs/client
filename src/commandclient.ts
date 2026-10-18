@@ -579,8 +579,12 @@ export class CommandClient extends EventSpewer {
       // `differences` holds the old values, an old content of '' (like an attachment only message) is still a change
       return 'content' in differences;
     }
-    // the message wasn't cached so there's nothing to compare with, go off of it being an edit with content
-    return !!raw && raw.content !== undefined && !!raw.edited_timestamp;
+    // the message wasn't cached so there's nothing to compare with, and updates send the whole message (pins, threads, etc)
+    // so only count it if it was edited just now, not if it was edited once years ago
+    if (!raw || raw.content === undefined || !raw.edited_timestamp) {
+      return false;
+    }
+    return Math.abs(Date.now() - Date.parse(raw.edited_timestamp)) <= this.maxEditDuration;
   }
 
   isWithinEditDuration(message: Message): boolean {
