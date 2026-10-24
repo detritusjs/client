@@ -104,7 +104,12 @@ export function normalizeApplicationCommand(
   };
   if (!options.isGuild) {
     data.contexts = normalizeContexts(command.contexts);
-    data.dm_permission = (command.dmPermission === undefined || command.dmPermission === null) ? true : !!command.dmPermission;
+    if (command.contexts && command.contexts.length) {
+      // discord ignores `dm_permission` once `contexts` is set and returns whether `contexts` has `BOT_DM`
+      data.dm_permission = command.contexts.includes(InteractionContextTypes.BOT_DM);
+    } else {
+      data.dm_permission = (command.dmPermission === undefined || command.dmPermission === null) ? true : !!command.dmPermission;
+    }
     data.integration_types = normalizeIntegrationTypes(command.integrationTypes);
   }
   return data;
