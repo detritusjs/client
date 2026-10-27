@@ -375,7 +375,7 @@ export function url(text: string, url: string, comment?: string): string {
   text = escapeMarker(text, Regexes.LINK_TEXT, (match: string) => match.replace(Regexes.LINK_TEXT, Replacements.LINK_TEXT));
   url = escape.url(url);
   if (comment) {
-    return `[${text}](${url} '${comment.replace(/[\\']/g, '\\$&')}')`;
+    return `[${text}](${url} "${comment.replace(/[\\"]/g, '\\$&')}")`;
   }
   return `[${text}](${url})`;
 }
@@ -600,10 +600,15 @@ export const escape = Object.freeze({
     return trueSlice(text, filter.limit);
   },
   url: (text: string, options: MarkupFilterOptions = {}): string => {
+    // a `<url>` wrap (no embed) is the caller's, only encode what's inside of it
+    const wrapped = (text.length >= 2 && text.startsWith('<') && text.endsWith('>'));
+    if (wrapped) {
+      text = text.slice(1, -1);
+    }
     // encodes the utf-8 bytes, a char code is wrong for anything past ascii (`\u2028` isn't `%2028`)
     text = text.replace(Regexes.URL, (match: string) => {
       return (match === '(' || match === ')') ? '%' + match.charCodeAt(0).toString(16).toUpperCase() : encodeURIComponent(match);
     });
-    return text;
+    return (wrapped) ? `<${text}>` : text;
   },
 });

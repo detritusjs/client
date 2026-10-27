@@ -1249,10 +1249,13 @@ export class ChannelGuildBase extends ChannelBase {
     this.merge(data);
   }
 
+  // reacting doesn't need SEND_MESSAGES, so this works in read-only channels too
   get canAddReactions(): boolean {
-    return this.isText && this.canMessage && this.can([
+    return this.isText && this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.READ_MESSAGE_HISTORY,
       Permissions.ADD_REACTIONS,
-    ]);
+    ]) && this.canCommunicate;
   }
 
   get canAttachFiles(): boolean {
@@ -1323,15 +1326,17 @@ export class ChannelGuildBase extends ChannelBase {
   }
 
   get canMessage(): boolean {
-    const hasSendMessagePermissions = this.isText && this.can([
+    return this.isText && this.can([
       Permissions.VIEW_CHANNEL,
       Permissions.SEND_MESSAGES,
-    ]);
-    if (
-      hasSendMessagePermissions &&
-      this.client.user &&
-      this.client.members.has(this.guildId, this.client.user.id)
-    ) {
+    ]) && this.canCommunicate;
+  }
+
+  /**
+   * If the client user isn't timed out in this guild (timeouts block sending messages and adding reactions)
+   */
+  get canCommunicate(): boolean {
+    if (this.client.user && this.client.members.has(this.guildId, this.client.user.id)) {
       const me = this.client.members.get(this.guildId, this.client.user.id)!;
       if (!me.communicationDisabledUntilUnix || me.communicationDisabledUntilUnix <= Date.now()) {
         // not timed out
@@ -1397,15 +1402,18 @@ export class ChannelGuildBase extends ChannelBase {
     ]);
   }
 
+  // threads can't be made inside of voice channels or other threads, and news channels have no private threads
+  // forum/media channels override this, their posts need SEND_MESSAGES instead
+
   get canUsePrivateThreads(): boolean {
-    return this.isText && this.can([
+    return this.isGuildText && this.can([
       Permissions.VIEW_CHANNEL,
       Permissions.USE_PRIVATE_THREADS,
     ]);
   }
 
   get canUsePublicThreads(): boolean {
-    return this.isText && this.can([
+    return (this.isGuildText || this.isGuildNews) && this.can([
       Permissions.VIEW_CHANNEL,
       Permissions.USE_PUBLIC_THREADS,
     ]);
@@ -1578,6 +1586,29 @@ export class ChannelGuildCategory extends ChannelGuildBase {
     super(client, undefined, isClone);
     this.merge(data);
   }
+
+  // categories aren't text channels, but these permissions can still be set on them and sync down to their children
+
+  get canManageMessages(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.MANAGE_MESSAGES,
+    ]);
+  }
+
+  get canManageThreads(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.MANAGE_THREADS,
+    ]);
+  }
+
+  get canManageWebhooks(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.MANAGE_WEBHOOKS,
+    ]);
+  }
 }
 
 
@@ -1650,7 +1681,7 @@ export class ChannelGuildText extends ChannelGuildBase {
       this.lastPinTimestampUnix = (value) ? Date.parse(value) : 0;
     }
     if (DiscordKeys.TOPIC in data) {
-      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC] || null;
     }
   }
 }
@@ -1759,7 +1790,7 @@ export class ChannelGuildVoice extends ChannelGuildBase {
       (this as any)[DetritusKeys[DiscordKeys.STATUS]] = data[DiscordKeys.STATUS];
     }
     if (DiscordKeys.TOPIC in data) {
-      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC] || null;
     }
     if (DiscordKeys.USER_LIMIT in data) {
       (this as any)[DetritusKeys[DiscordKeys.USER_LIMIT]] = data[DiscordKeys.USER_LIMIT];
@@ -1847,7 +1878,7 @@ export class ChannelGuildStageVoice extends ChannelGuildVoice {
     }
 
     if (DiscordKeys.TOPIC in data) {
-      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC] || null;
     }
   }
 }
@@ -2108,6 +2139,48 @@ export class ChannelGuildForum extends ChannelGuildBase {
     this.merge(data);
   }
 
+  // forums can't be messaged directly, but these permissions apply to their posts and webhooks can be made on them
+
+  get canManageMessages(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.MANAGE_MESSAGES,
+    ]);
+  }
+
+  get canManageThreads(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.MANAGE_THREADS,
+    ]);
+  }
+
+  get canManageWebhooks(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.MANAGE_WEBHOOKS,
+    ]);
+  }
+
+  get canReadHistory(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.READ_MESSAGE_HISTORY,
+    ]);
+  }
+
+  get canUsePrivateThreads(): boolean {
+    return false;
+  }
+
+  // creating a post is SEND_MESSAGES in forums, not CREATE_PUBLIC_THREADS
+  get canUsePublicThreads(): boolean {
+    return this.can([
+      Permissions.VIEW_CHANNEL,
+      Permissions.SEND_MESSAGES,
+    ]);
+  }
+
   merge(data?: BaseStructureData): void {
     super.merge(data);
     if (!data) {
@@ -2166,7 +2239,7 @@ export class ChannelGuildForum extends ChannelGuildBase {
       (this as any)[DetritusKeys[DiscordKeys.TEMPLATE]] = data[DiscordKeys.TEMPLATE];
     }
     if (DiscordKeys.TOPIC in data) {
-      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];
+      (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC] || null;
     }
   }
 }
