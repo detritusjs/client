@@ -10,8 +10,26 @@ export namespace MediaRawEvents {
 
   export interface ClientConnect {
     audio_ssrc: number,
+    streams?: Array<Stream>,
     user_id: string,
     video_ssrc: number,
+  }
+
+  // one simulcast layer of a user's video, `quality` is 0-100 (100 being the full resolution layer)
+  export interface Stream {
+    active?: boolean,
+    max_bitrate?: number,
+    max_framerate?: number,
+    max_resolution?: {
+      height: number,
+      type: string,
+      width: number,
+    },
+    quality?: number,
+    rid?: string,
+    rtx_ssrc?: number,
+    ssrc?: number,
+    type: string,
   }
 
   export interface ClientDisconnect {

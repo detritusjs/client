@@ -49,9 +49,30 @@ export class MediaHandler {
       return;
     }
     this.transport = transport;
+    transport.on('frame', this.onTransportFrame.bind(this));
+    transport.on('keyframeRequest', (request: MediaEvents.KeyframeRequest) => {
+      this.connection.emit('keyframeRequest', request);
+    });
     transport.on('log', this.connection.emit.bind(this.connection, 'log'));
     transport.on('packet', this.onTransportPacket.bind(this));
+    transport.on('videoCodec', (codec: string) => {
+      const payload: MediaEvents.VideoCodec = {codec};
+      this.connection.emit('videoCodec', payload);
+    });
     transport.on('warn', this.connection.emit.bind(this.connection, 'warn'));
+  }
+
+  onTransportFrame(frame: MediaUdp.TransportFrame): void {
+    const payload: MediaEvents.VideoFrame = {
+      codec: frame.codec,
+      data: frame.data,
+      keyframe: frame.keyframe,
+      ssrc: frame.ssrc,
+      timestamp: frame.timestamp,
+      user: (frame.userId) ? this.client.users.get(frame.userId) || null : null,
+      userId: frame.userId,
+    };
+    this.connection.emit('videoFrame', payload);
   }
 
   onTransportPacket(packet: MediaUdp.TransportPacket): void {
@@ -133,13 +154,24 @@ export class MediaGatewayOpHandler {
   }
 
   [MediaOpCodes.CLIENT_CONNECT](data: MediaRawEvents.ClientConnect) {
+    const user = this.client.users.get(data['user_id']) || null;
     const payload: MediaEvents.ClientConnect = {
       audioSSRC: data['audio_ssrc'],
-      user: this.client.users.get(data['user_id']) || null,
+      user,
       userId: data['user_id'],
       videoSSRC: data['video_ssrc'],
     }
     this.connection.emit('connect', payload);
+
+    // this also gets sent whenever someone's camera turns on or off, not only when they connect
+    const videoPayload: MediaEvents.VideoUpdate = {
+      active: !!data['video_ssrc'],
+      streams: data['streams'] || [],
+      user,
+      userId: data['user_id'],
+      videoSSRC: data['video_ssrc'] || 0,
+    };
+    this.connection.emit('videoUpdate', videoPayload);
   }
 
   [MediaOpCodes.CLIENT_DISCONNECT](data: MediaRawEvents.ClientDisconnect) {

@@ -7,6 +7,7 @@ import { EventSpewer } from 'detritus-utils';
 const {
   MediaCodecs,
   MediaCodecTypes,
+  MediaSSRCTypes,
 } = SocketConstants;
 
 
@@ -25,6 +26,7 @@ import {
 
 import { Opus } from './encoders';
 import { MediaHandler } from './handler';
+import { MediaEvents } from './mediaevents';
 
 
 /**
@@ -66,6 +68,19 @@ export interface OpusDecoderSettings {
  */
 export interface SendAudioSettings {
   isOpus?: boolean,
+}
+
+/**
+ * Voice Connection .sendVideo() Settings
+ * @category Media Options
+ */
+export interface SendVideoSettings {
+  // defaults to the codec the voice server picked (`.videoCodec`), viewers might not decode anything else
+  codec?: string,
+  // worked out from the frame when left out
+  keyframe?: boolean,
+  // 90kHz rtp timestamp, frames should go up by 90000 / fps
+  timestamp: number,
 }
 
 /**
@@ -197,6 +212,13 @@ export class VoiceConnection extends EventSpewer {
     return this.gateway.userId;
   }
 
+  /**
+   * The codec the voice server wants our video in, null until the connection is ready
+   */
+  get videoCodec(): null | string {
+    return (this.gateway.transport) ? this.gateway.transport.codecs.video : null;
+  }
+
   get voiceState(): null | VoiceState {
     return (<undefined | VoiceState> this.client.voiceStates.get(this.serverId, this.userId)) || null;
   }
@@ -287,6 +309,52 @@ export class VoiceConnection extends EventSpewer {
       throw new Error('Transport isn\'t initialized yet!');
     }
     return this.gateway.transport.sendAudioSilenceFrame();
+  }
+
+  /**
+   * Sends a whole encoded video frame (vp8/vp9, or h264 as annex b), e2e encrypted and split into packets
+   * Pacing is up to you, this sends right away. Requires connecting with `video: true`
+   * Returns false if it got dropped (before we're in the call's e2e encryption group), nothing after a dropped frame
+   * decodes until the next keyframe
+   */
+  sendVideo(
+    frame: Buffer,
+    options: SendVideoSettings,
+  ): boolean {
+    if (this.killed) {
+      return false;
+    }
+    if (!this.gateway.transport) {
+      throw new Error('Transport isn\'t initialized yet!');
+    }
+    return this.gateway.transport.sendVideo(frame, options);
+  }
+
+  /**
+   * Asks a user for a keyframe, when their video can't be decoded (nothing to do normally, lost frames are asked for
+   * automatically)
+   */
+  requestKeyframe(userId: string): void {
+    const transport = this.gateway.transport;
+    if (!transport) {
+      throw new Error('Transport isn\'t initialized yet!');
+    }
+    // every simulcast layer of theirs
+    for (let [ssrc, ssrcUserId] of this.gateway.ssrcs[MediaSSRCTypes.VIDEO]) {
+      if (ssrcUserId === userId) {
+        transport.requestKeyframe(ssrc, true);
+      }
+    }
+  }
+
+  /**
+   * Asks the voice server to have us send video in `codec` (it'll say which it picked with a `videoCodec` event)
+   */
+  setPreferredVideoCodec(codec: string): void {
+    if (!this.gateway.transport) {
+      throw new Error('Transport isn\'t initialized yet!');
+    }
+    this.gateway.transport.setPreferredVideoCodec(codec);
   }
 
   setDecodeAudio(value: boolean): void {
@@ -456,8 +524,12 @@ export class VoiceConnection extends EventSpewer {
   on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'connect', listener: (payload: any) => any): this;
   on(event: 'disconnect', listener: (payload: any) => any): this;
+  on(event: 'keyframeRequest', listener: (payload: MediaEvents.KeyframeRequest) => any): this;
   on(event: 'killed', listener: (payload: {error?: Error}) => any): this;
   on(event: 'speaking', listener: (payload: any) => any): this;
+  on(event: 'videoCodec', listener: (payload: MediaEvents.VideoCodec) => any): this;
+  on(event: 'videoFrame', listener: (payload: MediaEvents.VideoFrame) => any): this;
+  on(event: 'videoUpdate', listener: (payload: MediaEvents.VideoUpdate) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
