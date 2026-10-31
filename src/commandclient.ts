@@ -8,11 +8,11 @@ import {
   ClusterClientOptions,
   ClusterClientRunOptions,
 } from './clusterclient';
-import { ClientEvents, Permissions, FILE_EXTENSIONS_IMPORT } from './constants';
+import { ClientEvents, Permissions } from './constants';
 import { ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
 import { InteractionCommandClient } from './interactioncommandclient';
-import { PermissionTools, getFiles, requireOrImport } from './utils';
+import { ImportedFile, PermissionTools, importFilesIn } from './utils';
 
 import {
   Command,
@@ -345,9 +345,18 @@ export class CommandClient extends EventSpewer {
     }
     this.directories.set(directory, {subdirectories: !!options.subdirectories});
 
-    const files: Array<string> = await getFiles(directory, options.subdirectories);
-    const errors: {[key: string]: Error} = {};
+    const { errors, files } = await importFilesIn(directory, !!options.subdirectories);
+    this.addImported(files, errors);
 
+    if (Object.keys(errors).length) {
+      throw new ImportedCommandsError(errors);
+    }
+
+    return this;
+  }
+
+  // adds the commands exported by imported files, a file whose command fails to add goes into `errors`
+  addImported(files: Array<ImportedFile>, errors: Record<string, Error>): void {
     const addCommand = (imported: any, filepath: string): void => {
       if (!imported) {
         return;
@@ -369,30 +378,26 @@ export class CommandClient extends EventSpewer {
         }
       }
     };
-    for (let file of files) {
-      if (!FILE_EXTENSIONS_IMPORT.some((ext) => file.endsWith(ext))) {
-        continue;
-      }
-      const filepath = path.resolve(directory, file);
+    for (let { filepath, imported } of files) {
       try {
-        let importedCommand: any = await requireOrImport(filepath);
-        if (typeof(importedCommand) === 'object' && importedCommand.__esModule) {
-          importedCommand = importedCommand.default;
-        }
-        addCommand(importedCommand, filepath);
+        addCommand(imported, filepath);
       } catch(error: any) {
         errors[filepath] = error;
       }
     }
-
-    if (Object.keys(errors).length) {
-      throw new ImportedCommandsError(errors);
-    }
-
-    return this;
   }
 
   clear(): void {
+    this.clearRequireCache();
+    this.clearCommands();
+  }
+
+  clearCommands(): void {
+    this.commands.length = 0;
+    this.clearSubscriptions();
+  }
+
+  clearRequireCache(): void {
     for (let command of this.commands) {
       if (command._file) {
         const requirePath = require.resolve(command._file);
@@ -401,8 +406,6 @@ export class CommandClient extends EventSpewer {
         }
       }
     }
-    this.commands.length = 0;
-    this.clearSubscriptions();
   }
 
   clearSubscriptions(): void {
@@ -415,9 +418,22 @@ export class CommandClient extends EventSpewer {
   }
 
   async resetCommands(): Promise<void> {
-    this.clear();
+    // import the new commands before dropping the old ones, importing lets the event loop run and messages that come in
+    // meanwhile still need commands. the swap is synchronous so nothing sees it half done
+    this.clearRequireCache();
+    const errors: Record<string, Error> = {};
+    const files: Array<ImportedFile> = [];
     for (let [directory, options] of this.directories) {
-      await this.addMultipleIn(directory, {isAbsolute: true, ...options});
+      const imported = await importFilesIn(directory, options.subdirectories);
+      Object.assign(errors, imported.errors);
+      files.push(...imported.files);
+    }
+
+    this.clearCommands();
+    this.addImported(files, errors);
+
+    if (Object.keys(errors).length) {
+      throw new ImportedCommandsError(errors);
     }
   }
   /* end */

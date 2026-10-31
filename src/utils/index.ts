@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as path from 'path';
 import { URLSearchParams, pathToFileURL } from 'url';
 
 import { Snowflake } from 'detritus-utils';
@@ -9,6 +10,7 @@ import { normalizeContexts, normalizeIntegrationTypes, normalizeLocalizations } 
 import {
   DiscordRegex,
   DiscordRegexNames,
+  FILE_EXTENSIONS_IMPORT,
   ImageFormats,
   IMAGE_FORMATS,
 } from '../constants';
@@ -66,6 +68,51 @@ export async function requireOrImport(filepath: string): Promise<any> {
     }
     throw error;
   }
+}
+
+
+// how long importing command files can hold the event loop before letting it run again (gateway heartbeats, events)
+export const IMPORT_YIELD_INTERVAL = 10;
+
+export interface ImportedFile {
+  filepath: string,
+  imported: any,
+}
+
+/**
+ * Imports every command file in a directory. `require()` is synchronous, an `await` on it alone never lets the event
+ * loop run, so it yields every few milliseconds or a big reload would freeze the process until it's done
+ */
+export async function importFilesIn(
+  directory: string,
+  subdirectories: boolean,
+): Promise<{errors: Record<string, Error>, files: Array<ImportedFile>}> {
+  const filenames: Array<string> = await getFiles(directory, subdirectories);
+  const errors: Record<string, Error> = {};
+  const files: Array<ImportedFile> = [];
+
+  let yieldedAt = Date.now();
+  for (let filename of filenames) {
+    if (!FILE_EXTENSIONS_IMPORT.some((ext) => filename.endsWith(ext))) {
+      continue;
+    }
+    if (IMPORT_YIELD_INTERVAL <= Date.now() - yieldedAt) {
+      await new Promise((resolve) => setImmediate(resolve));
+      yieldedAt = Date.now();
+    }
+
+    const filepath = path.resolve(directory, filename);
+    try {
+      let imported: any = await requireOrImport(filepath);
+      if (typeof(imported) === 'object' && imported.__esModule) {
+        imported = imported.default;
+      }
+      files.push({filepath, imported});
+    } catch(error: any) {
+      errors[filepath] = error;
+    }
+  }
+  return {errors, files};
 }
 
 
