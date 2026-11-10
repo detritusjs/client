@@ -36,6 +36,25 @@ export namespace MediaRawEvents {
     user_id: string,
   }
 
+  // both are null for users that don't report them (like bots)
+  export interface Flags {
+    flags: null | number,
+    user_id: string,
+  }
+
+  export interface Platform {
+    platform: null | number,
+    user_id: string,
+  }
+
+  export interface SessionUpdate {
+    video_quality_changes?: Array<{
+      quality: string,
+      ssrc: number,
+      user_id: string,
+    }>,
+  }
+
   export interface Speaking {
     speaking: number,
     ssrc: number,

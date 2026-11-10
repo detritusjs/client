@@ -11,6 +11,7 @@ import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
 import {
   ChannelTypes,
+  ContentScanMetadataFlags,
   MessageComponentButtonStyles,
   MessageComponentDefaultValueTypes,
   MessageComponentTypes,
@@ -1234,7 +1235,9 @@ export class ComponentThumbnail extends BaseStructure {
 
 
 const keysMessageComponentUnfurledMedia = new BaseSet<string>([
+  DiscordKeys.CONTENT_SCAN_METADATA,
   DiscordKeys.CONTENT_TYPE,
+  DiscordKeys.FLAGS,
   DiscordKeys.HEIGHT,
   DiscordKeys.PROXY_URL,
   DiscordKeys.URL,
@@ -1249,7 +1252,10 @@ export class ComponentUnfurledMedia extends BaseStructure {
   static { setStructureUncloneable(this); }
   static { setStructureKeys(this, '_keys', keysMessageComponentUnfurledMedia); }
 
+  // only set once discord has scanned the media, can show up in a later message update
+  declare contentScanMetadata?: {flags: number};
   declare contentType?: string;
+  declare flags?: number;
   declare height?: number;
   declare proxyUrl?: string;
   url: string = '';
@@ -1262,6 +1268,18 @@ export class ComponentUnfurledMedia extends BaseStructure {
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  get containsExplicitContent(): boolean {
+    return this.hasContentScanFlag(ContentScanMetadataFlags.IS_EXPLICIT_CONTENT);
+  }
+
+  get containsGoreContent(): boolean {
+    return this.hasContentScanFlag(ContentScanMetadataFlags.IS_GORE_CONTENT);
+  }
+
+  get containsSelfHarmContent(): boolean {
+    return this.hasContentScanFlag(ContentScanMetadataFlags.IS_SELF_HARM_CONTENT);
   }
 
   get extension(): string {
@@ -1288,13 +1306,23 @@ export class ComponentUnfurledMedia extends BaseStructure {
     return !!this.contentType && this.contentType.startsWith('video/');
   }
 
+  hasContentScanFlag(flag: number): boolean {
+    return !!this.contentScanMetadata && (this.contentScanMetadata.flags & flag) === flag;
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
     }
 
+    if (DiscordKeys.CONTENT_SCAN_METADATA in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONTENT_SCAN_METADATA]] = data[DiscordKeys.CONTENT_SCAN_METADATA] || undefined;
+    }
     if (DiscordKeys.CONTENT_TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.CONTENT_TYPE]] = data[DiscordKeys.CONTENT_TYPE];
+    }
+    if (DiscordKeys.FLAGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
     }
     if (DiscordKeys.HEIGHT in data) {
       (this as any)[DetritusKeys[DiscordKeys.HEIGHT]] = data[DiscordKeys.HEIGHT];

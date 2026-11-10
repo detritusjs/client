@@ -727,14 +727,19 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.EMOJIS,
   DiscordKeys.EXPLICIT_CONTENT_FILTER,
   DiscordKeys.FEATURES,
+  DiscordKeys.GAME_APPLICATION_IDS,
   DiscordKeys.GUILD_SCHEDULED_EVENTS,
+  DiscordKeys.GUILD_SPACE_SETTINGS,
+  DiscordKeys.HUB_TYPE,
   DiscordKeys.ICON,
   DiscordKeys.ID,
   DiscordKeys.INCIDENTS_DATA,
   DiscordKeys.IS_PARTIAL,
   DiscordKeys.JOINED_AT,
   DiscordKeys.LARGE,
+  DiscordKeys.LATEST_ONBOARDING_QUESTION_ID,
   DiscordKeys.LAZY,
+  DiscordKeys.LINKED_GAME_ORGANIZATION,
   DiscordKeys.MAX_MEMBERS,
   DiscordKeys.MAX_PRESENCES,
   DiscordKeys.MAX_STAGE_VIDEO_CHANNEL_USERS,
@@ -742,12 +747,17 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.MEMBER_COUNT,
   DiscordKeys.MEMBERS,
   DiscordKeys.MFA_LEVEL,
+  DiscordKeys.MODERATOR_REPORTING,
   DiscordKeys.NAME,
   DiscordKeys.NSFW,
   DiscordKeys.NSFW_LEVEL,
+  DiscordKeys.OFFICIAL_MESSAGE_COLOR,
+  DiscordKeys.OWNER_CONFIGURED_CONTENT_LEVEL,
   DiscordKeys.OWNER_ID,
   DiscordKeys.PREFERRED_LOCALE,
+  DiscordKeys.PREMIUM_FEATURES,
   DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED,
+  DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED_USER_UPDATED_AT,
   DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT,
   DiscordKeys.PREMIUM_TIER,
   DiscordKeys.PRESENCES,
@@ -766,6 +776,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.UNAVAILABLE,
   DiscordKeys.VANITY_URL_CODE,
   DiscordKeys.VERIFICATION_LEVEL,
+  DiscordKeys.VERIFICATION_ROLE_ID,
   DiscordKeys.VOICE_STATES,
   DiscordKeys.WELCOME_SCREEN,
   DiscordKeys.WIDGET_CHANNEL_ID,
@@ -816,16 +827,23 @@ export class Guild extends GuildPartial {
   emojis: BaseCollection<string, Emoji>;
   features = new BaseSet<string>();
   discoverySplash: null | string = null;
+  gameApplicationIds: Array<string> | null = null;
   guildScheduledEvents: BaseCollection<string, GuildScheduledEvent>;
+  // raw object from discord
+  guildSpaceSettings: null | Record<string, any> = null;
   hasMetadata: boolean = false;
+  hubType: null | number = null;
   icon: null | string = null;
   id: string = '';
   isPartial: boolean = false;
   isReady: boolean = false;
   joinedAtUnix: number = 0;
   large: boolean = false;
+  latestOnboardingQuestionId: null | string = null;
   lazy: boolean = false;
   left: boolean = false;
+  // `{application_id, game_organization_id}`
+  linkedGameOrganization: null | Record<string, any> = null;
   maxMembers: number = DEFAULT_MAX_MEMBERS;
   maxPresences: number = DEFAULT_MAX_PRESENCES;
   incidentsData: GuildIncidentsData | null = null;
@@ -834,12 +852,20 @@ export class Guild extends GuildPartial {
   memberCount: number = 0;
   members: BaseCollection<string, Member>;
   mfaLevel: MfaLevels = MfaLevels.NONE;
+  // `{moderator_reporting_enabled, moderator_report_channel_id}`
+  moderatorReporting: null | Record<string, any> = null;
   name: string = '';
   nsfw: boolean = false;
   nsfwLevel: GuildNSFWLevels = GuildNSFWLevels.DEFAULT;
+  officialMessageColor: null | number = null;
+  ownerConfiguredContentLevel: null | number = null;
   ownerId: string = '';
   preferredLocale: Locales = Locales.ENGLISH_US;
+  // `{features, additional_emoji_slots, additional_sticker_slots, additional_sound_slots}`
+  premiumFeatures: null | Record<string, any> = null;
   premiumProgressBarEnabled: boolean = false;
+  // iso8601 timestamp
+  premiumProgressBarEnabledUserUpdatedAt: null | string = null;
   premiumSubscriptionCount: number = 0;
   premiumTier: PremiumGuildTiers = PremiumGuildTiers.NONE;
   publicUpdatesChannelId: null | string = null;
@@ -856,6 +882,7 @@ export class Guild extends GuildPartial {
   unavailable: boolean = false;
   vanityUrlCode: null | string = null;
   verificationLevel: number = 0;
+  verificationRoleId: null | string = null;
   welcomeScreen: GuildWelcomeScreen | null = null;
   widgetChannelId: null | string = null;
   widgetEnabled: boolean = false;
@@ -1220,6 +1247,16 @@ export class Guild extends GuildPartial {
 
   hasDifference(key: string, value: any): boolean {
     switch (key) {
+      case DiscordKeys.GUILD_SPACE_SETTINGS:
+      case DiscordKeys.LINKED_GAME_ORGANIZATION:
+      case DiscordKeys.MODERATOR_REPORTING:
+      case DiscordKeys.PREMIUM_FEATURES: {
+        // raw objects that can hold arrays, the base compare only looks one level down
+        if (value === undefined) {
+          return false;
+        }
+        return JSON.stringify((this as any)[DetritusKeys[key]]) !== JSON.stringify(value);
+      };
       case DiscordKeys.INCIDENTS_DATA: {
         if (value === undefined) {
           return false;
@@ -1233,7 +1270,8 @@ export class Guild extends GuildPartial {
           old.dmSpamDetectedAt !== incidentsData.dmSpamDetectedAt ||
           old.dmsDisabledUntil !== incidentsData.dmsDisabledUntil ||
           old.invitesDisabledUntil !== incidentsData.invitesDisabledUntil ||
-          old.raidDetectedAt !== incidentsData.raidDetectedAt
+          old.raidDetectedAt !== incidentsData.raidDetectedAt ||
+          old.lockdownDurationHours !== incidentsData.lockdownDurationHours
         );
       };
     }
@@ -1278,6 +1316,7 @@ export class Guild extends GuildPartial {
         [DiscordKeys.DMS_DISABLED_UNTIL]: this.incidentsData.dmsDisabledUntil,
         [DiscordKeys.INVITES_DISABLED_UNTIL]: this.incidentsData.invitesDisabledUntil,
         [DiscordKeys.RAID_DETECTED_AT]: this.incidentsData.raidDetectedAt,
+        [DiscordKeys.LOCKDOWN_DURATION_HOURS]: this.incidentsData.lockdownDurationHours,
       };
     }
     return data;
@@ -1425,8 +1464,23 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.APPROXIMATE_PRESENCE_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPROXIMATE_PRESENCE_COUNT]] = data[DiscordKeys.APPROXIMATE_PRESENCE_COUNT];
     }
+    if (DiscordKeys.GAME_APPLICATION_IDS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GAME_APPLICATION_IDS]] = data[DiscordKeys.GAME_APPLICATION_IDS];
+    }
+    if (DiscordKeys.GUILD_SPACE_SETTINGS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_SPACE_SETTINGS]] = data[DiscordKeys.GUILD_SPACE_SETTINGS];
+    }
+    if (DiscordKeys.HUB_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HUB_TYPE]] = data[DiscordKeys.HUB_TYPE];
+    }
     if (DiscordKeys.INCIDENTS_DATA in data) {
       this.incidentsData = createGuildIncidentsData(data[DiscordKeys.INCIDENTS_DATA]);
+    }
+    if (DiscordKeys.LATEST_ONBOARDING_QUESTION_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LATEST_ONBOARDING_QUESTION_ID]] = data[DiscordKeys.LATEST_ONBOARDING_QUESTION_ID];
+    }
+    if (DiscordKeys.LINKED_GAME_ORGANIZATION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LINKED_GAME_ORGANIZATION]] = data[DiscordKeys.LINKED_GAME_ORGANIZATION];
     }
     if (DiscordKeys.MEMBER_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.MEMBER_COUNT]] = data[DiscordKeys.MEMBER_COUNT];
@@ -1473,14 +1527,29 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.MFA_LEVEL in data) {
       (this as any)[DetritusKeys[DiscordKeys.MFA_LEVEL]] = data[DiscordKeys.MFA_LEVEL];
     }
+    if (DiscordKeys.MODERATOR_REPORTING in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MODERATOR_REPORTING]] = data[DiscordKeys.MODERATOR_REPORTING];
+    }
+    if (DiscordKeys.OFFICIAL_MESSAGE_COLOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OFFICIAL_MESSAGE_COLOR]] = data[DiscordKeys.OFFICIAL_MESSAGE_COLOR];
+    }
+    if (DiscordKeys.OWNER_CONFIGURED_CONTENT_LEVEL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.OWNER_CONFIGURED_CONTENT_LEVEL]] = data[DiscordKeys.OWNER_CONFIGURED_CONTENT_LEVEL];
+    }
     if (DiscordKeys.OWNER_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.OWNER_ID]] = data[DiscordKeys.OWNER_ID];
     }
     if (DiscordKeys.PREFERRED_LOCALE in data) {
       (this as any)[DetritusKeys[DiscordKeys.PREFERRED_LOCALE]] = data[DiscordKeys.PREFERRED_LOCALE];
     }
+    if (DiscordKeys.PREMIUM_FEATURES in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREMIUM_FEATURES]] = data[DiscordKeys.PREMIUM_FEATURES];
+    }
     if (DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED in data) {
       (this as any)[DetritusKeys[DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED]] = data[DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED];
+    }
+    if (DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED_USER_UPDATED_AT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED_USER_UPDATED_AT]] = data[DiscordKeys.PREMIUM_PROGRESS_BAR_ENABLED_USER_UPDATED_AT];
     }
     if (DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT]] = data[DiscordKeys.PREMIUM_SUBSCRIPTION_COUNT];
@@ -1624,6 +1693,9 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.UNAVAILABLE in data) {
       (this as any)[DetritusKeys[DiscordKeys.UNAVAILABLE]] = data[DiscordKeys.UNAVAILABLE];
     }
+    if (DiscordKeys.VERIFICATION_ROLE_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VERIFICATION_ROLE_ID]] = data[DiscordKeys.VERIFICATION_ROLE_ID];
+    }
     if (DiscordKeys.VOICE_STATES in data) {
       // drop the voice states when cloning the guild.. (unexpected behavior, maybe stop guilds from being cloned?)
 
@@ -1746,6 +1818,7 @@ export interface GuildIncidentsData {
   dmsDisabledUntil: null | string,
   invitesDisabledUntil: null | string,
   raidDetectedAt: null | string,
+  lockdownDurationHours: null | number,
 }
 
 // accepts the raw snake_case object from discord or our camelCase one (from `differencesBetween()`)
@@ -1758,6 +1831,7 @@ function createGuildIncidentsData(value: any): GuildIncidentsData | null {
     dmsDisabledUntil: value[DiscordKeys.DMS_DISABLED_UNTIL] || value.dmsDisabledUntil || null,
     invitesDisabledUntil: value[DiscordKeys.INVITES_DISABLED_UNTIL] || value.invitesDisabledUntil || null,
     raidDetectedAt: value[DiscordKeys.RAID_DETECTED_AT] || value.raidDetectedAt || null,
+    lockdownDurationHours: value[DiscordKeys.LOCKDOWN_DURATION_HOURS] ?? value.lockdownDurationHours ?? null,
   };
 }
 

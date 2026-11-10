@@ -2241,6 +2241,25 @@ export class RestClient {
     return collection;
   }
 
+  async fetchChannelMemberPermissions(
+    channelId: string,
+    userId: string,
+    options: RequestTypes.FetchChannelPermissions = {},
+  ): Promise<bigint> {
+    const data = await this.raw.fetchChannelMemberPermissions(channelId, userId, options);
+    return BigInt(data.permissions);
+  }
+
+  // the role's permissions together with @everyone's, other roles and member overwrites aren't included
+  async fetchChannelRolePermissions(
+    channelId: string,
+    roleId: string,
+    options: RequestTypes.FetchChannelPermissions = {},
+  ): Promise<bigint> {
+    const data = await this.raw.fetchChannelRolePermissions(channelId, roleId, options);
+    return BigInt(data.permissions);
+  }
+
   async fetchChannelPollAnswerVoters(
     channelId: string,
     messageId: string,
@@ -2798,6 +2817,23 @@ export class RestClient {
       subscriptions.set(subscription.id, subscription);
     }
     return subscriptions;
+  }
+
+  async fetchGuildMemberPermissions(
+    guildId: string,
+    userId: string,
+  ): Promise<bigint> {
+    const data = await this.raw.fetchGuildMemberPermissions(guildId, userId);
+    return BigInt(data.permissions);
+  }
+
+  // the role's permissions together with @everyone's
+  async fetchGuildRolePermissions(
+    guildId: string,
+    roleId: string,
+  ): Promise<bigint> {
+    const data = await this.raw.fetchGuildRolePermissions(guildId, roleId);
+    return BigInt(data.permissions);
   }
 
   fetchGuildPreview(

@@ -1,7 +1,7 @@
 import { Constants as SocketConstants, Media, MediaUdp } from 'detritus-client-socket';
 
 import { ShardClient } from '../client';
-import { MediaCodecs, MediaCodecTypes, MediaOpCodes, SpeakingFlags } from '../constants';
+import { MediaCodecs, MediaCodecTypes, MediaFlags, MediaOpCodes, SpeakingFlags } from '../constants';
 
 import { MediaEvents } from './mediaevents';
 import { MediaRawEvents } from './rawevents';
@@ -27,6 +27,9 @@ export class MediaHandler {
     this.gateway.on('warn', this.connection.emit.bind(this.connection, 'warn'));
     this.gateway.once('killed', (payload: {error?: Error}) => this.connection.kill(payload && payload.error));
     this.gateway.on('transportReady', this.onTransportReady.bind(this));
+    this.gateway.on('voiceBackendVersion', (payload: MediaEvents.VoiceBackendVersion) => {
+      this.connection.emit('voiceBackendVersion', payload);
+    });
   }
 
   get client(): ShardClient {
@@ -187,10 +190,58 @@ export class MediaGatewayOpHandler {
     this.connection.emit('disconnect', payload);
   }
 
+  [MediaOpCodes.FLAGS](data: MediaRawEvents.Flags) {
+    const flags = data['flags'];
+    const userId = data['user_id'];
+    if (flags == null || userId == null) {
+      return;
+    }
+    const payload: MediaEvents.Flags = {
+      allowAnyViewerClips: (flags & MediaFlags.ALLOW_ANY_VIEWER_CLIPS) === MediaFlags.ALLOW_ANY_VIEWER_CLIPS,
+      allowVoiceRecording: (flags & MediaFlags.ALLOW_VOICE_RECORDING) === MediaFlags.ALLOW_VOICE_RECORDING,
+      clipsEnabled: (flags & MediaFlags.CLIPS_ENABLED) === MediaFlags.CLIPS_ENABLED,
+      flags,
+      user: this.client.users.get(userId) || null,
+      userId,
+    };
+    this.connection.emit('flags', payload);
+  }
+
+  [MediaOpCodes.PLATFORM](data: MediaRawEvents.Platform) {
+    const platform = data['platform'];
+    const userId = data['user_id'];
+    if (platform == null || userId == null) {
+      return;
+    }
+    const payload: MediaEvents.Platform = {
+      platform,
+      user: this.client.users.get(userId) || null,
+      userId,
+    };
+    this.connection.emit('platform', payload);
+  }
+
   [MediaOpCodes.READY](data: any) {
     // a new voice session (resumes get RESUMED instead), users that left while we were reconnecting never get a CLIENT_DISCONNECT
     // so free every decoder, the ones still talking get recreated on their next packet
     this.connection.clearOpusDecoders();
+  }
+
+  [MediaOpCodes.SESSION_UPDATE](data: MediaRawEvents.SessionUpdate) {
+    const changes = data && data['video_quality_changes'];
+    if (!changes) {
+      return;
+    }
+    for (let change of changes) {
+      const userId = change['user_id'];
+      const payload: MediaEvents.VideoQuality = {
+        quality: change['quality'],
+        ssrc: change['ssrc'],
+        user: this.client.users.get(userId) || null,
+        userId,
+      };
+      this.connection.emit('videoQuality', payload);
+    }
   }
 
   [MediaOpCodes.SPEAKING](data: MediaRawEvents.Speaking) {

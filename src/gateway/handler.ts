@@ -457,6 +457,15 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.AUTO_MODERATION_ACTION_EXECUTION, payload);
   }
 
+  [GatewayDispatchEvents.AUTO_MODERATION_MENTION_RAID_DETECTION](data: GatewayRawEvents.AutoModerationMentionRaidDetection) {
+    const payload: GatewayClientEvents.AutoModerationMentionRaidDetection = {
+      decisionId: data['decision_id'],
+      guildId: data['guild_id'],
+      suspiciousMentionActivityUntil: data['suspicious_mention_activity_until'] || null,
+    };
+    this.client.emit(ClientEvents.AUTO_MODERATION_MENTION_RAID_DETECTION, payload);
+  }
+
   [GatewayDispatchEvents.AUTO_MODERATION_RULE_CREATE](data: GatewayRawEvents.AutoModerationRuleCreate) {
     const guildId = data['guild_id'];
     const guild = this.client.guilds.get(guildId) || null;
@@ -636,7 +645,7 @@ export class GatewayDispatchHandler {
   // the events below that are keyed by name aren't in the published `GatewayDispatchEvents` yet
 
   // response to `Guild.requestChannelInfo()`
-  ['CHANNEL_INFO'](data: GatewayRawEvents.ChannelInfo) {
+  [GatewayDispatchEvents.CHANNEL_INFO](data: GatewayRawEvents.ChannelInfo) {
     const guildId = data['guild_id'];
     const guild = this.client.guilds.get(guildId) || null;
 
@@ -661,6 +670,16 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.ChannelInfo = {channels, guild, guildId, info};
     this.client.emit(ClientEvents.CHANNEL_INFO, payload);
+  }
+
+  [GatewayDispatchEvents.CHANNEL_MEMBER_COUNT_UPDATE](data: GatewayRawEvents.ChannelMemberCountUpdate) {
+    const payload: GatewayClientEvents.ChannelMemberCountUpdate = {
+      channelId: data['channel_id'],
+      guildId: data['guild_id'],
+      memberCount: data['member_count'],
+      presenceCount: data['presence_count'],
+    };
+    this.client.emit(ClientEvents.CHANNEL_MEMBER_COUNT_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.CHANNEL_PINS_UPDATE](data: GatewayRawEvents.ChannelPinsUpdate) {
@@ -799,6 +818,14 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.ENTITLEMENT_UPDATE, payload);
   }
 
+  [GatewayDispatchEvents.GUILD_APPLIED_BOOSTS_UPDATE](data: GatewayRawEvents.GuildAppliedBoostsUpdate) {
+    const payload: GatewayClientEvents.GuildAppliedBoostsUpdate = {
+      guildId: data['guild_id'],
+      raw: data,
+    };
+    this.client.emit(ClientEvents.GUILD_APPLIED_BOOSTS_UPDATE, payload);
+  }
+
   [GatewayDispatchEvents.GUILD_AUDIT_LOG_ENTRY_CREATE](data: GatewayRawEvents.GuildAuditLogEntryCreate) {
     const auditLog = new AuditLog(this.client, data);
     const guildId = data['guild_id'];
@@ -842,6 +869,15 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.GuildBanRemove = {guild, guildId, user};
     this.client.emit(ClientEvents.GUILD_BAN_REMOVE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_BULK_BAN_UPDATE](data: GatewayRawEvents.GuildBulkBanUpdate) {
+    const payload: GatewayClientEvents.GuildBulkBanUpdate = {
+      bannedUsers: (data['bulk_ban'] && data['bulk_ban']['banned_users']) || [],
+      failedUsers: (data['bulk_ban'] && data['bulk_ban']['failed_users']) || [],
+      guildId: data['guild_id'],
+    };
+    this.client.emit(ClientEvents.GUILD_BULK_BAN_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_CREATE](data: GatewayRawEvents.GuildCreate) {
@@ -1051,6 +1087,33 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_INTEGRATIONS_UPDATE, {
       guildId: data['guild_id'],
     });
+  }
+
+  [GatewayDispatchEvents.GUILD_JOIN_REQUEST_CREATE](data: GatewayRawEvents.GuildJoinRequestCreate) {
+    const payload: GatewayClientEvents.GuildJoinRequestCreate = {
+      guildId: data['guild_id'],
+      request: data['request'],
+      status: data['status'],
+    };
+    this.client.emit(ClientEvents.GUILD_JOIN_REQUEST_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_JOIN_REQUEST_DELETE](data: GatewayRawEvents.GuildJoinRequestDelete) {
+    const payload: GatewayClientEvents.GuildJoinRequestDelete = {
+      guildId: data['guild_id'],
+      id: data['id'],
+      userId: data['user_id'],
+    };
+    this.client.emit(ClientEvents.GUILD_JOIN_REQUEST_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_JOIN_REQUEST_UPDATE](data: GatewayRawEvents.GuildJoinRequestUpdate) {
+    const payload: GatewayClientEvents.GuildJoinRequestUpdate = {
+      guildId: data['guild_id'],
+      request: data['request'],
+      status: data['status'],
+    };
+    this.client.emit(ClientEvents.GUILD_JOIN_REQUEST_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_MEMBER_ADD](data: GatewayRawEvents.GuildMemberAdd) {
@@ -1315,6 +1378,34 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_MEMBERS_CHUNK, payload);
   }
 
+  [GatewayDispatchEvents.GUILD_POWERUP_ENTITLEMENTS_CREATE](data: GatewayRawEvents.GuildPowerupEntitlementsCreate) {
+    const payload: GatewayClientEvents.GuildPowerupEntitlementsCreate = {
+      entitlements: data['entitlements'] || [],
+      guildId: data['guild_id'],
+    };
+    this.client.emit(ClientEvents.GUILD_POWERUP_ENTITLEMENTS_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_POWERUP_ENTITLEMENTS_DELETE](data: GatewayRawEvents.GuildPowerupEntitlementsDelete) {
+    const payload: GatewayClientEvents.GuildPowerupEntitlementsDelete = {
+      entitlements: data['entitlements'] || [],
+      guildId: data['guild_id'],
+    };
+    this.client.emit(ClientEvents.GUILD_POWERUP_ENTITLEMENTS_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_PRUNE_UPDATE](data: GatewayRawEvents.GuildPruneUpdate) {
+    const payload: GatewayClientEvents.GuildPruneUpdate = {
+      days: data['prune']['days'],
+      guildId: data['guild_id'],
+      includeRoles: data['prune']['include_roles'] || [],
+      isFinished: data['prune']['is_finished'],
+      isPreview: data['prune']['is_preview'],
+      pruneCount: data['prune']['prune_count'],
+    };
+    this.client.emit(ClientEvents.GUILD_PRUNE_UPDATE, payload);
+  }
+
   [GatewayDispatchEvents.GUILD_ROLE_CREATE](data: GatewayRawEvents.GuildRoleCreate) {
     let guild: Guild | null = null;
     const guildId = data['guild_id'];
@@ -1436,6 +1527,30 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.GuildScheduledEventDelete = {event, guild, guildId};
     this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_CREATE](data: GatewayRawEvents.GuildScheduledEventExceptionCreate) {
+    const payload: GatewayClientEvents.GuildScheduledEventExceptionCreate = {
+      exception: data,
+      guildId: data['guild_id'],
+    };
+    this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_CREATE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_DELETE](data: GatewayRawEvents.GuildScheduledEventExceptionDelete) {
+    const payload: GatewayClientEvents.GuildScheduledEventExceptionDelete = {
+      exception: data,
+      guildId: data['guild_id'],
+    };
+    this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_DELETE, payload);
+  }
+
+  [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_UPDATE](data: GatewayRawEvents.GuildScheduledEventExceptionUpdate) {
+    const payload: GatewayClientEvents.GuildScheduledEventExceptionUpdate = {
+      exception: data,
+      guildId: data['guild_id'],
+    };
+    this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_UPDATE](data: GatewayRawEvents.GuildScheduledEventUpdate) {
@@ -1581,7 +1696,7 @@ export class GatewayDispatchHandler {
 
   // the soundboard events aren't in `GatewayDispatchEvents` yet, so they're keyed by name
 
-  ['GUILD_SOUNDBOARD_SOUND_CREATE'](data: GatewayRawEvents.GuildSoundboardSoundCreate) {
+  [GatewayDispatchEvents.GUILD_SOUNDBOARD_SOUND_CREATE](data: GatewayRawEvents.GuildSoundboardSoundCreate) {
     let guild: Guild | null = null;
 
     const guildId = data['guild_id']!;
@@ -1596,7 +1711,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_SOUNDBOARD_SOUND_CREATE, payload);
   }
 
-  ['GUILD_SOUNDBOARD_SOUND_DELETE'](data: GatewayRawEvents.GuildSoundboardSoundDelete) {
+  [GatewayDispatchEvents.GUILD_SOUNDBOARD_SOUND_DELETE](data: GatewayRawEvents.GuildSoundboardSoundDelete) {
     let guild: Guild | null = null;
     let sound: SoundboardSound | null = null;
 
@@ -1614,7 +1729,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_SOUNDBOARD_SOUND_DELETE, payload);
   }
 
-  ['GUILD_SOUNDBOARD_SOUND_UPDATE'](data: GatewayRawEvents.GuildSoundboardSoundUpdate) {
+  [GatewayDispatchEvents.GUILD_SOUNDBOARD_SOUND_UPDATE](data: GatewayRawEvents.GuildSoundboardSoundUpdate) {
     let differences: GatewayClientEvents.Differences = null;
     let guild: Guild | null = null;
     let old: SoundboardSound | null = null;
@@ -1645,14 +1760,14 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.GUILD_SOUNDBOARD_SOUND_UPDATE, payload);
   }
 
-  ['GUILD_SOUNDBOARD_SOUNDS_UPDATE'](data: GatewayRawEvents.GuildSoundboardSoundsUpdate) {
+  [GatewayDispatchEvents.GUILD_SOUNDBOARD_SOUNDS_UPDATE](data: GatewayRawEvents.GuildSoundboardSoundsUpdate) {
     const { guild, guildId, sounds } = this._replaceSoundboardSounds(data['guild_id'], data['soundboard_sounds']);
     const payload: GatewayClientEvents.GuildSoundboardSoundsUpdate = {guild, guildId, sounds};
     this.client.emit(ClientEvents.GUILD_SOUNDBOARD_SOUNDS_UPDATE, payload);
   }
 
   // response to requesting a guild's soundboard sounds through the gateway
-  ['SOUNDBOARD_SOUNDS'](data: GatewayRawEvents.SoundboardSounds) {
+  [GatewayDispatchEvents.SOUNDBOARD_SOUNDS](data: GatewayRawEvents.SoundboardSounds) {
     const { guild, guildId, sounds } = this._replaceSoundboardSounds(data['guild_id'], data['soundboard_sounds']);
     const payload: GatewayClientEvents.SoundboardSounds = {guild, guildId, sounds};
     this.client.emit(ClientEvents.SOUNDBOARD_SOUNDS, payload);
@@ -1921,6 +2036,16 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.MESSAGE_POLL_VOTE_ADD, payload);
   }
 
+  [GatewayDispatchEvents.MESSAGE_POLL_VOTE_ADD_MANY](data: GatewayRawEvents.MessagePollVoteAddMany) {
+    const payload: GatewayClientEvents.MessagePollVoteAddMany = {
+      channelId: data['channel_id'],
+      guildId: data['guild_id'],
+      messageId: data['message_id'],
+      votes: data['votes'] || [],
+    };
+    this.client.emit(ClientEvents.MESSAGE_POLL_VOTE_ADD_MANY, payload);
+  }
+
   [GatewayDispatchEvents.MESSAGE_POLL_VOTE_REMOVE](data: GatewayRawEvents.MessagePollVoteRemove) {
     const answerId = data['answer_id'];
     const channelId = data['channel_id'];
@@ -2016,6 +2141,16 @@ export class GatewayDispatchHandler {
       raw: data,
     };
     this.client.emit(ClientEvents.MESSAGE_REACTION_ADD, payload);
+  }
+
+  [GatewayDispatchEvents.MESSAGE_REACTION_ADD_MANY](data: GatewayRawEvents.MessageReactionAddMany) {
+    const payload: GatewayClientEvents.MessageReactionAddMany = {
+      channelId: data['channel_id'],
+      guildId: data['guild_id'],
+      messageId: data['message_id'],
+      reactions: data['reactions'] || [],
+    };
+    this.client.emit(ClientEvents.MESSAGE_REACTION_ADD_MANY, payload);
   }
 
   [GatewayDispatchEvents.MESSAGE_REACTION_REMOVE](data: GatewayRawEvents.MessageReactionRemove) {
@@ -2271,7 +2406,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.PRESENCES_REPLACE, payload);
   }
 
-  ['RATE_LIMITED'](data: GatewayRawEvents.RateLimited) {
+  [GatewayDispatchEvents.RATE_LIMITED](data: GatewayRawEvents.RateLimited) {
     const meta: GatewayRawEvents.RateLimited['meta'] = data['meta'] || {};
     const guild = (meta['guild_id']) ? this.client.guilds.get(meta['guild_id']) || null : null;
 
@@ -2425,21 +2560,21 @@ export class GatewayDispatchHandler {
     });
   }
 
-  ['SUBSCRIPTION_CREATE'](data: GatewayRawEvents.SubscriptionCreate) {
+  [GatewayDispatchEvents.SUBSCRIPTION_CREATE](data: GatewayRawEvents.SubscriptionCreate) {
     const subscription = new Subscription(this.client, data);
 
     const payload: GatewayClientEvents.SubscriptionCreate = {subscription};
     this.client.emit(ClientEvents.SUBSCRIPTION_CREATE, payload);
   }
 
-  ['SUBSCRIPTION_DELETE'](data: GatewayRawEvents.SubscriptionDelete) {
+  [GatewayDispatchEvents.SUBSCRIPTION_DELETE](data: GatewayRawEvents.SubscriptionDelete) {
     const subscription = new Subscription(this.client, data);
 
     const payload: GatewayClientEvents.SubscriptionDelete = {subscription};
     this.client.emit(ClientEvents.SUBSCRIPTION_DELETE, payload);
   }
 
-  ['SUBSCRIPTION_UPDATE'](data: GatewayRawEvents.SubscriptionUpdate) {
+  [GatewayDispatchEvents.SUBSCRIPTION_UPDATE](data: GatewayRawEvents.SubscriptionUpdate) {
     const subscription = new Subscription(this.client, data);
 
     const payload: GatewayClientEvents.SubscriptionUpdate = {subscription};
@@ -2571,6 +2706,16 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.ThreadListSync = {channelIds, guildId, members, removed, threads};
     this.client.emit(ClientEvents.THREAD_LIST_SYNC, payload);
+  }
+
+  [GatewayDispatchEvents.THREAD_MEMBER_LIST_UPDATE](data: GatewayRawEvents.ThreadMemberListUpdate) {
+    const payload: GatewayClientEvents.ThreadMemberListUpdate = {
+      guildId: data['guild_id'],
+      members: data['members'] || [],
+      presences: data['presences'] || [],
+      threadId: data['thread_id'],
+    };
+    this.client.emit(ClientEvents.THREAD_MEMBER_LIST_UPDATE, payload);
   }
 
   [GatewayDispatchEvents.THREAD_MEMBER_UPDATE](data: GatewayRawEvents.ThreadMemberUpdate) {
@@ -2746,7 +2891,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.USER_UPDATE, payload);
   }
 
-  ['VOICE_CHANNEL_EFFECT_SEND'](data: GatewayRawEvents.VoiceChannelEffectSend) {
+  [GatewayDispatchEvents.VOICE_CHANNEL_EFFECT_SEND](data: GatewayRawEvents.VoiceChannelEffectSend) {
     const channelId = data['channel_id'];
     const guildId = data['guild_id'];
     const userId = data['user_id'];
@@ -2763,27 +2908,33 @@ export class GatewayDispatchHandler {
 
     // default sounds have integer ids and aren't cached
     const soundId = (data['sound_id'] !== undefined) ? String(data['sound_id']) : undefined;
-    const sound = (soundId) ? this.client.soundboardSounds.get(guildId, soundId) || null : null;
+    // sounds from another guild are cached under that guild
+    const sourceGuildId = data['source_guild_id'];
+    const sound = (soundId) ? this.client.soundboardSounds.get(sourceGuildId || guildId, soundId) || null : null;
 
     const payload: GatewayClientEvents.VoiceChannelEffectSend = {
       animationId: data['animation_id'],
       animationType: data['animation_type'],
+      authorId: data['author_id'],
       channel: this.client.channels.get(channelId) || null,
       channelId,
       emoji,
       guild: this.client.guilds.get(guildId) || null,
       guildId,
+      isEcho: !!data['is_echo'],
       member: this.client.members.get(guildId, userId) || null,
       sound,
       soundId,
+      soundName: data['name'],
       soundVolume: data['sound_volume'],
+      sourceGuildId,
       user: this.client.users.get(userId) || null,
       userId,
     };
     this.client.emit(ClientEvents.VOICE_CHANNEL_EFFECT_SEND, payload);
   }
 
-  ['VOICE_CHANNEL_START_TIME_UPDATE'](data: GatewayRawEvents.VoiceChannelStartTimeUpdate) {
+  [GatewayDispatchEvents.VOICE_CHANNEL_START_TIME_UPDATE](data: GatewayRawEvents.VoiceChannelStartTimeUpdate) {
     const voiceStartTime = data['voice_start_time'] || null;
     const { channel, differences, old } = this._mergeChannel(
       data['id'],
@@ -2803,7 +2954,7 @@ export class GatewayDispatchHandler {
     this.client.emit(ClientEvents.VOICE_CHANNEL_START_TIME_UPDATE, payload);
   }
 
-  ['VOICE_CHANNEL_STATUS_UPDATE'](data: GatewayRawEvents.VoiceChannelStatusUpdate) {
+  [GatewayDispatchEvents.VOICE_CHANNEL_STATUS_UPDATE](data: GatewayRawEvents.VoiceChannelStatusUpdate) {
     const status = data['status'] || null;
     const { channel, differences, old } = this._mergeChannel(
       data['id'],
@@ -2888,6 +3039,16 @@ export class GatewayDispatchHandler {
 
     const payload: GatewayClientEvents.VoiceStateUpdate = {differences, joinedChannel, leftChannel, old, voiceState};
     this.client.emit(ClientEvents.VOICE_STATE_UPDATE, payload);
+  }
+
+  // several voice state updates sent as one dispatch, handled as if they came one by one
+  [GatewayDispatchEvents.VOICE_STATE_UPDATE_BATCH](data: GatewayRawEvents.VoiceStateUpdateBatch) {
+    for (const voiceState of data['voice_states'] || []) {
+      if (!voiceState['guild_id'] && data['guild_id']) {
+        voiceState['guild_id'] = data['guild_id'];
+      }
+      this[GatewayDispatchEvents.VOICE_STATE_UPDATE](voiceState);
+    }
   }
 
   [GatewayDispatchEvents.WEBHOOKS_UPDATE](data: GatewayRawEvents.WebhooksUpdate) {

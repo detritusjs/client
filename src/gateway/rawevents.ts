@@ -2,6 +2,19 @@ import { InteractionTypes, Snowflake } from '../constants';
 
 
 export namespace GatewayRawEvents {
+  export interface AutoModerationMentionRaidDetection {
+    decision_id: string,
+    guild_id: string,
+    suspicious_mention_activity_until?: null | string,
+  }
+
+  export interface ChannelMemberCountUpdate {
+    channel_id: string,
+    guild_id: string,
+    member_count: number,
+    presence_count: number,
+  }
+
   export interface GatewayPacket {
     d: any,
     op: number,
@@ -191,6 +204,10 @@ export namespace GatewayRawEvents {
     uses: number,
   }
 
+  export interface GuildAppliedBoostsUpdate {
+    guild_id: string,
+  }
+
   export interface GuildAuditLogEntryCreate {
     action_type: number,
     changes?: Array<{key: string, new_value?: string, old_value?: string}>,
@@ -212,6 +229,11 @@ export namespace GatewayRawEvents {
     user: RawUser,
   }
 
+  export interface GuildBulkBanUpdate {
+    bulk_ban?: {banned_users?: Array<string>, failed_users?: Array<string>},
+    guild_id: string,
+  }
+
   export interface GuildCreate extends RawGuild {
 
   }
@@ -228,6 +250,24 @@ export namespace GatewayRawEvents {
 
   export interface GuildIntegrationsUpdate {
     guild_id: string,
+  }
+
+  export interface GuildJoinRequestCreate {
+    guild_id: string,
+    request: Record<string, any>,
+    status: string,
+  }
+
+  export interface GuildJoinRequestDelete {
+    guild_id: string,
+    id: string,
+    user_id: string,
+  }
+
+  export interface GuildJoinRequestUpdate {
+    guild_id: string,
+    request: Record<string, any>,
+    status: string,
   }
 
   export interface GuildMemberAdd {
@@ -276,6 +316,21 @@ export namespace GatewayRawEvents {
     not_found?: Array<Snowflake>,
   }
 
+  export interface GuildPowerupEntitlementsCreate {
+    entitlements: Array<Record<string, any>>,
+    guild_id: string,
+  }
+
+  export interface GuildPowerupEntitlementsDelete {
+    entitlements: Array<Record<string, any>>,
+    guild_id: string,
+  }
+
+  export interface GuildPruneUpdate {
+    guild_id: string,
+    prune: {days: number, include_roles?: Array<string>, is_finished: boolean, is_preview: boolean, prune_count: number},
+  }
+
   export interface GuildRoleCreate {
     guild_id: string,
     role: RawRole,
@@ -297,6 +352,21 @@ export namespace GatewayRawEvents {
 
   export interface GuildScheduledEventDelete extends RawGuildScheduledEvent {
     
+  }
+
+  export interface GuildScheduledEventExceptionCreate {
+    guild_id?: string,
+    [key: string]: any,
+  }
+
+  export interface GuildScheduledEventExceptionDelete {
+    guild_id?: string,
+    [key: string]: any,
+  }
+
+  export interface GuildScheduledEventExceptionUpdate {
+    guild_id?: string,
+    [key: string]: any,
   }
 
   export interface GuildScheduledEventUpdate extends RawGuildScheduledEvent {
@@ -336,6 +406,20 @@ export namespace GatewayRawEvents {
   export interface GuildStickersUpdate {
     guild_id: string,
     stickers: Array<RawSticker>,
+  }
+
+  export interface MessagePollVoteAddMany {
+    channel_id: string,
+    guild_id?: string,
+    message_id: string,
+    votes: Array<Record<string, any>>,
+  }
+
+  export interface MessageReactionAddMany {
+    channel_id: string,
+    guild_id?: string,
+    message_id: string,
+    reactions: Array<Record<string, any>>,
   }
 
   export interface SoundboardSounds {
@@ -781,6 +865,13 @@ export namespace GatewayRawEvents {
     threads: Array<RawChannel>,
   }
 
+  export interface ThreadMemberListUpdate {
+    guild_id: string,
+    members?: Array<Record<string, any>>,
+    presences?: Array<Record<string, any>>,
+    thread_id: string,
+  }
+
   export interface ThreadMemberUpdate extends RawThreadMember{
 
   }
@@ -858,11 +949,17 @@ export namespace GatewayRawEvents {
   export interface VoiceChannelEffectSend {
     animation_id?: number,
     animation_type?: null | number,
+    author_id?: string,
     channel_id: string,
     emoji?: null | RawEmojiPartial,
     guild_id: string,
+    is_echo?: boolean,
+    // the sound's name
+    name?: string,
     sound_id?: number | string,
     sound_volume?: number,
+    // the guild the sound is from, when it isn't this one
+    source_guild_id?: string,
     user_id: string,
   }
 
@@ -887,6 +984,11 @@ export namespace GatewayRawEvents {
 
   export interface VoiceStateUpdate extends RawVoiceState {
     member?: RawMember,
+  }
+
+  export interface VoiceStateUpdateBatch {
+    guild_id?: string,
+    voice_states: Array<VoiceStateUpdate>,
   }
 
   export interface WebhooksUpdate {
@@ -1230,13 +1332,17 @@ export namespace GatewayRawEvents {
   export interface RawPresenceActivity {
     application_id?: string,
     assets?: {
+      invite_cover_image?: string,
       large_image?: string,
       large_text?: string,
+      large_url?: string,
       small_image?: string,
       small_text?: string,
+      small_url?: string,
     },
     created_at?: number,
     details?: string,
+    details_url?: null | string,
     emoji?: {
       animated: boolean,
       id: null | string,
@@ -1258,6 +1364,8 @@ export namespace GatewayRawEvents {
     },
     session_id?: string,
     state?: string,
+    state_url?: null | string,
+    status_display_type?: null | number,
     sync_id?: string,
     timestamps?: {
       end?: number,

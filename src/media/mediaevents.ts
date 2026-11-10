@@ -16,9 +16,28 @@ export namespace MediaEvents {
     userId: string,
   }
 
+  export interface Flags {
+    // anyone watching their stream may clip it
+    allowAnyViewerClips: boolean,
+    // they allow their voice in other people's clips
+    allowVoiceRecording: boolean,
+    clipsEnabled: boolean,
+    // `MediaFlags`
+    flags: number,
+    user: null | User,
+    userId: string,
+  }
+
   export interface KeyframeRequest {
     // our video ssrc, a viewer can't decode it until we send a keyframe
     ssrc: number,
+  }
+
+  export interface Platform {
+    // `MediaPlatforms`, what the user joined from
+    platform: number,
+    user: null | User,
+    userId: string,
   }
 
   export interface Speaking {
@@ -47,6 +66,19 @@ export namespace MediaEvents {
     timestamp: number,
     user: null | User,
     userId: null | string,
+  }
+
+  export interface VideoQuality {
+    // `off` or `full`, the quality we now get of their video
+    quality: string,
+    ssrc: number,
+    user: null | User,
+    userId: string,
+  }
+
+  export interface VoiceBackendVersion {
+    rtcWorker: string,
+    voice: string,
   }
 
   export interface VideoUpdate {

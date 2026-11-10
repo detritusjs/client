@@ -120,6 +120,12 @@ export namespace GatewayClientEvents {
     userId: string,
   }
 
+  export interface AutoModerationMentionRaidDetection {
+    decisionId: string,
+    guildId: string,
+    suspiciousMentionActivityUntil: null | string,
+  }
+
   export interface AutoModerationRuleCreate {
     guild: Guild | null,
     guildId: string,
@@ -173,6 +179,13 @@ export namespace GatewayClientEvents {
     guildId: string,
     // everything Discord sent, keyed by channel id, whether the channel is cached or not
     info: BaseCollection<string, {status?: null | string, voiceStartTime?: null | number}>,
+  }
+
+  export interface ChannelMemberCountUpdate {
+    channelId: string,
+    guildId: string,
+    memberCount: number,
+    presenceCount: number,
   }
 
   export interface ChannelPinsAck {
@@ -243,6 +256,11 @@ export namespace GatewayClientEvents {
     uses: number,
   }
 
+  export interface GuildAppliedBoostsUpdate {
+    guildId: string,
+    raw: GatewayRawEvents.GuildAppliedBoostsUpdate,
+  }
+
   export interface GuildAuditLogEntryCreate {
     auditLog: AuditLog,
     guild: Guild | null,
@@ -259,6 +277,12 @@ export namespace GatewayClientEvents {
     guild: Guild | undefined,
     guildId: string,
     user: User,
+  }
+
+  export interface GuildBulkBanUpdate {
+    bannedUsers: Array<string>,
+    failedUsers: Array<string>,
+    guildId: string,
   }
 
   export interface GuildCreate {
@@ -286,6 +310,24 @@ export namespace GatewayClientEvents {
 
   export interface GuildIntegrationsUpdate {
     guildId: string,
+  }
+
+  export interface GuildJoinRequestCreate {
+    guildId: string,
+    request: Record<string, any>,
+    status: string,
+  }
+
+  export interface GuildJoinRequestDelete {
+    guildId: string,
+    id: string,
+    userId: string,
+  }
+
+  export interface GuildJoinRequestUpdate {
+    guildId: string,
+    request: Record<string, any>,
+    status: string,
   }
 
   export interface GuildMemberAdd {
@@ -326,6 +368,25 @@ export namespace GatewayClientEvents {
     presences: BaseCollection<string, Presence> | null,
   }
 
+  export interface GuildPowerupEntitlementsCreate {
+    entitlements: Array<Record<string, any>>,
+    guildId: string,
+  }
+
+  export interface GuildPowerupEntitlementsDelete {
+    entitlements: Array<Record<string, any>>,
+    guildId: string,
+  }
+
+  export interface GuildPruneUpdate {
+    days: number,
+    guildId: string,
+    includeRoles: Array<string>,
+    isFinished: boolean,
+    isPreview: boolean,
+    pruneCount: number,
+  }
+
   export interface GuildReady {
     guild: Guild,
   }
@@ -361,6 +422,21 @@ export namespace GatewayClientEvents {
     event: GuildScheduledEvent,
     guild: Guild | null,
     guildId: string,
+  }
+
+  export interface GuildScheduledEventExceptionCreate {
+    exception: GatewayRawEvents.GuildScheduledEventExceptionCreate,
+    guildId: string | undefined,
+  }
+
+  export interface GuildScheduledEventExceptionDelete {
+    exception: GatewayRawEvents.GuildScheduledEventExceptionDelete,
+    guildId: string | undefined,
+  }
+
+  export interface GuildScheduledEventExceptionUpdate {
+    exception: GatewayRawEvents.GuildScheduledEventExceptionUpdate,
+    guildId: string | undefined,
   }
 
   export interface GuildScheduledEventUpdate {
@@ -537,6 +613,13 @@ export namespace GatewayClientEvents {
     userId: string,
   }
 
+  export interface MessagePollVoteAddMany {
+    channelId: string,
+    guildId: string | undefined,
+    messageId: string,
+    votes: Array<Record<string, any>>,
+  }
+
   export interface MessagePollVoteRemove {
     answerId: number,
     channelId: string,
@@ -559,6 +642,13 @@ export namespace GatewayClientEvents {
     type: ReactionTypes,
     user: null | User,
     userId: string,
+  }
+
+  export interface MessageReactionAddMany {
+    channelId: string,
+    guildId: string | undefined,
+    messageId: string,
+    reactions: Array<Record<string, any>>,
   }
 
   export interface MessageReactionRemove {
@@ -739,6 +829,13 @@ export namespace GatewayClientEvents {
     threads: BaseCollection<string, Channel>,
   }
 
+  export interface ThreadMemberListUpdate {
+    guildId: string,
+    members: Array<Record<string, any>>,
+    presences: Array<Record<string, any>>,
+    threadId: string,
+  }
+
   export interface ThreadMemberUpdate {
     differences: Differences,
     old: ThreadMember | null,
@@ -817,15 +914,20 @@ export namespace GatewayClientEvents {
   export interface VoiceChannelEffectSend {
     animationId?: number,
     animationType?: null | number,
+    authorId?: string,
     channel: Channel | null,
     channelId: string,
     emoji: Emoji | null,
     guild: Guild | null,
     guildId: string,
+    isEcho: boolean,
     member: Member | null,
     sound: SoundboardSound | null,
     soundId?: string,
+    soundName?: string,
     soundVolume?: number,
+    // the guild the sound is from, when it isn't this one
+    sourceGuildId?: string,
     user: User | null,
     userId: string,
   }

@@ -143,6 +143,7 @@ export class ChannelBase extends BaseStructure {
   static { setStructureKeys(this, '_keysMerge', keysMergeChannelBase); }
   declare _appliedTags?: BaseSet<string>;
   declare _availableTags?: BaseCollection<string, ChannelAvailableTag>;
+  declare _appPermissions?: bigint;
   _name: string = '';
   declare _nicks?: BaseCollection<string, string>;
   declare _nsfw?: boolean;
@@ -156,18 +157,26 @@ export class ChannelBase extends BaseStructure {
   declare defaultForumLayout?: number;
   declare defaultReactionEmoji?: ChannelDefaultReactionEmoji | null;
   declare defaultSortOrder?: number | null;
+  declare defaultTagSetting?: null | string;
   declare defaultThreadRateLimitPerUser?: number;
   deleted: boolean = false;
   declare flags?: number;
   declare guildId?: string;
   id: string = '';
+  declare hdStreamingBuyerId?: null | string;
+  // iso8601 timestamp
+  declare hdStreamingUntil?: null | string;
   declare icon?: null | string;
   isPartial: boolean = false;
+  declare iconEmoji?: null | {id: null | string, name: null | string};
   declare lastMessageId?: null | string;
   declare lastPinTimestampUnix?: number;
+  // raw object from discord
+  declare linkedLobby?: null | Record<string, any>;
   declare managed?: boolean;
   declare member?: ThreadMember;
   declare memberCount?: number;
+  declare memberIdsPreview?: Array<string>;
   declare messageCount?: number;
   declare ownerId?: string;
   declare parentId?: null | string;
@@ -176,12 +185,15 @@ export class ChannelBase extends BaseStructure {
   declare rtcRegion?: null | string;
   declare status?: null | string;
   declare template?: string;
+  declare themeColor?: null | number;
   declare totalMessageSent?: number;
   declare threadMetadata?: ThreadMetadata;
   topic: null | string = null;
   type: ChannelTypes = ChannelTypes.BASE;
   declare userLimit?: number;
   declare videoQualityMode?: ChannelVideoQualityModes;
+  // raw object from discord
+  declare voiceHangout?: null | Record<string, any>;
   declare voiceStartTime?: null | number;
 
   constructor(
@@ -520,6 +532,14 @@ export class ChannelBase extends BaseStructure {
       return this.client.channels.get(this.parentId) as ChannelGuildCategory | ChannelGuildText;
     }
     return null;
+  }
+
+  // only set on channels resolved inside of interactions, our bot's permissions in the channel (0n if we aren't in the guild)
+  get appPermissions(): bigint {
+    if (this._appPermissions) {
+      return this._appPermissions;
+    }
+    return 0n;
   }
 
   get permissions(): bigint {
@@ -1215,14 +1235,17 @@ export class ChannelDMGroup extends ChannelDM {
 const keysChannelGuildBase = new BaseSet<string>([
   DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.ICON_EMOJI,
   DiscordKeys.ID,
   DiscordKeys.IS_PARTIAL,
+  DiscordKeys.LINKED_LOBBY,
   DiscordKeys.NAME,
   DiscordKeys.NSFW,
   DiscordKeys.PARENT_ID,
   DiscordKeys.PERMISSION_OVERWRITES,
   DiscordKeys.POSITION,
   DiscordKeys.RATE_LIMIT_PER_USER,
+  DiscordKeys.THEME_COLOR,
   DiscordKeys.TYPE,
 ]);
 
@@ -1505,6 +1528,21 @@ export class ChannelGuildBase extends ChannelBase {
     return false;
   }
 
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.LINKED_LOBBY:
+      case DiscordKeys.VOICE_HANGOUT: {
+        // raw objects of unknown depth, the base compare only looks one level down
+        const old = (this as any)[DetritusKeys[key]];
+        if (value === undefined || old === undefined) {
+          return false;
+        }
+        return JSON.stringify(old) !== JSON.stringify(value);
+      };
+    }
+    return super.hasDifference(key, value);
+  }
+
   merge(data?: BaseStructureData): void {
     super.merge(data);
     if (!data) {
@@ -1516,8 +1554,19 @@ export class ChannelGuildBase extends ChannelBase {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
     }
 
+    // sent on channels inside of interactions, our bot's permissions in the channel (only if the bot is in the guild)
+    if (DiscordKeys.APP_PERMISSIONS in data) {
+      const value = data[DiscordKeys.APP_PERMISSIONS];
+      this._appPermissions = (value !== undefined && value !== null) ? BigInt(value) : undefined;
+    }
     if (DiscordKeys.FLAGS in data) {
       (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+    if (DiscordKeys.ICON_EMOJI in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ICON_EMOJI]] = data[DiscordKeys.ICON_EMOJI];
+    }
+    if (DiscordKeys.LINKED_LOBBY in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LINKED_LOBBY]] = data[DiscordKeys.LINKED_LOBBY];
     }
     if (DiscordKeys.NSFW in data) {
       this._nsfw = data[DiscordKeys.NSFW];
@@ -1565,6 +1614,9 @@ export class ChannelGuildBase extends ChannelBase {
     }
     if (DiscordKeys.RATE_LIMIT_PER_USER in data) {
       (this as any)[DetritusKeys[DiscordKeys.RATE_LIMIT_PER_USER]] = data[DiscordKeys.RATE_LIMIT_PER_USER];
+    }
+    if (DiscordKeys.THEME_COLOR in data) {
+      (this as any)[DetritusKeys[DiscordKeys.THEME_COLOR]] = data[DiscordKeys.THEME_COLOR];
     }
   }
 }
@@ -1691,12 +1743,15 @@ export class ChannelGuildText extends ChannelGuildBase {
 const keysChannelGuildVoice = new BaseSet<string>([
   ...keysChannelGuildBase,
   DiscordKeys.BITRATE,
+  DiscordKeys.HD_STREAMING_BUYER_ID,
+  DiscordKeys.HD_STREAMING_UNTIL,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.RTC_REGION,
   DiscordKeys.STATUS,
   DiscordKeys.TOPIC,
   DiscordKeys.USER_LIMIT,
   DiscordKeys.VIDEO_QUALITY_MODE,
+  DiscordKeys.VOICE_HANGOUT,
   DiscordKeys.VOICE_START_TIME,
 ].sort());
 
@@ -1780,6 +1835,12 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     if (DiscordKeys.BITRATE in data) {
       (this as any)[DetritusKeys[DiscordKeys.BITRATE]] = data[DiscordKeys.BITRATE];
     }
+    if (DiscordKeys.HD_STREAMING_BUYER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HD_STREAMING_BUYER_ID]] = data[DiscordKeys.HD_STREAMING_BUYER_ID];
+    }
+    if (DiscordKeys.HD_STREAMING_UNTIL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HD_STREAMING_UNTIL]] = data[DiscordKeys.HD_STREAMING_UNTIL];
+    }
     if (DiscordKeys.LAST_MESSAGE_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.LAST_MESSAGE_ID]] = data[DiscordKeys.LAST_MESSAGE_ID];
     }
@@ -1797,6 +1858,9 @@ export class ChannelGuildVoice extends ChannelGuildBase {
     }
     if (DiscordKeys.VIDEO_QUALITY_MODE in data) {
       (this as any)[DetritusKeys[DiscordKeys.VIDEO_QUALITY_MODE]] = data[DiscordKeys.VIDEO_QUALITY_MODE];
+    }
+    if (DiscordKeys.VOICE_HANGOUT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.VOICE_HANGOUT]] = data[DiscordKeys.VOICE_HANGOUT];
     }
     if (DiscordKeys.VOICE_START_TIME in data) {
       (this as any)[DetritusKeys[DiscordKeys.VOICE_START_TIME]] = data[DiscordKeys.VOICE_START_TIME];
@@ -1929,6 +1993,7 @@ const keysChannelGuildThread = new BaseSet<string>([
   DiscordKeys.LAST_PIN_TIMESTAMP,
   DiscordKeys.MEMBER,
   DiscordKeys.MEMBER_COUNT,
+  DiscordKeys.MEMBER_IDS_PREVIEW,
   DiscordKeys.MESSAGE_COUNT,
   DiscordKeys.OWNER_ID,
   DiscordKeys.TOTAL_MESSAGE_SENT,
@@ -2061,6 +2126,9 @@ export class ChannelGuildThread extends ChannelGuildBase {
     if (DiscordKeys.MEMBER_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.MEMBER_COUNT]] = data[DiscordKeys.MEMBER_COUNT];
     }
+    if (DiscordKeys.MEMBER_IDS_PREVIEW in data) {
+      (this as any)[DetritusKeys[DiscordKeys.MEMBER_IDS_PREVIEW]] = data[DiscordKeys.MEMBER_IDS_PREVIEW];
+    }
     if (DiscordKeys.MESSAGE_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.MESSAGE_COUNT]] = data[DiscordKeys.MESSAGE_COUNT];
     }
@@ -2112,6 +2180,7 @@ const keysChannelGuildForum = new BaseSet<string>([
   DiscordKeys.DEFAULT_FORUM_LAYOUT,
   DiscordKeys.DEFAULT_REACTION_EMOJI,
   DiscordKeys.DEFAULT_SORT_ORDER,
+  DiscordKeys.DEFAULT_TAG_SETTING,
   DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER,
   DiscordKeys.LAST_MESSAGE_ID,
   DiscordKeys.TEMPLATE,
@@ -2228,6 +2297,9 @@ export class ChannelGuildForum extends ChannelGuildBase {
     }
     if (DiscordKeys.DEFAULT_SORT_ORDER in data) {
       (this as any)[DetritusKeys[DiscordKeys.DEFAULT_SORT_ORDER]] = data[DiscordKeys.DEFAULT_SORT_ORDER];
+    }
+    if (DiscordKeys.DEFAULT_TAG_SETTING in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DEFAULT_TAG_SETTING]] = data[DiscordKeys.DEFAULT_TAG_SETTING];
     }
     if (DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER in data) {
       (this as any)[DetritusKeys[DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER]] = data[DiscordKeys.DEFAULT_THREAD_RATE_LIMIT_PER_USER];

@@ -361,6 +361,7 @@ const keysPresenceActivity = new BaseSet<string>([
   DiscordKeys.BUTTONS,
   DiscordKeys.CREATED_AT,
   DiscordKeys.DETAILS,
+  DiscordKeys.DETAILS_URL,
   DiscordKeys.EMOJI,
   DiscordKeys.FLAGS,
   DiscordKeys.GUILD_ID,
@@ -375,6 +376,8 @@ const keysPresenceActivity = new BaseSet<string>([
   DiscordKeys.SECRETS,
   DiscordKeys.SESSION_ID,
   DiscordKeys.STATE,
+  DiscordKeys.STATE_URL,
+  DiscordKeys.STATUS_DISPLAY_TYPE,
   DiscordKeys.SYNC_ID,
   DiscordKeys.TIMESTAMPS,
   DiscordKeys.TYPE,
@@ -407,6 +410,7 @@ export class PresenceActivity extends BaseStructure {
   declare buttons?: Array<string>;
   declare createdAt?: number;
   declare details?: string;
+  declare detailsUrl?: string;
   declare emoji?: Emoji;
   flags: number = 0;
   id: string = '';
@@ -419,6 +423,9 @@ export class PresenceActivity extends BaseStructure {
   declare secrets?: {join?: string, match?: string, spectate?: string};
   declare sessionId?: string;
   declare state?: string;
+  declare stateUrl?: string;
+  // which field is shown as the user's status text in the member list, see `ActivityStatusDisplayTypes`
+  declare statusDisplayType?: number;
   declare syncId?: string;
   declare timestamps?: PresenceActivityTimestamps;
   type: number = 0;
@@ -728,6 +735,7 @@ export class PresenceActivity extends BaseStructure {
     (this as any)[DetritusKeys[DiscordKeys.BUTTONS]] = data[DiscordKeys.BUTTONS];
     (this as any)[DetritusKeys[DiscordKeys.CREATED_AT]] = data[DiscordKeys.CREATED_AT];
     (this as any)[DetritusKeys[DiscordKeys.DETAILS]] = data[DiscordKeys.DETAILS];
+    (this as any)[DetritusKeys[DiscordKeys.DETAILS_URL]] = data[DiscordKeys.DETAILS_URL];
     (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS] || 0;
     if (DiscordKeys.GUILD_IDS in data) {
       const value = data[DiscordKeys.GUILD_IDS];
@@ -751,6 +759,8 @@ export class PresenceActivity extends BaseStructure {
     (this as any)[DetritusKeys[DiscordKeys.SECRETS]] = data[DiscordKeys.SECRETS];
     (this as any)[DetritusKeys[DiscordKeys.SESSION_ID]] = data[DiscordKeys.SESSION_ID];
     (this as any)[DetritusKeys[DiscordKeys.STATE]] = data[DiscordKeys.STATE];
+    (this as any)[DetritusKeys[DiscordKeys.STATE_URL]] = data[DiscordKeys.STATE_URL];
+    (this as any)[DetritusKeys[DiscordKeys.STATUS_DISPLAY_TYPE]] = data[DiscordKeys.STATUS_DISPLAY_TYPE];
     (this as any)[DetritusKeys[DiscordKeys.SYNC_ID]] = data[DiscordKeys.SYNC_ID];
     (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
@@ -807,10 +817,13 @@ export class PresenceActivity extends BaseStructure {
 
 
 const keysPresenceActivityAssets = new BaseSet<string>([
+  DiscordKeys.INVITE_COVER_IMAGE,
   DiscordKeys.LARGE_IMAGE,
   DiscordKeys.LARGE_TEXT,
+  DiscordKeys.LARGE_URL,
   DiscordKeys.SMALL_IMAGE,
   DiscordKeys.SMALL_TEXT,
+  DiscordKeys.SMALL_URL,
 ]);
 
 /**
@@ -822,10 +835,13 @@ export class PresenceActivityAssets extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysPresenceActivityAssets); }
   readonly activity: PresenceActivity;
 
+  declare inviteCoverImage?: string;
   declare largeImage?: string;
   declare largeText?: string;
+  declare largeUrl?: string;
   declare smallImage?: string;
   declare smallText?: string;
+  declare smallUrl?: string;
 
   constructor(activity: PresenceActivity, data: BaseStructureData) {
     super(activity.client, undefined, activity._clone);
@@ -922,10 +938,13 @@ export class PresenceActivityAssets extends BaseStructure {
       return;
     }
 
+    (this as any)[DetritusKeys[DiscordKeys.INVITE_COVER_IMAGE]] = data[DiscordKeys.INVITE_COVER_IMAGE];
     (this as any)[DetritusKeys[DiscordKeys.LARGE_IMAGE]] = data[DiscordKeys.LARGE_IMAGE];
     (this as any)[DetritusKeys[DiscordKeys.LARGE_TEXT]] = data[DiscordKeys.LARGE_TEXT];
+    (this as any)[DetritusKeys[DiscordKeys.LARGE_URL]] = data[DiscordKeys.LARGE_URL];
     (this as any)[DetritusKeys[DiscordKeys.SMALL_IMAGE]] = data[DiscordKeys.SMALL_IMAGE];
     (this as any)[DetritusKeys[DiscordKeys.SMALL_TEXT]] = data[DiscordKeys.SMALL_TEXT];
+    (this as any)[DetritusKeys[DiscordKeys.SMALL_URL]] = data[DiscordKeys.SMALL_URL];
   }
 }
 

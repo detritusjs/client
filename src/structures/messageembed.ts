@@ -1,18 +1,27 @@
 import { ShardClient } from '../client';
 import { BaseCollection } from '../collections/basecollection';
 import { BaseSet } from '../collections/baseset';
-import { MEDIA_ATTACHMENT_URL_PREFIX, DetritusKeys, DiscordKeys, MessageEmbedTypes } from '../constants';
+import {
+  MEDIA_ATTACHMENT_URL_PREFIX,
+  DetritusKeys,
+  DiscordKeys,
+  MessageComponentTypes,
+  MessageEmbedFlags,
+  MessageEmbedTypes,
+} from '../constants';
 
 import {
   BaseStructure,
   BaseStructureData,
   setStructureKeys,
 } from './basestructure';
+import { ComponentContainer, ComponentUnknown } from './components';
 
 
 const keysMessageEmbed = new BaseSet<string>([
   DiscordKeys.AUTHOR,
   DiscordKeys.COLOR,
+  DiscordKeys.COMPONENTS,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.FIELDS,
   DiscordKeys.FLAGS,
@@ -37,6 +46,8 @@ export class MessageEmbed extends BaseStructure {
 
   declare author?: MessageEmbedAuthor;
   declare color?: number;
+  // only on `components` type embeds (link previews built from components), holds a single container
+  declare components?: BaseCollection<number, ComponentContainer | ComponentUnknown>;
   declare description?: string;
   declare fields?: BaseCollection<number, MessageEmbedField>;
   declare flags?: number;
@@ -60,6 +71,19 @@ export class MessageEmbed extends BaseStructure {
     this.merge(data);
   }
 
+  // content scanning can finish after the message is sent, these might only show up in a later message update
+  get containsExplicitContent(): boolean {
+    return this.hasFlag(MessageEmbedFlags.CONTAINS_EXPLICIT_CONTENT);
+  }
+
+  get containsGoreContent(): boolean {
+    return this.hasFlag(MessageEmbedFlags.CONTAINS_GORE_CONTENT);
+  }
+
+  get containsSelfHarmContent(): boolean {
+    return this.hasFlag(MessageEmbedFlags.CONTAINS_SELF_HARM_CONTENT);
+  }
+
   get hasAttachment(): boolean {
     return !!(
       (this.image && this.image.hasAttachment) ||
@@ -74,6 +98,10 @@ export class MessageEmbed extends BaseStructure {
 
   get isArticle(): boolean {
     return this.type === MessageEmbedTypes.ARTICLE;
+  }
+
+  get isComponents(): boolean {
+    return this.type === MessageEmbedTypes.COMPONENTS;
   }
 
   get isGifV(): boolean {
@@ -124,6 +152,10 @@ export class MessageEmbed extends BaseStructure {
     return size;
   }
 
+  hasFlag(flag: number): boolean {
+    return ((this.flags || 0) & flag) === flag;
+  }
+
   async fetchApplicationNews() {
     if (!this.isApplicationNews) {
       throw new Error('Embed isn\'t of Application News Type');
@@ -145,6 +177,25 @@ export class MessageEmbed extends BaseStructure {
     }
     if (DiscordKeys.COLOR in data) {
       (this as any)[DetritusKeys[DiscordKeys.COLOR]] = data[DiscordKeys.COLOR];
+    }
+    if (DiscordKeys.COMPONENTS in data) {
+      const value = data[DiscordKeys.COMPONENTS];
+      if (value && value.length) {
+        if (!this.components) {
+          this.components = new BaseCollection<number, ComponentContainer | ComponentUnknown>();
+        }
+        this.components.clear();
+        for (let i = 0; i < value.length; i++) {
+          const raw = value[i];
+          if (raw.type === MessageComponentTypes.CONTAINER) {
+            this.components.set(i, new ComponentContainer(this.client, raw, this._clone));
+          } else {
+            this.components.set(i, new ComponentUnknown(this.client, raw, this._clone));
+          }
+        }
+      } else {
+        this.components = undefined;
+      }
     }
     if (DiscordKeys.DESCRIPTION in data) {
       (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];

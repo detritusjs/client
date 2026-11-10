@@ -248,12 +248,14 @@ export class User extends BaseStructure {
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.AVATAR(this.id, hash, format), query);
   }
 
-  hasFlag(flag: number): boolean {
+  hasFlag(flag: bigint | number): boolean {
     return this.hasPublicFlag(flag);
   }
 
-  hasPublicFlag(flag: number): boolean {
-    return (this.publicFlags & flag) === flag;
+  hasPublicFlag(flag: bigint | number): boolean {
+    // bigint since some flags are past 32 bits, where a number `&` would truncate
+    const bits = BigInt(flag);
+    return (BigInt(this.publicFlags || 0) & bits) === bits;
   }
 
   add() {
@@ -500,8 +502,10 @@ export class UserWithFlags extends UserWithBanner {
     this.merge(data);
   }
 
-  hasFlag(flag: number): boolean {
-    return (this.flags & flag) === flag;
+  hasFlag(flag: bigint | number): boolean {
+    // bigint since some flags are past 32 bits, where a number `&` would truncate
+    const bits = BigInt(flag);
+    return (BigInt(this.flags || 0) & bits) === bits;
   }
 
   merge(data?: BaseStructureData): void {
@@ -833,11 +837,11 @@ export class UserMixin extends BaseStructure {
     return this.user.avatarUrlFormat(format, query);
   }
 
-  hasFlag(flag: number): boolean {
+  hasFlag(flag: bigint | number): boolean {
     return this.user.hasFlag(flag);
   }
 
-  hasPublicFlag(flag: number): boolean {
+  hasPublicFlag(flag: bigint | number): boolean {
     return this.user.hasPublicFlag(flag);
   }
 

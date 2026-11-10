@@ -277,9 +277,13 @@ export class Application extends BaseStructure {
     return addQuery(Endpoints.CDN.URL + Endpoints.CDN.APP_ICON(this.id, hash, format), query);
   }
 
-  hasFlag(flag: number): boolean {
-    if (this.flags) {
-      return (this.flags & flag) === flag;
+  hasFlag(flag: bigint | number): boolean {
+    // `flags_new` is the same bitfield as a string, prefer it since it can't lose precision
+    const flags = this.flagsNew || this.flags;
+    if (flags) {
+      // bigint since some flags are past 32 bits, where a number `&` would truncate
+      const bits = BigInt(flag);
+      return (BigInt(flags) & bits) === bits;
     }
     return false;
   }

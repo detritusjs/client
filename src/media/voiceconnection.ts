@@ -27,6 +27,7 @@ import {
 import { Opus } from './encoders';
 import { MediaHandler } from './handler';
 import { MediaEvents } from './mediaevents';
+import { MediaRawEvents } from './rawevents';
 
 
 /**
@@ -68,6 +69,17 @@ export interface OpusDecoderSettings {
  */
 export interface SendAudioSettings {
   isOpus?: boolean,
+}
+
+/**
+ * What our video is, told to everyone in the call with `.setVideoActive()`
+ * @category Media Options
+ */
+export interface VideoStreamSettings {
+  // bits per second
+  maxBitrate?: number,
+  maxFramerate?: number,
+  maxResolution?: {height: number, type?: string, width: number},
 }
 
 /**
@@ -200,6 +212,13 @@ export class VoiceConnection extends EventSpewer {
     return null;
   }
 
+  /**
+   * If the voice server is forwarding other users' audio/video to us, see `setReceive()`
+   */
+  get receiving(): boolean {
+    return this.gateway.receiveEnabled;
+  }
+
   get serverId(): string {
     return this.gateway.serverId;
   }
@@ -217,6 +236,13 @@ export class VoiceConnection extends EventSpewer {
    */
   get videoCodec(): null | string {
     return (this.gateway.transport) ? this.gateway.transport.codecs.video : null;
+  }
+
+  /**
+   * Versions of the voice server we're connected to, null until it tells us (right after connecting)
+   */
+  get voiceBackendVersion(): null | MediaEvents.VoiceBackendVersion {
+    return this.gateway.voiceBackendVersion;
   }
 
   get voiceState(): null | VoiceState {
@@ -331,6 +357,26 @@ export class VoiceConnection extends EventSpewer {
   }
 
   /**
+   * Tells the call if we're sending video (viewers get nothing shown until this is on), with what that video is
+   * The settings are kept, so turning it off and on again doesn't need them repeated. Requires connecting with `video: true`
+   * (`setVideo()` is the camera icon others see on us, this is the video itself)
+   */
+  setVideoActive(
+    active: boolean,
+    settings: VideoStreamSettings = {},
+  ): void {
+    this.gateway.sendClientConnect(Object.assign({}, settings, {videoActive: active}));
+  }
+
+  /**
+   * A user's video streams as they last announced them, one per quality layer, with its bitrate/framerate/resolution
+   * Empty when they aren't sending video
+   */
+  getVideoStreams(userId: string): Array<MediaRawEvents.Stream> {
+    return this.gateway.userStreams.get(userId) || [];
+  }
+
+  /**
    * Asks a user for a keyframe, when their video can't be decoded (nothing to do normally, lost frames are asked for
    * automatically)
    */
@@ -355,6 +401,30 @@ export class VoiceConnection extends EventSpewer {
       throw new Error('Transport isn\'t initialized yet!');
     }
     this.gateway.transport.setPreferredVideoCodec(codec);
+  }
+
+  /**
+   * Turns receiving on or off while connected. Off has the voice server stop forwarding everyone's audio and video to us,
+   * instead of us dropping it as it comes in
+   */
+  setReceive(receive: boolean): void {
+    this.gateway.setReceive(receive);
+  }
+
+  /**
+   * How much we want from one user, 0 to 100. 0 has the voice server stop forwarding them to us (a mute only we notice),
+   * `null` puts them back on the default. For video anything between picks a lower quality layer
+   */
+  setUserWants(userId: string, value: number | null): void {
+    this.gateway.setUserWants(userId, value);
+  }
+
+  /**
+   * How much we want from every user without their own value, 0 to 100 (100 by default).
+   * At 0 only the users given a value with `setUserWants()` are forwarded to us
+   */
+  setDefaultWants(value: number): void {
+    this.gateway.setDefaultWants(value);
   }
 
   setDecodeAudio(value: boolean): void {
@@ -524,12 +594,16 @@ export class VoiceConnection extends EventSpewer {
   on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: 'connect', listener: (payload: any) => any): this;
   on(event: 'disconnect', listener: (payload: any) => any): this;
+  on(event: 'flags', listener: (payload: MediaEvents.Flags) => any): this;
   on(event: 'keyframeRequest', listener: (payload: MediaEvents.KeyframeRequest) => any): this;
   on(event: 'killed', listener: (payload: {error?: Error}) => any): this;
+  on(event: 'platform', listener: (payload: MediaEvents.Platform) => any): this;
   on(event: 'speaking', listener: (payload: any) => any): this;
   on(event: 'videoCodec', listener: (payload: MediaEvents.VideoCodec) => any): this;
   on(event: 'videoFrame', listener: (payload: MediaEvents.VideoFrame) => any): this;
+  on(event: 'videoQuality', listener: (payload: MediaEvents.VideoQuality) => any): this;
   on(event: 'videoUpdate', listener: (payload: MediaEvents.VideoUpdate) => any): this;
+  on(event: 'voiceBackendVersion', listener: (payload: MediaEvents.VoiceBackendVersion) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;
