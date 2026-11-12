@@ -1,7 +1,7 @@
 import { ShardClient } from '../client';
 import { BaseSet } from '../collections/baseset';
 import { DetritusKeys, DiscordKeys, MessageAttachmentFlags, SPOILER_ATTACHMENT_PREFIX } from '../constants';
-import { Snowflake } from '../utils';
+import { getAttachmentUrlExpiry, Snowflake } from '../utils';
 
 import {
   BaseStructure,
@@ -90,23 +90,6 @@ export const MimeClassTypes: Array<{
     regex: /\.(?:html|xhtml|htm|js|xml|xls|xsd|css|styl)$/i,
   },
 ];
-
-
-/**
- * Unix ms of when a signed attachment url expires, 0 if it isn't signed
- */
-export function getAttachmentUrlExpiry(url: string): number {
-  if (!url) {
-    return 0;
-  }
-  try {
-    const expires = new URL(url).searchParams.get('ex');
-    const seconds = (expires) ? parseInt(expires, 16) : NaN;
-    return (Number.isFinite(seconds)) ? seconds * 1000 : 0;
-  } catch(error) {
-    return 0;
-  }
-}
 
 
 const keysAttachment = new BaseSet<string>([

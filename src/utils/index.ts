@@ -200,6 +200,33 @@ export function getAcronym(name?: string): string {
 }
 
 
+// signed cdn attachment urls carry `ex` (expires, hex unix seconds), `is` (issued, hex unix seconds) and `hm` (hex hmac)
+const ATTACHMENT_URL_HEX_REGEX = /^[0-9a-f]+$/i;
+const ATTACHMENT_URL_HMAC_REGEX = /^[0-9a-f]{64}$/i;
+
+/**
+ * Unix ms of when a signed attachment url expires, 0 if it has no (valid hex) `ex` query parameter
+ */
+export function getAttachmentUrlExpiry(url: string): number {
+  if (!url) {
+    return 0;
+  }
+  try {
+    const expires = new URL(url).searchParams.get('ex');
+    // `parseInt` stops at the first non-hex character instead of failing, so `1a2zz` would read as `0x1a2`
+    if (expires && ATTACHMENT_URL_HEX_REGEX.test(expires)) {
+      const seconds = parseInt(expires, 16);
+      if (Number.isFinite(seconds)) {
+        return seconds * 1000;
+      }
+    }
+  } catch(error) {
+
+  }
+  return 0;
+}
+
+
 export async function getFiles(directory: string, subdirectories?: boolean): Promise<Array<string>> {
   if (subdirectories) {
     const dirents: Array<fs.Dirent> = await new Promise((resolve, reject) => {
@@ -335,6 +362,37 @@ export function intToRGB(int: number): {
     g: (int >> 8) & 0x0ff,
     b: int & 0x0ff,
   };
+}
+
+
+/**
+ * If an attachment url is signed (`ex`, `is` and a 64 character `hm`, all hex) and hasn't expired yet.
+ * Only the format is checked, the `hm` signature itself can only be verified by discord
+ */
+export function isValidAttachmentUrl(url: string): boolean {
+  if (!url) {
+    return false;
+  }
+
+  let params: URLSearchParams;
+  try {
+    params = new URL(url).searchParams;
+  } catch(error) {
+    return false;
+  }
+
+  const expires = params.get('ex');
+  const issued = params.get('is');
+  const hmac = params.get('hm');
+  if (!expires || !issued || !hmac) {
+    return false;
+  }
+  if (!ATTACHMENT_URL_HEX_REGEX.test(issued) || !ATTACHMENT_URL_HMAC_REGEX.test(hmac)) {
+    return false;
+  }
+
+  const expiresAt = getAttachmentUrlExpiry(url);
+  return !!expiresAt && Date.now() < expiresAt;
 }
 
 
