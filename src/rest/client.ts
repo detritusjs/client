@@ -2,6 +2,7 @@ import {
   Client,
   ClientOptions,
   RequestTypes,
+  ResponseTypes,
   RestClientEvents,
 } from 'detritus-client-rest';
 import { AuthTypes, RestEvents } from 'detritus-client-rest/lib/constants';
@@ -306,6 +307,15 @@ export class RestClient {
     return this.raw.beginGuildPrune(guildId, options);
   }
 
+  // only user accounts can use this, bots get a 403 (`Bots cannot use this endpoint`)
+  bulkAddGuildRoleMembers(
+    guildId: string,
+    roleId: string,
+    options: RequestTypes.BulkAddGuildRoleMembers,
+  ) {
+    return this.raw.bulkAddGuildRoleMembers(guildId, roleId, options);
+  }
+
   bulkAddInviteTargetUsers(
     code: string,
     options: RequestTypes.BulkAddInviteTargetUsers,
@@ -397,6 +407,14 @@ export class RestClient {
       collection.set(record.key, record);
     }
     return collection;
+  }
+
+  // async version of `bulkGuildBan`, the result comes through the `guildBulkBanUpdate` event
+  bulkGuildBanV2(
+    guildId: string,
+    options: RequestTypes.BulkGuildBan,
+  ) {
+    return this.raw.bulkGuildBanV2(guildId, options);
   }
 
   connectionCallback(
@@ -496,6 +514,14 @@ export class RestClient {
     channelId: string,
   ) {
     return this.raw.createChannelStoreListingGrantEntitlement(channelId);
+  }
+
+  // adds one forum/media tag without sending the whole `availableTags` list
+  createChannelTag(
+    channelId: string,
+    options: RequestTypes.CreateChannelTag,
+  ) {
+    return this.raw.createChannelTag(channelId, options);
   }
 
   async createChannelThread(
@@ -729,6 +755,14 @@ export class RestClient {
     return new InteractionCallbackResponse(this.client, data);
   }
 
+  createGuildScheduledEventException(
+    guildId: string,
+    scheduledEventId: string,
+    options: RequestTypes.CreateGuildScheduledEventException,
+  ) {
+    return this.raw.createGuildScheduledEventException(guildId, scheduledEventId, options);
+  }
+
   createLobby(
     applicationIdOrOptions: RequestTypes.CreateLobby | string = {},
     options: RequestTypes.CreateLobby = {},
@@ -954,12 +988,26 @@ export class RestClient {
     return channel;
   }
 
+  deleteChannelLinkedLobby(
+    channelId: string,
+  ) {
+    return this.raw.deleteChannelLinkedLobby(channelId);
+  }
+
   deleteChannelOverwrite(
     channelId: string,
     overwriteId: string,
     options: RequestTypes.DeleteChannelOverwrite = {},
   ) {
     return this.raw.deleteChannelOverwrite(channelId, overwriteId, options);
+  }
+
+  deleteChannelTag(
+    channelId: string,
+    tagId: string,
+    options: {reason?: string} = {},
+  ) {
+    return this.raw.deleteChannelTag(channelId, tagId, options);
   }
 
   deleteConnection(
@@ -1021,6 +1069,14 @@ export class RestClient {
     options: RequestTypes.DeleteGuildScheduledEvent = {},
   ) {
     return this.raw.deleteGuildScheduledEvent(guildId, scheduledEventId, options);
+  }
+
+  deleteGuildScheduledEventException(
+    guildId: string,
+    scheduledEventId: string,
+    exceptionId: string,
+  ) {
+    return this.raw.deleteGuildScheduledEventException(guildId, scheduledEventId, exceptionId);
   }
 
   deleteGuildSticker(
@@ -1370,6 +1426,14 @@ export class RestClient {
     return this.raw.editChannelOverwrite(channelId, overwriteId, options);
   }
 
+  editChannelTag(
+    channelId: string,
+    tagId: string,
+    options: RequestTypes.EditChannelTag,
+  ) {
+    return this.raw.editChannelTag(channelId, tagId, options);
+  }
+
   editConnection(
     platform: string,
     accountId: string,
@@ -1458,6 +1522,14 @@ export class RestClient {
       }
     }
     return member;
+  }
+
+  editGuildJoinRequest(
+    guildId: string,
+    joinRequestId: string,
+    options: RequestTypes.EditGuildJoinRequest,
+  ) {
+    return this.raw.editGuildJoinRequest(guildId, joinRequestId, options);
   }
 
   editGuildMemberVerification(
@@ -1562,6 +1634,15 @@ export class RestClient {
       sticker = new Sticker(this.client, data);
     }
     return sticker;
+  }
+
+  editGuildScheduledEventException(
+    guildId: string,
+    scheduledEventId: string,
+    exceptionId: string,
+    options: RequestTypes.EditGuildScheduledEventException = {},
+  ) {
+    return this.raw.editGuildScheduledEventException(guildId, scheduledEventId, exceptionId, options);
   }
 
   editGuildVanity(
@@ -1734,6 +1815,14 @@ export class RestClient {
     userId: string,
   ) {
     return this.raw.removeLobbyMember(lobbyId, userId);
+  }
+
+  // discord's client sends this when its soundboard echo setting is on, only seen used by user accounts
+  sendSoundboardEcho(
+    channelId: string,
+    options: RequestTypes.SendSoundboardSound,
+  ) {
+    return this.raw.sendSoundboardEcho(channelId, options);
   }
 
   sendSoundboardSound(
@@ -2425,6 +2514,14 @@ export class RestClient {
     return this.raw.fetchConsentRequired();
   }
 
+  // only user accounts can use this, bots get a 403 (`Bots cannot use this endpoint`)
+  fetchChannelPostData(
+    channelId: string,
+    threadIds: Array<string>,
+  ) {
+    return this.raw.fetchChannelPostData(channelId, threadIds);
+  }
+
   fetchConnectionAuthorizeUrl(
     platform: string,
     options: RequestTypes.FetchConnectionAuthorizeUrl = {},
@@ -2455,10 +2552,12 @@ export class RestClient {
     return collection;
   }
 
+  // `assignments` (and `guild_experiments` with `withGuildExperiments`) are rows of values, see `Utils.Experiments` for reading them
   fetchExperiments(
     fingerprint?: string,
-  ) {
-    return this.raw.fetchExperiments(fingerprint);
+    options: RequestTypes.FetchExperiments = {},
+  ): Promise<any> {
+    return this.raw.fetchExperiments(fingerprint, options);
   }
 
   fetchGateway() {
@@ -2801,6 +2900,115 @@ export class RestClient {
     return collection;
   }
 
+  // forum and media channels only, works for bots
+  async searchChannelThreads(
+    channelId: string,
+    options: RequestTypes.SearchChannelThreads = {},
+  ): Promise<RestResponses.SearchChannelThreads> {
+    const data = await this.raw.searchChannelThreads(channelId, options);
+    const firstMessages = new BaseCollection<string, Message>();
+    const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
+    const mostRecentMessages = new BaseCollection<string, Message>();
+    const threads = new BaseCollection<string, ChannelGuildThread>();
+
+    for (let raw of (data.members || [])) {
+      const threadMember = new ThreadMember(this.client, raw);
+
+      let collection: BaseCollection<string, ThreadMember>;
+      if (members.has(threadMember.id)) {
+        collection = members.get(threadMember.id)!;
+      } else {
+        collection = new BaseCollection();
+        members.set(threadMember.id, collection);
+      }
+      collection.set(threadMember.userId, threadMember);
+    }
+
+    for (let raw of (data.threads || [])) {
+      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      threads.set(thread.id, thread);
+    }
+
+    for (let [raws, collection] of [[data.first_messages, firstMessages], [data.most_recent_messages, mostRecentMessages]] as Array<[Array<any> | undefined, BaseCollection<string, Message>]>) {
+      for (let raw of (raws || [])) {
+        const thread = threads.get(raw.channel_id);
+        if (thread && thread.guildId) {
+          raw.guild_id = thread.guildId;
+        }
+        const message = new Message(this.client, raw);
+        collection.set(message.channelId, message);
+      }
+    }
+
+    return {
+      firstMessages,
+      hasMore: !!data.has_more,
+      members,
+      mostRecentMessages,
+      threads,
+      totalResults: data.total_results,
+    };
+  }
+
+  // works for bots (needs `MANAGE_GUILD`), `retryAfter` (seconds) is set while the guild's member index is still being built
+  async searchGuildMembers(
+    guildId: string,
+    options: RequestTypes.SearchGuildMembers = {},
+  ): Promise<RestResponses.SearchGuildMembers> {
+    const data = await this.raw.searchGuildMembers(guildId, options);
+    const members = new BaseCollection<string, RestResponses.SearchGuildMembersResult>();
+
+    for (let raw of (data.members || [])) {
+      const rawMember = raw.member;
+      let member: Member;
+      if (this.client.members.has(guildId, rawMember.user.id)) {
+        member = this.client.members.get(guildId, rawMember.user.id)!;
+        member.merge(rawMember);
+      } else {
+        rawMember.guild_id = guildId;
+        member = new Member(this.client, rawMember);
+        this.client.members.insert(member);
+      }
+      members.set(member.id, {
+        inviterId: raw.inviter_id || null,
+        joinSourceApplicationId: raw.join_source_application_id || null,
+        joinSourceChannelId: raw.join_source_channel_id || null,
+        joinSourceType: (raw.join_source_type === undefined) ? null : raw.join_source_type,
+        member,
+        sourceInviteCode: raw.source_invite_code || null,
+      });
+    }
+    return {
+      guildId: data.guild_id || guildId,
+      members,
+      pageResultCount: data.page_result_count || 0,
+      retryAfter: data.retry_after,
+      totalResultCount: data.total_result_count || 0,
+    };
+  }
+
+  // only user accounts can use this, bots get a 403 (`Bots cannot use this endpoint`)
+  fetchGuildBansSearch(
+    guildId: string,
+    options: RequestTypes.FetchGuildBansSearch = {},
+  ) {
+    return this.raw.fetchGuildBansSearch(guildId, options);
+  }
+
+  fetchGuildJoinRequests(
+    guildId: string,
+    options: RequestTypes.FetchGuildJoinRequests = {},
+  ) {
+    return this.raw.fetchGuildJoinRequests(guildId, options);
+  }
+
+  fetchGuildJoinRequestsUser(
+    guildId: string,
+    userId: string,
+  ) {
+    return this.raw.fetchGuildJoinRequestsUser(guildId, userId);
+  }
+
   fetchGuildMemberVerification(
     guildId: string,
   ) {
@@ -2897,6 +3105,31 @@ export class RestClient {
       threads.set(thread.id, thread);
     }
     return {members, threads};
+  }
+
+  // only user accounts can use this, bots get a 403 (`Bots cannot use this endpoint`)
+  fetchGuildRoleMemberIds(
+    guildId: string,
+    roleId: string,
+  ) {
+    return this.raw.fetchGuildRoleMemberIds(guildId, roleId);
+  }
+
+  fetchGuildScheduledEventExceptionUsers(
+    guildId: string,
+    scheduledEventId: string,
+    exceptionId: string,
+    options: RequestTypes.FetchGuildScheduledEventUsers = {},
+  ) {
+    return this.raw.fetchGuildScheduledEventExceptionUsers(guildId, scheduledEventId, exceptionId, options);
+  }
+
+  fetchGuildScheduledEventUserCounts(
+    guildId: string,
+    scheduledEventId: string,
+    options: RequestTypes.FetchGuildScheduledEventUserCounts = {},
+  ) {
+    return this.raw.fetchGuildScheduledEventUserCounts(guildId, scheduledEventId, options);
   }
 
   fetchGuildOnboarding(
@@ -3294,6 +3527,14 @@ export class RestClient {
     return application;
   }
 
+  // only user accounts can use this, bots get a 403 (`Bots cannot use this endpoint`)
+  fetchMessageInteractionData(
+    channelId: string,
+    messageId: string,
+  ) {
+    return this.raw.fetchMessageInteractionData(channelId, messageId);
+  }
+
   fetchOauth2ApplicationWhitelist(
     applicationId: string,
   ) {
@@ -3516,6 +3757,26 @@ export class RestClient {
     return collection;
   }
 
+  // only user accounts can use this, bots get a 403 (`Bots cannot use this endpoint`). Threads that weren't found are left out
+  async fetchThreadsBulk(
+    threadIds: Array<string>,
+    updateCache: boolean = true,
+  ): Promise<BaseCollection<string, Channel>> {
+    const data = await this.raw.fetchThreadsBulk({threadIds});
+    const collection = new BaseCollection<string, Channel>();
+    for (let raw of (data && data.items) || []) {
+      let channel: Channel;
+      if (updateCache && this.client.channels.has(raw.id)) {
+        channel = this.client.channels.get(raw.id)!;
+        channel.merge(raw);
+      } else {
+        channel = createChannelFromData(this.client, raw);
+      }
+      collection.set(channel.id, channel);
+    }
+    return collection;
+  }
+
   async fetchUser(
     userId: string,
   ): Promise<UserWithBanner> {
@@ -3703,6 +3964,13 @@ export class RestClient {
     return this.raw.redeemGiftCode(code, options);
   }
 
+  // re-signs expired attachment urls, results come back in the same order
+  refreshAttachmentUrls(
+    urls: Array<string>,
+  ): Promise<ResponseTypes.RefreshAttachmentUrls> {
+    return this.raw.refreshAttachmentUrls(urls);
+  }
+
   register(
     options: RequestTypes.Register,
   ) {
@@ -3853,6 +4121,14 @@ export class RestClient {
     data: string,
   ) {
     return this.raw.sendLobbyData(lobbyId, data);
+  }
+
+  // only user accounts can use this, bots get a 403 (`Bots cannot use this endpoint`)
+  sendVoiceChannelEffect(
+    channelId: string,
+    options: RequestTypes.SendVoiceChannelEffect,
+  ) {
+    return this.raw.sendVoiceChannelEffect(channelId, options);
   }
 
   startChannelCallRinging(

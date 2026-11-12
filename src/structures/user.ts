@@ -898,6 +898,7 @@ export class UserMixin extends BaseStructure {
 
 const keysUserAvatarDecorationData = new BaseSet<string>([
   DiscordKeys.ASSET,
+  DiscordKeys.EXPIRES_AT,
   DiscordKeys.SKU_ID,
 ]);
 
@@ -909,6 +910,8 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
   static { setStructureKeys(this, '_keys', keysUserAvatarDecorationData); }
 
   asset: string = '';
+  // unix timestamp in seconds from discord, null if it doesn't expire
+  expiresAt: Date | null = null;
   skuId: string = '';
 
   constructor(
@@ -918,6 +921,10 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
   ) {
     super(client, undefined, isClone);
     this.merge(data);
+  }
+
+  get expiresAtUnix(): number {
+    return (this.expiresAt) ? this.expiresAt.getTime() : 0;
   }
 
   get url(): string {
@@ -941,6 +948,10 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
 
     if (DiscordKeys.ASSET in data) {
       (this as any)[DetritusKeys[DiscordKeys.ASSET]] = data[DiscordKeys.ASSET];
+    }
+    if (DiscordKeys.EXPIRES_AT in data) {
+      const value = data[DiscordKeys.EXPIRES_AT];
+      (this as any)[DetritusKeys[DiscordKeys.EXPIRES_AT]] = (value) ? new Date(value * 1000) : null;
     }
     if (DiscordKeys.SKU_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.SKU_ID]] = data[DiscordKeys.SKU_ID];

@@ -107,12 +107,6 @@ export class GatewayHandler {
       for (let event of Object.values(GatewayDispatchEvents)) {
         this.disabledEvents.add(event);
       }
-      // some handlers are keyed by names that aren't in the published enum
-      for (let event of Object.getOwnPropertyNames(GatewayDispatchHandler.prototype)) {
-        if (/^[A-Z_]+$/.test(event)) {
-          this.disabledEvents.add(event);
-        }
-      }
       for (let event of options.whitelistedEvents) {
         this.disabledEvents.delete(event.toUpperCase());
       }
@@ -196,6 +190,17 @@ export class GatewayDispatchHandler {
       }
     }
     return userIds;
+  }
+
+  /**
+   * The cached scheduled event an exception belongs to
+   */
+  getGuildScheduledEvent(guildId: string, eventId: string): GuildScheduledEvent | null {
+    const guild = this.client.guilds.get(guildId);
+    if (guild && guild.guildScheduledEvents.has(eventId)) {
+      return guild.guildScheduledEvents.get(eventId)!;
+    }
+    return null;
   }
 
   /**
@@ -641,8 +646,6 @@ export class GatewayDispatchHandler {
     const payload: GatewayClientEvents.ChannelDelete = {channel};
     this.client.emit(ClientEvents.CHANNEL_DELETE, payload);
   }
-
-  // the events below that are keyed by name aren't in the published `GatewayDispatchEvents` yet
 
   // response to `Guild.requestChannelInfo()`
   [GatewayDispatchEvents.CHANNEL_INFO](data: GatewayRawEvents.ChannelInfo) {
@@ -1530,7 +1533,12 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_CREATE](data: GatewayRawEvents.GuildScheduledEventExceptionCreate) {
+    const event = this.getGuildScheduledEvent(data['guild_id'], data['event_id']);
+    if (event) {
+      event.setException(data);
+    }
     const payload: GatewayClientEvents.GuildScheduledEventExceptionCreate = {
+      event,
       exception: data,
       guildId: data['guild_id'],
     };
@@ -1538,7 +1546,12 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_DELETE](data: GatewayRawEvents.GuildScheduledEventExceptionDelete) {
+    const event = this.getGuildScheduledEvent(data['guild_id'], data['event_id']);
+    if (event) {
+      event.deleteException(data['event_exception_id']);
+    }
     const payload: GatewayClientEvents.GuildScheduledEventExceptionDelete = {
+      event,
       exception: data,
       guildId: data['guild_id'],
     };
@@ -1546,9 +1559,17 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_UPDATE](data: GatewayRawEvents.GuildScheduledEventExceptionUpdate) {
+    const event = this.getGuildScheduledEvent(data['guild_id'], data['event_id']);
+    let old: GatewayRawEvents.RawGuildScheduledEventException | null = null;
+    if (event) {
+      old = event.guildScheduledEventExceptions.find((x) => x.event_exception_id === data['event_exception_id']) || null;
+      event.setException(data);
+    }
     const payload: GatewayClientEvents.GuildScheduledEventExceptionUpdate = {
+      event,
       exception: data,
       guildId: data['guild_id'],
+      old,
     };
     this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_EXCEPTION_UPDATE, payload);
   }
@@ -1602,7 +1623,17 @@ export class GatewayDispatchHandler {
       user = this.client.users.get(userId)!;
     }
 
-    const payload: GatewayClientEvents.GuildScheduledEventUserAdd = {guild, guildId, guildScheduledEventId, user, userId};
+    const guildScheduledEventExceptionId = data['guild_scheduled_event_exception_id'] || null;
+    const response = (data['response'] === undefined) ? null : data['response'];
+    const payload: GatewayClientEvents.GuildScheduledEventUserAdd = {
+      guild,
+      guildId,
+      guildScheduledEventExceptionId,
+      guildScheduledEventId,
+      response,
+      user,
+      userId,
+    };
     this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_USER_ADD, payload);
   }
 
@@ -1622,7 +1653,17 @@ export class GatewayDispatchHandler {
       user = this.client.users.get(userId)!;
     }
     
-    const payload: GatewayClientEvents.GuildScheduledEventUserRemove = {guild, guildId, guildScheduledEventId, user, userId};
+    const guildScheduledEventExceptionId = data['guild_scheduled_event_exception_id'] || null;
+    const response = (data['response'] === undefined) ? null : data['response'];
+    const payload: GatewayClientEvents.GuildScheduledEventUserRemove = {
+      guild,
+      guildId,
+      guildScheduledEventExceptionId,
+      guildScheduledEventId,
+      response,
+      user,
+      userId,
+    };
     this.client.emit(ClientEvents.GUILD_SCHEDULED_EVENT_USER_REMOVE, payload);
   }
 

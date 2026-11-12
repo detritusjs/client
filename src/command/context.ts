@@ -115,8 +115,16 @@ export class Context {
     return this.client.applications;
   }
 
+  get autoModerationRules() {
+    return this.client.autoModerationRules;
+  }
+
   get channels() {
     return this.client.channels;
+  }
+
+  get connectedAccounts() {
+    return this.client.connectedAccounts;
   }
 
   get emojis() {
@@ -157,6 +165,10 @@ export class Context {
 
   get sessions() {
     return this.client.sessions;
+  }
+
+  get soundboardSounds() {
+    return this.client.soundboardSounds;
   }
 
   get stageInstances() {

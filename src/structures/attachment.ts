@@ -92,10 +92,28 @@ export const MimeClassTypes: Array<{
 ];
 
 
+/**
+ * Unix ms of when a signed attachment url expires, 0 if it isn't signed
+ */
+export function getAttachmentUrlExpiry(url: string): number {
+  if (!url) {
+    return 0;
+  }
+  try {
+    const expires = new URL(url).searchParams.get('ex');
+    const seconds = (expires) ? parseInt(expires, 16) : NaN;
+    return (Number.isFinite(seconds)) ? seconds * 1000 : 0;
+  } catch(error) {
+    return 0;
+  }
+}
+
+
 const keysAttachment = new BaseSet<string>([
   DiscordKeys.APPLICATION,
   DiscordKeys.CLIP_CREATED_AT,
   DiscordKeys.CLIP_PARTICIPANTS,
+  DiscordKeys.CONTENT_SCAN_VERSION,
   DiscordKeys.CONTENT_TYPE,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DURATION_SECS,
@@ -104,6 +122,7 @@ const keysAttachment = new BaseSet<string>([
   DiscordKeys.FLAGS,
   DiscordKeys.HEIGHT,
   DiscordKeys.ID,
+  DiscordKeys.ORIGINAL_CONTENT_TYPE,
   DiscordKeys.PLACEHOLDER,
   DiscordKeys.PLACEHOLDER_VERSION,
   DiscordKeys.PROXY_URL,
@@ -128,6 +147,8 @@ export class Attachment extends BaseStructure {
   declare clipCreatedAt?: string;
   // only on clips, raw users
   declare clipParticipants?: Array<any>;
+  // which version of discord's content scanner checked this file
+  declare contentScanVersion?: number;
   declare contentType?: string;
   declare description?: string;
   declare durationSecs?: number;
@@ -136,6 +157,8 @@ export class Attachment extends BaseStructure {
   flags: number = 0;
   height: number = 0;
   id: string = '';
+  // the uploaded file's type, when discord converted it (`contentType` is then the converted one)
+  declare originalContentType?: string;
   declare placeholder?: string;
   declare placeholderVersion?: number;
   proxyUrl: string = '';
@@ -178,10 +201,39 @@ export class Attachment extends BaseStructure {
     return Snowflake.timestamp(this.id);
   }
 
+  /**
+   * When the signed cdn url stops working, from its `ex` query parameter (hex unix seconds)
+   */
+  get expiresAt(): Date | null {
+    const unix = this.expiresAtUnix;
+    return (unix) ? new Date(unix) : null;
+  }
+
+  get expiresAtUnix(): number {
+    return getAttachmentUrlExpiry(this.url) || getAttachmentUrlExpiry(this.proxyUrl);
+  }
+
+  get isExpired(): boolean {
+    const unix = this.expiresAtUnix;
+    return !!unix && unix <= Date.now();
+  }
+
   get extension(): string {
     // no '.' means no extension, not the whole filename
     const index = this.filename.lastIndexOf('.');
     return (index === -1) ? '' : this.filename.slice(index + 1);
+  }
+
+  get containsExplicitMedia(): boolean {
+    return this.hasFlag(MessageAttachmentFlags.CONTAINS_EXPLICIT_MEDIA);
+  }
+
+  get containsGoreContent(): boolean {
+    return this.hasFlag(MessageAttachmentFlags.CONTAINS_GORE_CONTENT);
+  }
+
+  get containsSelfHarmContent(): boolean {
+    return this.hasFlag(MessageAttachmentFlags.CONTAINS_SELF_HARM_CONTENT);
   }
 
   get hasSpoiler(): boolean {
@@ -191,8 +243,24 @@ export class Attachment extends BaseStructure {
     return this.filename.startsWith(SPOILER_ATTACHMENT_PREFIX);
   }
 
+  get hasTimelineComments(): boolean {
+    return this.hasFlag(MessageAttachmentFlags.HAS_TIMELINE_COMMENTS);
+  }
+
+  get isAnimated(): boolean {
+    return this.hasFlag(MessageAttachmentFlags.IS_ANIMATED);
+  }
+
   get isClip(): boolean {
-    return (this.flags & MessageAttachmentFlags.IS_CLIP) === MessageAttachmentFlags.IS_CLIP;
+    return this.hasFlag(MessageAttachmentFlags.IS_CLIP);
+  }
+
+  get isRemix(): boolean {
+    return this.hasFlag(MessageAttachmentFlags.IS_REMIX);
+  }
+
+  get isThumbnail(): boolean {
+    return this.hasFlag(MessageAttachmentFlags.IS_THUMBNAIL);
   }
 
   get isAudio(): boolean {
@@ -215,6 +283,10 @@ export class Attachment extends BaseStructure {
     return this.contentType || '';
   }
 
+  hasFlag(flag: number): boolean {
+    return (this.flags & flag) === flag;
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
@@ -222,6 +294,12 @@ export class Attachment extends BaseStructure {
 
     if (DiscordKeys.CONTENT_TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.CONTENT_TYPE]] = data[DiscordKeys.CONTENT_TYPE];
+    }
+    if (DiscordKeys.CONTENT_SCAN_VERSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONTENT_SCAN_VERSION]] = data[DiscordKeys.CONTENT_SCAN_VERSION];
+    }
+    if (DiscordKeys.ORIGINAL_CONTENT_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ORIGINAL_CONTENT_TYPE]] = data[DiscordKeys.ORIGINAL_CONTENT_TYPE];
     }
     if (DiscordKeys.DESCRIPTION in data) {
       (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];

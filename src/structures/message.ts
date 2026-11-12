@@ -1661,7 +1661,9 @@ export class MessagePollAnswer extends BaseStructure {
 
 
 const keysMessagePollMedia = new BaseSet<string>([
+  DiscordKeys.ATTACHMENT_IDS,
   DiscordKeys.EMOJI,
+  DiscordKeys.STICKER_ID,
   DiscordKeys.TEXT,
 ]);
 
@@ -1674,7 +1676,10 @@ export class MessagePollMedia extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysMessagePollMedia); }
   declare readonly poll: MessagePoll;
 
+  // the answer's images on `IMAGE_ONLY_ANSWERS` polls, ids of the message's attachments
+  declare attachmentIds?: Array<string>;
   declare emoji?: Emoji;
+  declare stickerId?: string;
   declare text?: string;
 
   constructor(poll: MessagePoll, data: BaseStructureData) {
@@ -1683,11 +1688,25 @@ export class MessagePollMedia extends BaseStructure {
     this.merge(data);
   }
 
+  get attachments(): Array<Attachment> {
+    if (!this.attachmentIds || !this.poll.message) {
+      return [];
+    }
+    const attachments = this.poll.message.attachments;
+    return this.attachmentIds.map((id) => attachments.get(id)).filter((x) => !!x) as Array<Attachment>;
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
     }
 
+    if (DiscordKeys.ATTACHMENT_IDS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ATTACHMENT_IDS]] = data[DiscordKeys.ATTACHMENT_IDS];
+    }
+    if (DiscordKeys.STICKER_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.STICKER_ID]] = data[DiscordKeys.STICKER_ID];
+    }
     if (DiscordKeys.EMOJI in data) {
       const value = new Emoji(this.client, data[DiscordKeys.EMOJI], this.isClone);
       (this as any)[DetritusKeys[DiscordKeys.EMOJI]] = value;

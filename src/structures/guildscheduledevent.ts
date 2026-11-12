@@ -12,6 +12,7 @@ import {
   GuildScheduledEventRecurrenceRuleWeekdays,
   GuildScheduledEventStatusTypes,
 } from '../constants';
+import type { GatewayRawEvents } from '../gateway/rawevents';
 import { Snowflake } from '../utils';
 
 import {
@@ -33,6 +34,7 @@ const keysGuildScheduledEvent = new BaseSet<string>([
   DiscordKeys.ENTITY_METADATA,
   DiscordKeys.ENTITY_TYPE,
   DiscordKeys.GUILD_ID,
+  DiscordKeys.GUILD_SCHEDULED_EVENT_EXCEPTIONS,
   DiscordKeys.ID,
   DiscordKeys.IMAGE,
   DiscordKeys.NAME,
@@ -60,6 +62,8 @@ export class GuildScheduledEvent extends BaseStructure {
   entityMetadata: any;
   entityType: GuildScheduledEventEntityTypes = GuildScheduledEventEntityTypes.STAGE_INSTANCE;
   guildId: string = '';
+  // raw, the occurrences of a recurring event that were moved or canceled (kept up to date by the exception events)
+  guildScheduledEventExceptions: Array<GatewayRawEvents.RawGuildScheduledEventException> = [];
   id: string = '';
   declare image?: string | null;
   name: string = '';
@@ -189,6 +193,30 @@ export class GuildScheduledEvent extends BaseStructure {
     if (DiscordKeys.USER_COUNT in data) {
       (this as any)[DetritusKeys[DiscordKeys.USER_COUNT]] = data[DiscordKeys.USER_COUNT];
     }
+    if (DiscordKeys.GUILD_SCHEDULED_EVENT_EXCEPTIONS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.GUILD_SCHEDULED_EVENT_EXCEPTIONS]] = data[DiscordKeys.GUILD_SCHEDULED_EVENT_EXCEPTIONS] || [];
+    }
+  }
+
+  /**
+   * Adds or replaces an exception, from GUILD_SCHEDULED_EVENT_EXCEPTION_CREATE/UPDATE
+   */
+  setException(exception: GatewayRawEvents.RawGuildScheduledEventException): void {
+    const index = this.guildScheduledEventExceptions.findIndex((x) => x.event_exception_id === exception.event_exception_id);
+    const exceptions = this.guildScheduledEventExceptions.slice();
+    if (index === -1) {
+      exceptions.push(exception);
+    } else {
+      exceptions[index] = exception;
+    }
+    this.guildScheduledEventExceptions = exceptions;
+  }
+
+  /**
+   * From GUILD_SCHEDULED_EVENT_EXCEPTION_DELETE
+   */
+  deleteException(exceptionId: string): void {
+    this.guildScheduledEventExceptions = this.guildScheduledEventExceptions.filter((x) => x.event_exception_id !== exceptionId);
   }
 }
 

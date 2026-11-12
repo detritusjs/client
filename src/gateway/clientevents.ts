@@ -425,18 +425,24 @@ export namespace GatewayClientEvents {
   }
 
   export interface GuildScheduledEventExceptionCreate {
+    // null when the event isn't cached
+    event: GuildScheduledEvent | null,
     exception: GatewayRawEvents.GuildScheduledEventExceptionCreate,
-    guildId: string | undefined,
+    guildId: string,
   }
 
   export interface GuildScheduledEventExceptionDelete {
+    event: GuildScheduledEvent | null,
     exception: GatewayRawEvents.GuildScheduledEventExceptionDelete,
-    guildId: string | undefined,
+    guildId: string,
   }
 
   export interface GuildScheduledEventExceptionUpdate {
+    event: GuildScheduledEvent | null,
+    // the exception before the update, if the event was cached and had it
+    old: GatewayRawEvents.RawGuildScheduledEventException | null,
     exception: GatewayRawEvents.GuildScheduledEventExceptionUpdate,
-    guildId: string | undefined,
+    guildId: string,
   }
 
   export interface GuildScheduledEventUpdate {
@@ -450,7 +456,11 @@ export namespace GatewayClientEvents {
   export interface GuildScheduledEventUserAdd {
     guild: Guild | null,
     guildId: string,
+    // set when the rsvp is for one occurrence of a recurring event
+    guildScheduledEventExceptionId: null | string,
     guildScheduledEventId: string,
+    // `GuildScheduledEventUserResponses`
+    response: number | null,
     user: User | null,
     userId: string,
   }
@@ -458,7 +468,9 @@ export namespace GatewayClientEvents {
   export interface GuildScheduledEventUserRemove {
     guild: Guild | null,
     guildId: string,
+    guildScheduledEventExceptionId: null | string,
     guildScheduledEventId: string,
+    response: number | null,
     user: User | null,
     userId: string,
   }

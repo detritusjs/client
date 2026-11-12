@@ -53,6 +53,7 @@ const keysMember = new BaseSet<string>([
   DiscordKeys.PERMISSIONS,
   DiscordKeys.PREMIUM_SINCE,
   DiscordKeys.ROLES,
+  DiscordKeys.UNUSUAL_DM_ACTIVITY_UNTIL,
   DiscordKeys.USER,
 ]);
 
@@ -98,6 +99,8 @@ export class Member extends UserMixin {
   nick: null | string = null;
   pending: boolean = false;
   premiumSinceUnix: number = 0;
+  // discord flagged the member for sending a lot of dms to people it doesn't know, until this time
+  unusualDmActivityUntilUnix: number = 0;
 
   constructor(
     client: ShardClient,
@@ -239,6 +242,10 @@ export class Member extends UserMixin {
 
   get hasGuildAvatarDecoration(): boolean {
     return !!this._avatarDecorationData;
+  }
+
+  get hasUnusualDmActivity(): boolean {
+    return Date.now() < this.unusualDmActivityUntilUnix;
   }
 
   get highestRole(): null | Role {
@@ -395,6 +402,13 @@ export class Member extends UserMixin {
     }
 
     return collection;
+  }
+
+  get unusualDmActivityUntil(): Date | null {
+    if (this.unusualDmActivityUntilUnix) {
+      return new Date(this.unusualDmActivityUntilUnix);
+    }
+    return null;
   }
 
   get voiceChannel(): ChannelGuildStageVoice | ChannelGuildVoice | null {
@@ -686,6 +700,10 @@ export class Member extends UserMixin {
     if (DiscordKeys.ROLES in data) {
       const value = data[DiscordKeys.ROLES];
       this._roles = (value.length) ? value : undefined;
+    }
+    if (DiscordKeys.UNUSUAL_DM_ACTIVITY_UNTIL in data) {
+      const value = data[DiscordKeys.UNUSUAL_DM_ACTIVITY_UNTIL];
+      this.unusualDmActivityUntilUnix = (value) ? Date.parse(value) : 0;
     }
     if (DiscordKeys.USER in data) {
       const value = data[DiscordKeys.USER];

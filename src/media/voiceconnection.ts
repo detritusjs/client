@@ -556,6 +556,8 @@ export class VoiceConnection extends EventSpewer {
   async setSpeaking(
     options: {
       delay?: number,
+      // sends audio without discord's clients showing a speaking indicator
+      hidden?: boolean,
       priority?: boolean,
       ssrc?: number,
       soundshare?: boolean,

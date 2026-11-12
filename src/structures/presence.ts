@@ -625,6 +625,8 @@ export class PresenceActivity extends BaseStructure {
       case ActivityTypes.LISTENING: return 'Listening to';
       case ActivityTypes.WATCHING: return 'Watching';
       case ActivityTypes.CUSTOM_STATUS: return '';
+      case ActivityTypes.COMPETING: return 'Competing in';
+      case ActivityTypes.HANG_STATUS: return '';
     }
     return 'Unknown';
   }

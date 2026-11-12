@@ -12,6 +12,7 @@ import {
 } from './basestructure';
 import { Channel } from './channel';
 import { Guild } from './guild';
+import { User } from './user';
 import { VoiceState } from './voicestate';
 
 
@@ -26,9 +27,11 @@ const keysStageInstance = new BaseSet<string>([
   DiscordKeys.DISCOVERABLE_DISABLED,
   DiscordKeys.GUILD_ID,
   DiscordKeys.GUILD_SCHEDULED_EVENT_ID,
+  DiscordKeys.HOST_ID,
   DiscordKeys.ID,
   DiscordKeys.INVITE_CODE,
   DiscordKeys.PRIVACY_LEVEL,
+  DiscordKeys.SEND_START_NOTIFICATION,
   DiscordKeys.TOPIC,
 ]);
 
@@ -45,9 +48,13 @@ export class StageInstance extends BaseStructure {
   discoverableDisabled: boolean = false;
   guildId: string = '';
   guildScheduledEventId: null | string = null;
+  // the user who started the stage
+  hostId: null | string = null;
   id: string = '';
   inviteCode: null | string = null;
   privacyLevel: StagePrivacyLevels = StagePrivacyLevels.PUBLIC;
+  // if members were notified when the stage started
+  sendStartNotification: boolean = false;
   topic: string = '';
 
   constructor(
@@ -65,6 +72,10 @@ export class StageInstance extends BaseStructure {
 
   get guild(): Guild | null {
     return this.client.guilds.get(this.guildId) || null;
+  }
+
+  get host(): User | null {
+    return (this.hostId) ? this.client.users.get(this.hostId) || null : null;
   }
 
   get isGuildOnly(): boolean {
@@ -152,6 +163,9 @@ export class StageInstance extends BaseStructure {
     if (DiscordKeys.GUILD_SCHEDULED_EVENT_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_SCHEDULED_EVENT_ID]] = data[DiscordKeys.GUILD_SCHEDULED_EVENT_ID];
     }
+    if (DiscordKeys.HOST_ID in data) {
+      (this as any)[DetritusKeys[DiscordKeys.HOST_ID]] = data[DiscordKeys.HOST_ID];
+    }
     if (DiscordKeys.ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
@@ -160,6 +174,9 @@ export class StageInstance extends BaseStructure {
     }
     if (DiscordKeys.PRIVACY_LEVEL in data) {
       (this as any)[DetritusKeys[DiscordKeys.PRIVACY_LEVEL]] = data[DiscordKeys.PRIVACY_LEVEL];
+    }
+    if (DiscordKeys.SEND_START_NOTIFICATION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.SEND_START_NOTIFICATION]] = !!data[DiscordKeys.SEND_START_NOTIFICATION];
     }
     if (DiscordKeys.TOPIC in data) {
       (this as any)[DetritusKeys[DiscordKeys.TOPIC]] = data[DiscordKeys.TOPIC];

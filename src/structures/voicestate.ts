@@ -19,7 +19,9 @@ import { Member } from './member';
 
 const keysVoiceState = new BaseSet<string>([
   DiscordKeys.CHANNEL_ID,
+  DiscordKeys.CONNECTED_AT,
   DiscordKeys.DEAF,
+  DiscordKeys.DISCOVERABLE,
   DiscordKeys.GUILD_ID,
   DiscordKeys.MEMBER,
   DiscordKeys.MUTE,
@@ -58,7 +60,11 @@ export class VoiceState extends BaseStructure {
   declare _isSpeaking: boolean;
 
   declare channelId?: null | string;
+  // unix seconds of when they joined the channel, as discord sends it (see `connectedAtUnix`)
+  declare connectedAt?: null | number;
   deaf: boolean = false;
+  // false hides them from the channel's participant list (discord's client treats a missing value as true)
+  discoverable: boolean = true;
   declare guildId?: null | string;
   member: Member | null = null;
   mute: boolean = false;
@@ -86,6 +92,10 @@ export class VoiceState extends BaseStructure {
       return this.client.channels.get(this.channelId) as ChannelGuildStageVoice | ChannelGuildVoice;
     }
     return null;
+  }
+
+  get connectedAtUnix(): number {
+    return (this.connectedAt) ? this.connectedAt * 1000 : 0;
   }
 
   get guild(): Guild | null {
@@ -177,8 +187,15 @@ export class VoiceState extends BaseStructure {
     if (DiscordKeys.CHANNEL_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.CHANNEL_ID]] = data[DiscordKeys.CHANNEL_ID];
     }
+    if (DiscordKeys.CONNECTED_AT in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONNECTED_AT]] = data[DiscordKeys.CONNECTED_AT];
+    }
     if (DiscordKeys.DEAF in data) {
       (this as any)[DetritusKeys[DiscordKeys.DEAF]] = data[DiscordKeys.DEAF];
+    }
+    if (DiscordKeys.DISCOVERABLE in data) {
+      const value = data[DiscordKeys.DISCOVERABLE];
+      (this as any)[DetritusKeys[DiscordKeys.DISCOVERABLE]] = (value === null || value === undefined) ? true : !!value;
     }
     if (DiscordKeys.MEMBER in data) {
       const value = data[DiscordKeys.MEMBER];

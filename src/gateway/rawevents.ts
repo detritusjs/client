@@ -354,19 +354,16 @@ export namespace GatewayRawEvents {
     
   }
 
-  export interface GuildScheduledEventExceptionCreate {
-    guild_id?: string,
-    [key: string]: any,
+  export interface GuildScheduledEventExceptionCreate extends RawGuildScheduledEventException {
+
   }
 
-  export interface GuildScheduledEventExceptionDelete {
-    guild_id?: string,
-    [key: string]: any,
+  export interface GuildScheduledEventExceptionDelete extends RawGuildScheduledEventException {
+
   }
 
-  export interface GuildScheduledEventExceptionUpdate {
-    guild_id?: string,
-    [key: string]: any,
+  export interface GuildScheduledEventExceptionUpdate extends RawGuildScheduledEventException {
+
   }
 
   export interface GuildScheduledEventUpdate extends RawGuildScheduledEvent {
@@ -375,13 +372,19 @@ export namespace GatewayRawEvents {
 
   export interface GuildScheduledEventUserAdd {
     guild_id: string,
+    guild_scheduled_event_exception_id?: null | string,
     guild_scheduled_event_id: string,
+    // `GuildScheduledEventUserResponses`
+    response?: number,
     user_id: string,
   }
 
   export interface GuildScheduledEventUserRemove {
     guild_id: string,
+    guild_scheduled_event_exception_id?: null | string,
     guild_scheduled_event_id: string,
+    // `GuildScheduledEventUserResponses`
+    response?: number,
     user_id: string,
   }
 
@@ -1221,6 +1224,18 @@ export namespace GatewayRawEvents {
     user_count?: number,
   }
 
+  // one occurrence of a recurring event that was moved or canceled
+  export interface RawGuildScheduledEventException {
+    event_exception_id: string,
+    event_id: string,
+    guild_id: string,
+    is_canceled: boolean,
+    // on create, which occurrence this replaces
+    original_scheduled_start_time?: string,
+    scheduled_end_time: null | string,
+    scheduled_start_time: null | string,
+  }
+
   export interface RawMemberWithoutUser {
     deaf: boolean,
     joined_at: string,
@@ -1538,7 +1553,10 @@ export namespace GatewayRawEvents {
 
   export interface RawVoiceState {
     channel_id: string,
+    // unix seconds
+    connected_at?: null | number,
     deaf: boolean,
+    discoverable?: boolean,
     guild_id?: string,
     mute: boolean,
     self_deaf: boolean,

@@ -890,18 +890,23 @@ export enum DiscordOpusFormat {
 
 export enum DiscordRegexNames {
   EMOJI = 'EMOJI',
+  GUILD_NAVIGATION = 'GUILD_NAVIGATION',
   JUMP_CHANNEL = 'JUMP_CHANNEL',
   JUMP_CHANNEL_MESSAGE = 'JUMP_CHANNEL_MESSAGE',
   MENTION_CHANNEL = 'MENTION_CHANNEL',
+  MENTION_COMMAND = 'MENTION_COMMAND',
   MENTION_ROLE = 'MENTION_ROLE',
   MENTION_USER = 'MENTION_USER',
+  SOUNDBOARD_SOUND = 'SOUNDBOARD_SOUND',
   TEXT_BOLD = 'TEXT_BOLD',
   TEXT_CODEBLOCK = 'TEXT_CODEBLOCK',
   TEXT_CODESTRING = 'TEXT_CODESTRING',
+  TEXT_HEADER = 'TEXT_HEADER',
   TEXT_ITALICS = 'TEXT_ITALICS',
   TEXT_SNOWFLAKE = 'TEXT_SNOWFLAKE',
   TEXT_SPOILER = 'TEXT_SPOILER',
   TEXT_STRIKE = 'TEXT_STRIKE',
+  TEXT_SUBTEXT = 'TEXT_SUBTEXT',
   TEXT_UNDERLINE = 'TEXT_UNDERLINE',
   TEXT_URL = 'TEXT_URL',
   TIMESTAMP = 'TIMESTAMP',
@@ -910,21 +915,28 @@ export enum DiscordRegexNames {
 
 export const DiscordRegex = Object.freeze({
   [DiscordRegexNames.EMOJI]: /<(a?):(\w+):(\d+)>/g,
+  [DiscordRegexNames.GUILD_NAVIGATION]: /<id:(home|browse|customize|guide|linked-roles)(?::(\d+))?>/g,
   [DiscordRegexNames.JUMP_CHANNEL]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)$/g,
   [DiscordRegexNames.JUMP_CHANNEL_MESSAGE]: /^(?:https?):\/\/(?:(?:(?:canary|ptb)\.)?(?:discord|discordapp)\.com\/channels\/)(\@me|\d+)\/(\d+)\/(\d+)$/g,
   [DiscordRegexNames.MENTION_CHANNEL]: /<#(\d+)>/g,
+  // the name can have a sub command group and a sub command in it (`</name group sub:id>`)
+  [DiscordRegexNames.MENTION_COMMAND]: /<\/((?:[-_\p{Letter}\p{Number}\p{sc=Deva}\p{sc=Thai}]{1,32})(?: [-_\p{Letter}\p{Number}\p{sc=Deva}\p{sc=Thai}]{1,32}){0,2}):(\d+)>/gu,
   [DiscordRegexNames.MENTION_ROLE]: /<@&(\d+)>/g,
   [DiscordRegexNames.MENTION_USER]: /<@(!?)(\d+)>/g,
+  // the guild id is `0` for the default sounds
+  [DiscordRegexNames.SOUNDBOARD_SOUND]: /<sound:(\d+):(\d+)>/g,
   [DiscordRegexNames.TEXT_BOLD]: /\*\*([\s\S]+?)\*\*/g,
-  [DiscordRegexNames.TEXT_CODEBLOCK]: /```(([a-z0-9-]+?)\n+)?\n*([^]+?)\n*```/gi,
+  [DiscordRegexNames.TEXT_CODEBLOCK]: /```(([a-z0-9_+\-.#]+?)\n+)?\n*([^]+?)\n*```/gi,
   [DiscordRegexNames.TEXT_CODESTRING]: /`([\s\S]+?)`/g,
+  [DiscordRegexNames.TEXT_HEADER]: /^ *(#{1,3})\s+((?!\s*#{1,3}\s)[^\n]+?)#*\s*$/gm,
   [DiscordRegexNames.TEXT_ITALICS]: /_([\s\S]+?)_|\*([\s\S]+?)\*/g,
   [DiscordRegexNames.TEXT_SNOWFLAKE]: /(\d+)/g,
   [DiscordRegexNames.TEXT_SPOILER]: /\|\|([\s\S]+?)\|\|/g,
   [DiscordRegexNames.TEXT_STRIKE]: /~~([\s\S]+?)~~(?!_)/g,
+  [DiscordRegexNames.TEXT_SUBTEXT]: /^ *-# +((?!-#)[^\n]+)$/gm,
   [DiscordRegexNames.TEXT_UNDERLINE]: /__([\s\S]+?)__/g,
   [DiscordRegexNames.TEXT_URL]: /(?:((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s])|<((?:https?):\/\/[^\s<]+[^<.,:;"'\]\s>])>)/g,
-  [DiscordRegexNames.TIMESTAMP]: /<t:(\d+)(?::(D|d|F|f|R|T|t))?>/g,
+  [DiscordRegexNames.TIMESTAMP]: /<t:(-?\d{1,17})(?::(D|d|F|f|R|S|s|T|t))?>/g,
 });
 
 
@@ -1247,6 +1259,12 @@ export enum GuildScheduledEventStatusTypes {
   CANCELLED = 4,
 }
 
+// a user's rsvp, on GUILD_SCHEDULED_EVENT_USER_ADD/REMOVE
+export enum GuildScheduledEventUserResponses {
+  UNINTERESTED = 0,
+  INTERESTED = 1,
+}
+
 
 export enum GuildWidgetStyles {
   BANNER_1 = 'banner1',
@@ -1282,8 +1300,9 @@ export enum InteractionCallbackTypes {
   APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8,
   MODAL = 9,
   PREMIUM_REQUIRED = 10,
-
+  IFRAME_MODAL = 11,
   LAUNCH_ACTIVITY = 12,
+  SOCIAL_LAYER_SKU_PURCHASE_ELIGIBILITY = 13,
 }
 
 
@@ -1440,11 +1459,23 @@ export const LocalesText = Object.freeze({
 });
 
 
+// where a `<id:type>` link goes inside of the guild
+export enum MarkupGuildNavigationTypes {
+  BROWSE = 'browse',
+  CUSTOMIZE = 'customize',
+  GUIDE = 'guide',
+  HOME = 'home',
+  LINKED_ROLES = 'linked-roles',
+}
+
 export enum MarkupTimestampStyles {
   BOTH_LONG = 'F',
   BOTH_SHORT = 'f',
   DATE_LONG = 'D',
   DATE_SHORT = 'd',
+  // short date with the time, `S` has seconds
+  DATE_SHORT_TIME_LONG = 'S',
+  DATE_SHORT_TIME_SHORT = 's',
   RELATIVE = 'R',
   TIME_LONG = 'T',
   TIME_SHORT = 't',
@@ -1466,6 +1497,14 @@ export enum MessageComponentInputTextStyles {
   PARAGRAPH = 2,
 }
 
+
+// `loading_state` of the media inside of components
+export enum MessageComponentMediaLoadingStates {
+  UNKNOWN = 0,
+  LOADING = 1,
+  LOADED_SUCCESS = 2,
+  LOADED_NOT_FOUND = 3,
+}
 
 export enum MessageComponentTypes {
   ACTION_ROW = 1,
@@ -1522,6 +1561,8 @@ export enum MessageAttachmentFlags {
   IS_THUMBNAIL = 1 << 1,
   IS_REMIX = 1 << 2,
   IS_SPOILER = 1 << 3,
+  CONTAINS_EXPLICIT_MEDIA = 1 << 4,
+  /** @deprecated discord calls it `CONTAINS_EXPLICIT_MEDIA` */
   CONTAINS_EXPLICIT_CONTENT = 1 << 4,
   IS_ANIMATED = 1 << 5,
   CONTAINS_GORE_CONTENT = 1 << 6,
@@ -1530,11 +1571,66 @@ export enum MessageAttachmentFlags {
 }
 
 
+// names of the `fields` on `age_verification_system_notification` embeds, discord stores data in them
+export enum MessageEmbedAgeVerificationFields {
+  CTAS = 'ctas',
+}
+
+// names of the `fields` on `auto_moderation_message` embeds, discord stores data in them
+export enum MessageEmbedAutoModerationFields {
+  ALERT_ACTIONS_EXECUTION = 'alert_actions_execution',
+  APPLICATION_NAME = 'application_name',
+  BLOCK_PROFILE_UPDATE_TYPE = 'block_profile_update_type',
+  CHANNEL_ID = 'channel_id',
+  DECISION_ID = 'decision_id',
+  DECISION_OUTCOME = 'decision_outcome',
+  DECISION_REASON = 'decision_reason',
+  FLAGGED_MESSAGE_ID = 'flagged_message_id',
+  GUILD_ROOM_NOTE_OUTCOME = 'guild_room_note_outcome',
+  INTERACTION_CALLBACK_TYPE = 'interaction_callback_type',
+  INTERACTION_USER_ID = 'interaction_user_id',
+  KEYWORD = 'keyword',
+  KEYWORD_MATCHED_CONTENT = 'keyword_matched_content',
+  QUARANTINE_EVENT = 'quarantine_event',
+  QUARANTINE_USER = 'quarantine_user',
+  QUARANTINE_USER_ACTION = 'quarantine_user_action',
+  RULE_NAME = 'rule_name',
+  TIMEOUT_DURATION = 'timeout_duration',
+  VOICE_CHANNEL_STATUS_OUTCOME = 'voice_channel_status_outcome',
+}
+
+// names of the `fields` on `auto_moderation_notification` embeds, discord stores data in them
+export enum MessageEmbedAutoModerationNotificationFields {
+  ACTION_BY_USER_ID = 'action_by_user_id',
+  DECISION_ID = 'decision_id',
+  DMS_SENT = 'dms_sent',
+  JOIN_ATTEMPTS = 'join_attempts',
+  NOTIFICATION_TYPE = 'notification_type',
+  RAID_DATETIME = 'raid_datetime',
+  RAID_TYPE = 'raid_type',
+  RESOLVED_REASON = 'resolved_reason',
+  SUSPICIOUS_MENTION_ACTIVITY_UNTIL = 'suspicious_mention_activity_until',
+}
+
 export enum MessageEmbedFlags {
+  CONTAINS_EXPLICIT_MEDIA = 1 << 4,
+  /** @deprecated discord calls it `CONTAINS_EXPLICIT_MEDIA` */
   CONTAINS_EXPLICIT_CONTENT = 1 << 4,
   IS_CONTENT_INVENTORY_ENTRY = 1 << 5,
   CONTAINS_GORE_CONTENT = 1 << 6,
   CONTAINS_SELF_HARM_CONTENT = 1 << 7,
+}
+
+// names of the `fields` on `poll_result` embeds, discord stores data in them (all values are strings)
+export enum MessageEmbedPollResultFields {
+  POLL_QUESTION_TEXT = 'poll_question_text',
+  TOTAL_VOTES = 'total_votes',
+  VICTOR_ANSWER_EMOJI_ANIMATED = 'victor_answer_emoji_animated',
+  VICTOR_ANSWER_EMOJI_ID = 'victor_answer_emoji_id',
+  VICTOR_ANSWER_EMOJI_NAME = 'victor_answer_emoji_name',
+  VICTOR_ANSWER_ID = 'victor_answer_id',
+  VICTOR_ANSWER_TEXT = 'victor_answer_text',
+  VICTOR_ANSWER_VOTES = 'victor_answer_votes',
 }
 
 export enum MessageEmbedTypes {
@@ -1589,6 +1685,8 @@ export enum MessageFlags {
 
 export enum MessagePollLayoutTypes {
   DEFAULT = 1,
+  // answers are images (attachments) instead of text
+  IMAGE_ONLY_ANSWERS = 2,
 }
 
 
@@ -2479,8 +2577,10 @@ export const DiscordKeys = Object.freeze({
   ARCHIVER_ID: 'archiver_id',
   ASSET: 'asset',
   ASSETS: 'assets',
+  ATTACHMENT_IDS: 'attachment_ids',
   ATTACHMENT_SIZE_LIMIT: 'attachment_size_limit',
   ATTACHMENTS: 'attachments',
+  AUDIO: 'audio',
   AUTHOR: 'author',
   AUTHORIZING_INTEGRATION_OWNERS: 'authorizing_integration_owners',
   AUTO_ARCHIVE_DURATION: 'auto_archive_duration',
@@ -2536,11 +2636,13 @@ export const DiscordKeys = Object.freeze({
   COMPONENT_TYPE: 'component_type',
   COMPONENTS: 'components',
   CONNECTED_ACCOUNTS: 'connected_accounts',
+  CONNECTED_AT: 'connected_at',
   CONSUMED: 'consumed',
   CONTENT: 'content',
   CONTENT_RATING: 'content_rating',
   CONTENT_RATING_AGENCY: 'content_rating_agency',
   CONTENT_SCAN_METADATA: 'content_scan_metadata',
+  CONTENT_SCAN_VERSION: 'content_scan_version',
   CONTENT_TYPE: 'content_type',
   CONTEXT: 'context',
   CONTEXTS: 'contexts',
@@ -2585,6 +2687,7 @@ export const DiscordKeys = Object.freeze({
   DETAILS_URL: 'details_url',
   DEVELOPERS: 'developers',
   DISABLED: 'disabled',
+  DISCOVERABLE: 'discoverable',
   DISCOVERABLE_DISABLED: 'discoverable_disabled',
   DISCOVERY_SPLASH: 'discovery_splash',
   DISCRIMINATOR: 'discriminator',
@@ -2659,6 +2762,7 @@ export const DiscordKeys = Object.freeze({
   GUILD_PARTIAL: 'guild_partial',
   GUILD_SCHEDULED_EVENT: 'guild_scheduled_event',
   GUILD_SCHEDULED_EVENTS: 'guild_scheduled_events',
+  GUILD_SCHEDULED_EVENT_EXCEPTIONS: 'guild_scheduled_event_exceptions',
   GUILD_SCHEDULED_EVENT_ID: 'guild_scheduled_event_id',
   GUILD_SPACE_SETTINGS: 'guild_space_settings',
   HANDLER: 'handler',
@@ -2673,6 +2777,7 @@ export const DiscordKeys = Object.freeze({
   HOIST: 'hoist',
   HOISTED_ROLE: 'hoisted_role',
   HOOK: 'hook',
+  HOST_ID: 'host_id',
   HUB_TYPE: 'hub_type',
   ICON: 'icon',
   ICON_EMOJI: 'icon_emoji',
@@ -2732,6 +2837,7 @@ export const DiscordKeys = Object.freeze({
   LEGAL_NOTICE: 'legal_notice',
   LINKED_GAME_ORGANIZATION: 'linked_game_organization',
   LINKED_LOBBY: 'linked_lobby',
+  LOADING_STATE: 'loading_state',
   LOCALE: 'locale',
   LOCALES: 'locales',
   LOCATION: 'location',
@@ -2799,6 +2905,7 @@ export const DiscordKeys = Object.freeze({
   OLD_VALUE: 'old_value',
   OPTIMAL: 'optimal',
   OPTIONS: 'options',
+  ORIGINAL_CONTENT_TYPE: 'original_content_type',
   ORIGINAL_RESPONSE_MESSAGE_ID: 'original_response_message_id',
   OS: 'os',
   OVERLAY: 'overlay',
@@ -2904,6 +3011,7 @@ export const DiscordKeys = Object.freeze({
   SELF_MUTE: 'self_mute',
   SELF_STREAM: 'self_stream',
   SELF_VIDEO: 'self_video',
+  SEND_START_NOTIFICATION: 'send_start_notification',
   SERIALIZED_SOURCE_GUILD: 'serialized_source_guild',
   SESSION_ID: 'session_id',
   SHOW_ACTIVITY: 'show_activity',
@@ -2935,6 +3043,7 @@ export const DiscordKeys = Object.freeze({
   STATUS: 'status',
   STATUS_DISPLAY_TYPE: 'status_display_type',
   STICKERS: 'stickers',
+  STICKER_ID: 'sticker_id',
   STICKER_ITEMS: 'sticker_items',
   STOPPED: 'stopped',
   STORE_APPLICATION_STATE: 'store_application_state',
@@ -2995,6 +3104,7 @@ export const DiscordKeys = Object.freeze({
   TYPE: 'type',
   UNAVAILABLE: 'unavailable',
   UNICODE_EMOJI: 'unicode_emoji',
+  UNUSUAL_DM_ACTIVITY_UNTIL: 'unusual_dm_activity_until',
   UPDATED_AT: 'updated_at',
   UPLOAD_FILENAME: 'upload_filename',
   UPLOAD_URL: 'upload_url',
@@ -3074,8 +3184,10 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.ARCHIVER_ID]: 'archiverId',
   [DiscordKeys.ASSET]: 'asset',
   [DiscordKeys.ASSETS]: 'assets',
+  [DiscordKeys.ATTACHMENT_IDS]: 'attachmentIds',
   [DiscordKeys.ATTACHMENT_SIZE_LIMIT]: 'attachmentSizeLimit',
   [DiscordKeys.ATTACHMENTS]: 'attachments',
+  [DiscordKeys.AUDIO]: 'audio',
   [DiscordKeys.AUTHOR]: 'author',
   [DiscordKeys.AUTHORIZING_INTEGRATION_OWNERS]: 'authorizingIntegrationOwners',
   [DiscordKeys.AUTO_ARCHIVE_DURATION]: 'autoArchiveDuration',
@@ -3131,11 +3243,13 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.COMPONENT_TYPE]: 'componentType',
   [DiscordKeys.COMPONENTS]: 'components',
   [DiscordKeys.CONNECTED_ACCOUNTS]: 'connectedAccounts',
+  [DiscordKeys.CONNECTED_AT]: 'connectedAt',
   [DiscordKeys.CONSUMED]: 'consumed',
   [DiscordKeys.CONTENT]: 'content',
   [DiscordKeys.CONTENT_RATING]: 'contentRating',
   [DiscordKeys.CONTENT_RATING_AGENCY]: 'contentRatingAgency',
   [DiscordKeys.CONTENT_SCAN_METADATA]: 'contentScanMetadata',
+  [DiscordKeys.CONTENT_SCAN_VERSION]: 'contentScanVersion',
   [DiscordKeys.CONTENT_TYPE]: 'contentType',
   [DiscordKeys.CONTEXT]: 'context',
   [DiscordKeys.CONTEXTS]: 'contexts',
@@ -3180,6 +3294,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.DETAILS_URL]: 'detailsUrl',
   [DiscordKeys.DEVELOPERS]: 'developers',
   [DiscordKeys.DISABLED]: 'disabled',
+  [DiscordKeys.DISCOVERABLE]: 'discoverable',
   [DiscordKeys.DISCOVERABLE_DISABLED]: 'discoverableDisabled',
   [DiscordKeys.DISCOVERY_SPLASH]: 'discoverySplash',
   [DiscordKeys.DISCRIMINATOR]: 'discriminator',
@@ -3254,6 +3369,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.GUILD_PARTIAL]: 'guildPartial',
   [DiscordKeys.GUILD_SCHEDULED_EVENT]: 'guildScheduledEvent',
   [DiscordKeys.GUILD_SCHEDULED_EVENTS]: 'guildScheduledEvents',
+  [DiscordKeys.GUILD_SCHEDULED_EVENT_EXCEPTIONS]: 'guildScheduledEventExceptions',
   [DiscordKeys.GUILD_SCHEDULED_EVENT_ID]: 'guildScheduledEventId',
   [DiscordKeys.GUILD_SPACE_SETTINGS]: 'guildSpaceSettings',
   [DiscordKeys.HANDLER]: 'handler',
@@ -3268,6 +3384,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.HOIST]: 'hoist',
   [DiscordKeys.HOISTED_ROLE]: 'hoistedRole',
   [DiscordKeys.HOOK]: 'hook',
+  [DiscordKeys.HOST_ID]: 'hostId',
   [DiscordKeys.HUB_TYPE]: 'hubType',
   [DiscordKeys.ICON]: 'icon',
   [DiscordKeys.ICON_EMOJI]: 'iconEmoji',
@@ -3327,6 +3444,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.LEGAL_NOTICE]: 'legalNotice',
   [DiscordKeys.LINKED_GAME_ORGANIZATION]: 'linkedGameOrganization',
   [DiscordKeys.LINKED_LOBBY]: 'linkedLobby',
+  [DiscordKeys.LOADING_STATE]: 'loadingState',
   [DiscordKeys.LOCALE]: 'locale',
   [DiscordKeys.LOCALES]: 'locales',
   [DiscordKeys.LOCATION]: 'location',
@@ -3394,6 +3512,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.OLD_VALUE]: 'oldValue',
   [DiscordKeys.OPTIMAL]: 'optimal',
   [DiscordKeys.OPTIONS]: 'options',
+  [DiscordKeys.ORIGINAL_CONTENT_TYPE]: 'originalContentType',
   [DiscordKeys.ORIGINAL_RESPONSE_MESSAGE_ID]: 'originalResponseMessageId',
   [DiscordKeys.OS]: 'os',
   [DiscordKeys.OVERLAY]: 'overlay',
@@ -3499,6 +3618,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.SELF_MUTE]: 'selfMute',
   [DiscordKeys.SELF_STREAM]: 'selfStream',
   [DiscordKeys.SELF_VIDEO]: 'selfVideo',
+  [DiscordKeys.SEND_START_NOTIFICATION]: 'sendStartNotification',
   [DiscordKeys.SERIALIZED_SOURCE_GUILD]: 'serializedSourceGuild',
   [DiscordKeys.SESSION_ID]: 'sessionId',
   [DiscordKeys.SHOW_ACTIVITY]: 'showActivity',
@@ -3530,6 +3650,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.STATUS]: 'status',
   [DiscordKeys.STATUS_DISPLAY_TYPE]: 'statusDisplayType',
   [DiscordKeys.STICKERS]: 'stickers',
+  [DiscordKeys.STICKER_ID]: 'stickerId',
   [DiscordKeys.STICKER_ITEMS]: 'stickerItems',
   [DiscordKeys.STOPPED]: 'stopped',
   [DiscordKeys.STORE_APPLICATION_STATE]: 'storeApplicationState',
@@ -3590,6 +3711,7 @@ export const DetritusKeys = Object.freeze({
   [DiscordKeys.TYPE]: 'type',
   [DiscordKeys.UNAVAILABLE]: 'unavailable',
   [DiscordKeys.UNICODE_EMOJI]: 'unicodeEmoji',
+  [DiscordKeys.UNUSUAL_DM_ACTIVITY_UNTIL]: 'unusualDmActivityUntil',
   [DiscordKeys.UPDATED_AT]: 'updatedAt',
   [DiscordKeys.UPLOAD_FILENAME]: 'uploadFilename',
   [DiscordKeys.UPLOAD_URL]: 'uploadUrl',

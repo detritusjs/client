@@ -34,10 +34,12 @@ import { User } from '../structures/user';
 
 
 import { toCamelCase } from './casing';
+import * as Experiments from './experiments';
 import * as Markup from './markup';
 import * as PermissionTools from './permissions';
 
 export {
+  Experiments,
   guildIdToShardId,
   Markup,
   PermissionTools,
@@ -428,6 +430,11 @@ export interface DiscordRegexPayloadEmoji {
   matches: Array<{animated: boolean, matched: string, name: string, id: string}>,
 }
 
+export interface DiscordRegexPayloadGuildNavigation {
+  match: {regex: RegExp, type: DiscordRegexNames.GUILD_NAVIGATION},
+  matches: Array<{itemId?: string, matched: string, navigationType: string}>,
+}
+
 export interface DiscordRegexPayloadJumpChannel {
   match: {regex: RegExp, type: DiscordRegexNames.JUMP_CHANNEL},
   matches: Array<{channelId: string, guildId: string, matched: string}>,
@@ -443,9 +450,19 @@ export interface DiscordRegexPayloadMentionChannelOrRole {
   matches: Array<{id: string, matched: string}>,
 }
 
+export interface DiscordRegexPayloadMentionCommand {
+  match: {regex: RegExp, type: DiscordRegexNames.MENTION_COMMAND},
+  matches: Array<{commandId: string, matched: string, name: string}>,
+}
+
 export interface DiscordRegexPayloadMentionUser {
   match: {regex: RegExp, type: DiscordRegexNames.MENTION_USER},
   matches: Array<{id: string, matched: string, mentionType: string}>,
+}
+
+export interface DiscordRegexPayloadSoundboardSound {
+  match: {regex: RegExp, type: DiscordRegexNames.SOUNDBOARD_SOUND},
+  matches: Array<{guildId: string, matched: string, soundId: string}>,
 }
 
 export interface DiscordRegexPayloadTextCodeblock {
@@ -463,15 +480,27 @@ export interface DiscordRegexPayloadTextGeneric {
   matches: Array<{matched: string, text: string}>,
 }
 
+export interface DiscordRegexPayloadTextHeader {
+  match: {regex: RegExp, type: DiscordRegexNames.TEXT_HEADER},
+  matches: Array<{level: number, matched: string, text: string}>,
+}
+
+export interface DiscordRegexPayloadTextSubtext {
+  match: {regex: RegExp, type: DiscordRegexNames.TEXT_SUBTEXT},
+  matches: Array<{matched: string, text: string}>,
+}
+
 export interface DiscordRegexPayloadTimestamp {
   match: {regex: RegExp, type: DiscordRegexNames.TIMESTAMP},
   matches: Array<{format?: string, matched: string, timestamp: string}>,
 }
 
 export type DiscordRegexPayload = (
-  DiscordRegexPayloadEmoji | DiscordRegexPayloadJumpChannel | DiscordRegexPayloadJumpChannelMessage |
-  DiscordRegexPayloadMentionChannelOrRole | DiscordRegexPayloadMentionUser | DiscordRegexPayloadTextCodeblock |
-  DiscordRegexPayloadTextGeneric | DiscordRegexPayloadTimestamp
+  DiscordRegexPayloadEmoji | DiscordRegexPayloadGuildNavigation | DiscordRegexPayloadJumpChannel |
+  DiscordRegexPayloadJumpChannelMessage | DiscordRegexPayloadMentionChannelOrRole | DiscordRegexPayloadMentionCommand |
+  DiscordRegexPayloadMentionUser | DiscordRegexPayloadSoundboardSound | DiscordRegexPayloadTextCodeblock |
+  DiscordRegexPayloadTextGeneric | DiscordRegexPayloadTextHeader | DiscordRegexPayloadTextSubtext |
+  DiscordRegexPayloadTimestamp
 );
 
 
@@ -501,6 +530,10 @@ export function regex(
         result.name = match[2]!;
         result.id = match[3]!;
       }; break;
+      case DiscordRegexNames.GUILD_NAVIGATION: {
+        result.navigationType = match[1]!;
+        result.itemId = match[2] || undefined;
+      }; break;
       case DiscordRegexNames.JUMP_CHANNEL: {
         result.guildId = match[1]!;
         result.channelId = match[2]!;
@@ -514,9 +547,17 @@ export function regex(
       case DiscordRegexNames.MENTION_ROLE: {
         result.id = match[1]!;
       }; break;
+      case DiscordRegexNames.MENTION_COMMAND: {
+        result.name = match[1]!;
+        result.commandId = match[2]!;
+      }; break;
       case DiscordRegexNames.MENTION_USER: {
         result.id = match[2]!;
         result.mentionType = match[1]!;
+      }; break;
+      case DiscordRegexNames.SOUNDBOARD_SOUND: {
+        result.guildId = match[1]!;
+        result.soundId = match[2]!;
       }; break;
       case DiscordRegexNames.TEXT_CODEBLOCK: {
         result.language = match[2]!;
@@ -531,6 +572,13 @@ export function regex(
       case DiscordRegexNames.TEXT_UNDERLINE:
       case DiscordRegexNames.TEXT_URL: {
         result.text = (match[1] || match[2])!;
+      }; break;
+      case DiscordRegexNames.TEXT_HEADER: {
+        result.level = match[1]!.length;
+        result.text = match[2]!;
+      }; break;
+      case DiscordRegexNames.TEXT_SUBTEXT: {
+        result.text = match[1]!;
       }; break;
       case DiscordRegexNames.TIMESTAMP: {
         result.timestamp = match[1]!;

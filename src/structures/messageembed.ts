@@ -7,6 +7,7 @@ import {
   DiscordKeys,
   MessageComponentTypes,
   MessageEmbedFlags,
+  MessageEmbedPollResultFields,
   MessageEmbedTypes,
 } from '../constants';
 
@@ -18,10 +19,21 @@ import {
 import { ComponentContainer, ComponentUnknown } from './components';
 
 
+export interface MessageEmbedPollResult {
+  questionText: string,
+  totalVotes: number,
+  victorAnswerId: null | number,
+  victorAnswerText: null | string,
+  victorAnswerVotes: number,
+  victorEmoji: null | {animated: boolean, id: null | string, name: null | string},
+}
+
 const keysMessageEmbed = new BaseSet<string>([
+  DiscordKeys.AUDIO,
   DiscordKeys.AUTHOR,
   DiscordKeys.COLOR,
   DiscordKeys.COMPONENTS,
+  DiscordKeys.CONTENT_SCAN_VERSION,
   DiscordKeys.DESCRIPTION,
   DiscordKeys.FIELDS,
   DiscordKeys.FLAGS,
@@ -44,10 +56,13 @@ const keysMessageEmbed = new BaseSet<string>([
 export class MessageEmbed extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysMessageEmbed); }
 
+  declare audio?: MessageEmbedAudio;
   declare author?: MessageEmbedAuthor;
   declare color?: number;
   // only on `components` type embeds (link previews built from components), holds a single container
   declare components?: BaseCollection<number, ComponentContainer | ComponentUnknown>;
+  // which version of discord's content scanner the `flags` came from
+  declare contentScanVersion?: number;
   declare description?: string;
   declare fields?: BaseCollection<number, MessageEmbedField>;
   declare flags?: number;
@@ -73,7 +88,7 @@ export class MessageEmbed extends BaseStructure {
 
   // content scanning can finish after the message is sent, these might only show up in a later message update
   get containsExplicitContent(): boolean {
-    return this.hasFlag(MessageEmbedFlags.CONTAINS_EXPLICIT_CONTENT);
+    return this.hasFlag(MessageEmbedFlags.CONTAINS_EXPLICIT_MEDIA);
   }
 
   get containsGoreContent(): boolean {
@@ -86,6 +101,7 @@ export class MessageEmbed extends BaseStructure {
 
   get hasAttachment(): boolean {
     return !!(
+      (this.audio && this.audio.hasAttachment) ||
       (this.image && this.image.hasAttachment) ||
       (this.thumbnail && this.thumbnail.hasAttachment) ||
       (this.video && this.video.hasAttachment)
@@ -98,6 +114,18 @@ export class MessageEmbed extends BaseStructure {
 
   get isArticle(): boolean {
     return this.type === MessageEmbedTypes.ARTICLE;
+  }
+
+  get isAudio(): boolean {
+    return this.type === MessageEmbedTypes.AUDIO;
+  }
+
+  get isAutoModerationMessage(): boolean {
+    return this.type === MessageEmbedTypes.AUTO_MODERATION_MESSAGE;
+  }
+
+  get isAutoModerationNotification(): boolean {
+    return this.type === MessageEmbedTypes.AUTO_MODERATION_NOTIFICATION;
   }
 
   get isComponents(): boolean {
@@ -116,6 +144,10 @@ export class MessageEmbed extends BaseStructure {
     return this.type === MessageEmbedTypes.LINK;
   }
 
+  get isPollResult(): boolean {
+    return this.type === MessageEmbedTypes.POLL_RESULT;
+  }
+
   get isRich(): boolean {
     return this.type === MessageEmbedTypes.RICH;
   }
@@ -130,6 +162,32 @@ export class MessageEmbed extends BaseStructure {
 
   get length(): number {
     return this.size;
+  }
+
+  /**
+   * The finished poll's outcome on `poll_result` embeds, discord sends it as named `fields` with string values
+   * `null` when this isn't a poll result embed
+   */
+  get pollResult(): MessageEmbedPollResult | null {
+    if (!this.isPollResult || !this.fields) {
+      return null;
+    }
+    const answerId = this.getFieldValue(MessageEmbedPollResultFields.VICTOR_ANSWER_ID);
+    const emojiId = this.getFieldValue(MessageEmbedPollResultFields.VICTOR_ANSWER_EMOJI_ID);
+    const emojiName = this.getFieldValue(MessageEmbedPollResultFields.VICTOR_ANSWER_EMOJI_NAME);
+    return {
+      questionText: this.getFieldValue(MessageEmbedPollResultFields.POLL_QUESTION_TEXT) || '',
+      totalVotes: parseInt(this.getFieldValue(MessageEmbedPollResultFields.TOTAL_VOTES) || '0', 10) || 0,
+      // no victor fields are sent when nobody voted or it was a tie
+      victorAnswerId: (answerId !== undefined) ? parseInt(answerId, 10) : null,
+      victorAnswerText: this.getFieldValue(MessageEmbedPollResultFields.VICTOR_ANSWER_TEXT) || null,
+      victorAnswerVotes: parseInt(this.getFieldValue(MessageEmbedPollResultFields.VICTOR_ANSWER_VOTES) || '0', 10) || 0,
+      victorEmoji: (emojiId !== undefined || emojiName !== undefined) ? {
+        animated: this.getFieldValue(MessageEmbedPollResultFields.VICTOR_ANSWER_EMOJI_ANIMATED) === 'true',
+        id: emojiId || null,
+        name: emojiName || null,
+      } : null,
+    };
   }
 
   get size(): number {
@@ -152,6 +210,21 @@ export class MessageEmbed extends BaseStructure {
     return size;
   }
 
+  /**
+   * The value of the first field with this name
+   * system embeds (automod alerts, poll results) store their data in fields, see the `MessageEmbed*Fields` enums for the names
+   */
+  getFieldValue(name: string): string | undefined {
+    if (this.fields) {
+      for (let field of this.fields.values()) {
+        if (field.name === name) {
+          return field.value;
+        }
+      }
+    }
+    return undefined;
+  }
+
   hasFlag(flag: number): boolean {
     return ((this.flags || 0) & flag) === flag;
   }
@@ -171,6 +244,10 @@ export class MessageEmbed extends BaseStructure {
       return;
     }
 
+    if (DiscordKeys.AUDIO in data) {
+      const value = new MessageEmbedAudio(this.client, data[DiscordKeys.AUDIO], this._clone);
+      (this as any)[DetritusKeys[DiscordKeys.AUDIO]] = value;
+    }
     if (DiscordKeys.AUTHOR in data) {
       const value = new MessageEmbedAuthor(this.client, data[DiscordKeys.AUTHOR], this._clone);
       (this as any)[DetritusKeys[DiscordKeys.AUTHOR]] = value;
@@ -196,6 +273,9 @@ export class MessageEmbed extends BaseStructure {
       } else {
         this.components = undefined;
       }
+    }
+    if (DiscordKeys.CONTENT_SCAN_VERSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.CONTENT_SCAN_VERSION]] = data[DiscordKeys.CONTENT_SCAN_VERSION];
     }
     if (DiscordKeys.DESCRIPTION in data) {
       (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
@@ -390,34 +470,24 @@ export class MessageEmbedFooter extends BaseStructure {
 }
 
 
-const keysMessageEmbedImage = new BaseSet<string>([
+const keysMessageEmbedMedia = new BaseSet<string>([
   DiscordKeys.CONTENT_TYPE,
-  DiscordKeys.DESCRIPTION,
   DiscordKeys.FLAGS,
-  DiscordKeys.HEIGHT,
-  DiscordKeys.PLACEHOLDER,
-  DiscordKeys.PLACEHOLDER_VERSION,
   DiscordKeys.PROXY_URL,
   DiscordKeys.URL,
-  DiscordKeys.WIDTH,
 ]);
 
 /**
- * Embed Image Structure, used for [MessageEmbed] Structures
+ * Embed Media Structure, the base for the audio, image, thumbnail, and video of [MessageEmbed] Structures
  * @category Structure
  */
-export class MessageEmbedImage extends BaseStructure {
-  static { setStructureKeys(this, '_keys', keysMessageEmbedImage); }
+export class MessageEmbedMedia extends BaseStructure {
+  static { setStructureKeys(this, '_keys', keysMessageEmbedMedia); }
 
   declare contentType?: string;
-  declare description?: string;
   declare flags?: number;
-  height: number = 0;
-  declare placeholder?: string;
-  declare placeholderVersion?: number;
   declare proxyUrl?: string;
   url: string = '';
-  width: number = 0;
 
   constructor(
     client: ShardClient,
@@ -440,11 +510,59 @@ export class MessageEmbedImage extends BaseStructure {
     if (DiscordKeys.CONTENT_TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.CONTENT_TYPE]] = data[DiscordKeys.CONTENT_TYPE];
     }
-    if (DiscordKeys.DESCRIPTION in data) {
-      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
-    }
     if (DiscordKeys.FLAGS in data) {
       (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
+    }
+    if (DiscordKeys.PROXY_URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PROXY_URL]] = data[DiscordKeys.PROXY_URL];
+    }
+    if (DiscordKeys.URL in data) {
+      (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+    }
+  }
+}
+
+
+const keysMessageEmbedImage = new BaseSet<string>([
+  ...keysMessageEmbedMedia,
+  DiscordKeys.DESCRIPTION,
+  DiscordKeys.HEIGHT,
+  DiscordKeys.PLACEHOLDER,
+  DiscordKeys.PLACEHOLDER_VERSION,
+  DiscordKeys.WIDTH,
+].sort());
+
+/**
+ * Embed Image Structure, used for [MessageEmbed] Structures
+ * @category Structure
+ */
+export class MessageEmbedImage extends MessageEmbedMedia {
+  static { setStructureKeys(this, '_keys', keysMessageEmbedImage); }
+
+  declare description?: string;
+  height: number = 0;
+  declare placeholder?: string;
+  declare placeholderVersion?: number;
+  width: number = 0;
+
+  constructor(
+    client: ShardClient,
+    data?: BaseStructureData,
+    isClone?: boolean,
+  ) {
+    // merge after our own field defaults are set, or they'd overwrite what the parent constructor merged
+    super(client, undefined, isClone);
+    this.merge(data);
+  }
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+    super.merge(data);
+
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
     }
     if (DiscordKeys.HEIGHT in data) {
       (this as any)[DetritusKeys[DiscordKeys.HEIGHT]] = data[DiscordKeys.HEIGHT];
@@ -454,12 +572,6 @@ export class MessageEmbedImage extends BaseStructure {
     }
     if (DiscordKeys.PLACEHOLDER_VERSION in data) {
       (this as any)[DetritusKeys[DiscordKeys.PLACEHOLDER_VERSION]] = data[DiscordKeys.PLACEHOLDER_VERSION];
-    }
-    if (DiscordKeys.PROXY_URL in data) {
-      (this as any)[DetritusKeys[DiscordKeys.PROXY_URL]] = data[DiscordKeys.PROXY_URL];
-    }
-    if (DiscordKeys.URL in data) {
-      (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
     }
     if (DiscordKeys.WIDTH in data) {
       (this as any)[DetritusKeys[DiscordKeys.WIDTH]] = data[DiscordKeys.WIDTH];
@@ -502,6 +614,33 @@ export class MessageEmbedProvider extends BaseStructure {
     }
     if (DiscordKeys.URL in data) {
       (this as any)[DetritusKeys[DiscordKeys.URL]] = data[DiscordKeys.URL];
+    }
+  }
+}
+
+
+const keysMessageEmbedAudio = new BaseSet<string>([
+  ...keysMessageEmbedMedia,
+  DiscordKeys.DESCRIPTION,
+].sort());
+
+/**
+ * Embed Audio Structure, used for [MessageEmbed] Structures
+ * @category Structure
+ */
+export class MessageEmbedAudio extends MessageEmbedMedia {
+  static { setStructureKeys(this, '_keys', keysMessageEmbedAudio); }
+
+  declare description?: string;
+
+  merge(data?: BaseStructureData): void {
+    if (!data) {
+      return;
+    }
+    super.merge(data);
+
+    if (DiscordKeys.DESCRIPTION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.DESCRIPTION]] = data[DiscordKeys.DESCRIPTION];
     }
   }
 }

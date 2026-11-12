@@ -14,6 +14,7 @@ import {
   ContentScanMetadataFlags,
   MessageComponentButtonStyles,
   MessageComponentDefaultValueTypes,
+  MessageComponentMediaLoadingStates,
   MessageComponentTypes,
 } from '../constants';
 
@@ -1239,6 +1240,10 @@ const keysMessageComponentUnfurledMedia = new BaseSet<string>([
   DiscordKeys.CONTENT_TYPE,
   DiscordKeys.FLAGS,
   DiscordKeys.HEIGHT,
+  DiscordKeys.LOADING_STATE,
+  DiscordKeys.ORIGINAL_CONTENT_TYPE,
+  DiscordKeys.PLACEHOLDER,
+  DiscordKeys.PLACEHOLDER_VERSION,
   DiscordKeys.PROXY_URL,
   DiscordKeys.URL,
   DiscordKeys.WIDTH,
@@ -1253,10 +1258,15 @@ export class ComponentUnfurledMedia extends BaseStructure {
   static { setStructureKeys(this, '_keys', keysMessageComponentUnfurledMedia); }
 
   // only set once discord has scanned the media, can show up in a later message update
-  declare contentScanMetadata?: {flags: number};
+  declare contentScanMetadata?: {flags: number, version?: number};
   declare contentType?: string;
   declare flags?: number;
   declare height?: number;
+  declare loadingState?: MessageComponentMediaLoadingStates;
+  // what the file was before discord converted it, if it did
+  declare originalContentType?: string;
+  declare placeholder?: string;
+  declare placeholderVersion?: number;
   declare proxyUrl?: string;
   url: string = '';
   declare width?: number;
@@ -1326,6 +1336,18 @@ export class ComponentUnfurledMedia extends BaseStructure {
     }
     if (DiscordKeys.HEIGHT in data) {
       (this as any)[DetritusKeys[DiscordKeys.HEIGHT]] = data[DiscordKeys.HEIGHT];
+    }
+    if (DiscordKeys.LOADING_STATE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.LOADING_STATE]] = data[DiscordKeys.LOADING_STATE];
+    }
+    if (DiscordKeys.ORIGINAL_CONTENT_TYPE in data) {
+      (this as any)[DetritusKeys[DiscordKeys.ORIGINAL_CONTENT_TYPE]] = data[DiscordKeys.ORIGINAL_CONTENT_TYPE];
+    }
+    if (DiscordKeys.PLACEHOLDER in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PLACEHOLDER]] = data[DiscordKeys.PLACEHOLDER];
+    }
+    if (DiscordKeys.PLACEHOLDER_VERSION in data) {
+      (this as any)[DetritusKeys[DiscordKeys.PLACEHOLDER_VERSION]] = data[DiscordKeys.PLACEHOLDER_VERSION];
     }
     if (DiscordKeys.PROXY_URL in data) {
       (this as any)[DetritusKeys[DiscordKeys.PROXY_URL]] = data[DiscordKeys.PROXY_URL];
