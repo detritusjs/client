@@ -276,6 +276,14 @@ export class ComponentContext {
     return this.interaction.response;
   }
 
+  get responseComponentsV2() {
+    return this.interaction.responseComponentsV2;
+  }
+
+  get responseDeferred() {
+    return this.interaction.responseDeferred;
+  }
+
   get responseDeleted() {
     return this.interaction.responseDeleted;
   }

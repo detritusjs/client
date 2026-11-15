@@ -13,10 +13,11 @@ import {
   InteractionContextTypes,
   InteractionTypes,
   MessageComponentTypes,
+  MessageFlags,
   Permissions,
   INTERACTION_TIMEOUT,
 } from '../constants';
-import { InteractionModal, Snowflake } from '../utils';
+import { Components, InteractionModal, Snowflake } from '../utils';
 
 import {
   BaseStructure,
@@ -52,6 +53,40 @@ const DEFERRED_TYPES = Object.freeze([
   InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
   InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE,
 ]);
+
+// a `respond()`'s callback type and the message payloads it could carry (`options.data` and `data`, which the rest
+// client merges), modals have none
+function getResponseTypeAndPayloads(
+  options: InteractionResponseOptions,
+  data?: InteractionResponseData,
+): [number | undefined, Array<any>] {
+  if (options instanceof InteractionModal || data instanceof InteractionModal) {
+    return [InteractionCallbackTypes.MODAL, []];
+  }
+  if (typeof(options) === 'number') {
+    return [options, [data]];
+  }
+  return [options.type, [options.data, data]];
+}
+
+// the same check the rest client does before it adds the components v2 flag: the flag itself, or top-level components
+// that aren't all action rows
+function isComponentsV2Payload(payload: any): boolean {
+  if (!payload || typeof(payload) !== 'object') {
+    return false;
+  }
+  if (payload.flags && (Number(payload.flags) & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2) {
+    return true;
+  }
+  const components = payload.components;
+  if (components instanceof Components) {
+    return components.components.length > 0 && components.isV2;
+  }
+  if (Array.isArray(components)) {
+    return components.some((component: any) => component && component.type !== MessageComponentTypes.ACTION_ROW);
+  }
+  return false;
+}
 
 const keysInteraction = new BaseSet<string>([
   DiscordKeys.APP_PERMISSIONS,
@@ -109,6 +144,10 @@ export class Interaction extends BaseStructure {
   declare member?: Member;
   declare message?: Message;
   responded: boolean = false;
+  // if the response is (or was turned into) a components v2 message, discord can't remove the flag from it with an edit
+  declare responseComponentsV2?: boolean;
+  // still the loading message of a `DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE`, the next edit or followup becomes the response
+  declare responseDeferred?: boolean;
   declare responseDeleted?: boolean;
   declare responseId?: string;
   token: string = '';
@@ -232,8 +271,37 @@ export class Interaction extends BaseStructure {
     return this.user.id;
   }
 
-  createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
-    return this.client.rest.executeWebhook(this.applicationId, this.token, options, undefined, this.guildId);
+  // the message discord sent back for the response, so its id and flags are known without waiting for the gateway
+  trackResponseMessage(message: Message): void {
+    this.responseDeferred = false;
+    this.responseComponentsV2 = message.hasFlagComponentsV2;
+    if (this.responseId !== message.id) {
+      this.client.interactions.setResponseId(this, message.id);
+    }
+  }
+
+  async createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
+    // the first followup after a `DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE` doesn't create a message, discord edits the
+    // loading response into it (deprecated, but still how it works). claimed before the request so a second followup
+    // sent at the same time isn't also taken as the response
+    const fillsResponse = !!this.responseDeferred;
+    if (fillsResponse) {
+      this.responseDeferred = false;
+    }
+
+    let message: Message | null;
+    try {
+      message = await this.client.rest.executeWebhook(this.applicationId, this.token, options, undefined, this.guildId);
+    } catch(error) {
+      if (fillsResponse) {
+        this.responseDeferred = true;
+      }
+      throw error;
+    }
+    if (fillsResponse && message) {
+      this.trackResponseMessage(message);
+    }
+    return message;
   }
 
   async createResponse(
@@ -263,9 +331,31 @@ export class Interaction extends BaseStructure {
         .catch(reject);
     });
 
+    // what the response is, from the payload before the listener copy above
+    const [ responseType, responsePayloads ] = getResponseTypeAndPayloads(options, data);
+
     this._responding = new Promise((resolve) => {
       response.then(() => {
         this.responded = true;
+        switch (responseType) {
+          case InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE: {
+            this.responseDeferred = false;
+            this.responseComponentsV2 = responsePayloads.some(isComponentsV2Payload);
+          }; break;
+          case InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE: {
+            this.responseDeferred = true;
+            this.responseComponentsV2 = false;
+          }; break;
+          case InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE:
+          case InteractionCallbackTypes.UPDATE_MESSAGE: {
+            // the response is the component's own message, which can't lose the components v2 flag
+            this.responseDeferred = false;
+            this.responseComponentsV2 = (
+              (!!this.message && this.message.hasFlagComponentsV2) ||
+              responsePayloads.some(isComponentsV2Payload)
+            );
+          }; break;
+        }
       }).catch(() => {
         this.responded = false;
       }).then(() => {
@@ -281,12 +371,18 @@ export class Interaction extends BaseStructure {
     return this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId, options);
   }
 
-  deleteResponse() {
-    return this.deleteMessage('@original');
+  async deleteResponse() {
+    const result = await this.deleteMessage('@original');
+    this.responseDeferred = false;
+    return result;
   }
 
-  editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
-    return this.client.rest.editWebhookTokenMessage(this.applicationId, this.token, messageId, options, true, this.guildId);
+  async editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
+    const message = await this.client.rest.editWebhookTokenMessage(this.applicationId, this.token, messageId, options, true, this.guildId);
+    if (messageId === '@original' || (!!this.responseId && messageId === this.responseId)) {
+      this.trackResponseMessage(message);
+    }
+    return message;
   }
 
   editResponse(options: RequestTypes.EditWebhookTokenMessage = {}) {
