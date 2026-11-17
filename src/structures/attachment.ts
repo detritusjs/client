@@ -31,7 +31,7 @@ export const MimeClassTypes: Array<{
   {
     type: 'name',
     classType: 'ae',
-    regex: /\.ae/i,
+    regex: /\.ae$/i,
   },
   {
     type: 'name',

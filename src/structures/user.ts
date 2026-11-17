@@ -940,6 +940,18 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
     return this.client.rest.fetchStorePublishedListingsSku(this.skuId);
   }
 
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.EXPIRES_AT: {
+        // discord sends unix seconds, the base compare would check them against our Date's milliseconds
+        if (typeof(value) === 'number') {
+          return this.expiresAtUnix !== value * 1000;
+        }
+      }; break;
+    }
+    return super.hasDifference(key, value);
+  }
+
   merge(data?: BaseStructureData): void {
     super.merge(data);
     if (!data) {
@@ -951,11 +963,23 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
     }
     if (DiscordKeys.EXPIRES_AT in data) {
       const value = data[DiscordKeys.EXPIRES_AT];
-      (this as any)[DetritusKeys[DiscordKeys.EXPIRES_AT]] = (value) ? new Date(value * 1000) : null;
+      let expiresAt: Date | null = null;
+      if (value) {
+        // unix seconds from discord (and `toJSON()`), anything else is a Date or date string
+        expiresAt = (typeof(value) === 'number') ? new Date(value * 1000) : new Date(value);
+      }
+      (this as any)[DetritusKeys[DiscordKeys.EXPIRES_AT]] = expiresAt;
     }
     if (DiscordKeys.SKU_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.SKU_ID]] = data[DiscordKeys.SKU_ID];
     }
+  }
+
+  toJSON() {
+    const data = super.toJSON() as any;
+    // write `expires_at` back out in discord's shape (unix seconds) so `clone()` round-trips
+    data[DiscordKeys.EXPIRES_AT] = (this.expiresAt) ? Math.floor(this.expiresAt.getTime() / 1000) : null;
+    return data;
   }
 }
 

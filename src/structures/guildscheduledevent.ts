@@ -136,7 +136,10 @@ export class GuildScheduledEvent extends BaseStructure {
       const value = data[DiscordKeys.CREATOR];
 
       let user: User;
-      if (this.client.users.has(value.id)) {
+      if (this.isClone) {
+        // a clone (like from `guild.clone()`) shouldn't merge its snapshot into the cached user
+        user = new User(this.client, value, true);
+      } else if (this.client.users.has(value.id)) {
         user = this.client.users.get(value.id)!;
         user.merge(value);
       } else {
@@ -260,7 +263,10 @@ export class GuildScheduledEventUser extends BaseStructure {
       const value = data[DiscordKeys.USER];
 
       let user: User;
-      if (this.client.users.has(value.id)) {
+      if (this.isClone) {
+        // a clone shouldn't merge its snapshot into the cached user
+        user = new User(this.client, value, true);
+      } else if (this.client.users.has(value.id)) {
         user = this.client.users.get(value.id)!;
         user.merge(value);
       } else {

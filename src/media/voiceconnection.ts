@@ -119,6 +119,7 @@ const OpusProperties = [
  * @category Media
  */
 export class VoiceConnection extends EventSpewer {
+  _killed: boolean = false;
   client: ShardClient;
   decodeAudio: boolean;
   formats: {
@@ -167,6 +168,7 @@ export class VoiceConnection extends EventSpewer {
     }
 
     Object.defineProperties(this, {
+      _killed: {enumerable: false, writable: true},
       client: {enumerable: false, writable: false},
       decodeAudio: {configurable: true, enumerable: false, writable: false},
       formats: {writable: false},
@@ -292,11 +294,18 @@ export class VoiceConnection extends EventSpewer {
   }
 
   kill(error?: Error): void {
+    // the gateway's `killed` event calls this again (see the handler), only the first call does anything
+    // so `killed` gets emitted once, with the error we were given
+    if (this._killed) {
+      return;
+    }
+    this._killed = true;
     // a newer connection for the same server may have replaced us in the cache
     if (this.client.voiceConnections.get(this.serverId) === this) {
       this.client.voiceConnections.delete(this.serverId);
     }
-    this.gateway.kill();
+    // anything waiting on the gateway gets rejected with our error too
+    this.gateway.kill(error);
     this.setOpusEncoder({kill: true});
     this.setOpusDecoder({kill: true});
     this.emit('killed', {error});

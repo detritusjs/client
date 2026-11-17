@@ -635,6 +635,21 @@ export class PresenceActivity extends BaseStructure {
     return (this.flags & flag) === flag;
   }
 
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.METADATA:
+      case DiscordKeys.PARTY:
+      case DiscordKeys.SECRETS: {
+        // raw objects that can hold arrays (like `party.size`), the base compare only looks one level down
+        if (value === undefined) {
+          return false;
+        }
+        return JSON.stringify((this as any)[DetritusKeys[key]] ?? null) !== JSON.stringify(value);
+      };
+    }
+    return super.hasDifference(key, value);
+  }
+
   imageUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.assets) {
       return this.assets.imageUrlFormat(format, query);
@@ -912,13 +927,13 @@ export class PresenceActivityAssets extends BaseStructure {
             }
           }
           return addQuery(
-            Endpoints.CDN.CUSTOM_TWITCH(id, height, width),
+            Endpoints.CDN.CUSTOM_TWITCH(id, width, height),
             query,
           );
         };
       }
-    } else {
-      // treat it as a normal hash
+    } else if (this.activity.applicationId) {
+      // treat it as a normal hash, app assets live under the activity's application
       return addQuery(
         Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET(this.activity.applicationId, hash, format),
         query,

@@ -17,6 +17,8 @@ export { IDENTIFY_READY_TIMEOUT };
 // a child that exits before readying gets respawned with a backoff, so one that crashes on startup doesn't fork in a tight loop
 export const RESPAWN_DELAY_MIN = 1000;
 export const RESPAWN_DELAY_MAX = 60 * 1000;
+// how long a child gets to exit after being signaled before it gets SIGKILLed (it may trap SIGTERM or be wedged)
+export const KILL_TIMEOUT = 10 * 1000;
 
 export interface ClusterProcessOptions {
   clusterId: number,
@@ -34,7 +36,6 @@ export interface ClusterProcessRunOptions {
 export class ClusterProcess extends EventSpewer {
   readonly _evalsWaiting = new BaseCollection<string, {
     child: ChildProcess,
-    listener: (message: any) => void,
     promise: Promise<any>,
     resolve: Function,
     reject: Function,
@@ -82,7 +83,7 @@ export class ClusterProcess extends EventSpewer {
     return this.manager.file;
   }
 
-  async onMessage(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {
+  async onMessage(message: ClusterIPCTypes.IPCMessage | any, child: ChildProcess | null = this.process): Promise<void> {
     // our child has sent us something
     if (message && typeof(message) === 'object') {
       try {
@@ -110,15 +111,29 @@ export class ClusterProcess extends EventSpewer {
                   data.nonce,
                   (data.timeout === undefined) ? BROADCAST_EVAL_TIMEOUT : data.timeout,
                 );
+                // the child only needs the nonce to match it, don't send its code back
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
-                  ...data,
+                  nonce: data.nonce,
                   results,
                 });
               } catch(error: any) {
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
-                  ...data,
                   error: ClusterIPCTypes.serializeError(error),
+                  nonce: data.nonce,
                 });
+              }
+            } else {
+              // the child answering one of our evals
+              const data: ClusterIPCTypes.Eval = message.data;
+              const waiting = (data) ? this._evalsWaiting.get(data.nonce) : undefined;
+              if (waiting && waiting.child === child) {
+                if (data.ignored) {
+                  waiting.resolve(null);
+                } else if (data.error) {
+                  waiting.resolve([data.error, true]);
+                } else {
+                  waiting.resolve([data.result, false]);
+                }
               }
             }
           }; return;
@@ -273,7 +288,7 @@ export class ClusterProcess extends EventSpewer {
     this.emit('message', message);
   }
 
-  async onExit(code: number, signal: string, child: ChildProcess | null = this.process, readied: boolean = true): Promise<void> {
+  async onExit(code: number | null, signal: string | null, child: ChildProcess | null = this.process, readied: boolean = true): Promise<void> {
     const error = new Error(`Process has closed with '${code}' code and '${signal}' signal.`);
     for (let [nonce, item] of this._evalsWaiting) {
       if (item.child === child) {
@@ -345,34 +360,12 @@ export class ClusterProcess extends EventSpewer {
       reject = rej;
     });
     const timer = new Timers.Timeout();
+    // `onMessage()` answers it by its nonce
     const waiting = {
       child,
-      listener: (
-        message: ClusterIPCTypes.IPCMessage | any,
-      ) => {
-        if (message && typeof(message) === 'object') {
-          switch (message.op) {
-            case ClusterIPCOpCodes.EVAL: {
-              const data: ClusterIPCTypes.Eval = message.data;
-              if (data.nonce === nonce) {
-                if (data.ignored) {
-                  waiting.resolve(null);
-                } else {
-                  if (data.error) {
-                    waiting.resolve([data.error, true]);
-                  } else {
-                    waiting.resolve([data.result, false]);
-                  }
-                }
-              }
-            }; break;
-          }
-        }
-      },
       promise,
       resolve: (value: [any, boolean] | null) => {
         timer.stop();
-        child.removeListener('message', waiting.listener);
         if (this._evalsWaiting.get(nonce) === waiting) {
           this._evalsWaiting.delete(nonce);
         }
@@ -380,7 +373,6 @@ export class ClusterProcess extends EventSpewer {
       },
       reject: (error: any) => {
         timer.stop();
-        child.removeListener('message', waiting.listener);
         if (this._evalsWaiting.get(nonce) === waiting) {
           this._evalsWaiting.delete(nonce);
         }
@@ -388,7 +380,6 @@ export class ClusterProcess extends EventSpewer {
       },
     };
     this._evalsWaiting.set(nonce, waiting);
-    child.addListener('message', waiting.listener);
     if (timeout) {
       timer.start(timeout, () => {
         const error = new Error(`Eval timed out after ${timeout}ms`);
@@ -402,7 +393,8 @@ export class ClusterProcess extends EventSpewer {
     try {
       await this.sendIPC(ClusterIPCOpCodes.EVAL, {code, nonce}, true);
     } catch(error) {
-      waiting.reject(error);
+      // like a missing child, report it as this cluster's result instead of failing every cluster's eval
+      waiting.resolve([ClusterIPCTypes.serializeError(error), true]);
     }
     return promise;
   }
@@ -429,14 +421,40 @@ export class ClusterProcess extends EventSpewer {
   ): Promise<ChildProcess> {
     const child = this.process;
     if (child) {
-      const exited = (child.exitCode !== null || child.signalCode !== null) ? Promise.resolve() : new Promise((resolve) => {
-        child.once('exit', resolve);
-      });
       if (this.kill()) {
-        await exited;
+        await this.waitForExit(child);
       }
     }
     return this.run(options);
+  }
+
+  /**
+   * Resolves once a signaled child has exited, SIGKILLing it if it hasn't within `KILL_TIMEOUT`
+   */
+  waitForExit(child: ChildProcess, timeout: number = KILL_TIMEOUT): Promise<void> {
+    if (child.exitCode !== null || child.signalCode !== null) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      const timer = new Timers.Timeout();
+      const onExit = () => {
+        timer.stop();
+        resolve();
+      };
+      child.once('exit', onExit);
+      timer.start(timeout, () => {
+        if (child.kill('SIGKILL')) {
+          // SIGKILL can't be trapped, but don't wait on an 'exit' that never comes forever either
+          timer.start(timeout, () => {
+            child.removeListener('exit', onExit);
+            resolve();
+          });
+        } else {
+          child.removeListener('exit', onExit);
+          resolve();
+        }
+      });
+    });
   }
 
   async send(message: any): Promise<void> {
@@ -477,43 +495,70 @@ export class ClusterProcess extends EventSpewer {
     const onReadied = () => {
       readied = true;
     };
-    const onMessage = this.onMessage.bind(this);
-    const onExit = (code: number, signal: string) => {
+    const onMessage = (message: any) => this.onMessage(message, process);
+    let exited = false;
+    const onExit = (code: number | null, signal: string | null) => {
+      // a child that failed to spawn may still emit 'exit' after its 'error'
+      if (exited) {
+        return;
+      }
+      exited = true;
       process.removeListener('message', onMessage);
       process.removeListener('exit', onExit);
       this.removeListener('ready', onReadied);
       return this.onExit(code, signal, process, readied);
     };
+    // without a listener, an 'error' (failed spawn, failed kill) would throw and take the manager down with it
+    const onError = (error: Error) => {
+      this.emit('warn', {error});
+      if (process.pid === undefined) {
+        // it never spawned so it may never emit 'exit', go through the exit path (and its backoff respawn) ourselves
+        onExit(null, null);
+      }
+    };
     process.on('message', onMessage);
     process.on('exit', onExit);
+    process.on('error', onError);
     this.once('ready', onReadied);
 
     if (options.wait || options.wait === undefined) {
       return new Promise((resolve, reject) => {
         const timeout = new Timers.Timeout();
-        const onReady = () => {
+        const clear = () => {
           timeout.stop();
+          this.removeListener('ready', onReady);
           process.removeListener('exit', onExitBeforeReady);
+          process.removeListener('error', onErrorBeforeReady);
+        };
+        const onReady = () => {
+          clear();
           resolve(process);
         };
         // the child dying before it readies would otherwise leave this promise pending forever
         const onExitBeforeReady = (code: number | null, signal: string | null) => {
-          timeout.stop();
-          this.removeListener('ready', onReady);
+          clear();
           reject(new Error(`Cluster Child exited before readying up (code: ${code}, signal: ${signal})`));
+        };
+        const onErrorBeforeReady = (error: Error) => {
+          if (process.pid === undefined) {
+            clear();
+            reject(error);
+          }
         };
         if (options.timeout) {
           timeout.start(options.timeout, () => {
-            this.removeListener('ready', onReady);
-            process.removeListener('exit', onExitBeforeReady);
+            clear();
             if (this.process === process) {
-              this.kill();
+              // keep it attached so its exit goes through `onExit()`, which respawns it with the backoff (when `manager.respawn` is on)
+              process.kill();
+              this.waitForExit(process);
             }
             reject(new Error('Cluster Child took too long to ready up'));
           });
         }
         this.once('ready', onReady);
         process.once('exit', onExitBeforeReady);
+        process.on('error', onErrorBeforeReady);
       });
     }
     return process;

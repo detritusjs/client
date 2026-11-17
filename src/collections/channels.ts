@@ -20,6 +20,8 @@ export interface ChannelsOptions extends BaseClientCollectionOptions {
 export class Channels extends BaseClientCollection<string, Channel> {
   // guild id -> ids of its cached channels and threads (however they got cached), so a guild delete doesn't go through every channel
   readonly _guildChannelIds = new Map<string, Set<string>>();
+  // ids of the cached dms/group dms (anything without a guild), so finding who we share a dm with doesn't go through every guild channel
+  readonly _dmChannelIds = new Set<string>();
 
   insert(channel: Channel): void {
     if (this.enabled) {
@@ -33,12 +35,16 @@ export class Channels extends BaseClientCollection<string, Channel> {
     if (old && old !== value) {
       this._unindex(key, old);
     }
-    if (value.guildId && this.cache.get(key) === value) {
-      let ids = this._guildChannelIds.get(value.guildId);
-      if (!ids) {
-        this._guildChannelIds.set(value.guildId, ids = new Set<string>());
+    if (this.cache.get(key) === value) {
+      if (value.guildId) {
+        let ids = this._guildChannelIds.get(value.guildId);
+        if (!ids) {
+          this._guildChannelIds.set(value.guildId, ids = new Set<string>());
+        }
+        ids.add(key);
+      } else {
+        this._dmChannelIds.add(key);
       }
-      ids.add(key);
     }
     return this;
   }
@@ -55,6 +61,7 @@ export class Channels extends BaseClientCollection<string, Channel> {
   clear(): void {
     super.clear();
     this._guildChannelIds.clear();
+    this._dmChannelIds.clear();
   }
 
   _unindex(key: string, channel: Channel): void {
@@ -66,7 +73,23 @@ export class Channels extends BaseClientCollection<string, Channel> {
           this._guildChannelIds.delete(channel.guildId);
         }
       }
+    } else {
+      this._dmChannelIds.delete(key);
     }
+  }
+
+  /**
+   * The cached dms and group dms (a new array, so deleting while going through it is fine)
+   */
+  getDmChannels(): Array<Channel> {
+    const channels: Array<Channel> = [];
+    for (let channelId of this._dmChannelIds) {
+      const channel = this.cache.get(channelId);
+      if (channel) {
+        channels.push(channel);
+      }
+    }
+    return channels;
   }
 
   /**

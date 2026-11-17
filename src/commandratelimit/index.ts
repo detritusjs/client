@@ -81,6 +81,9 @@ export class CommandRatelimit {
     if (this.command) {
       if (this.command instanceof InteractionCommand) {
         return 'INTERACTION-COMMAND' + KEY_SPLITTER + this.command.fullName;
+      } else if (this.command instanceof InteractionCommandOption) {
+        // its own prefix so a subcommand never shares a bucket with a message command of the same name
+        return 'INTERACTION-COMMAND-OPTION' + KEY_SPLITTER + this.command.fullName;
       } else {
         return 'COMMAND' + KEY_SPLITTER + this.command.fullName;
       }
@@ -90,8 +93,11 @@ export class CommandRatelimit {
 
   createKey(context: Context | InteractionContext): string {
     let key: string;
+    let type: string;
     if (typeof(this.type) === 'function') {
+      // namespaced like the built in types, so two commands (or a command and a global ratelimit) don't share a bucket
       key = this.type(context);
+      type = 'custom';
     } else {
       switch (this.type) {
         case CommandRatelimitTypes.CHANNEL: {
@@ -108,13 +114,14 @@ export class CommandRatelimit {
           this.type = CommandRatelimitTypes.USER;
         };
       }
+      type = this.type;
+    }
 
-      const uniqueKey = this.uniqueKey;
-      if (uniqueKey) {
-        key += KEY_SPLITTER + this.type + KEY_SPLITTER + uniqueKey;
-      } else {
-        key += KEY_SPLITTER + this.type;
-      }
+    const uniqueKey = this.uniqueKey;
+    if (uniqueKey) {
+      key += KEY_SPLITTER + type + KEY_SPLITTER + uniqueKey;
+    } else {
+      key += KEY_SPLITTER + type;
     }
     return key;
   }

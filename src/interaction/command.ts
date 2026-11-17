@@ -825,11 +825,13 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
       this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
     }
 
-    if (this.autocomplete === undefined && typeof(this.onAutoComplete) === 'function') {
+    this.merge(data);
+
+    // only value options can autocomplete, a subcommand's `onAutoComplete` is there for its options to inherit
+    // (checked after merging since `options` can turn this into a subcommand group)
+    if (this.autocomplete === undefined && typeof(this.onAutoComplete) === 'function' && !this.isSubCommand && !this.isSubCommandGroup) {
       this.autocomplete = true;
     }
-
-    this.merge(data);
   }
 
   get fullName(): string {
@@ -1032,6 +1034,8 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
       } else {
         this.type = ApplicationCommandOptionTypes.SUB_COMMAND;
       }
+      // it's a subcommand (group) now, those can't autocomplete (it might've been turned on while this was a value option)
+      this.autocomplete = undefined;
     }
   }
 

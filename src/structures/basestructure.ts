@@ -67,15 +67,69 @@ function isCollectionDifferent(old: BaseCollection<any, any>, value: any): boole
   if (!Array.isArray(value) || old.size !== value.length) {
     return true;
   }
-  for (let item of value) {
-    if (!item || typeof(item) !== 'object' || !('id' in item) || !old.has(item.id)) {
-      return true;
-    }
-    if (isItemDifferent(old.get(item.id), item)) {
+  // collections like components, embeds, and embed fields are keyed by their index (a number), ids are always strings
+  // their items can still have an `id` (components have a number one), so go by the position
+  let isKeyedByIndex = false;
+  for (let key of old.keys()) {
+    isKeyedByIndex = (typeof(key) === 'number');
+    break;
+  }
+  for (let i = 0; i < value.length; i++) {
+    const item = value[i];
+    if (isKeyedByIndex) {
+      if (!old.has(i) || isItemDifferent(old.get(i), item)) {
+        return true;
+      }
+    } else if (item && typeof(item) === 'object') {
+      if (!('id' in item) || !old.has(item.id) || isItemDifferent(old.get(item.id), item)) {
+        return true;
+      }
+    } else if (!old.has(item)) {
+      // an array of ids (like `mention_roles`) for a collection keyed by them
       return true;
     }
   }
   return false;
+}
+
+/**
+ * Copy of a structure that `merge()` won't change, for the old values `difference()` hands back
+ * copies its own properties (and the structures in them) instead of calling `clone()`, some constructors take a parent structure instead of the client
+ */
+function snapshotStructure(structure: BaseStructure, copies: Map<BaseStructure, BaseStructure>): BaseStructure {
+  let copy = copies.get(structure);
+  if (!copy) {
+    copy = Object.create(Object.getPrototypeOf(structure)) as BaseStructure;
+    copies.set(structure, copy);
+    const descriptors = Object.getOwnPropertyDescriptors(structure);
+    for (let key in descriptors) {
+      // non-enumerable ones are the parent structure (like an overwrite's channel), leave those as is
+      const descriptor = descriptors[key];
+      if (descriptor.enumerable && descriptor.value instanceof BaseStructure) {
+        descriptor.value = snapshotStructure(descriptor.value, copies);
+      }
+    }
+    Object.defineProperties(copy, descriptors);
+  }
+  return copy;
+}
+
+/**
+ * The old value `difference()` hands back
+ * a collection's items get merged into in place (like overwrites and presence activities), so copy those too
+ */
+function snapshotValue(old: any): any {
+  if (old instanceof BaseCollection) {
+    const collection = new BaseCollection<any, any>();
+    const copies = new Map<BaseStructure, BaseStructure>();
+    for (let [key, item] of old) {
+      collection.set(key, (item instanceof BaseStructure) ? snapshotStructure(item, copies) : item);
+    }
+    return collection;
+  } else if (old instanceof BaseSet) {
+    return old.clone();
+  }
+  return old;
 }
 
 function isArrayDifferent(old: Array<any>, value: any): boolean {
@@ -148,27 +202,15 @@ export class Structure {
       const camelKey = convertKey(key);
       const old = (this as any)[camelKey];
       if (old !== undefined && old !== value) {
-        if (typeof(old) === 'bigint') {
-          // checked before the truthy compare since `0n` is falsy but its string form `"0"` isn't
-          if (this.hasDifference(key, value)) {
-            return [true, old];
-          }
-        } else if (!!old !== !!value) {
-          return [true, old];
-        } else if (old instanceof BaseStructure) {
+        if (old instanceof BaseStructure && value) {
           // `differencesBetween()` when comparing two structures (from `differencesBetween()`), `differences()` for raw data
           const differences = (value instanceof BaseStructure) ? old.differencesBetween(value) : old.differences(value);
           if (differences) {
             return [true, differences];
           }
         } else if (this.hasDifference(key, value)) {
-          if (old instanceof BaseCollection) {
-            return [true, old.clone()];
-          } else if (old instanceof BaseSet) {
-            return [true, old.clone()];
-          } else {
-            return [true, old];
-          }
+          // everything else goes through `hasDifference()` so a structure's overrides of it count here too
+          return [true, snapshotValue(old)];
         }
       }
     }

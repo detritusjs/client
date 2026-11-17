@@ -221,6 +221,11 @@ export class ApplicationCommandOption extends BaseStructure {
     this.merge(data);
   }
 
+  // the generic `clone()` would pass the client in as the command
+  clone(): this {
+    return new ApplicationCommandOption(this.command, JSON.parse(JSON.stringify(this)), true) as this;
+  }
+
   get key(): string {
     return KeyGenerator.ApplicationCommandOption(this);
   }
@@ -340,6 +345,11 @@ export class ApplicationCommandOptionChoice extends BaseStructure {
     super(option.client, undefined, isClone);
     Object.defineProperty(this, 'option', {configurable: true, enumerable: false, writable: true, value: option});
     this.merge(data);
+  }
+
+  // the generic `clone()` would pass the client in as the option
+  clone(): this {
+    return new ApplicationCommandOptionChoice(this.option, JSON.parse(JSON.stringify(this)), true) as this;
   }
 
   get key(): string {
@@ -515,6 +525,11 @@ export class ApplicationCommandPermission extends BaseStructure {
     super(commandPermissions.client, undefined, isClone);
     Object.defineProperty(this, 'commandPermissions', {configurable: true, enumerable: false, writable: true, value: commandPermissions});
     this.merge(data);
+  }
+
+  // the generic `clone()` would pass the client in as the command permissions
+  clone(): this {
+    return new ApplicationCommandPermission(this.commandPermissions, JSON.parse(JSON.stringify(this)), true) as this;
   }
 
   isForAllChannels(): boolean {

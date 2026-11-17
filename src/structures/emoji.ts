@@ -213,11 +213,13 @@ export class Emoji extends BaseStructure {
   hasDifference(key: string, value: any): boolean {
     switch (key) {
       case DiscordKeys.ROLES: {
+        // raw role ids, or the `roles` collection (keyed by role id) when comparing two emojis with `differencesBetween()`
+        const roleIds: Array<string> = (value instanceof BaseCollection) ? Array.from(value.keys()) : value;
         const old = this._roles;
         if (old) {
-          return (old.length !== value.length) || !value.every((roleId: string) => old.includes(roleId));
+          return (old.length !== roleIds.length) || !roleIds.every((roleId: string) => old.includes(roleId));
         } else {
-          return value.length !== 0;
+          return roleIds.length !== 0;
         }
       };
     }

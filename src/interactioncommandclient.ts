@@ -25,7 +25,7 @@ import {
   Permissions,
   LOCAL_GUILD_ID,
 } from './constants';
-import { ImportedCommandsError } from './errors';
+import { ApplicationCommandsSyncError, ImportedCommandsError } from './errors';
 import { GatewayClientEvents } from './gateway/clientevents';
 import {
   ApplicationCommand,
@@ -54,6 +54,9 @@ import {
 } from './interaction';
 import { Regexes } from './utils/markup';
 
+
+// errors.ts isn't exported from the package index, keep this one reachable from here
+export { ApplicationCommandsSyncError };
 
 export interface InteractionCommandClientOptions extends ClusterClientOptions {
   checkCommands?: boolean,
@@ -235,8 +238,8 @@ export class InteractionCommandClient extends EventSpewer {
       if (options._class === undefined) {
         command = new InteractionCommand(options);
       } else {
-        // check for `.constructor` to make sure it's a class
-        if (options._class.constructor) {
+        // check for `.prototype` to make sure it can be constructed, every function has `.constructor` but arrow functions have no `.prototype`
+        if (options._class.prototype) {
           command = new options._class(options);
         } else {
           // else it's just a function, `ts-node` outputs these
@@ -346,10 +349,13 @@ export class InteractionCommandClient extends EventSpewer {
   clearRequireCache(): void {
     for (let command of this.commands) {
       if (command._file) {
-        const requirePath = require.resolve(command._file);
-        if (requirePath) {
-          delete require.cache[requirePath];
+        let requirePath = command._file;
+        try {
+          requirePath = require.resolve(command._file);
+        } catch(error) {
+          // the file got deleted or renamed, `_file` is already an absolute path from importing it
         }
+        delete require.cache[requirePath];
       }
     }
   }
@@ -381,7 +387,7 @@ export class InteractionCommandClient extends EventSpewer {
     const errors: Record<string, Error> = {};
     const files: Array<ImportedFile> = [];
     for (let [directory, options] of this.directories) {
-      const imported = await importFilesIn(directory, options.subdirectories);
+      const imported = await importFilesIn(directory, options.subdirectories, true);
       Object.assign(errors, imported.errors);
       files.push(...imported.files);
     }
@@ -411,26 +417,38 @@ export class InteractionCommandClient extends EventSpewer {
     // also go over scopes without local commands, so the commands we no longer have get deleted from them
     // (the global scope always, guilds once we've synced them)
     const scopes = new Set<string>([LOCAL_GUILD_ID, ...this._syncedScopes, ...this.commandsById.keys()]);
+    // one scope failing (like a guild we were removed from) shouldn't stop the others from syncing
+    const errors: Record<string, Error> = {};
     for (let guildId of scopes) {
-      this._syncedScopes.add(guildId);
       const guildIdOrUndefined = (guildId === LOCAL_GUILD_ID) ? undefined : guildId;
-
-      let commands: BaseCollection<string, ApplicationCommand>;
-      if (force) {
-        commands = await this.uploadApplicationCommands(guildIdOrUndefined);
-      } else {
-        const remoteCommands = await this.fetchApplicationCommands(guildIdOrUndefined);
-        this.fillCommandIds(remoteCommands, guildIdOrUndefined);
-        const plan = this.planApplicationCommands(remoteCommands, guildIdOrUndefined);
-        if (!plan.changes || !this.canUpload) {
-          continue;
+      try {
+        let commands: BaseCollection<string, ApplicationCommand>;
+        if (force) {
+          commands = await this.uploadApplicationCommands(guildIdOrUndefined);
+        } else {
+          const remoteCommands = await this.fetchApplicationCommands(guildIdOrUndefined);
+          this.fillCommandIds(remoteCommands, guildIdOrUndefined);
+          const plan = this.planApplicationCommands(remoteCommands, guildIdOrUndefined);
+          if (!plan.changes || !this.canUpload) {
+            this._syncedScopes.add(guildId);
+            continue;
+          }
+          commands = await this.applyApplicationCommandsPlan(remoteCommands, plan, guildIdOrUndefined);
         }
-        commands = await this.applyApplicationCommandsPlan(remoteCommands, plan, guildIdOrUndefined);
+        this._syncedScopes.add(guildId);
+        this.validateCommands(commands, guildIdOrUndefined);
+        if (this.manager && this.manager.hasMultipleClusters) {
+          this.manager.sendIPC(ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS, {data: commands});
+        }
+      } catch(error: any) {
+        // don't keep retrying a scope we can't sync, it gets synced again if it still has local commands
+        this._syncedScopes.delete(guildId);
+        errors[guildId] = error;
       }
-      this.validateCommands(commands, guildIdOrUndefined);
-      if (this.manager && this.manager.hasMultipleClusters) {
-        this.manager.sendIPC(ClusterIPCOpCodes.FILL_INTERACTION_COMMANDS, {data: commands});
-      }
+    }
+
+    if (Object.keys(errors).length) {
+      throw new ApplicationCommandsSyncError(errors);
     }
   }
 
@@ -452,10 +470,9 @@ export class InteractionCommandClient extends EventSpewer {
     const collection = commands.clone();
     if (plan.create.length) {
       const data = this.createApplicationCommandPayload(plan.create[0]) as any;
-      const raw = (guildId) ?
+      const command = (guildId) ?
         await shard.rest.createApplicationGuildCommand(applicationId, guildId, data) :
         await shard.rest.createApplicationCommand(applicationId, data);
-      const command = new ApplicationCommand(shard, raw);
       collection.set(command.id, command);
     } else if (plan.delete.length) {
       const command = plan.delete[0];
@@ -839,10 +856,11 @@ export class InteractionCommandClient extends EventSpewer {
       }
     }
     await this.client.run(options);
+    // the client is running even if syncing the commands fails, so don't leave `ran` false and let `run()` be called again
+    Object.defineProperty(this, 'ran', {value: true});
     if (this.checkCommands) {
       await this.checkAndUploadCommands();
     }
-    Object.defineProperty(this, 'ran', {value: true});
     return this.client;
   }
 
@@ -1016,7 +1034,17 @@ export class InteractionCommandClient extends EventSpewer {
 
         const channel = context.channel;
         const member = context.me;
-        if (channel && member) {
+        if (context.appPermissions) {
+          // discord sends the bot's permissions in the channel, so the guild doesn't need to be cached (or even have the bot in it)
+          const total = context.appPermissions;
+          if (!PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
+            for (let permission of invoker.permissionsClient) {
+              if (!PermissionTools.checkPermissions(total, permission)) {
+                failed.push(permission);
+              }
+            }
+          }
+        } else if (channel && member) {
           const total = member.permissionsIn(channel);
           if (!member.isOwner && !PermissionTools.checkPermissions(total, Permissions.ADMINISTRATOR)) {
             for (let permission of invoker.permissionsClient) {
@@ -1285,6 +1313,9 @@ export class InteractionCommandClient extends EventSpewer {
             const payload: InteractionCommandEvents.CommandError = {command, context: context as any, error: e};
             this.emit(ClientEvents.COMMAND_ERROR, payload);
           }
+        } else {
+          const payload: InteractionCommandEvents.CommandError = {command, context: context as any, error};
+          this.emit(ClientEvents.COMMAND_ERROR, payload);
         }
       }
     }

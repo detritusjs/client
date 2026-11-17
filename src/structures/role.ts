@@ -267,8 +267,33 @@ export class Role extends BaseStructure {
           old.tertiaryColor !== colors.tertiaryColor
         );
       };
+      case DiscordKeys.TAGS: {
+        // `merge()` turns an empty `{}` into `null`
+        if (value === undefined) {
+          return false;
+        }
+        const isEmpty = !value || (!(value instanceof BaseStructure) && !Object.keys(value).length);
+        if (!this.tags || isEmpty) {
+          return !!this.tags !== !isEmpty;
+        }
+      }; break;
     }
     return super.hasDifference(key, value);
+  }
+
+  // `merge()` clears the tags when discord leaves them out, so a missing `tags` counts as `null`
+  differences(data?: BaseStructureData): null | object {
+    if (data && this.tags && !(DiscordKeys.TAGS in data)) {
+      data = Object.assign({}, data, {[DiscordKeys.TAGS]: null});
+    }
+    return super.differences(data);
+  }
+
+  hasDifferences(data?: BaseStructureData): boolean {
+    if (data && this.tags && !(DiscordKeys.TAGS in data)) {
+      return true;
+    }
+    return super.hasDifferences(data);
   }
 
   merge(data?: BaseStructureData): void {

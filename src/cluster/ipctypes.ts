@@ -41,6 +41,7 @@ export namespace ClusterIPCTypes {
 
   export interface Eval {
     error?: IPCError,
+    // answers leave it out, they only need the nonce
     code: string,
     ignored?: boolean,
     nonce: string,

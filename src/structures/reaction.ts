@@ -98,6 +98,23 @@ export class Reaction extends BaseStructure {
     return this.client.rest.fetchReactions(this.channelId, this.messageId, this.emoji.endpointFormat, options);
   }
 
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.COUNT_DETAILS: {
+        // a plain object, the base compare counts any raw object as different
+        if (value === undefined) {
+          return false;
+        }
+        const old = this.countDetails;
+        if (!old || !value) {
+          return old !== value;
+        }
+        return old.burst !== value.burst || old.normal !== value.normal;
+      };
+    }
+    return super.hasDifference(key, value);
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;

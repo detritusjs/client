@@ -382,7 +382,7 @@ export class Message extends BaseStructure {
   }
 
   get jumpLink(): string {
-    return Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(this.guildId, this.channelId, this.id);
+    return Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(this.guildId || null, this.channelId, this.id);
   }
 
   get mentionHere(): boolean {
@@ -450,9 +450,12 @@ export class Message extends BaseStructure {
         return this.content;
       };
       default: {
-        Object.defineProperty(this, '_content', {
-          value: messageSystemContent(this),
-        });
+        // worked out once, `merge()` clears it
+        if (!this._content) {
+          Object.defineProperty(this, '_content', {
+            value: messageSystemContent(this),
+          });
+        }
       };
     }
     return this._content;
@@ -568,7 +571,8 @@ export class Message extends BaseStructure {
         const hasDifference = (this.embeds.length !== value.length) || value.some((raw: any, i: number) => {
           const embed = this.embeds.get(i);
           if (embed) {
-            return !!embed.differences(raw);
+            // `differencesBetween()` hands us the other message's embeds
+            return !!((raw instanceof BaseStructure) ? embed.differencesBetween(raw) : embed.differences(raw));
           }
           return true;
         });
@@ -585,6 +589,12 @@ export class Message extends BaseStructure {
           differences = this.mentions.clone();
         }
       }; break;
+      case DiscordKeys.REACTIONS: {
+        if (this.hasDifference(key, value)) {
+          // `merge()` clears the collection in place, the reactions in it get replaced instead of merged into
+          differences = this.reactions.clone();
+        }
+      }; break;
       default: {
         return super.difference(key, value);
       };
@@ -595,9 +605,39 @@ export class Message extends BaseStructure {
     return [false, null];
   }
 
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.REACTIONS: {
+        // keyed by the emoji's id (or name for unicode ones), raw reactions have no `id` for the base compare to match by
+        // accepts the raw array from discord or our collection (from `differencesBetween()`)
+        if (value === undefined) {
+          return false;
+        }
+        const reactions = (value instanceof BaseCollection) ? value.toArray() : (value || []);
+        if (this.reactions.length !== reactions.length) {
+          return true;
+        }
+        return reactions.some((raw: any) => {
+          const emoji = (raw instanceof Reaction) ? raw.emoji : raw[DiscordKeys.EMOJI];
+          const reaction = (emoji) ? this.reactions.get(emoji.id || emoji.name) : undefined;
+          if (!reaction) {
+            return true;
+          }
+          return (raw instanceof Reaction) ? reaction.hasDifferencesBetween(raw) : reaction.hasDifferences(raw);
+        });
+      };
+    }
+    return super.hasDifference(key, value);
+  }
+
   merge(data?: BaseStructureData): void {
     if (!data) {
       return;
+    }
+
+    // `systemContent` is worked out from the rest of the message (author, mentions, call, etc..) when read, so forget the old one
+    if (this._content) {
+      Object.defineProperty(this, '_content', {value: ''});
     }
 
     if (DiscordKeys.CHANNEL_ID in data) {
@@ -811,12 +851,6 @@ export class Message extends BaseStructure {
       }
     }
     if (DiscordKeys.CONTENT in data) {
-      // _content is only set if its a system message, dunno if we ever receive content updates for those
-      if (this._content) {
-        Object.defineProperty(this, '_content', {
-          value: messageSystemContent(this, data[DiscordKeys.CONTENT]),
-        });
-      }
       (this as any)[DetritusKeys[DiscordKeys.CONTENT]] = data[DiscordKeys.CONTENT];
     }
     if (DiscordKeys.EDITED_TIMESTAMP in data) {
@@ -875,7 +909,8 @@ export class Message extends BaseStructure {
           // should we merge? this event is so common so we'll be wasting resources..
         } else {
           member = new Member(this.client, value);
-          member.user = this.author.clone();
+          // the cached author, a copy would never get the user's updates
+          member.user = this.author;
           this.client.members.insert(member);
         }
       }
@@ -1572,6 +1607,31 @@ export class MessagePollResults extends BaseStructure {
       total += answerCount.count;
     }
     return total;
+  }
+
+  hasDifference(key: string, value: any): boolean {
+    switch (key) {
+      case DiscordKeys.ANSWER_COUNTS: {
+        // plain objects keyed by answer id, the base compare counts any raw object as different
+        // accepts the raw array from discord or our collection (from `differencesBetween()`)
+        if (value === undefined) {
+          return false;
+        }
+        const answerCounts = (value instanceof BaseCollection) ? value.toArray() : value;
+        if (this.answerCounts.length !== answerCounts.length) {
+          return true;
+        }
+        return answerCounts.some((raw: any) => {
+          const answerCount = this.answerCounts.get(raw[DiscordKeys.ID]);
+          if (!answerCount) {
+            return true;
+          }
+          const meVoted = (DiscordKeys.ME_VOTED in raw) ? raw[DiscordKeys.ME_VOTED] : raw.meVoted;
+          return answerCount.count !== raw[DiscordKeys.COUNT] || answerCount.meVoted !== meVoted;
+        });
+      };
+    }
+    return super.hasDifference(key, value);
   }
 
   merge(data?: BaseStructureData): void {

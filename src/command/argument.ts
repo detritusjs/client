@@ -33,6 +33,12 @@ export interface ArgumentOptions {
 
 const blankPrefixes = Object.freeze(['']);
 
+const WHITESPACE_REGEX = /\s/;
+
+function isWhitespace(character: string): boolean {
+  return WHITESPACE_REGEX.test(character);
+}
+
 /**
  * Command Argument
  * @category Command
@@ -42,6 +48,8 @@ export class Argument {
   private _label: string = '';
   private _name: string = '';
   private _names?: Array<string>;
+  // made from the `_names` array it's for, a new `_names` array means it's stale
+  private _namesParts?: {names: Array<string>, parts: Array<Array<string>>};
   private _type: ArgumentType = CommandArgumentTypes.STRING;
 
   positionalArgs?: ArgumentParser;
@@ -169,7 +177,7 @@ export class Argument {
       while (index !== -1) {
         // only match whole flags, so `-u` doesn't match inside of `--user`
         const end = index + name.length;
-        if ((index === 0 || /\s/.test(content[index - 1])) && (end === content.length || /\s/.test(content[end]))) {
+        if ((index === 0 || isWhitespace(content[index - 1])) && (end === content.length || isWhitespace(content[end]))) {
           break;
         }
         index = content.indexOf(name, index + 1);
@@ -191,33 +199,37 @@ export class Argument {
     return this.default;
   }
 
+  // `names` split on spaces, so a multi-word name isn't split again for every message
+  get namesParts(): Array<Array<string>> {
+    const names = this.names;
+    if (this._namesParts && this._namesParts.names === names) {
+      return this._namesParts.parts;
+    }
+    const parts = names.map((name) => name.split(' '));
+    this._namesParts = {names, parts};
+    return parts;
+  }
+
   getName(content: string): null | string {
-    for (let name of this.names) {
-      if (name.includes(' ')) {
-        const parts = name.split(' ');
+    // a name has to be followed by whitespace (a space, newline, etc) or the end of the content
+    const endsAt = (value: string, length: number) => value.length === length || isWhitespace(value[length]);
+    for (let parts of this.namesParts) {
+      if (1 < parts.length) {
         let matches = true;
 
         let copy = content;
         let store: string = '';
         for (let [key, part] of parts.entries()) {
-          if (copy.length === part.length) {
-            if (copy === part) {
-              store += copy;
-              copy = '';
-              continue;
-            }
-          } else {
-            if (copy.startsWith(part + ' ')) {
-              store += part;
-              copy = copy.slice(part.length);
-              if (key !== (parts.length - 1)) {
-                while (copy.startsWith(' ')) {
-                  store += ' ';
-                  copy = copy.slice(1);
-                }
+          if (copy.startsWith(part) && endsAt(copy, part.length)) {
+            store += part;
+            copy = copy.slice(part.length);
+            if (key !== (parts.length - 1)) {
+              while (copy.length && isWhitespace(copy[0])) {
+                store += copy[0];
+                copy = copy.slice(1);
               }
-              continue;
             }
+            continue;
           }
           matches = false;
           break;
@@ -226,14 +238,9 @@ export class Argument {
           return store;
         }
       } else {
-        if (content.length === name.length) {
-          if (content === name) {
-            return name;
-          }
-        } else {
-          if (content.startsWith(name + ' ')) {
-            return name;
-          }
+        const name = parts[0];
+        if (content.startsWith(name) && endsAt(content, name.length)) {
+          return name;
         }
       }
     }
@@ -300,7 +307,9 @@ export class Argument {
         }
       }
     }
-    if (this.choices) {
+    // an optional argument that wasn't given has nothing to check against the choices
+    const isEmpty = parsedValue === undefined || parsedValue === null || parsedValue === '';
+    if (this.choices && (this.required || !isEmpty)) {
       if (!this.choices.includes(parsedValue)) {
         throw new Error(this.help || `${parsedValue} is not a valid choice`);
       }

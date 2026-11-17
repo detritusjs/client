@@ -102,6 +102,9 @@ function getPrefixEnd(content: string, contentLower: string, prefix: string): nu
  */
 export class CommandClient extends EventSpewer {
   readonly _clientSubscriptions: Array<EventSubscription> = [];
+  // reply id -> command message id, so a deleted message doesn't have to be looked for in every reply
+  // entries can go stale (replies expire or get replaced), they're checked against `replies` and rebuilt once they pile up
+  readonly _replyIds = new Map<string, string>();
 
   activateOnEdits: boolean = false;
   client: ClusterClient | ShardClient;
@@ -233,6 +236,7 @@ export class CommandClient extends EventSpewer {
 
     Object.defineProperties(this, {
       _clientSubscriptions: {enumerable: false, writable: false},
+      _replyIds: {enumerable: false, writable: false},
       activateOnEdits: {configurable: true, writable: false},
       commands: {writable: false},
       maxEditDuration: {configurable: true, writable: false},
@@ -294,8 +298,8 @@ export class CommandClient extends EventSpewer {
       if (options._class === undefined) {
         command = new Command(this, options);
       } else {
-        // check for `.constructor` to make sure it's a class
-        if (options._class.constructor) {
+        // check for `.prototype` to make sure it can be constructed, every function has `.constructor` but arrow functions have no `.prototype`
+        if (options._class.prototype) {
           command = new options._class(this, options);
         } else {
           // else it's just a function, `ts-node` outputs these
@@ -400,10 +404,13 @@ export class CommandClient extends EventSpewer {
   clearRequireCache(): void {
     for (let command of this.commands) {
       if (command._file) {
-        const requirePath = require.resolve(command._file);
-        if (requirePath) {
-          delete require.cache[requirePath];
+        let requirePath = command._file;
+        try {
+          requirePath = require.resolve(command._file);
+        } catch(error) {
+          // the file got deleted or renamed, `_file` is already an absolute path from importing it
         }
+        delete require.cache[requirePath];
       }
     }
   }
@@ -424,7 +431,7 @@ export class CommandClient extends EventSpewer {
     const errors: Record<string, Error> = {};
     const files: Array<ImportedFile> = [];
     for (let [directory, options] of this.directories) {
-      const imported = await importFilesIn(directory, options.subdirectories);
+      const imported = await importFilesIn(directory, options.subdirectories, true);
       Object.assign(errors, imported.errors);
       files.push(...imported.files);
     }
@@ -504,12 +511,21 @@ export class CommandClient extends EventSpewer {
   async getCommand(attributes: CommandAttributes, context?: Context): Promise<Command | null> {
     if (attributes.content) {
       const insensitive = attributes.content.toLowerCase();
+      // the longest matching name wins between commands of the same priority, so `tag` doesn't shadow `tag get`
+      let found: {command: Command, name: string} | null = null;
       for (let command of this.commands) {
-        const name = command.getName(insensitive);
-        if (name) {
-          attributes.content = attributes.content.substring(name.length).trim();
-          return command;
+        if (found && command.priority < found.command.priority) {
+          // sorted by priority, nothing after this can win
+          break;
         }
+        const name = command.getName(insensitive);
+        if (name && (!found || found.name.length < name.length)) {
+          found = {command, name};
+        }
+      }
+      if (found) {
+        attributes.content = attributes.content.substring(found.name.length).trim();
+        return found.command;
       }
     }
     return null;
@@ -578,7 +594,32 @@ export class CommandClient extends EventSpewer {
   storeReply(messageId: string, command: Command, context: Context, reply: Message | void): void {
     if (this.maxEditDuration && reply instanceof Message) {
       this.replies.set(messageId, {command, context, reply});
+      this._replyIds.set(reply.id, messageId);
+      if (Math.max(this.replies.length * 2, 100) < this._replyIds.size) {
+        this.rebuildReplyIds();
+      }
     }
+  }
+
+  // drops the stale entries of `_replyIds`
+  rebuildReplyIds(): void {
+    this._replyIds.clear();
+    for (let [messageId, { reply }] of this.replies) {
+      this._replyIds.set(reply.id, messageId);
+    }
+  }
+
+  // the command message id of a stored reply, if it's still the current reply of that command
+  getReplyCommandId(replyId: string): string | null {
+    const messageId = this._replyIds.get(replyId);
+    if (messageId !== undefined) {
+      const stored = this.replies.get(messageId);
+      if (stored && stored.reply.id === replyId) {
+        return messageId;
+      }
+      this._replyIds.delete(replyId);
+    }
+    return null;
   }
 
   /* Handler */
@@ -1048,18 +1089,19 @@ export class CommandClient extends EventSpewer {
       const payload: CommandEvents.CommandDelete = {command, context, event: name, reply};
       this.emit(ClientEvents.COMMAND_DELETE, payload);
     } else {
-      for (let [commandId, { command, context, reply }] of this.replies) {
-        if (reply.id === messageId) {
-          this.replies.delete(commandId);
+      const commandId = this.getReplyCommandId(messageId);
+      if (commandId !== null) {
+        const { command, context, reply } = this.replies.get(commandId)!;
+        this.replies.delete(commandId);
+        this._replyIds.delete(messageId);
 
-          const payload: CommandEvents.CommandResponseDelete = { command, context, reply };
-          this.emit(ClientEvents.COMMAND_RESPONSE_DELETE, payload);
-        }
+        const payload: CommandEvents.CommandResponseDelete = { command, context, reply };
+        this.emit(ClientEvents.COMMAND_RESPONSE_DELETE, payload);
       }
     }
   }
 
-  // purges, same as `handleDelete()` for each message but going over the replies once
+  // purges, same as `handleDelete()` for each message (command messages first, then responses)
   async handleDeleteBulk(deletePayload: {raw: {ids: Array<string>}}): Promise<void> {
     const messageIds = new Set(deletePayload.raw.ids);
     for (let messageId of messageIds) {
@@ -1071,9 +1113,12 @@ export class CommandClient extends EventSpewer {
         this.emit(ClientEvents.COMMAND_DELETE, payload);
       }
     }
-    for (let [commandId, { command, context, reply }] of this.replies) {
-      if (messageIds.has(reply.id)) {
+    for (let messageId of messageIds) {
+      const commandId = this.getReplyCommandId(messageId);
+      if (commandId !== null) {
+        const { command, context, reply } = this.replies.get(commandId)!;
         this.replies.delete(commandId);
+        this._replyIds.delete(messageId);
 
         const payload: CommandEvents.CommandResponseDelete = {command, context, reply};
         this.emit(ClientEvents.COMMAND_RESPONSE_DELETE, payload);

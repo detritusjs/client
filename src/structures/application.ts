@@ -725,7 +725,7 @@ export class ApplicationThirdPartySku extends BaseStructure {
 
   get url(): null | string {
     if (this.distributor in DistributorUrls) {
-      const url = DistributorUrls[this.distributor];
+      const url = (DistributorUrls as Record<string, any>)[this.distributor];
       switch (this.distributor) {
         case Distributors.BATTLENET: {
           // use name

@@ -1257,6 +1257,12 @@ export class Guild extends GuildPartial {
         }
         return JSON.stringify((this as any)[DetritusKeys[key]]) !== JSON.stringify(value);
       };
+      case DiscordKeys.MAX_PRESENCES: {
+        // discord sends `null` for the default, `merge()` turns it into `DEFAULT_MAX_PRESENCES`
+        if (value === null) {
+          value = DEFAULT_MAX_PRESENCES;
+        }
+      }; break;
       case DiscordKeys.INCIDENTS_DATA: {
         if (value === undefined) {
           return false;
@@ -1424,7 +1430,7 @@ export class Guild extends GuildPartial {
       if (this.client.guildScheduledEvents.enabled) {
         for (let raw of value) {
           raw[DiscordKeys.GUILD_ID] = this.id;
-          const event = new GuildScheduledEvent(this.client, raw);
+          const event = new GuildScheduledEvent(this.client, raw, this.isClone);
           this.guildScheduledEvents.set(event.id, event);
         }
       }
@@ -1488,12 +1494,19 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.MEMBERS in data) {
       // merge members before presences
       const value = data[DiscordKeys.MEMBERS];
-      this.members.clear();
+      // reuse the members we already have (like on a resync) so anything holding onto them stays up to date
+      const members: Array<Member> = [];
       for (let raw of value) {
         raw[DiscordKeys.GUILD_ID] = this.id;
         if (this.client.user && this.client.user.id === raw.user.id) {
-          const member = new Member(this.client, raw, this.isClone);
-          this.members.set(member.id, member);
+          let member: Member;
+          if (this.members.has(raw.user.id)) {
+            member = this.members.get(raw.user.id)!;
+            member.merge(raw);
+          } else {
+            member = new Member(this.client, raw, this.isClone);
+          }
+          members.push(member);
           if (this.client.members.enabled || this.client.presences.enabled || this.client.users.enabled) {
             continue;
           }
@@ -1507,8 +1520,8 @@ export class Guild extends GuildPartial {
             member.merge(raw);
           } else {
             member = new Member(this.client, raw, this.isClone);
-            this.members.set(member.id, member);
           }
+          members.push(member);
         } else if (this.client.presences.enabled || this.client.users.enabled) {
           // if this isn't a clone, merge user into our cache then
           if (!this.isClone) {
@@ -1522,6 +1535,10 @@ export class Guild extends GuildPartial {
             }
           }
         }
+      }
+      this.members.clear();
+      for (let member of members) {
+        this.members.set(member.id, member);
       }
     }
     if (DiscordKeys.MFA_LEVEL in data) {

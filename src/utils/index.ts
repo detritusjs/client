@@ -60,16 +60,32 @@ export type UrlQuery = Record<string, any>;
  * Loads a command file with `require()` (its cache can be cleared, so reloading commands works)
  * and falls back to `import()` for es modules `require()` can't load (like `.mjs` on older node, or ones with top-level await)
  */
-export async function requireOrImport(filepath: string): Promise<any> {
+export async function requireOrImport(filepath: string, reload: boolean = false): Promise<any> {
+  let imported: any;
   try {
-    return require(filepath);
+    imported = require(filepath);
   } catch(error: any) {
     if (error && (error.code === 'ERR_REQUIRE_ESM' || error.code === 'ERR_REQUIRE_ASYNC_MODULE')) {
-      const namespace = await import(pathToFileURL(filepath).href);
-      return ('default' in namespace) ? namespace.default : namespace;
+      return importFile(filepath, reload);
     }
     throw error;
   }
+  // newer node can `require()` es modules, but they stay in the es module cache even after `require.cache` is cleared
+  if (reload && Object.prototype.toString.call(imported) === '[object Module]') {
+    return importFile(filepath, reload);
+  }
+  return imported;
+}
+
+async function importFile(filepath: string, reload: boolean): Promise<any> {
+  // `import()`'s cache can't be cleared like `require.cache`, a new query makes it load the file again on a reload
+  // (only this file, what it imports stays cached, and the old version stays in memory)
+  let url = pathToFileURL(filepath).href;
+  if (reload) {
+    url += `?update=${Date.now()}`;
+  }
+  const namespace = await import(url);
+  return ('default' in namespace) ? namespace.default : namespace;
 }
 
 
@@ -88,6 +104,7 @@ export interface ImportedFile {
 export async function importFilesIn(
   directory: string,
   subdirectories: boolean,
+  reload: boolean = false,
 ): Promise<{errors: Record<string, Error>, files: Array<ImportedFile>}> {
   const filenames: Array<string> = await getFiles(directory, subdirectories);
   const errors: Record<string, Error> = {};
@@ -105,7 +122,7 @@ export async function importFilesIn(
 
     const filepath = path.resolve(directory, filename);
     try {
-      let imported: any = await requireOrImport(filepath);
+      let imported: any = await requireOrImport(filepath, reload);
       if (typeof(imported) === 'object' && imported.__esModule) {
         imported = imported.default;
       }
@@ -168,8 +185,8 @@ export function anyToCamelCase(object: any, skip?: Array<string>): any {
 // generate a waveform for discord from a mono channel Float32Array
 export function generateWaveform(samples: Float32Array, sampleRate: number = 48000): string {
   // Calculate number of points (1 points per 100ms, limited to 256 datapoints)
-  const numPoints = Math.min(Math.floor(samples.length / (sampleRate / 10)), 256);
-  const samplesPerPoint = Math.floor(samples.length / numPoints);
+  // at least 1 for clips shorter than 100ms, an empty waveform shows nothing
+  const numPoints = (samples.length) ? Math.min(Math.max(Math.floor(samples.length / (sampleRate / 10)), 1), 256) : 0;
 
   const waveformPoints = new Uint8Array(numPoints);
   for (let i = 0; i < numPoints; i++) {

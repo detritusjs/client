@@ -98,7 +98,12 @@ const keysComponentSection = new BaseSet<string>([
     if (data instanceof ComponentButton || data instanceof ComponentThumbnail) {
       this.accessory = data;
     } else {
-      switch (data.type) {
+      let type = data.type;
+      if (type === undefined) {
+        // only a thumbnail has media
+        type = (DiscordKeys.MEDIA in data) ? MessageComponentTypes.THUMBNAIL : MessageComponentTypes.BUTTON;
+      }
+      switch (type) {
         case MessageComponentTypes.BUTTON: {
           this.accessory = new ComponentButton(data);
         }; break;

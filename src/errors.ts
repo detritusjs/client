@@ -52,6 +52,20 @@ export class GatewayHTTPError extends BaseError {
 }
 
 
+/**
+ * Thrown by `InteractionCommandClient.checkAndUploadCommands()` after every scope was gone over, with the error of each scope that failed
+ * (keyed by guild id, or `LOCAL_GUILD_ID` for the global commands)
+ */
+export class ApplicationCommandsSyncError extends BaseError {
+  errors: Record<string, Error>;
+
+  constructor(errors: Record<string, Error>) {
+    super('Error while syncing the application commands of some scopes');
+    this.errors = errors;
+  }
+}
+
+
 export class ImportedCommandsError extends BaseError {
   errors: {[key: string]: Error};
 

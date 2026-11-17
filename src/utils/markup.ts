@@ -558,10 +558,18 @@ function outsideProtectedParts(text: string, escape: (part: string) => string): 
 // escapes a wrapper's own marker but leaves escapes that are already there alone, so nesting works
 // (`bold(italics('a_b'))` keeps italics' `\_`, doubling every backslash would turn it into `\\_` and free the `_`)
 // only a lone backslash at the very end gets doubled, it would escape the closing marker
+// built once per marker instead of on every call (`replace()` resets a global regex's `lastIndex`, so sharing them is fine)
+const escapeMarkerRegexes = new Map<RegExp, RegExp>();
+
 function escapeMarker(text: string, marker: RegExp, replace: (match: string) => string): string {
-  const regex = new RegExp(`\\\\[\\s\\S]|\\\\$|${marker.source}`, 'g');
+  let regex = escapeMarkerRegexes.get(marker);
+  if (!regex) {
+    regex = new RegExp(`\\\\[\\s\\S]|\\\\$|${marker.source}`, 'g');
+    escapeMarkerRegexes.set(marker, regex);
+  }
+  const markerRegex = regex;
   return outsideProtectedParts(text, (part) => {
-    return part.replace(regex, (match: string) => {
+    return part.replace(markerRegex, (match: string) => {
       if (match.startsWith(Strings.ESCAPE)) {
         return (match.length === 1) ? Replacements[Strings.ESCAPE] : match;
       }

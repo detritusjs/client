@@ -206,14 +206,17 @@ export class Member extends UserMixin {
   }
 
   get colorRole(): null | Role {
-    let highestRole: null | Role = null;
-    for (let [roleId, role] of this.roles) {
-      if (role && role.color) {
-        if (highestRole) {
-          if (highestRole.position < role.position) {
-            highestRole = role;
-          }
-        } else {
+    // reads the guild's roles directly, the `roles` getter would build a new collection on every call
+    const guild = this.guild;
+    if (!guild) {
+      return null;
+    }
+    const defaultRole = guild.defaultRole;
+    let highestRole: null | Role = (defaultRole && defaultRole.color) ? defaultRole : null;
+    if (this._roles) {
+      for (let roleId of this._roles) {
+        const role = guild.roles.get(roleId);
+        if (role && role.color && (!highestRole || highestRole.position < role.position)) {
           highestRole = role;
         }
       }
@@ -249,14 +252,16 @@ export class Member extends UserMixin {
   }
 
   get highestRole(): null | Role {
-    let highestRole: null | Role = null;
-    for (let [roleId, role] of this.roles) {
-      if (role) {
-        if (highestRole) {
-          if (highestRole.position < role.position) {
-            highestRole = role;
-          }
-        } else {
+    // reads the guild's roles directly, the `roles` getter would build a new collection on every call
+    const guild = this.guild;
+    if (!guild) {
+      return null;
+    }
+    let highestRole: null | Role = guild.defaultRole;
+    if (this._roles) {
+      for (let roleId of this._roles) {
+        const role = guild.roles.get(roleId);
+        if (role && (!highestRole || highestRole.position < role.position)) {
           highestRole = role;
         }
       }

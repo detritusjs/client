@@ -160,10 +160,15 @@ export class AutoModerationRuleAction extends BaseStructure {
   declare metadata?: AutoModerationRuleActionMetadata;
   type!: AutoModerationRuleActionTypes;
 
-  constructor(rule: AutoModerationRule, data: BaseStructureData) {
-    super(rule.client, undefined, rule._clone);
+  constructor(rule: AutoModerationRule, data: BaseStructureData, isClone: boolean = !!rule._clone) {
+    super(rule.client, undefined, isClone);
     Object.defineProperty(this, 'rule', {configurable: true, enumerable: false, writable: false, value: rule});
     this.merge(data);
+  }
+
+  // the generic `clone()` would pass the client in as the rule
+  clone(): this {
+    return new AutoModerationRuleAction(this.rule, JSON.parse(JSON.stringify(this)), true) as this;
   }
 
   merge(data?: BaseStructureData): void {
@@ -202,10 +207,15 @@ export class AutoModerationRuleActionMetadata extends BaseStructure {
   declare customMessage?: string;
   durationSeconds: number = 0;
 
-  constructor(action: AutoModerationRuleAction, data: BaseStructureData) {
-    super(action.client, undefined, action._clone);
+  constructor(action: AutoModerationRuleAction, data: BaseStructureData, isClone: boolean = !!action._clone) {
+    super(action.client, undefined, isClone);
     Object.defineProperty(this, 'action', {configurable: true, enumerable: false, writable: false, value: action});
     this.merge(data);
+  }
+
+  // the generic `clone()` would pass the client in as the action
+  clone(): this {
+    return new AutoModerationRuleActionMetadata(this.action, JSON.parse(JSON.stringify(this)), true) as this;
   }
 
   merge(data?: BaseStructureData): void {
@@ -252,10 +262,15 @@ export class AutoModerationRuleTriggerMetadata extends BaseStructure {
   declare presets?: BaseSet<AutoModerationRuleKeywordPresetTypes>;
   declare regexPatterns?: BaseSet<string>;
 
-  constructor(rule: AutoModerationRule, data: BaseStructureData) {
-    super(rule.client, undefined, rule._clone);
+  constructor(rule: AutoModerationRule, data: BaseStructureData, isClone: boolean = !!rule._clone) {
+    super(rule.client, undefined, isClone);
     Object.defineProperty(this, 'rule', {configurable: true, enumerable: false, writable: false, value: rule});
     this.merge(data);
+  }
+
+  // the generic `clone()` would pass the client in as the rule
+  clone(): this {
+    return new AutoModerationRuleTriggerMetadata(this.rule, JSON.parse(JSON.stringify(this)), true) as this;
   }
 
   merge(data?: BaseStructureData): void {

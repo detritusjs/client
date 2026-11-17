@@ -97,7 +97,9 @@ export class ComponentLabel extends Structure {
     ) {
       this.component = data;
     } else {
-      switch (data.type) {
+      // without a type it's the usual modal input
+      const type = (data.type === undefined) ? MessageComponentTypes.INPUT_TEXT : data.type;
+      switch (type) {
         case MessageComponentTypes.CHECKBOX: {
           this.component = new ComponentCheckbox(data);
         }; break;
@@ -121,7 +123,7 @@ export class ComponentLabel extends Structure {
           this.component = new ComponentSelectMenu(data);
         }; break;
         default: {
-          throw new Error(`Invalid component type ${data.type} for a label`);
+          throw new Error(`Invalid component type ${type} for a label`);
         };
       }
     }

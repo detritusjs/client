@@ -330,9 +330,20 @@ export class ChannelBase extends BaseStructure {
   get children(): BaseCollection<string, ChannelGuildType> {
     if (this.isGuildCategory) {
       const collection = new BaseCollection<string, ChannelGuildType>();
-      for (let [channelId, channel] of this.client.channels) {
-        if (channel.isGuildChannel && channel.parentId === this.id) {
-          collection.set(channelId, channel as ChannelGuildType);
+      const guild = this.guild;
+      if (guild) {
+        // only go through our guild's channels, not every cached one
+        for (let channelId of guild._channelIds) {
+          const channel = this.client.channels.get(channelId);
+          if (channel && channel.parentId === this.id) {
+            collection.set(channelId, channel as ChannelGuildType);
+          }
+        }
+      } else {
+        for (let [channelId, channel] of this.client.channels) {
+          if (channel.isGuildChannel && channel.parentId === this.id) {
+            collection.set(channelId, channel as ChannelGuildType);
+          }
         }
       }
       return collection;
@@ -580,9 +591,20 @@ export class ChannelBase extends BaseStructure {
   get threads(): BaseCollection<string, ChannelGuildThread> {
     if (this.isGuildChannel) {
       const collection = new BaseCollection<string, ChannelGuildThread>();
-      for (let [channelId, channel] of this.client.channels) {
-        if (channel.isGuildThread && channel.parentId === this.id) {
-          collection.set(channelId, channel as ChannelGuildThread);
+      const guild = this.guild;
+      if (guild) {
+        // only go through our guild's threads, not every cached channel
+        for (let threadId of guild._threadIds) {
+          const channel = this.client.channels.get(threadId);
+          if (channel && channel.isGuildThread && channel.parentId === this.id) {
+            collection.set(threadId, channel as ChannelGuildThread);
+          }
+        }
+      } else {
+        for (let [channelId, channel] of this.client.channels) {
+          if (channel.isGuildThread && channel.parentId === this.id) {
+            collection.set(channelId, channel as ChannelGuildThread);
+          }
         }
       }
       return collection;

@@ -193,6 +193,8 @@ export class ShardClient extends EventSpewer {
    * @ignore
    */
   _isBot: boolean = true;
+  // request key -> nonce of the in-flight `requestGuildMembers()` for it
+  readonly _chunksNonces = new Map<string, string>();
   _killed: boolean = false;
 
   application: Application | null = null;
@@ -296,6 +298,7 @@ export class ShardClient extends EventSpewer {
     }
 
     Object.defineProperties(this, {
+      _chunksNonces: {enumerable: false},
       _isBot: {configurable: true, enumerable: false, writable: false},
       _killed: {configurable: true, enumerable: false, writable: false},
       cluster: {enumerable: false, writable: false},
@@ -493,11 +496,15 @@ export class ShardClient extends EventSpewer {
     if (options.userIds && options.userIds.length) {
       key += `:${options.userIds.slice().sort().join('.')}`;
     }
-    const nonce = options.nonce = Crypto.createHash('md5').update(key).digest('hex');
+    // identical requests share the one in flight, but every request sent gets its own nonce
+    // (a nonce made from the key would let a timed out request's late chunks finish a retry with a partial result)
+    let nonce = this._chunksNonces.get(key);
     let cache: ChunkWaiting;
-    if (this.gatewayHandler._chunksWaiting.has(nonce)) {
+    if (nonce !== undefined && this.gatewayHandler._chunksWaiting.has(nonce)) {
       cache = this.gatewayHandler._chunksWaiting.get(nonce) as ChunkWaiting;
     } else {
+      nonce = options.nonce = Crypto.randomBytes(16).toString('hex');
+      this._chunksNonces.set(key, nonce);
       const promise: any = {};
       promise.wait = new Promise((res, rej) => {
         promise.resolve = res;
@@ -515,25 +522,36 @@ export class ShardClient extends EventSpewer {
     }
     cache.waiting++;
 
+    const finalNonce = nonce;
+    const clear = () => {
+      if (this.gatewayHandler._chunksWaiting.get(finalNonce) === cache) {
+        this.gatewayHandler._chunksWaiting.delete(finalNonce);
+      }
+      if (this._chunksNonces.get(key) === finalNonce) {
+        this._chunksNonces.delete(key);
+      }
+    };
     const timeout = new Timers.Timeout();
     return new Promise((resolve, reject) => {
-      cache.promise.wait.then(resolve).catch(reject);
+      cache.promise.wait.then(resolve).catch((error: any) => {
+        // rejected for every waiter (like on a re-identify)
+        clear();
+        reject(error);
+      });
       timeout.start(options.timeout, () => {
         reject(new Error(`Guild chunking took longer than ${options.timeout}ms.`));
         cache.waiting--;
-        if (cache.waiting <= 0 && this.gatewayHandler._chunksWaiting.get(nonce) === cache) {
-          this.gatewayHandler._chunksWaiting.delete(nonce);
+        if (cache.waiting <= 0) {
+          clear();
         }
       });
     }).finally(() => {
       timeout.stop();
     }).then(() => {
-      if (this.gatewayHandler._chunksWaiting.get(nonce) === cache) {
-        this.gatewayHandler._chunksWaiting.delete(nonce);
-      }
+      clear();
       return {
         members: cache.members,
-        nonce,
+        nonce: finalNonce,
         notFound: cache.notFound,
         presences: cache.presences,
       };
@@ -608,8 +626,17 @@ export class ShardClient extends EventSpewer {
     this.gateway.connect(url);
     if (wait) {
       await new Promise((resolve, reject) => {
-        this.once(ClientEvents.GATEWAY_READY, resolve);
-        this.once(ClientEvents.KILLED, ({error}) => reject(error));
+        const onReady = (payload: any) => {
+          this.removeListener(ClientEvents.KILLED, onKilled);
+          resolve(payload);
+        };
+        // `kill()` without an error would otherwise reject with `undefined`
+        const onKilled = ({error}: {error?: Error}) => {
+          this.removeListener(ClientEvents.GATEWAY_READY, onReady);
+          reject(error || new Error('Client was killed before it was ready'));
+        };
+        this.once(ClientEvents.GATEWAY_READY, onReady);
+        this.once(ClientEvents.KILLED, onKilled);
       });
     }
     return this;

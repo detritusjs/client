@@ -28,8 +28,13 @@ export const IDENTIFY_READY_TIMEOUT = 30 * 1000;
  * (structures go through their `toJSON()` either way)
  */
 function toIPCSafe(value: any): any {
-  if (value === undefined) {
-    return value;
+  switch (typeof(value)) {
+    case 'bigint': return String(value);
+    // ipc serializes these the same way, no need for the round trip
+    case 'boolean':
+    case 'number':
+    case 'string':
+    case 'undefined': return value;
   }
   const json = JSON.stringify(value, (key, item) => (typeof(item) === 'bigint') ? String(item) : item);
   return (json === undefined) ? undefined : JSON.parse(json);
@@ -145,23 +150,24 @@ export class ClusterProcessChild extends EventSpewer {
             }
           } else {
             // we received a request to eval from the parent
+            // the manager only needs the nonce to match our answer, don't send its code back
             const data: ClusterIPCTypes.Eval = message.data;
             if (message.shard != null && !this.cluster.shards.has(message.shard)) {
               await this.sendIPC(ClusterIPCOpCodes.EVAL, {
-                ...data,
                 ignored: true,
+                nonce: data.nonce,
               });
             } else {
               try {
                 const result = toIPCSafe(await Promise.resolve(this.cluster._eval(data.code)));
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
-                  ...data,
+                  nonce: data.nonce,
                   result,
                 });
               } catch(error: any) {
                 await this.sendIPC(ClusterIPCOpCodes.EVAL, {
-                  ...data,
                   error: ClusterIPCTypes.serializeError(error),
+                  nonce: data.nonce,
                 });
               }
             }

@@ -357,7 +357,7 @@ export class Interaction extends BaseStructure {
           }; break;
         }
       }).catch(() => {
-        this.responded = false;
+        // keep `responded` as it was, a failed response (like a second one, already acknowledged) doesn't undo an earlier one
       }).then(() => {
         this._responding = null;
         resolve(this.responded);
@@ -367,8 +367,22 @@ export class Interaction extends BaseStructure {
     return response;
   }
 
-  deleteMessage(messageId: string, options: RequestTypes.DeleteWebhookTokenMessage = {}) {
-    return this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId, options);
+  async deleteMessage(messageId: string, options: RequestTypes.DeleteWebhookTokenMessage = {}) {
+    const result = await this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId, options);
+    if (messageId === '@original' || (!!this.responseId && messageId === this.responseId)) {
+      // the rest client can't tell what `@original` is, the response's listener is either still under the interaction id
+      // or was moved to the response's message id (ephemeral responses get no MESSAGE_DELETE to clean these up)
+      const componentHandler = this.client.gatewayHandler._handlers.component;
+      componentHandler.delete(this.id);
+      if (this.responseId) {
+        componentHandler.delete(this.responseId);
+        const message = this.client.messages.get(this.responseId);
+        if (message) {
+          message.deleted = true;
+        }
+      }
+    }
+    return result;
   }
 
   async deleteResponse() {
@@ -457,11 +471,19 @@ export class Interaction extends BaseStructure {
     if (DiscordKeys.CHANNEL in data) {
       const value = data[DiscordKeys.CHANNEL];
       if (value) {
-        if (this.client.channels.has(value.id)) {
+        if (!this.isClone && this.client.channels.has(value.id)) {
+          // the cached channel is shared, so keep the invoking member's `permissions` out of it
+          // (they're on `member.permissions` too), the rest is the same for everyone
           this._channel = this.client.channels.get(value.id)!;
-          this._channel.merge(value);
+          if (DiscordKeys.PERMISSIONS in value) {
+            const shared = Object.assign({}, value);
+            delete shared[DiscordKeys.PERMISSIONS];
+            this._channel.merge(shared);
+          } else {
+            this._channel.merge(value);
+          }
         } else {
-          this._channel = createChannelFromData(this.client, value);
+          this._channel = createChannelFromData(this.client, value, this.isClone);
         }
       } else {
         this._channel = undefined;

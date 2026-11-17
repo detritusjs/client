@@ -67,7 +67,7 @@ import { RestResponses } from './types';
 
 
 /**
- * OR the IS_COMPONENTS_V2 flag into an interaction response payload without clobbering existing flags
+ * OR the IS_COMPONENTS_V2 flag into a payload without clobbering existing flags, returns a copy so the caller's object isn't changed
  * `toJSON`-able payloads are wrapped so the flag gets added to their serialized output
  */
 function addComponentsV2Flag(payload: any): any {
@@ -79,8 +79,7 @@ function addComponentsV2Flag(payload: any): any {
       },
     };
   }
-  payload.flags = (payload.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
-  return payload;
+  return Object.assign({}, payload, {flags: (payload.flags || 0) | MessageFlags.IS_COMPONENTS_V2});
 }
 
 export class RestClient {
@@ -431,11 +430,12 @@ export class RestClient {
     return this.raw.consumeApplicationEntitlement(applicationId, entitlementId);
   }
 
-  createApplicationCommand(
+  async createApplicationCommand(
     applicationId: string,
     options: RequestTypes.CreateApplicationCommand,
-  ) {
-    return this.raw.createApplicationCommand(applicationId, options);
+  ): Promise<ApplicationCommand> {
+    const data = await this.raw.createApplicationCommand(applicationId, options);
+    return new ApplicationCommand(this.client, data);
   }
 
   async createApplicationEmoji(
@@ -444,7 +444,9 @@ export class RestClient {
   ): Promise<Emoji> {
     const data = await this.raw.createApplicationEmoji(applicationId, options);
     const emoji = new Emoji(this.client, data);
-    this.client.applicationEmojis.insert(emoji);
+    if (this._isOwnApplication(applicationId)) {
+      this.client.applicationEmojis.insert(emoji);
+    }
     return emoji;
   }
 
@@ -455,12 +457,13 @@ export class RestClient {
     return this.raw.createApplicationEntitlement(applicationId, options);
   }
 
-  createApplicationGuildCommand(
+  async createApplicationGuildCommand(
     applicationId: string,
     guildId: string,
     options: RequestTypes.CreateApplicationCommand,
-  ) {
-    return this.raw.createApplicationGuildCommand(applicationId, guildId, options);
+  ): Promise<ApplicationCommand> {
+    const data = await this.raw.createApplicationGuildCommand(applicationId, guildId, options);
+    return new ApplicationCommand(this.client, data);
   }
 
   async createApplicationNews(
@@ -507,6 +510,11 @@ export class RestClient {
       channel = createChannelFromData(this.client, data) as ChannelGuildThread;
       this.client.channels.insert(channel);
     }
+    // so it shows in `guild.threads` and `channel.threads` before THREAD_CREATE comes in
+    const guild = channel.guild;
+    if (guild && this.client.channels.has(channel.id)) {
+      guild._threadIds.add(channel.id);
+    }
     return channel;
   }
 
@@ -536,6 +544,11 @@ export class RestClient {
     } else {
       channel = createChannelFromData(this.client, data) as ChannelGuildThread;
       this.client.channels.insert(channel);
+    }
+    // so it shows in `guild.threads` and `channel.threads` before THREAD_CREATE comes in
+    const guild = channel.guild;
+    if (guild && this.client.channels.has(channel.id)) {
+      guild._threadIds.add(channel.id);
     }
     return channel;
   }
@@ -655,11 +668,17 @@ export class RestClient {
     options: RequestTypes.CreateGuildRole = {},
   ): Promise<Role> {
     const data = await this.raw.createGuildRole(guildId, options);
-    data.guild_id = guildId;
-    const role = new Role(this.client, data);
-    if (this.client.guilds.has(guildId)) {
-      const guild = this.client.guilds.get(guildId)!;
-      guild.roles.set(role.id, role);
+    const guild = this.client.guilds.get(guildId);
+
+    let role: Role;
+    if (guild && guild.roles.has(data.id)) {
+      // the gateway's GUILD_ROLE_CREATE got here first
+      role = guild.roles.get(data.id)!;
+      role.merge(data);
+    } else {
+      data.guild_id = guildId;
+      role = new Role(this.client, data);
+      this.client.roles.insert(role);
     }
     return role;
   }
@@ -711,14 +730,19 @@ export class RestClient {
       // if type is edit message, do not use interactionId (maybe fetch message id if listenerId isnt given)
       const listenerData = createComponentListenerOrNone(mergedData, interactionId);
       if (listenerData && listenerData[2]) {
+        // the flag goes on copies, the caller's options/data aren't changed
         if (data) {
-          // the raw client merges a plain `data` into a plain `options.data` (Object.assign), so carry over the caller's flags
-          if (!('toJSON' in data) && optionsData && !('toJSON' in optionsData) && (data as any).flags === undefined) {
-            (data as any).flags = optionsData.flags;
+          if (!('toJSON' in data) && optionsData && !('toJSON' in optionsData)) {
+            // the raw client merges a plain `data` into a plain `options.data` (Object.assign), give it a copy to merge into
+            options = Object.assign({}, options as RequestTypes.CreateInteractionResponse, {data: Object.assign({}, optionsData)});
+            // and carry over the caller's flags
+            if ((data as any).flags === undefined) {
+              data = Object.assign({}, data, {flags: optionsData.flags});
+            }
           }
           data = addComponentsV2Flag(data);
         } else if (typeof(options) === 'object' && optionsData) {
-          options.data = addComponentsV2Flag(optionsData);
+          options = Object.assign({}, options, {data: addComponentsV2Flag(optionsData)});
         } else {
           data = {flags: MessageFlags.IS_COMPONENTS_V2};
         }
@@ -844,6 +868,9 @@ export class RestClient {
     if (listenerData && listenerData[2]) {
       if (typeof(options) === 'string') {
         options = {content: options};
+      } else {
+        // the flag goes on a copy, the caller's options aren't changed
+        options = Object.assign({}, options);
       }
       options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
     }
@@ -851,8 +878,15 @@ export class RestClient {
     const data = await this.raw.createMessage(channelId, options);
     this.fillMessageGuildId(data);
 
-    const message = new Message(this.client, data);
-    this.client.messages.insert(message);
+    let message: Message;
+    if (this.client.messages.has(data.id)) {
+      // the gateway's MESSAGE_CREATE got here first
+      message = this.client.messages.get(data.id)!;
+      message.merge(data);
+    } else {
+      message = new Message(this.client, data);
+      this.client.messages.insert(message);
+    }
 
     if (listenerData) {
       const [lId, listener] = listenerData;
@@ -930,8 +964,14 @@ export class RestClient {
         data.guild_id = channel.guildId;
       }
     }
-    const message = new Message(this.client, data);
-    this.client.messages.insert(message);
+    let message: Message;
+    if (this.client.messages.has(data.id)) {
+      message = this.client.messages.get(data.id)!;
+      message.merge(data);
+    } else {
+      message = new Message(this.client, data);
+      this.client.messages.insert(message);
+    }
     return message;
   }
 
@@ -1143,12 +1183,23 @@ export class RestClient {
     options: RequestTypes.DeleteMessage = {},
   ) {
     const data = await this.raw.deleteMessage(channelId, messageId, options);
+    this._cleanupDeletedMessage(messageId);
+    return data;
+  }
+
+  // mark the cached message as deleted and drop its component listener, which can still be under the interaction id it responded to
+  _cleanupDeletedMessage(messageId: string): void {
+    const componentHandler = this.client.gatewayHandler._handlers.component;
     if (this.client.messages.has(messageId)) {
       const message = this.client.messages.get(messageId)!;
       message.deleted = true;
+
+      const responseInteractionId = getResponseInteractionId(message);
+      if (responseInteractionId) {
+        componentHandler.delete(responseInteractionId);
+      }
     }
-    this.client.gatewayHandler._handlers.component.delete(messageId);
-    return data;
+    componentHandler.delete(messageId);
   }
 
   deleteOauth2Application(
@@ -1316,11 +1367,19 @@ export class RestClient {
     options: RequestTypes.DeleteWebhookTokenMessage = {},
   ) {
     const data = await this.raw.deleteWebhookTokenMessage(webhookId, webhookToken, messageId, options);
-    if (this.client.messages.has(messageId)) {
-      const message = this.client.messages.get(messageId)!;
-      message.deleted = true;
+    if (messageId === '@original') {
+      // `@original` is the response of the interaction this token belongs to, its listener is either still under the
+      // interaction id or was moved to the response's message id
+      const interaction = this.client.interactions.find((x) => x.token === webhookToken);
+      if (interaction) {
+        this.client.gatewayHandler._handlers.component.delete(interaction.id);
+        if (interaction.responseId) {
+          this._cleanupDeletedMessage(interaction.responseId);
+        }
+      }
+    } else {
+      this._cleanupDeletedMessage(messageId);
     }
-    this.client.gatewayHandler._handlers.component.delete(messageId);
     return data;
   }
 
@@ -1387,11 +1446,12 @@ export class RestClient {
     return new ApplicationCommandPermissions(this.client, data);
   }
 
-  editApplicationNews(
+  async editApplicationNews(
     newsId: string,
     options: RequestTypes.EditApplicationNews = {},
-  ) {
-    return this.raw.editApplicationNews(newsId, options);
+  ): Promise<ApplicationNews> {
+    const data = await this.raw.editApplicationNews(newsId, options);
+    return new ApplicationNews(this.client, data);
   }
 
   /* Issue with merging data with these edited objects is that the gateway event wont have differences then */
@@ -1570,7 +1630,7 @@ export class RestClient {
       } else {
         data.guild_id = guildId;
         role = new Role(this.client, data);
-        guild.roles.set(role.id, role);
+        this.client.roles.insert(role);
       }
     } else {
       data.guild_id = guildId;
@@ -1588,14 +1648,15 @@ export class RestClient {
     const data = await this.raw.editGuildRolePositions(guildId, roles, options);
 
     const collection = new BaseCollection<string, Role>();
-    if (updateCache && this.client.guilds.has(guildId)) {
-      const guild = this.client.guilds.get(guildId)!;
-      guild.roles.clear();
+    const guild = (updateCache) ? this.client.guilds.get(guildId) : undefined;
+    if (guild && this.client.roles.enabled) {
+      // this is the full list, merge it so cached roles keep their instances and removed ones get dropped
+      guild.merge({[DiscordKeys.ROLES]: data});
       for (let raw of data) {
-        raw.guild_id = guildId;
-        const role = new Role(this.client, raw);
-        guild.roles.set(role.id, role);
-        collection.set(role.id, role);
+        const role = guild.roles.get(raw.id);
+        if (role) {
+          collection.set(role.id, role);
+        }
       }
     } else {
       for (let raw of data) {
@@ -1871,6 +1932,9 @@ export class RestClient {
     if (listenerData && listenerData[2]) {
       if (typeof(options) === 'string') {
         options = {content: options};
+      } else {
+        // the flag goes on a copy, the caller's options aren't changed
+        options = Object.assign({}, options);
       }
       options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
     }
@@ -1925,11 +1989,12 @@ export class RestClient {
     return this.raw.editRelationship(userId, type);
   }
 
-  editStageInstance(
+  async editStageInstance(
     channelId: string,
     options: RequestTypes.EditStageInstance = {},
-  ) {
-    return this.raw.editStageInstance(channelId, options);
+  ): Promise<StageInstance> {
+    const data = await this.raw.editStageInstance(channelId, options);
+    return new StageInstance(this.client, data);
   }
 
   editSettings(
@@ -1941,8 +2006,9 @@ export class RestClient {
   async editTeam(
     teamId: string,
     options: RequestTypes.EditTeam = {},
-  ) {
-    return this.raw.editTeam(teamId, options);
+  ): Promise<Team> {
+    const data = await this.raw.editTeam(teamId, options);
+    return new Team(this.client, data);
   }
 
   async editUser(options: RequestTypes.EditMe = {}) {
@@ -1978,6 +2044,9 @@ export class RestClient {
     if (listenerData && listenerData[2]) {
       if (typeof(options) === 'string') {
         options = {content: options};
+      } else {
+        // the flag goes on a copy, the caller's options aren't changed
+        options = Object.assign({}, options);
       }
       options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
     }
@@ -2040,6 +2109,9 @@ export class RestClient {
     if (listenerData && listenerData[2]) {
       if (typeof(options) === 'string') {
         options = {content: options};
+      } else {
+        // the flag goes on a copy, the caller's options aren't changed
+        options = Object.assign({}, options);
       }
       options.flags = (options.flags || 0) | MessageFlags.IS_COMPONENTS_V2;
     }
@@ -2051,8 +2123,15 @@ export class RestClient {
     const data = await this.raw.executeWebhook(webhookId, webhookToken, options, compatibleType);
     if (data) {
       this.fillMessageGuildId(data, guildId);
-      const message = new Message(this.client, data);
-      this.client.messages.insert(message);
+      let message: Message;
+      if (this.client.messages.has(data.id)) {
+        // the gateway's MESSAGE_CREATE got here first
+        message = this.client.messages.get(data.id)!;
+        message.merge(data);
+      } else {
+        message = new Message(this.client, data);
+        this.client.messages.insert(message);
+      }
 
       if (listenerData) {
         const [lId, listener] = listenerData;
@@ -2277,7 +2356,7 @@ export class RestClient {
   }
 
   async fetchApplicationsDetectable(): Promise<BaseCollection<string, Application>> {
-    const data = await this.raw.fetchApplicationsDetectable.call(this);
+    const data = await this.raw.fetchApplicationsDetectable();
     const collection = new BaseCollection<string, Application>();
     for (let raw of data) {
       const application = new Application(this.client, raw);
@@ -2358,7 +2437,8 @@ export class RestClient {
     const data = await this.raw.fetchChannelPollAnswerVoters(channelId, messageId, answerId, options);
     const collection = new BaseCollection<string, User>();
 
-    for (let raw of data) {
+    // discord sends `{users: [...]}`
+    for (let raw of data.users) {
       let user: User;
       if (this.client.users.has(raw.id)) {
         user = this.client.users.get(raw.id)!;
@@ -2383,7 +2463,8 @@ export class RestClient {
     // pass the cached guild id so it doesn't have to fetch the channel first
     const channel = this.client.channels.get(channelId);
     const data = await this.raw.fetchChannelThreadsActive(channelId, {guildId: (channel && channel.guildId) || undefined});
-    const hasMore = data['has_more'];
+    // the raw client filters the guild route, which doesn't send `has_more`, so this is always false
+    const hasMore = !!data['has_more'];
     const members = new BaseCollection<string, BaseCollection<string, ThreadMember>>();
     const threads = new BaseCollection<string, ChannelGuildThread>();
 
@@ -2401,7 +2482,13 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      let thread: ChannelGuildThread;
+      if (this.client.channels.has(raw.id)) {
+        thread = this.client.channels.get(raw.id) as ChannelGuildThread;
+        thread.merge(raw);
+      } else {
+        thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      }
       threads.set(thread.id, thread);
     }
 
@@ -2431,7 +2518,13 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      let thread: ChannelGuildThread;
+      if (this.client.channels.has(raw.id)) {
+        thread = this.client.channels.get(raw.id) as ChannelGuildThread;
+        thread.merge(raw);
+      } else {
+        thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      }
       threads.set(thread.id, thread);
     }
 
@@ -2461,7 +2554,13 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      let thread: ChannelGuildThread;
+      if (this.client.channels.has(raw.id)) {
+        thread = this.client.channels.get(raw.id) as ChannelGuildThread;
+        thread.merge(raw);
+      } else {
+        thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      }
       threads.set(thread.id, thread);
     }
 
@@ -2491,7 +2590,13 @@ export class RestClient {
     }
 
     for (let raw of data.threads) {
-      const thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      let thread: ChannelGuildThread;
+      if (this.client.channels.has(raw.id)) {
+        thread = this.client.channels.get(raw.id) as ChannelGuildThread;
+        thread.merge(raw);
+      } else {
+        thread = createChannelFromData(this.client, raw) as ChannelGuildThread;
+      }
       threads.set(thread.id, thread);
     }
 
@@ -2712,15 +2817,30 @@ export class RestClient {
     const guild = this.client.guilds.get(guildId);
     const shouldCache = !!guild && this.client.autoModerationRules.enabled;
 
-    const collection = (shouldCache) ? guild!.autoModerationRules : new BaseCollection<string, AutoModerationRule>();
-    if (shouldCache) {
-      collection.clear();
-    }
+    const collection = new BaseCollection<string, AutoModerationRule>();
     for (let raw of data) {
-      raw[DiscordKeys.GUILD_ID] = guildId;
-
-      const rule = new AutoModerationRule(this.client, raw);
+      let rule: AutoModerationRule;
+      if (shouldCache && guild!.autoModerationRules.has(raw.id)) {
+        // keep the cached instances
+        rule = guild!.autoModerationRules.get(raw.id)!;
+        rule.merge(raw);
+      } else {
+        raw[DiscordKeys.GUILD_ID] = guildId;
+        rule = new AutoModerationRule(this.client, raw);
+      }
       collection.set(rule.id, rule);
+    }
+
+    if (shouldCache) {
+      const rules = guild!.autoModerationRules;
+      for (let ruleId of Array.from(rules.keys())) {
+        if (!collection.has(ruleId)) {
+          rules.delete(ruleId);
+        }
+      }
+      for (let [ruleId, rule] of collection) {
+        rules.set(ruleId, rule);
+      }
     }
     return collection;
   }
@@ -3171,25 +3291,15 @@ export class RestClient {
     const data = await this.raw.fetchGuildRoles(guildId);
     const collection = new BaseCollection<string, Role>();
 
-    if (this.client.guilds.has(guildId)) {
-      const guild = this.client.guilds.get(guildId)!;
-      for (let [roleId, role] of guild.roles) {
-        if (!data.some((r: Role) => r.id === roleId)) {
-          guild.roles.delete(roleId);
-        }
-      }
-
+    const guild = this.client.guilds.get(guildId);
+    if (guild && this.client.roles.enabled) {
+      // this is the full list, merge it so cached roles keep their instances and removed ones get dropped
+      guild.merge({[DiscordKeys.ROLES]: data});
       for (let raw of data) {
-        let role: Role;
-        if (guild.roles.has(raw.id)) {
-          role = guild.roles.get(raw.id)!;
-          role.merge(raw);
-        } else {
-          raw.guild_id = guildId;
-          role = new Role(this.client, raw);
-          guild.roles.set(role.id, role);
+        const role = guild.roles.get(raw.id);
+        if (role) {
+          collection.set(role.id, role);
         }
-        collection.set(role.id, role);
       }
     } else {
       for (let raw of data) {
@@ -3368,7 +3478,7 @@ export class RestClient {
   }
 
   async fetchMe(options: RequestTypes.FetchMe = {}): Promise<UserMe> {
-    const data = await this.raw.fetchMe.call(this, options);
+    const data = await this.raw.fetchMe(options);
     return new UserMe(this.client, data);
   }
 
@@ -3404,7 +3514,7 @@ export class RestClient {
   }
 
   async fetchMeConnections(): Promise<BaseCollection<string, ConnectedAccount>> {
-    const data = await this.raw.fetchMeConnections.call(this);
+    const data = await this.raw.fetchMeConnections();
     const collection = new BaseCollection<string, ConnectedAccount>();
     for (let raw of data) {
       const account = new ConnectedAccount(this.client, raw);
@@ -3502,8 +3612,10 @@ export class RestClient {
     return collection;
   }
 
-  async fetchOauth2Applications(): Promise<BaseCollection<string, Application>> {
-    const data = await this.raw.fetchOauth2Applications.call(this);
+  async fetchOauth2Applications(
+    options: RequestTypes.FetchOauth2Applications = {},
+  ): Promise<BaseCollection<string, Application>> {
+    const data = await this.raw.fetchOauth2Applications(options);
 
     const collection = new BaseCollection<string, Application>();
     for (let raw of data) {
@@ -3870,7 +3982,8 @@ export class RestClient {
 
     const responseInteractionId = getResponseInteractionId(message);
     if (responseInteractionId && message.components.length) {
-      this.client.gatewayHandler._handlers.component.replaceId(responseInteractionId, messageId);
+      // `messageId` can be `@original`, the component handler looks listeners up by the real message id
+      this.client.gatewayHandler._handlers.component.replaceId(responseInteractionId, message.id);
     }
 
     return message;

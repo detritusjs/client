@@ -51,6 +51,11 @@ export class BaseCollectionCache<K, V> extends BaseCollectionMixin<K, V> {
           return cache.delete(key);
         }
       } else {
+        // clear it first, an expiring cache would keep its interval (and its items) going after being dropped
+        const cache = this.caches.get(cacheKey);
+        if (cache) {
+          cache.clear();
+        }
         return this.caches.delete(cacheKey);
       }
     } else if (key) {
