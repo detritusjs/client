@@ -716,6 +716,7 @@ export class GuildPartial extends BaseGuild {
 const keysGuild = new BaseSet<string>([
   DiscordKeys.AFK_CHANNEL_ID,
   DiscordKeys.AFK_TIMEOUT,
+  DiscordKeys.APPLICATION_COMMAND_COUNTS,
   DiscordKeys.APPLICATION_ID,
   DiscordKeys.APPROXIMATE_MEMBER_COUNT,
   DiscordKeys.APPROXIMATE_PRESENCE_COUNT,
@@ -725,6 +726,7 @@ const keysGuild = new BaseSet<string>([
   DiscordKeys.DESCRIPTION,
   DiscordKeys.DISCOVERY_SPLASH,
   DiscordKeys.EMOJIS,
+  DiscordKeys.EXPERIMENTS,
   DiscordKeys.EXPLICIT_CONTENT_FILTER,
   DiscordKeys.FEATURES,
   DiscordKeys.GAME_APPLICATION_IDS,
@@ -815,6 +817,9 @@ export class Guild extends GuildPartial {
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
+  // undocumented, only in GUILD_CREATE: command counts by command type, `{[type]: count}`
+  // counts commands, it says nothing about command permissions
+  applicationCommandCounts: null | Record<number, number> = null;
   declare applicationId?: null | string;
   // only sent when fetched with `withCounts`
   declare approximateMemberCount?: number;
@@ -825,6 +830,8 @@ export class Guild extends GuildPartial {
   description: null | string = null;
   explicitContentFilter: GuildExplicitContentFilterTypes = GuildExplicitContentFilterTypes.DISABLED;
   emojis: BaseCollection<string, Emoji>;
+  // undocumented, only in GUILD_CREATE: raw `{evaluation_id, assignments}` for the guild experiments it's in
+  experiments: null | Record<string, any> = null;
   features = new BaseSet<string>();
   discoverySplash: null | string = null;
   gameApplicationIds: Array<string> | null = null;
@@ -1363,6 +1370,9 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.AFK_TIMEOUT in data) {
       (this as any)[DetritusKeys[DiscordKeys.AFK_TIMEOUT]] = data[DiscordKeys.AFK_TIMEOUT];
     }
+    if (DiscordKeys.APPLICATION_COMMAND_COUNTS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.APPLICATION_COMMAND_COUNTS]] = data[DiscordKeys.APPLICATION_COMMAND_COUNTS];
+    }
     if (DiscordKeys.APPLICATION_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.APPLICATION_ID]] = data[DiscordKeys.APPLICATION_ID];
     }
@@ -1420,6 +1430,9 @@ export class Guild extends GuildPartial {
           this.emojis.set(emoji.id || emoji.name || '', emoji);
         }
       }
+    }
+    if (DiscordKeys.EXPERIMENTS in data) {
+      (this as any)[DetritusKeys[DiscordKeys.EXPERIMENTS]] = data[DiscordKeys.EXPERIMENTS];
     }
     if (DiscordKeys.EXPLICIT_CONTENT_FILTER in data) {
       (this as any)[DetritusKeys[DiscordKeys.EXPLICIT_CONTENT_FILTER]] = data[DiscordKeys.EXPLICIT_CONTENT_FILTER];

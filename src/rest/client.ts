@@ -377,6 +377,10 @@ export class RestClient {
     return collection;
   }
 
+  /**
+   * @deprecated Discord disabled this endpoint with Permissions v2 (https://docs.discord.com/developers/change-log#updated-command-permissions)
+   * use `editApplicationGuildCommandPermissions` for each command instead, it needs a Bearer token with `applications.commands.permissions.update`
+   */
   async bulkOverwriteApplicationGuildCommandsPermissions(
     applicationId: string,
     guildId: string,
@@ -3070,12 +3074,15 @@ export class RestClient {
     };
   }
 
-  // works for bots (needs `MANAGE_GUILD`), `retryAfter` (seconds) is set while the guild's member index is still being built
+  // works for bots (needs `MANAGE_GUILD`), waits and retries (up to 5 times) while the guild's member index is still being built
+  // with `retry` false it returns right away instead, with `retryAfter` (seconds) set and no members
   async searchGuildMembers(
     guildId: string,
     options: RequestTypes.SearchGuildMembers = {},
+    retry: boolean = true,
+    retryNumber: number = 0,
   ): Promise<RestResponses.SearchGuildMembers> {
-    const data = await this.raw.searchGuildMembers(guildId, options);
+    const data = await this.raw.searchGuildMembers(guildId, options, retry, retryNumber);
     const members = new BaseCollection<string, RestResponses.SearchGuildMembersResult>();
 
     for (let raw of (data.members || [])) {
