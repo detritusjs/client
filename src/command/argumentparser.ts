@@ -55,8 +55,7 @@ export class ArgumentParser {
             let value: string = '';
             let content: string = '';
             if (!attributes.content && (i !== 0 || arg.default !== undefined || arg.required)) {
-              // our content is clean, let the default/required checks below handle this arg
-              // (only the first element without a default/required gets parsed with an empty value)
+              // no content left, the default/required checks below handle it (only the first arg without either gets parsed empty)
               continue;
             }
             if (arg.consume || i === this.args.length - 1) {
@@ -74,7 +73,7 @@ export class ArgumentParser {
             }
             const parsedValue = await arg.parse(value.trim(), context);
             if (Array.isArray(parsedValue) && parsedValue.length === 2 && parsedValue[0] === true) {
-              // check if it's [boolean, any] (specifically [true, any]) for skipping the value
+              // a `[true, value]` result doesn't consume the content
               parsed[arg.label] = parsedValue[1];
             } else {
               parsed[arg.label] = parsedValue;
@@ -93,14 +92,13 @@ export class ArgumentParser {
           .sort((x, y) => y.info.index - x.info.index);
         for (const {arg, info} of args) {
           const value = attributes.content.slice(info.index + info.name.length);
-          // incase something like `.command -argSOMEVALUE` happens, we the arg
+          // skip `-argSOMEVALUE`, a flag has to be followed by whitespace
           if (value && !/^\s/.test(value)) {
             continue;
           }
           attributes.content = attributes.content.slice(0, info.index).trim();
           if (arg.type === CommandArgumentTypes.BOOL && !arg.positionalArgs && value.trim()) {
-            // a bool flag doesn't take a value, so the text after it is still part of the content
-            // (added back once every flag is parsed, so an earlier flag doesn't take it as its value)
+            // a bool flag takes no value, the text after it is added back once every flag is parsed (so no earlier flag takes it)
             boolTrailing.unshift(value.trim());
           }
           try {
@@ -138,7 +136,6 @@ export class ArgumentParser {
             } else if (arg.required) {
               throw new Error(arg.help || 'Missing required parameter');
             }
-            // or else ignore the arg
           } catch(error) {
             errors[arg.label] = error;
           }

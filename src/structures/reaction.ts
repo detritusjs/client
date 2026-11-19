@@ -150,8 +150,7 @@ export class Reaction extends BaseStructure {
       const guildId = this.guildId;
 
       let emoji: Emoji;
-      // only custom emojis are cached, and only under their guild
-      // (without a guild id the lookup would go through every guild's emojis, like for every dm reaction)
+      // only custom emojis are cached, under their guild (without one the lookup would scan every guild's emojis)
       if (guildId && value.id && this.client.emojis.has(guildId, value.id)) {
         emoji = this.client.emojis.get(guildId, value.id) as Emoji;
       } else {

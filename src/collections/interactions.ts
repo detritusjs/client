@@ -25,7 +25,7 @@ const defaultsInteractionsCache: InteractionsOptions = Object.freeze({
  * @category Collections
  */
 export class Interactions extends BaseClientCollection<string, Interaction> {
-  // response message id -> interaction id, so a deleted message can find its interaction without going through all of them
+  // response message id -> interaction id, so a deleted message finds its interaction without a scan
   readonly _responseIds = new Map<string, string>();
 
   constructor(client: ShardClient, options: InteractionsOptions | boolean = {}) {

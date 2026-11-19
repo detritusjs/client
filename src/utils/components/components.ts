@@ -56,6 +56,8 @@ const keysComponents = new BaseSet<string>([
  */
 export class Components extends Structure {
   static { setStructureKeys(this, '_keys', keysComponents); }
+  // the id it was last registered under, so a resend keys it by the new message
+  declare _registeredId?: string;
   _timeout?: Timers.Timeout;
 
   components: Array<ComponentActionRow | ComponentContainer | ComponentFile | ComponentLabel | ComponentMediaGallery | ComponentSection | ComponentSeparator | ComponentTextDisplay> = [];
@@ -88,7 +90,7 @@ export class Components extends Structure {
   }
 
   get isV2(): boolean {
-    // add a check to see how many top-level components there are, if more than 5 then it is v2
+    // todo: more than 5 top-level components also means v2
     for (let component of this.components) {
       switch (component.type) {
         case MessageComponentTypes.CONTAINER: return true;

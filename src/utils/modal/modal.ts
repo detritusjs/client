@@ -78,7 +78,7 @@ export class InteractionModal extends Structure {
 
   constructor(data: InteractionModalOptions = {}) {
     super();
-    // work on a copy, the generated custom id shouldn't end up in the caller's object
+    // copy so the generated custom id stays out of the caller's object
     data = Object.assign({}, data, {
       [DiscordKeys.CUSTOM_ID]: (data as any)[DetritusKeys[DiscordKeys.CUSTOM_ID]] ?? (data as any)[DiscordKeys.CUSTOM_ID],
     });

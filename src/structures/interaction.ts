@@ -43,7 +43,7 @@ import { User } from './user';
 export type InteractionEditOrRespond = RequestTypes.CreateInteractionResponseInnerPayload & RequestTypes.EditWebhookTokenMessage;
 
 /**
- * Pass an `InteractionModal` itself (not its json) as either argument to respond with it, so its `run` gets called when it's submitted
+ * Pass an `InteractionModal` itself (not its json) as either argument so its `run` gets called when it's submitted
  * e.g. `respond(modal)` or `respond(InteractionCallbackTypes.MODAL, modal)`
  */
 export type InteractionResponseOptions = RequestTypes.CreateInteractionResponse | InteractionModal | number;
@@ -54,8 +54,16 @@ const DEFERRED_TYPES = Object.freeze([
   InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE,
 ]);
 
-// a `respond()`'s callback type and the message payloads it could carry (`options.data` and `data`, which the rest
-// client merges), modals have none
+// responses that never create an `@original` message
+const NO_MESSAGE_RESPONSE_TYPES: ReadonlySet<number> = new Set([
+  InteractionCallbackTypes.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+  InteractionCallbackTypes.MODAL,
+  InteractionCallbackTypes.PREMIUM_REQUIRED,
+  InteractionCallbackTypes.IFRAME_MODAL,
+  InteractionCallbackTypes.LAUNCH_ACTIVITY,
+]);
+
+// a `respond()`'s callback type and message payloads (`options.data` and `data`, which the rest client merges)
 function getResponseTypeAndPayloads(
   options: InteractionResponseOptions,
   data?: InteractionResponseData,
@@ -69,8 +77,7 @@ function getResponseTypeAndPayloads(
   return [options.type, [options.data, data]];
 }
 
-// the same check the rest client does before it adds the components v2 flag: the flag itself, or top-level components
-// that aren't all action rows
+// the same check the rest client does before it adds the components v2 flag
 function isComponentsV2Payload(payload: any): boolean {
   if (!payload || typeof(payload) !== 'object') {
     return false;
@@ -115,6 +122,7 @@ const keysInteraction = new BaseSet<string>([
 const interactionHiddenProperties: PropertyDescriptorMap = Object.freeze({
   _entitlements: {configurable: true, enumerable: false, writable: true, value: undefined},
   _responding: {configurable: true, enumerable: false, writable: true, value: null},
+  _responseRevision: {configurable: true, enumerable: false, writable: true, value: 0},
 });
 
 /**
@@ -128,6 +136,8 @@ export class Interaction extends BaseStructure {
   // only declared, the constructor adds them (see `interactionHiddenProperties`)
   declare _entitlements?: BaseCollection<string, Entitlement>;
   declare _responding: Promise<boolean> | null;
+  // bumped whenever the response message gets settled, so a failed followup only undoes its claim if nothing else did
+  declare _responseRevision: number;
 
   appPermissions: bigint = Permissions.NONE;
   applicationId: string = '';
@@ -150,6 +160,8 @@ export class Interaction extends BaseStructure {
   declare responseDeferred?: boolean;
   declare responseDeleted?: boolean;
   declare responseId?: string;
+  // set once the initial response went through
+  declare responseType?: InteractionCallbackTypes;
   token: string = '';
   type: InteractionTypes = InteractionTypes.PING;
   user!: User;
@@ -220,13 +232,13 @@ export class Interaction extends BaseStructure {
   }
 
   /**
-   * If the bot user is in the interaction's location (a guild it's a member of or its own dm), so it can use the api there
-   * `authorizingIntegrationOwners` isn't used since it only says which install authorized the command, not if the bot user is in the guild
+   * If the bot user is in the interaction's guild or its own dm, so it can use the api there
+   * `authorizingIntegrationOwners` only says which install authorized the command, not if the bot user is in the guild
    */
   get isBotPresent(): boolean {
     switch (this.context) {
       case InteractionContextTypes.GUILD: {
-        // not 100% accurate if the guild cache is disabled, it'll always be false then
+        // always false if the guild cache is disabled
         return !!this.guildId && this.client.guilds.has(this.guildId);
       };
       case InteractionContextTypes.BOT_DM: {
@@ -271,8 +283,9 @@ export class Interaction extends BaseStructure {
     return this.user.id;
   }
 
-  // the message discord sent back for the response, so its id and flags are known without waiting for the gateway
+  // so the response's id and flags are known without waiting for the gateway
   trackResponseMessage(message: Message): void {
+    this._responseRevision++;
     this.responseDeferred = false;
     this.responseComponentsV2 = message.hasFlagComponentsV2;
     if (this.responseId !== message.id) {
@@ -281,10 +294,15 @@ export class Interaction extends BaseStructure {
   }
 
   async createMessage(options: RequestTypes.ExecuteWebhook | string = {}) {
-    // the first followup after a `DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE` doesn't create a message, discord edits the
-    // loading response into it (deprecated, but still how it works). claimed before the request so a second followup
-    // sent at the same time isn't also taken as the response
+    // a deferral still in flight wouldn't be seen as a loading message to fill yet
+    while (this._responding) {
+      await this._responding;
+    }
+
+    // the first followup after a `DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE` edits the loading response instead of creating
+    // a message, claimed before the request so a concurrent followup isn't also taken as the response
     const fillsResponse = !!this.responseDeferred;
+    const revision = this._responseRevision;
     if (fillsResponse) {
       this.responseDeferred = false;
     }
@@ -293,7 +311,8 @@ export class Interaction extends BaseStructure {
     try {
       message = await this.client.rest.executeWebhook(this.applicationId, this.token, options, undefined, this.guildId);
     } catch(error) {
-      if (fillsResponse) {
+      // only undo the claim if nothing else filled or deleted the response since
+      if (fillsResponse && revision === this._responseRevision) {
         this.responseDeferred = true;
       }
       throw error;
@@ -308,21 +327,34 @@ export class Interaction extends BaseStructure {
     options: InteractionResponseOptions,
     data?: InteractionResponseData,
   ) {
-    if (this._responding) {
+    // a loop, not an if: waiters all wake together, the first one through responds and the rest wait on it
+    while (this._responding) {
       await this._responding;
     }
 
+    // a second initial response would fail with 40060 (already acknowledged)
+    if (this.responded) {
+      throw new Error('Interaction was already responded to, use editOrRespond/editResponse/createMessage instead');
+    }
+
     const response = new Promise((resolve, reject) => {
-      if (this.isFromMessageComponent) {
-        // key the component listener by the message, on a copy so the caller's options/data (or modal) aren't changed
+      // only an update takes over the clicked message's listener, a new message is keyed by this interaction
+      const [ type ] = getResponseTypeAndPayloads(options, data);
+      const updatesMessage = (
+        type === InteractionCallbackTypes.UPDATE_MESSAGE ||
+        type === InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE
+      );
+      if (this.isFromMessageComponent && updatesMessage) {
+        // on a copy so the caller's options/data (or modal) aren't changed
         const listenerId = (this.message) ? this.message.id : '';
         const hasComponents = (value: any) => typeof(value) === 'object' && value !== null && !(value instanceof InteractionModal) && 'components' in value;
+        const withListenerId = <T extends object>(value: T): T => ((value as any).listenerId) ? value : copyWith(value, {listenerId});
         if (typeof(options) === 'object' && !(options instanceof InteractionModal) && options.data) {
           if (hasComponents(options.data)) {
-            options = Object.assign({}, options, {data: copyWith(options.data, {listenerId})});
+            options = Object.assign({}, options, {data: withListenerId(options.data)});
           }
         } else if (data && hasComponents(data)) {
-          data = copyWith(data as object, {listenerId}) as InteractionResponseData;
+          data = withListenerId(data as object) as InteractionResponseData;
         }
       }
 
@@ -331,12 +363,12 @@ export class Interaction extends BaseStructure {
         .catch(reject);
     });
 
-    // what the response is, from the payload before the listener copy above
     const [ responseType, responsePayloads ] = getResponseTypeAndPayloads(options, data);
 
     this._responding = new Promise((resolve) => {
       response.then(() => {
         this.responded = true;
+        this.responseType = responseType;
         switch (responseType) {
           case InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE: {
             this.responseDeferred = false;
@@ -357,7 +389,7 @@ export class Interaction extends BaseStructure {
           }; break;
         }
       }).catch(() => {
-        // keep `responded` as it was, a failed response (like a second one, already acknowledged) doesn't undo an earlier one
+        // a failed response (like a second one) doesn't undo an earlier one
       }).then(() => {
         this._responding = null;
         resolve(this.responded);
@@ -370,8 +402,10 @@ export class Interaction extends BaseStructure {
   async deleteMessage(messageId: string, options: RequestTypes.DeleteWebhookTokenMessage = {}) {
     const result = await this.client.rest.deleteWebhookTokenMessage(this.applicationId, this.token, messageId, options);
     if (messageId === '@original' || (!!this.responseId && messageId === this.responseId)) {
-      // the rest client can't tell what `@original` is, the response's listener is either still under the interaction id
-      // or was moved to the response's message id (ephemeral responses get no MESSAGE_DELETE to clean these up)
+      // ephemeral responses get no MESSAGE_DELETE, so clean up here, the listener is under the interaction or message id
+      this._responseRevision++;
+      this.responseDeleted = true;
+      this.responseDeferred = false;
       const componentHandler = this.client.gatewayHandler._handlers.component;
       componentHandler.delete(this.id);
       if (this.responseId) {
@@ -392,6 +426,11 @@ export class Interaction extends BaseStructure {
   }
 
   async editMessage(messageId: string, options: RequestTypes.EditWebhookTokenMessage = {}) {
+    // `@original` doesn't exist until the initial response went through
+    while (this._responding) {
+      await this._responding;
+    }
+
     const message = await this.client.rest.editWebhookTokenMessage(this.applicationId, this.token, messageId, options, true, this.guildId);
     if (messageId === '@original' || (!!this.responseId && messageId === this.responseId)) {
       this.trackResponseMessage(message);
@@ -404,7 +443,7 @@ export class Interaction extends BaseStructure {
   }
 
   async editOrRespond(options: InteractionEditOrRespond | string = {}) {
-    if (this._responding) {
+    while (this._responding) {
       await this._responding;
     }
 
@@ -418,6 +457,12 @@ export class Interaction extends BaseStructure {
     }
 
     if (this.responded) {
+      if (options instanceof InteractionModal) {
+        throw new Error('Interaction was already responded to, a modal can only be sent as the initial response');
+      }
+      if (this.responseType !== undefined && NO_MESSAGE_RESPONSE_TYPES.has(this.responseType)) {
+        throw new Error(`Interaction was responded to with a callback type (${this.responseType}) that has no message to edit`);
+      }
       return this.editResponse(options);
     }
 
@@ -473,7 +518,6 @@ export class Interaction extends BaseStructure {
       if (value) {
         if (!this.isClone && this.client.channels.has(value.id)) {
           // the cached channel is shared, so keep the invoking member's `permissions` out of it
-          // (they're on `member.permissions` too), the rest is the same for everyone
           this._channel = this.client.channels.get(value.id)!;
           if (DiscordKeys.PERMISSIONS in value) {
             const shared = Object.assign({}, value);
@@ -888,7 +932,7 @@ export class InteractionDataApplicationCommandResolved extends BaseStructure {
 
   toJSON() {
     const data = super.toJSON() as any;
-    // discord sends these keyed by id (and `merge()` reads them that way), a collection would serialize as an array
+    // discord sends these keyed by id, a collection would serialize as an array
     for (let key of [DiscordKeys.ATTACHMENTS, DiscordKeys.CHANNELS, DiscordKeys.MEMBERS, DiscordKeys.MESSAGES, DiscordKeys.ROLES, DiscordKeys.USERS]) {
       const collection = (this as any)[DetritusKeys[key]];
       if (collection instanceof BaseCollection) {
@@ -1154,7 +1198,7 @@ export class InteractionCallbackResource extends BaseStructure {
 }
 
 
-// shallow copy that keeps the prototype (so `toJSON()` and friends still work) with extra fields
+// shallow copy that keeps the prototype, so `toJSON()` and friends still work
 function copyWith<T extends object>(value: T, extra: object): T {
   return Object.assign(Object.create(Object.getPrototypeOf(value)), value, extra);
 }

@@ -160,7 +160,6 @@ export class ClusterManager extends EventSpewer {
       const bucket = new Bucket(1, delay, true);
       this.buckets.set(ratelimitKey, bucket);
     }
-    // now use these buckets whenever we identify
 
     let clusterId = 0;
     for (let shardStart = this.shardStart; shardStart <= this.shardEnd; shardStart += this.shardsPerCluster) {
@@ -181,9 +180,10 @@ export class ClusterManager extends EventSpewer {
       this.emit(ClientEvents.CLUSTER_PROCESS, {clusterProcess});
 
       try {
-        await clusterProcess.run();
+        // a child that never readies (and never exits) would block every cluster after it, like `respawnAll()`
+        await clusterProcess.run({timeout: this._getReadyTimeout()});
       } catch(error) {
-        // the child died before readying, its exit handler respawns it so keep starting the other clusters
+        // died (or timed out) before readying, its exit handler respawns it so keep starting the others
         clusterProcess.emit('warn', {error});
       }
       clusterId++;
@@ -231,10 +231,9 @@ export class ClusterManager extends EventSpewer {
     if (this._respawningAll) {
       return this._respawningAll;
     }
-    // one at a time, like `run()`, so the clusters don't all go down at once
-    // default to a timeout so one cluster that never readies can't hang the whole respawn (each shard gets the identify ready timeout)
+    // one at a time like `run()`, with a default timeout so a cluster that never readies can't hang the respawn
     if (options.timeout === undefined && (options.wait || options.wait === undefined)) {
-      options = Object.assign({}, options, {timeout: Math.max(this.shardsPerCluster, 1) * IDENTIFY_READY_TIMEOUT});
+      options = Object.assign({}, options, {timeout: this._getReadyTimeout()});
     }
     const promise = this._respawningAll = (async () => {
       for (let [clusterId, clusterProcess] of this.processes) {
@@ -252,6 +251,14 @@ export class ClusterManager extends EventSpewer {
         this._respawningAll = null;
       }
     }
+  }
+
+  /**
+   * How long a cluster gets to ready up when we wait on it (each shard gets the identify ready timeout)
+   * @hidden
+   */
+  _getReadyTimeout(): number {
+    return Math.max(this.shardsPerCluster, 1) * IDENTIFY_READY_TIMEOUT;
   }
 
   getRatelimitKey(shardId: number): number {

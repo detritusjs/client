@@ -13,7 +13,7 @@ import {
 } from '../utils';
 
 
-// the interaction id a message is the original response to (listeners for interaction responses are stored under it)
+// the interaction id a message is the original response to, response listeners are stored under it
 // `message.interaction` is deprecated, `interactionMetadata` only counts if the message isn't a followup
 export function getResponseInteractionId(message: Message): string | undefined {
   if (message.interaction) {
@@ -28,6 +28,17 @@ export function getResponseInteractionId(message: Message): string | undefined {
 
 export class ComponentHandler {
   listeners = new BaseCollection<string, Components>();
+
+  // drops every listener without calling their `onTimeout` (like on a kill, their timers would keep the process alive)
+  clear(): void {
+    for (let [listenerId, listener] of this.listeners) {
+      if (listener._timeout) {
+        listener._timeout.stop();
+        listener._timeout = undefined;
+      }
+    }
+    this.listeners.clear();
+  }
 
   delete(listenerId: string): boolean {
     if (this.listeners.has(listenerId)) {
@@ -121,11 +132,16 @@ export class ComponentHandler {
     const listenerId = listener.id;
     if (listenerId) {
       this.delete(listenerId);
+      // the same listener registered again (like with `hookComponents`) keeps one timer, the old one would time out the new registration early
+      if (listener._timeout) {
+        listener._timeout.stop();
+        listener._timeout = undefined;
+      }
       // no timeout means the listener lives until the next READY, each click is a new interaction so there's no 15 minute cap
       if (0 < listener.timeout) {
         const timeout = listener._timeout = new Timers.Timeout();
         timeout.start(listener.timeout, async () => {
-          if (!listener.id) {
+          if (!listener.id || listener._timeout !== timeout) {
             return;
           }
 
@@ -144,6 +160,7 @@ export class ComponentHandler {
       }
 
       this.listeners.set(listenerId, listener);
+      listener._registeredId = listenerId;
     }
   }
 
@@ -167,6 +184,7 @@ export class ComponentHandler {
         }
       } else {
         listener.id = newListenerId;
+        listener._registeredId = newListenerId;
         this.listeners.set(newListenerId, listener);
       }
     }

@@ -31,7 +31,6 @@ export class VoiceStates extends BaseClientCollectionCache<string, VoiceState> {
     const deleted = (super.delete as Function).call(this, serverId, userId);
     if (userId) {
       // drop a server's cache once everyone left, otherwise every dm call leaves an empty one behind
-      // (the guild/channel/call `voiceStates` getters fall back to an empty collection)
       if (serverId) {
         const cache = this.caches.get(serverId);
         if (cache && !cache.length) {

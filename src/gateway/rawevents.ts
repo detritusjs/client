@@ -946,7 +946,6 @@ export namespace GatewayRawEvents {
   }
 
   export interface UserUpdate extends RawUserMe {
-    // Current User Update
   }
 
   export interface VoiceChannelEffectSend {

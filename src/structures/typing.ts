@@ -84,7 +84,8 @@ export class Typing extends BaseStructure {
       this.timeout.stop();
 
       const cache = this.client.typings.get(this.channelId);
-      if (cache) {
+      // only remove ourselves, a newer typing for the same user (made after the cache was reset) isn't ours to remove
+      if (cache && cache.get(this.userId) === this) {
         cache.delete(this.userId);
         if (!cache.length) {
           this.client.typings.delete(this.channelId);
@@ -144,13 +145,13 @@ export class Typing extends BaseStructure {
 
       const amount = (value + TYPING_TIMEOUT) - Date.now();
       if (!this.isClone) {
-        // always start it, an already expired typing (replayed after a resume, clock skew) still has to be removed from the cache
+        // an already expired typing (replayed after a resume, clock skew) still has to be removed from the cache
         this.timeout.start(Math.max(0, amount), () => this._stop());
       }
       (this as any)[DetritusKeys[DiscordKeys.TIMESTAMP]] = value;
     }
     if (DiscordKeys.USER in data) {
-      // `user` is a getter-only accessor, so just pull the id from it (from `clone()`/`toJSON()`)
+      // `user` is getter-only, so take the id from it (from `clone()`/`toJSON()`)
       const value = data[DiscordKeys.USER];
       if (value && value.id && !this.userId) {
         this.userId = value.id;

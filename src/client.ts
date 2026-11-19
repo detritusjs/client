@@ -15,6 +15,7 @@ import {
   ClientEvents,
   ImageFormats,
   IMAGE_FORMATS,
+  SocketStates,
 } from './constants';
 import { ChunkWaiting, GatewayHandler, GatewayHandlerOptions } from './gateway/handler';
 import { GatewayClientEvents } from './gateway/clientevents';
@@ -196,6 +197,8 @@ export class ShardClient extends EventSpewer {
   // request key -> nonce of the in-flight `requestGuildMembers()` for it
   readonly _chunksNonces = new Map<string, string>();
   _killed: boolean = false;
+  // the `run()` still connecting, a second `run()` waits on it instead of resolving before the client is ready
+  declare _runPromise: Promise<ShardClient> | null;
 
   application: Application | null = null;
   cluster: ClusterClient | null = null;
@@ -205,20 +208,16 @@ export class ShardClient extends EventSpewer {
   /** Default Image Format to use for any url getters*/
   imageFormat: ImageFormats = ImageFormats.PNG;
 
-  /** `detritus-client-socket`'s Gateway Socket */
   gateway: Gateway.Socket;
 
-  /** Our Dispatch Handler */
   gatewayHandler: GatewayHandler;
 
   /**
-   * If this is a bot, this will be filled with it's application owner or all of the application's team owners
-   * If this is a user, this will only include the user object
+   * Bots get their application's owner (or every team owner), users only themselves
    * Only fills once we receive the Ready payload
    */
   owners = new BaseCollection<string, User>();
 
-  /** If the client is ran or not */
   ran: boolean = false;
 
   /** (Users only) if the client requires an action (like the captcha overlay) */
@@ -227,7 +226,6 @@ export class ShardClient extends EventSpewer {
   /** `detritus-client-rest`'s Rest Client, but wrapped over */
   rest: RestClient;
 
-  /** our token */
   token: string;
 
   /** Us, only fills once we received the Ready payload from the gateway */
@@ -301,6 +299,7 @@ export class ShardClient extends EventSpewer {
       _chunksNonces: {enumerable: false},
       _isBot: {configurable: true, enumerable: false, writable: false},
       _killed: {configurable: true, enumerable: false, writable: false},
+      _runPromise: {configurable: true, enumerable: false, writable: true, value: null},
       cluster: {enumerable: false, writable: false},
       commandClient: {configurable: true, enumerable: false, writable: false},
       gateway: {enumerable: false, writable: false},
@@ -443,6 +442,14 @@ export class ShardClient extends EventSpewer {
     if (!this.killed) {
       Object.defineProperty(this, '_killed', {value: true});
       this.gateway.kill(error);
+      // nothing will answer member requests anymore, don't leave them waiting on their timeouts
+      for (let [nonce, cache] of this.gatewayHandler._chunksWaiting) {
+        cache.promise.reject(error || new Error('Client was killed before a result came.'));
+      }
+      this.gatewayHandler._chunksWaiting.clear();
+      // a dead client can't receive their clicks or submits, and their timers would keep the process alive (up to 15 minutes)
+      this.gatewayHandler._handlers.component.clear();
+      this.gatewayHandler._handlers.modal.clear();
       this.reset(true);
       if (this.cluster) {
         this.cluster.shards.delete(this.shardId);
@@ -492,12 +499,15 @@ export class ShardClient extends EventSpewer {
       timeout: number,
       userIds?: Array<string>,
     };
+    if (options.timeout === undefined) {
+      // an explicit `{timeout: undefined}` overwrites the default, and would time out right away
+      options.timeout = 1500;
+    }
     let key = `${guildId}:${options.limit}:${options.query}:${options.presences}`;
     if (options.userIds && options.userIds.length) {
       key += `:${options.userIds.slice().sort().join('.')}`;
     }
-    // identical requests share the one in flight, but every request sent gets its own nonce
-    // (a nonce made from the key would let a timed out request's late chunks finish a retry with a partial result)
+    // identical requests share the one in flight, but each send gets its own nonce so a timed out one's late chunks can't finish a retry
     let nonce = this._chunksNonces.get(key);
     let cache: ChunkWaiting;
     if (nonce !== undefined && this.gatewayHandler._chunksWaiting.has(nonce)) {
@@ -515,6 +525,8 @@ export class ShardClient extends EventSpewer {
         notFound: new BaseSet<string>(),
         presences: new BaseCollection<string, Presence>(),
         promise,
+        // sent right away on a ready session, otherwise it waits in the gateway's queue for the next one
+        sessionId: (this.gateway.state === SocketStates.READY && !this.gateway.bucket.locked) ? this.gateway.sessionId : null,
         waiting: 0,
       };
       this.gatewayHandler._chunksWaiting.set(nonce, cache);
@@ -587,7 +599,7 @@ export class ShardClient extends EventSpewer {
     this.typings.clear();
     this.users.clear();
     this.voiceCalls.clear();
-    // voice connections have their own sockets that outlive a re-identify (the gateway keeps them too), only drop the dead ones
+    // voice connections have their own sockets that outlive a re-identify, only drop the dead ones
     for (let [serverId, connection] of this.voiceConnections) {
       if (connection.killed) {
         this.voiceConnections.delete(serverId);
@@ -600,8 +612,26 @@ export class ShardClient extends EventSpewer {
     options: ShardClientRunOptions = {},
   ): Promise<ShardClient> {
     if (this.ran) {
-      return this;
+      return this._runPromise || this;
     }
+    if (this._killed) {
+      // a killed gateway won't connect again, waiting on its ready would never settle
+      throw new Error('Client was killed before it could connect');
+    }
+    const promise = this._run(options);
+    this._runPromise = promise;
+    try {
+      return await promise;
+    } finally {
+      if (this._runPromise === promise) {
+        this._runPromise = null;
+      }
+    }
+  }
+
+  async _run(
+    options: ShardClientRunOptions,
+  ): Promise<ShardClient> {
     Object.defineProperty(this, 'ran', {value: true});
     const wait = options.wait || options.wait === undefined;
 
@@ -643,12 +673,10 @@ export class ShardClient extends EventSpewer {
   }
 
   /**
-   * 
    * @param guildId Guild Id you want to connect to, if a user and wanting to connect to a Dm Channel, keep this blank
    * @param channelId Channel Id you want to connect to or move to
    * @param options Options to pass into the `detritus-client-socket`'s gateway's voiceConnect
-   * @returns Returns a promise that resolves into a Voice Connection object and an isNew variable.
-   *          isNew is used to see if the connection was reused (e.g. changing channels) so you can put listeners on or not
+   * @returns the Voice Connection and `isNew`, false when an existing connection was reused (like when changing channels)
    */
   async voiceConnect(
     guildId?: null | string,
@@ -660,14 +688,53 @@ export class ShardClient extends EventSpewer {
     const gateway = await this.gateway.voiceConnect(guildId, channelId, options);
     const serverId = (guildId || channelId) as string;
     if (gateway) {
-      // the gateway gets reused when we're already connected, so reuse its connection too
-      // wrapping it again would double up the packet handling and wait on a 'ready' that already happened
+      if (gateway.killed) {
+        // its listeners are already gone, a connection wrapping it would never ready (or die) and this would never settle
+        throw new Error('Voice gateway was killed before the connection was made.');
+      }
+
+      const wait = options.wait || options.wait === undefined;
+      const waitForReady = (payload: VoiceConnectObject, killOnTimeout: boolean): Promise<VoiceConnectObject> => {
+        return new Promise((resolve, reject) => {
+          const timeout = new Timers.Timeout();
+          const onReady = () => {
+            timeout.stop();
+            payload.connection.removeListener('killed', onKilled);
+            resolve(payload);
+          };
+          const onKilled = (killed?: {error?: Error}) => {
+            timeout.stop();
+            payload.connection.removeListener('ready', onReady);
+            // pass along why the media gateway died (close code, missing dave, etc) when it gave a reason
+            reject((killed && killed.error) || new Error('Voice connection was killed before it was ready.'));
+          };
+          payload.connection.once('ready', onReady);
+          payload.connection.once('killed', onKilled);
+          if (options.timeout) {
+            timeout.start(options.timeout, () => {
+              payload.connection.removeListener('ready', onReady);
+              payload.connection.removeListener('killed', onKilled);
+              reject(new Error(`Voice connection took longer than ${options.timeout}ms to be ready.`));
+              if (killOnTimeout) {
+                payload.connection.kill();
+              }
+            });
+          }
+        });
+      };
+
+      // the gateway gets reused when we're already connected, wrapping it again would double up the packet handling
       const existing = voiceConnectionsByGateway.get(gateway) || this.voiceConnections.get(serverId);
       if (existing && !existing.killed) {
-        return {
+        const payload = {
           connection: existing,
           isNew: false,
         };
+        if (wait && !existing.ready) {
+          // still connecting (another call made it, or we're moving channels), the timeout doesn't kill it since it isn't only ours
+          return waitForReady(payload, false);
+        }
+        return payload;
       }
 
       try {
@@ -678,31 +745,8 @@ export class ShardClient extends EventSpewer {
         voiceConnectionsByGateway.set(gateway, payload.connection);
         this.voiceConnections.insert(payload.connection);
 
-        if (options.wait || options.wait === undefined) {
-          return new Promise((resolve, reject) => {
-            const timeout = new Timers.Timeout();
-            const onReady = () => {
-              timeout.stop();
-              payload.connection.removeListener('killed', onKilled);
-              resolve(payload);
-            };
-            const onKilled = (killed?: {error?: Error}) => {
-              timeout.stop();
-              payload.connection.removeListener('ready', onReady);
-              // pass along why the media gateway died (close code, missing dave, etc) when it gave a reason
-              reject((killed && killed.error) || new Error('Voice connection was killed before it was ready.'));
-            };
-            payload.connection.once('ready', onReady);
-            payload.connection.once('killed', onKilled);
-            if (options.timeout) {
-              timeout.start(options.timeout, () => {
-                payload.connection.removeListener('ready', onReady);
-                payload.connection.removeListener('killed', onKilled);
-                reject(new Error(`Voice connection took longer than ${options.timeout}ms to be ready.`));
-                payload.connection.kill();
-              });
-            }
-          });
+        if (wait) {
+          return waitForReady(payload, true);
         } else {
           return payload;
         }
@@ -995,6 +1039,8 @@ export class ShardClient extends EventSpewer {
   on(event: 'restRequest', listener: (payload: GatewayClientEvents.RestRequest) => any): this;
   on(event: ClientEvents.REST_RESPONSE, listener: (payload: GatewayClientEvents.RestResponse) => any): this;
   on(event: 'restResponse', listener: (payload: GatewayClientEvents.RestResponse) => any): this;
+  on(event: ClientEvents.REST_TOKEN_UNAUTHORIZED, listener: (payload: GatewayClientEvents.RestTokenUnauthorized) => any): this;
+  on(event: 'restTokenUnauthorized', listener: (payload: GatewayClientEvents.RestTokenUnauthorized) => any): this;
   on(event: ClientEvents.UNKNOWN, listener: (payload: GatewayClientEvents.Unknown) => any): this;
   on(event: 'unknown', listener: (payload: GatewayClientEvents.Unknown) => any): this;
   on(event: ClientEvents.WARN, listener: (payload: GatewayClientEvents.Warn) => any): this;
@@ -1277,6 +1323,8 @@ export class ShardClient extends EventSpewer {
   once(event: 'restRequest', listener: (payload: GatewayClientEvents.RestRequest) => any): this;
   once(event: ClientEvents.REST_RESPONSE, listener: (payload: GatewayClientEvents.RestResponse) => any): this;
   once(event: 'restResponse', listener: (payload: GatewayClientEvents.RestResponse) => any): this;
+  once(event: ClientEvents.REST_TOKEN_UNAUTHORIZED, listener: (payload: GatewayClientEvents.RestTokenUnauthorized) => any): this;
+  once(event: 'restTokenUnauthorized', listener: (payload: GatewayClientEvents.RestTokenUnauthorized) => any): this;
   once(event: ClientEvents.UNKNOWN, listener: (payload: GatewayClientEvents.Unknown) => any): this;
   once(event: 'unknown', listener: (payload: GatewayClientEvents.Unknown) => any): this;
   once(event: ClientEvents.WARN, listener: (payload: GatewayClientEvents.Warn) => any): this;
@@ -1559,6 +1607,8 @@ export class ShardClient extends EventSpewer {
   subscribe(event: 'restRequest', listener: (payload: GatewayClientEvents.RestRequest) => any): EventSubscription;
   subscribe(event: ClientEvents.REST_RESPONSE, listener: (payload: GatewayClientEvents.RestResponse) => any): EventSubscription;
   subscribe(event: 'restResponse', listener: (payload: GatewayClientEvents.RestResponse) => any): EventSubscription;
+  subscribe(event: ClientEvents.REST_TOKEN_UNAUTHORIZED, listener: (payload: GatewayClientEvents.RestTokenUnauthorized) => any): EventSubscription;
+  subscribe(event: 'restTokenUnauthorized', listener: (payload: GatewayClientEvents.RestTokenUnauthorized) => any): EventSubscription;
   subscribe(event: ClientEvents.UNKNOWN, listener: (payload: GatewayClientEvents.Unknown) => any): EventSubscription;
   subscribe(event: 'unknown', listener: (payload: GatewayClientEvents.Unknown) => any): EventSubscription;
   subscribe(event: ClientEvents.WARN, listener: (payload: GatewayClientEvents.Warn) => any): EventSubscription;

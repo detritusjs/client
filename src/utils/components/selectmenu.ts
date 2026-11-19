@@ -63,7 +63,7 @@ const keysComponentSelectMenu = new BaseSet<string>([
   type = MessageComponentTypes.SELECT_MENU;
 
   constructor(data: ComponentActionData = {}) {
-    // work on a copy, the generated custom id (and key renames) shouldn't end up in the caller's object
+    // copy so the generated custom id (and key renames) stay out of the caller's object
     data = Object.assign({}, data);
     super(data);
     Object.assign(data, {
@@ -206,7 +206,7 @@ const keysComponentSelectMenuDefaultValue = new BaseSet<string>([
 ]);
 
 /**
- * Utils Component Select Menu Option Structure
+ * Utils Component Select Menu Default Value Structure
  * @category Utils
  */
  export class ComponentSelectMenuDefaultValue extends Structure {

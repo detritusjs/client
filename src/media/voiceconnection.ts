@@ -207,6 +207,11 @@ export class VoiceConnection extends EventSpewer {
     return this.gateway.killed;
   }
 
+  // the udp transport has its key so audio can be sent, false while reconnecting
+  get ready(): boolean {
+    return !this.killed && this.gateway.transportReady;
+  }
+
   get member(): Member | null {
     if (this.guildId !== null) {
       return (<Member | undefined> this.client.members.get(this.guildId, this.userId)) || null;
@@ -294,8 +299,7 @@ export class VoiceConnection extends EventSpewer {
   }
 
   kill(error?: Error): void {
-    // the gateway's `killed` event calls this again (see the handler), only the first call does anything
-    // so `killed` gets emitted once, with the error we were given
+    // the gateway's `killed` event calls this again, only the first call emits `killed` (with our error)
     if (this._killed) {
       return;
     }
@@ -304,10 +308,16 @@ export class VoiceConnection extends EventSpewer {
     if (this.client.voiceConnections.get(this.serverId) === this) {
       this.client.voiceConnections.delete(this.serverId);
     }
-    // anything waiting on the gateway gets rejected with our error too
     this.gateway.kill(error);
     this.setOpusEncoder({kill: true});
     this.setOpusDecoder({kill: true});
+    // we won't hear their CLIENT_DISCONNECT/SPEAKING anymore, don't leave anyone looking like they're still speaking
+    const voiceStates = this.client.voiceStates.get(this.serverId);
+    if (voiceStates) {
+      for (let [userId, voiceState] of voiceStates) {
+        voiceState._isSpeaking = false;
+      }
+    }
     this.emit('killed', {error});
     this.removeAllListeners();
   }
@@ -329,7 +339,6 @@ export class VoiceConnection extends EventSpewer {
       data = this.opusEncoder.encode(data, this.formats.audio.frameDuration);
     }
 
-    // assume its 48000 sample rate, 2 channels
     this.gateway.transport.sendAudioFrame(data, {
       incrementTimestamp: true,
       timestamp: this.formats.audio.samplesPerFrame,
@@ -347,10 +356,9 @@ export class VoiceConnection extends EventSpewer {
   }
 
   /**
-   * Sends a whole encoded video frame (vp8/vp9, or h264 as annex b), e2e encrypted and split into packets
-   * Pacing is up to you, this sends right away. Requires connecting with `video: true`
-   * Returns false if it got dropped (before we're in the call's e2e encryption group), nothing after a dropped frame
-   * decodes until the next keyframe
+   * Sends a whole encoded video frame (vp8/vp9, or h264 as annex b), e2e encrypted and packetized right away, pacing is up to you
+   * Requires connecting with `video: true`
+   * Returns false if dropped (before we're in the e2e encryption group), nothing after that decodes until the next keyframe
    */
   sendVideo(
     frame: Buffer,
@@ -366,9 +374,8 @@ export class VoiceConnection extends EventSpewer {
   }
 
   /**
-   * Tells the call if we're sending video (viewers get nothing shown until this is on), with what that video is
-   * The settings are kept, so turning it off and on again doesn't need them repeated. Requires connecting with `video: true`
-   * (`setVideo()` is the camera icon others see on us, this is the video itself)
+   * Tells the call if we're sending video (viewers see nothing until this is on), the settings are kept between toggles
+   * Requires connecting with `video: true`, `setVideo()` is only the camera icon others see
    */
   setVideoActive(
     active: boolean,
@@ -378,16 +385,14 @@ export class VoiceConnection extends EventSpewer {
   }
 
   /**
-   * A user's video streams as they last announced them, one per quality layer, with its bitrate/framerate/resolution
-   * Empty when they aren't sending video
+   * A user's video streams as last announced, one per quality layer, empty when they aren't sending video
    */
   getVideoStreams(userId: string): Array<MediaRawEvents.Stream> {
     return this.gateway.userStreams.get(userId) || [];
   }
 
   /**
-   * Asks a user for a keyframe, when their video can't be decoded (nothing to do normally, lost frames are asked for
-   * automatically)
+   * Asks a user for a keyframe when their video can't be decoded (lost frames are asked for automatically)
    */
   requestKeyframe(userId: string): void {
     const transport = this.gateway.transport;
@@ -413,23 +418,22 @@ export class VoiceConnection extends EventSpewer {
   }
 
   /**
-   * Turns receiving on or off while connected. Off has the voice server stop forwarding everyone's audio and video to us,
-   * instead of us dropping it as it comes in
+   * Turns receiving on or off while connected, off has the voice server stop forwarding audio and video to us
    */
   setReceive(receive: boolean): void {
     this.gateway.setReceive(receive);
   }
 
   /**
-   * How much we want from one user, 0 to 100. 0 has the voice server stop forwarding them to us (a mute only we notice),
-   * `null` puts them back on the default. For video anything between picks a lower quality layer
+   * How much we want from one user, 0 to 100, `null` resets it. 0 has the voice server stop forwarding them to us
+   * For video anything between picks a lower quality layer
    */
   setUserWants(userId: string, value: number | null): void {
     this.gateway.setUserWants(userId, value);
   }
 
   /**
-   * How much we want from every user without their own value, 0 to 100 (100 by default).
+   * How much we want from every user without their own value, 0 to 100 (100 by default)
    * At 0 only the users given a value with `setUserWants()` are forwarded to us
    */
   setDefaultWants(value: number): void {
@@ -450,12 +454,15 @@ export class VoiceConnection extends EventSpewer {
       if (this.opusDecoder !== null) {
         Object.defineProperty(this, 'opusDecoder', {value: null});
       }
+      // same warn as in `setDecodeAudio()`
+      if (this.decodeAudio) {
+        Object.defineProperty(this, 'decodeAudio', {value: false});
+      }
       this.clearOpusDecoders();
       return;
     }
 
     if (options.use === undefined) {
-      // Check Decoder first
       if (this.opusDecoder !== null) {
         options.use = this.opusDecoder.use;
       } else if (this.opusEncoder !== null) {
@@ -521,7 +528,6 @@ export class VoiceConnection extends EventSpewer {
     }
 
     if (options.use === undefined) {
-      // Check Encoder first
       if (this.opusEncoder !== null) {
         options.use = this.opusEncoder.use;
       } else if (this.opusDecoder !== null) {
@@ -573,6 +579,10 @@ export class VoiceConnection extends EventSpewer {
       voice?: boolean,
     },
   ): Promise<void> {
+    if (this.killed) {
+      // a killed socket drops the packet and its callback, this would never settle
+      return;
+    }
     return new Promise((resolve) => {
       this.gateway.sendSpeaking(options, resolve);
     });
@@ -585,6 +595,10 @@ export class VoiceConnection extends EventSpewer {
       selfVideo?: boolean,
     },
   ): Promise<void> {
+    if (this.killed) {
+      // a killed socket drops the packet and its callback, this would never settle
+      return;
+    }
     return new Promise((resolve) => {
       this.gateway.sendStateUpdate(options, resolve);
     });

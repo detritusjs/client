@@ -166,7 +166,6 @@ export class MessageEmbed extends BaseStructure {
 
   /**
    * The finished poll's outcome on `poll_result` embeds, discord sends it as named `fields` with string values
-   * `null` when this isn't a poll result embed
    */
   get pollResult(): MessageEmbedPollResult | null {
     if (!this.isPollResult || !this.fields) {

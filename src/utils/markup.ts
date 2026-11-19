@@ -44,9 +44,9 @@ export const Regexes = Object.freeze({
   // only a `>` at the start of a line is a quote, the rest are emojis/channels/timestamps
   QUOTE_LINE_START: /^(\s*)>/gm,
   TILDES: /~~?/g,
-  // anything that would end the link's url early (`\` escapes the `)`, `>` gets read as `<url>`'s end)
+  // chars that would end the url early (`\` escapes the `)`, `>` ends a `<url>`)
   URL: /[()<>\s\\]/g,
-  // how discord autolinks, markdown inside these isn't parsed so escaping them only puts backslashes in the link
+  // how discord autolinks, markdown inside isn't parsed so escaping only adds backslashes to the link
   URL_BARE: /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g,
 });
 
@@ -83,7 +83,7 @@ export interface MarkupFilterOptions {
   mentions?: boolean,
   mentionEscapeCharacter?: string,
   replacement?: string,
-  // `escape.all` only, stops urls (and the invite/store previews discord makes out of them) from working
+  // `escape.all` only, stops urls (and their invite/store previews) from working
   urls?: boolean,
 }
 
@@ -96,20 +96,18 @@ const defaultMarkupFilter: MarkupFilter = Object.freeze({
 });
 
 
-// `limit` is for the whole output (it's 4000 sometimes), so take out what the wrapper adds around the text
+// `limit` covers the whole output, so take out what the wrapper adds
 function textLimit(options: MarkupFilterOptions, wrapping: number = 0): number {
   const limit = (options.limit === undefined) ? defaultMarkupFilter.limit : options.limit;
   return Math.max(limit - wrapping, 0);
 }
 
-// puts a zero width space after the text when its end would get read as part of the marker that comes right after it
-// (a backslash can't do this, strikes/spoilers/headers match their markers without looking at escapes)
+// a zero width space so the text's end isn't read as part of the closing marker, a backslash doesn't stop that
 function guardEnd(text: string, limit: number, needsGuard: (text: string) => boolean): string {
   if (!needsGuard(text)) {
     return text;
   }
   if (limit <= text.length) {
-    // make room for it
     text = trueSlice(text, Math.max(limit - 1, 0));
     if (!needsGuard(text)) {
       return text;
@@ -123,8 +121,7 @@ const endsWithPipe = (text: string): boolean => text.endsWith('|');
 const endsWithStrike = (text: string): boolean => text.endsWith(Strings.STRIKE);
 const endsWithTilde = (text: string): boolean => text.endsWith('~');
 
-// prefixes every line, cutting the text so the whole output (prefixes and newlines included) stays within `limit`
-// `finishLine` gets each line after it was cut, with how much room it has
+// prefixes every line, cutting so the whole output stays within `limit`
 function prefixLines(
   text: string,
   limit: number,
@@ -180,7 +177,7 @@ const defaultCodeblockFilter: CodeblockFilter = Object.freeze(Object.assign({}, 
   replacement: Replacements[Strings.CODEBLOCK],
 }));
 
-// nothing inside of code gets parsed (backslashes included), so don't put `escape.all()` text in it, the backslashes get shown
+// code isn't parsed, so `escape.all()` text would show its backslashes
 export function codeblock(text: string, options: CodeblockFilterOptions = {}): string {
   // discord only reads these as a language, anything else makes the whole line part of the code
   const language = (options.language || defaultCodeblockFilter.language).replace(/[^a-z0-9_+\-.#]/gi, '');
@@ -205,7 +202,7 @@ const defaultCodestringFilter: MarkupFilter = Object.freeze(Object.assign({}, de
   replacement: Replacements[Strings.CODESTRING],
 }));
 
-// nothing inside of code gets parsed (backslashes included), so don't put `escape.all()` text in it, the backslashes get shown
+// code isn't parsed, so `escape.all()` text would show its backslashes
 export function codestring(text: string, options: MarkupFilterOptions = {}): string {
   if (!text) {
     // an empty `` shows as two backticks, a zero width space keeps it a code string
@@ -219,8 +216,7 @@ export function codestring(text: string, options: MarkupFilterOptions = {}): str
     }, options, {limit: textLimit(options, Strings.CODESTRING_DOUBLE.length * 2 + 2)});
     text = escape.codestring(text, options);
     wrap = Strings.CODESTRING_DOUBLE;
-    // a backtick next to the `` wrap would turn it into a ``` run, put a space between them instead
-    // (discord strips a space that's next to a backtick inside inline code)
+    // a backtick next to the `` wrap would make a ``` run, pad with a space (discord strips it)
     if (text.endsWith(Strings.CODESTRING + Replacements.MENTION)) {
       text = text.slice(0, -Replacements.MENTION.length) + ' ';
     } else if (text.endsWith(Strings.CODESTRING)) {
@@ -236,13 +232,13 @@ export function codestring(text: string, options: MarkupFilterOptions = {}): str
 }
 
 
-// the name can have a sub command group and a sub command in it (`ban add`), like how it's typed
+// the name can include a sub command group and sub command (`ban add`)
 export function commandMention(name: string, commandId: string): string {
   return `</${name}:${commandId}>`;
 }
 
 
-// a link to one of the guild's own pages, `itemId` is for the ones that take one (like a linked role's id)
+// `itemId` is for the pages that take one (like a linked role's id)
 export function guildNavigation(type: MarkupGuildNavigationTypes | string, itemId?: string): string {
   return (itemId) ? `<id:${type}:${itemId}>` : `<id:${type}>`;
 }
@@ -266,7 +262,7 @@ function headerLine(line: string, room: number): string {
   return guardEnd(line, room, endsWithHeader);
 }
 
-// a header needs text, without any discord shows the `#`s, so empty lines are left empty
+// discord shows the `#`s of a header without text, so empty lines get no prefix
 function headerPrefix(level: number): (index: number, line: string) => string {
   const prefix = `${Strings.HEADER.repeat(level)} `;
   return (index: number, line: string) => (line.trim()) ? prefix : '';
@@ -274,7 +270,6 @@ function headerPrefix(level: number): (index: number, line: string) => string {
 
 export function headerBig(text: string, options: HeaderFilterOptions = {}): string {
   text = escape.header(text, Object.assign({}, options, {limit: textLimit(options)}));
-  // without multiline the newlines are already gone, so this is a single line
   return prefixLines(text, textLimit(options), headerPrefix(1), headerLine);
 }
 
@@ -348,7 +343,6 @@ const defaultQuoteFilter: QuoteFilter = Object.freeze(Object.assign({}, defaultM
 
 export function quote(text: string, options: QuoteFilterOptions = {}): string {
   text = escape.quote(text, Object.assign({}, options, {limit: textLimit(options)}));
-  // apparently you can do `>>>` at the beginning of the text, but the client does not do this
   return prefixLines(text, textLimit(options), () => `${Strings.QUOTE} `);
 }
 
@@ -357,7 +351,7 @@ const defaultQuoteBlockFilter: QuoteFilter = Object.freeze(Object.assign({}, def
   limit: 1996,
 }));
 
-// quotes everything after it, the rest of the message included, so this has to be the last thing in it
+// quotes the rest of the message too, so it has to come last
 export function quoteBlock(text: string, options: MarkupFilterOptions = {}): string {
   const filter: MarkupFilter = Object.assign({}, defaultQuoteBlockFilter, options);
   if (filter.mentions) {
@@ -426,7 +420,7 @@ export function timestamp(timestamp: Date | number | string | null, format?: Mar
   let unixTimestamp: number;
   if (timestamp || timestamp === 0) {
     if (typeof(timestamp) === 'string') {
-      // numeric strings are treated as milliseconds, anything else gets parsed as a date string
+      // numeric strings are milliseconds, anything else is parsed as a date string
       if (/^-?\d+$/.test(timestamp.trim())) {
         timestamp = parseInt(timestamp);
       }
@@ -463,8 +457,7 @@ export function underline(text: string, options: MarkupFilterOptions = {}): stri
 }
 
 
-// discord's link text can only hold a `[` that has a `]` after it, and a lone `]` that has no `[` after it
-// there's no escaping them (a backslash in link text is shown as one), so the ones that would break the link become their fullwidth lookalikes
+// link text can't escape brackets, so the unbalanced ones that would break the link become fullwidth lookalikes
 function balanceLinkText(text: string): string {
   let output = '';
   for (let i = 0; i < text.length; i++) {
@@ -486,10 +479,8 @@ function balanceLinkText(text: string): string {
   return output;
 }
 
-// markdown in the link's text still gets rendered (bold, italics, ..) and there's no way to stop it
-// discord doesn't read backslash escapes in there, so don't put `escape.all()` text in it, the backslashes get shown
+// markdown in link text still renders and backslashes get shown, so don't pass it `escape.all()` text
 export function url(text: string, url: string, comment?: string): string {
-  // discord doesn't read backslash escapes inside of link text (they get shown), so the brackets are only balanced
   // quotes in the comment would end it early
   text = balanceLinkText(text);
   url = escape.url(url);
@@ -501,8 +492,7 @@ export function url(text: string, url: string, comment?: string): string {
 
 
 
-// a link that doesn't get an embed
-// (invite and store links still get their preview, discord makes those out of the message's text)
+// a link without an embed (invite/store links still get their preview)
 export function urlNoEmbed(url: string): string {
   url = escape.url(url);
   return (url.startsWith('<') && url.endsWith('>')) ? url : `<${url}>`;
@@ -515,15 +505,15 @@ export function trueSlice(
   limit?: number,
   escapes: boolean = true,
 ): string {
-  // slices by UTF-16 code units (how discord counts message length) without splitting a surrogate pair
-  // (a limit of 0 is a real limit, the wrappers can end up with no room left for the text)
+  // slices by UTF-16 code units (how discord counts length) without splitting a surrogate pair
+  // a limit of 0 is real, a wrapper can leave no room for the text
   if (typeof(limit) === 'number' && text.length > limit) {
     const code = text.charCodeAt(limit - 1);
     if (0xD800 <= code && code <= 0xDBFF) {
       limit--;
     }
     text = text.slice(0, limit);
-    // backslashes don't escape anything inside of code, so there's nothing to fix up
+    // backslashes don't escape anything inside code
     if (!escapes) {
       return text;
     }
@@ -541,8 +531,7 @@ export function trueSlice(
 }
 
 
-// code spans, links and custom emojis get parsed before a wrapper's closing marker could be found in them, so they
-// can't end the wrapper early. A backslash put in them gets shown (code) or breaks them (`\` is read as `/` in links)
+// code spans, links and custom emojis can't end a wrapper early, and a backslash would show (code) or break them (links)
 const PROTECTED_PARTS = /(?<!\\)(`+)[\s\S]*?[^`]\1(?!`)|<a?:\w+:\d+>|<[a-z][a-z0-9+.\-]*:[^\s>]+>|(?:https?|steam):\/\/[^\s<]+[^<.,:;"')\]\s]/gi;
 
 function outsideProtectedParts(text: string, escape: (part: string) => string): string {
@@ -555,10 +544,8 @@ function outsideProtectedParts(text: string, escape: (part: string) => string): 
   return output + escape(text.slice(last));
 }
 
-// escapes a wrapper's own marker but leaves escapes that are already there alone, so nesting works
-// (`bold(italics('a_b'))` keeps italics' `\_`, doubling every backslash would turn it into `\\_` and free the `_`)
-// only a lone backslash at the very end gets doubled, it would escape the closing marker
-// built once per marker instead of on every call (`replace()` resets a global regex's `lastIndex`, so sharing them is fine)
+// keeps existing escapes so nesting works (`bold(italics('a_b'))` keeps the `\_`), only a trailing lone backslash gets doubled
+// cached per marker, sharing is fine since `replace()` resets a global regex's `lastIndex`
 const escapeMarkerRegexes = new Map<RegExp, RegExp>();
 
 function escapeMarker(text: string, marker: RegExp, replace: (match: string) => string): string {
@@ -590,7 +577,7 @@ function escapeAllMarkdown(text: string): string {
 
   text = text.replace(Regexes[Strings.QUOTE], Replacements[Strings.QUOTE]);
   text = text.replace(Regexes[Strings.SUBTEXT], Replacements[Strings.SUBTEXT]); // this includes header
-  // `\-`/`\*` for bullets, numbered ones escape the dot (`1\.`), a backslash before a digit isn't an escape and would show
+  // numbered items escape the dot (`1\.`), a backslash before a digit isn't an escape and would show
   text = text.replace(Regexes.LIST_LINE_START, (match: string, space: string, marker: string) => {
     return (marker.endsWith('.')) ? `${space}${marker.slice(0, -1)}\\.` : `${space}\\${marker}`;
   });
@@ -598,8 +585,8 @@ function escapeAllMarkdown(text: string): string {
 }
 
 
-// stops urls from being links, for text that already had its markdown escaped (the backslashes get shown otherwise)
-// discord also makes invite/store previews out of the raw text, those only need a `//`, a `www.`, or one of its own domains
+// stops urls from linking, for text whose markdown is already escaped
+// invite/store previews only need a `//`, a `www.` or a discord domain
 function escapeUrls(text: string): string {
   text = text.replace(/:\/\//g, '\\:/\\/');
   text = text.replace(/\/\//g, '/\\/');
@@ -618,7 +605,6 @@ export const escape = Object.freeze({
       text = escapeUrls(escapeAllMarkdown(text));
     } else {
       // urls are left alone, the backslashes would end up in the link
-      // (the parts after a url get their line-start escapes too, which shows the same)
       text = text.split(Regexes.URL_BARE).map((part, i) => {
         return (i % 2) ? part : escapeAllMarkdown(part);
       }).join('');
@@ -680,7 +666,7 @@ export const escape = Object.freeze({
   italics: (text: string, options: MarkupFilterOptions = {}): string => {
     const filter: MarkupFilter = Object.assign({}, defaultItalicsFilter, options);
 
-    // only a lone `_` can end the italics early, `*`s and `__`s are left alone so bold/underline can be nested in it
+    // only a lone `_` can end italics early, `*`s and `__`s are left so bold/underline can nest
     text = escapeMarker(text, Regexes.UNDERSCORE_LONE, () => {
       return (options.replacement === undefined) ? '\\_' : options.replacement;
     });
@@ -696,8 +682,7 @@ export const escape = Object.freeze({
   list: (text: string, options: ListFilterOptions = {}): string => {
     const filter: ListFilter = Object.assign({}, defaultListFilter, options);
 
-    // only a marker at the start of a line makes another item, the rest of the `-`s and `*`s are left alone
-    // (escaping those would break any bold/italics in it, and text that's already escaped would get escaped twice)
+    // only a marker at a line's start makes an item, escaping the rest would break bold/italics
     text = text.replace(Regexes.LIST_LINE_START, (match: string, space: string, marker: string) => {
       return (marker.endsWith('.')) ? `${space}${marker.slice(0, -1)}\\.` : `${space}\\${marker}`;
     });
@@ -710,8 +695,7 @@ export const escape = Object.freeze({
     return trueSlice(text, filter.limit);
   },
   mentions: (text: string, replacement: string = Replacements.MENTION): string => {
-    // a zero width space in a url stops it from being a link (`youtube.com/@name`), so links only get their pings escaped
-    // (a `<@id>` can't be in one, the url ends at the `<`)
+    // a zero width space breaks a url (`youtube.com/@name`), so links only get their pings escaped
     return text.split(Regexes.URL_BARE).map((part, i) => {
       if (i % 2) {
         return part.replace(Regexes.EVERYONE, `@${replacement}$1`);

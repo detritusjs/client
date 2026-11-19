@@ -68,7 +68,7 @@ export class Bucket {
     if (throttled) {
       if (this.wait) {
         this.executing = true;
-        // a synchronous throw has to reject too, or `executing` would never be reset and the bucket stalls forever
+        // a synchronous throw has to reject too, or `executing` never resets and the bucket stalls
         new Promise((resolve) => resolve(throttled()))
           .catch(() => {})
           .then((result) => {

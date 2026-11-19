@@ -84,8 +84,7 @@ export function normalizeIntegrationTypes(value?: Array<ApplicationIntegrationTy
 
 
 /**
- * Converts a local or remote command into the same plain payload shape, with defaults filled in and
- * empty values collapsed, so that two equivalent commands produce deeply-equal objects
+ * Normalizes a local or remote command into the same payload shape, so equivalent commands are deeply equal
  */
 export function normalizeApplicationCommand(
   command: ApplicationCommandLike,

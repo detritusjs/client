@@ -19,7 +19,6 @@ export interface ApplicationEmojisOptions extends BaseClientCollectionOptions {}
 export class ApplicationEmojis extends BaseClientCollection<string, Emoji> {
   lastRefresh = 0;
   refreshTime = 4 * (60 * 60) * 1000;
-  // 4 hours minimum in between application emojis fetches
 
   get shouldRefresh(): boolean {
     return !this.length || this.refreshTime <= Date.now() - this.lastRefresh;

@@ -92,7 +92,6 @@ export type CommandCallbackFinally = (context: InteractionContext) => unknown;
 /**
  * @category InteractionCommand
  */
-// called as `onError(context, args, error)`, same as the class methods
 export type CommandCallbackError = (context: InteractionContext, args: ParsedArgs, error: any) => unknown;
 
 /**
@@ -527,39 +526,6 @@ export class InteractionCommand<ParsedArgsFinished = ParsedArgs> extends Structu
   }
 
   getInvokerForAutoComplete(data: InteractionDataApplicationCommand): InteractionCommandInvoker | null {
-    /*
-    we get data like this
-    {
-      "id": "884700347120107542",
-      "name": "command",
-      "options": [
-        {
-          "name": "sub-group",
-          "options": [
-            {
-              "name": "sub-command",
-              "options": [
-                {
-                  "focused": true,
-                  "name": "parameter",
-                  "type": 3,
-                  "value": "te"
-                },
-                {
-                  "name": "parameter2",
-                  "type": 3,
-                  "value": "test"
-                }
-              ],
-              "type": 1
-            }
-          ],
-          "type": 2
-        }
-      ],
-      "type": 1
-    }
-    */
     if (this.name === data.name) {
       if (data.options) {
         return this.getInvokerOptionForAutoComplete(data.options);
@@ -827,8 +793,7 @@ export class InteractionCommandOption<ParsedArgsFinished = ParsedArgs> extends S
 
     this.merge(data);
 
-    // only value options can autocomplete, a subcommand's `onAutoComplete` is there for its options to inherit
-    // (checked after merging since `options` can turn this into a subcommand group)
+    // only value options autocomplete, a subcommand's `onAutoComplete` is for its options to inherit (checked after merging `options`)
     if (this.autocomplete === undefined && typeof(this.onAutoComplete) === 'function' && !this.isSubCommand && !this.isSubCommandGroup) {
       this.autocomplete = true;
     }

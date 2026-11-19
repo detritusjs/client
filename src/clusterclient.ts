@@ -56,6 +56,10 @@ export class ClusterClient extends EventSpewer {
   buckets = new BaseCollection<number, Bucket>();
   maxConcurrency: number = 1;
   ran: boolean = false;
+  // bumped by every `kill()`, a `run()` still awaiting something when it changes was killed and stops there
+  declare _runGeneration: number;
+  // the `run()` still starting, a second `run()` waits on it instead of resolving before the shards are up
+  declare _runPromise: Promise<ClusterClient> | null;
   shardCount: number = 0;
   shardEnd: number = -1;
   shardStart: number = 0;
@@ -127,6 +131,8 @@ export class ClusterClient extends EventSpewer {
     }
 
     Object.defineProperties(this, {
+      _runGeneration: {configurable: true, enumerable: false, writable: true, value: 0},
+      _runPromise: {configurable: true, enumerable: false, writable: true, value: null},
       commandClient: {configurable: true, enumerable: false, writable: false},
       manager: {configurable: false, writable: false},
       ran: {configurable: true, writable: false},
@@ -167,6 +173,7 @@ export class ClusterClient extends EventSpewer {
   }
 
   kill(error?: Error): void {
+    this._runGeneration++;
     for (let [shardId, shard] of this.shards) {
       shard.kill(error);
     }
@@ -329,9 +336,30 @@ export class ClusterClient extends EventSpewer {
     options: ClusterClientRunOptions = {},
   ): Promise<ClusterClient> {
     if (this.ran) {
-      return this;
+      return this._runPromise || this;
     }
+    const promise = this._run(options);
+    this._runPromise = promise;
+    try {
+      return await promise;
+    } finally {
+      if (this._runPromise === promise) {
+        this._runPromise = null;
+      }
+    }
+  }
+
+  async _run(
+    options: ClusterClientRunOptions,
+  ): Promise<ClusterClient> {
     Object.defineProperty(this, 'ran', {value: true});
+    // killed while awaiting below, carrying on would start (and leak) shards for a cluster that says it isn't running
+    const generation = this._runGeneration;
+    const throwIfKilled = () => {
+      if (this._runGeneration !== generation) {
+        throw new Error('Cluster was killed before it could start');
+      }
+    };
     options = Object.assign({
       delay: DEFAULT_SHARD_LAUNCH_DELAY,
       url: process.env.GATEWAY_URL,
@@ -358,6 +386,7 @@ export class ClusterClient extends EventSpewer {
       Object.defineProperty(this, 'ran', {value: false});
       throw error;
     }
+    throwIfKilled();
     this.maxConcurrency = maxConcurrency;
     this.setShardCount(shardCount);
     if (this.shardEnd === -1) {
@@ -483,8 +512,10 @@ export class ClusterClient extends EventSpewer {
         this.emit(ClientEvents.WARN, payload);
       }
     }
+    throwIfKilled();
     for (let [shardId, shard] of this.shards) {
       await shard.run(options);
+      throwIfKilled();
     }
     this.emit(ClientEvents.READY);
     return this;
@@ -761,6 +792,8 @@ export class ClusterClient extends EventSpewer {
   on(event: 'restRequest', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestRequest) => any): this;
   on(event: ClientEvents.REST_RESPONSE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestResponse) => any): this;
   on(event: 'restResponse', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestResponse) => any): this;
+  on(event: ClientEvents.REST_TOKEN_UNAUTHORIZED, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestTokenUnauthorized) => any): this;
+  on(event: 'restTokenUnauthorized', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestTokenUnauthorized) => any): this;
   on(event: ClientEvents.UNKNOWN, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Unknown) => any): this;
   on(event: 'unknown', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Unknown) => any): this;
   on(event: ClientEvents.WARN, listener: (payload: (GatewayClientEvents.ClusterEvent & GatewayClientEvents.Warn) | GatewayClientEvents.Warn) => any): this;
@@ -1041,6 +1074,8 @@ export class ClusterClient extends EventSpewer {
   once(event: 'restRequest', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestRequest) => any): this;
   once(event: ClientEvents.REST_RESPONSE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestResponse) => any): this;
   once(event: 'restResponse', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestResponse) => any): this;
+  once(event: ClientEvents.REST_TOKEN_UNAUTHORIZED, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestTokenUnauthorized) => any): this;
+  once(event: 'restTokenUnauthorized', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestTokenUnauthorized) => any): this;
   once(event: ClientEvents.UNKNOWN, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Unknown) => any): this;
   once(event: 'unknown', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Unknown) => any): this;
   once(event: ClientEvents.WARN, listener: (payload: (GatewayClientEvents.ClusterEvent & GatewayClientEvents.Warn) | GatewayClientEvents.Warn) => any): this;
@@ -1321,6 +1356,8 @@ export class ClusterClient extends EventSpewer {
   subscribe(event: 'restRequest', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestRequest) => any): EventSubscription;
   subscribe(event: ClientEvents.REST_RESPONSE, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestResponse) => any): EventSubscription;
   subscribe(event: 'restResponse', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestResponse) => any): EventSubscription;
+  subscribe(event: ClientEvents.REST_TOKEN_UNAUTHORIZED, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestTokenUnauthorized) => any): EventSubscription;
+  subscribe(event: 'restTokenUnauthorized', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.RestTokenUnauthorized) => any): EventSubscription;
   subscribe(event: ClientEvents.UNKNOWN, listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Unknown) => any): EventSubscription;
   subscribe(event: 'unknown', listener: (payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.Unknown) => any): EventSubscription;
   subscribe(event: ClientEvents.WARN, listener: (payload: (GatewayClientEvents.ClusterEvent & GatewayClientEvents.Warn) | GatewayClientEvents.Warn) => any): EventSubscription;

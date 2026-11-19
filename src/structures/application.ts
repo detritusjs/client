@@ -521,7 +521,7 @@ export class Application extends BaseStructure {
     if (DiscordKeys.OWNER in data) {
       const value = data[DiscordKeys.OWNER];
       if (!this.isClone && this.client.users.has(value.id)) {
-        // dont use the cache since this object has flags key, just update the cache
+        // the owner has `flags`, so merge into the cached user instead of reusing it
         this.client.users.get(value.id)!.merge(value);
       }
       (this as any)[DetritusKeys[DiscordKeys.OWNER]] = new UserWithFlags(this.client, value);
@@ -728,7 +728,6 @@ export class ApplicationThirdPartySku extends BaseStructure {
       const url = (DistributorUrls as Record<string, any>)[this.distributor];
       switch (this.distributor) {
         case Distributors.BATTLENET: {
-          // use name
           let skuId: string;
           if (this.application.name in SpecialThirdPartySkus) {
             skuId = SpecialThirdPartySkus[this.application.name];

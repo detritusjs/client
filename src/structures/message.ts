@@ -369,7 +369,6 @@ export class Message extends BaseStructure {
   }
 
   get inDm(): boolean {
-    // messages from rest doesn\'t provide this..
     return !this.guildId;
   }
 
@@ -558,7 +557,6 @@ export class Message extends BaseStructure {
     let differences: any;
     switch (key) {
       case DiscordKeys.ATTACHMENTS: {
-        // just check if any of the attachment ids are not in our own cache
         const hasDifference = (this.attachments.length !== value.length) || value.some((raw: any) => {
           return !this.attachments.has(raw.id);
         });
@@ -567,7 +565,6 @@ export class Message extends BaseStructure {
         }
       }; break;
       case DiscordKeys.EMBEDS: {
-        // this one might be difficult, i guess we're gonna have to do a deep difference dive
         const hasDifference = (this.embeds.length !== value.length) || value.some((raw: any, i: number) => {
           const embed = this.embeds.get(i);
           if (embed) {
@@ -581,7 +578,6 @@ export class Message extends BaseStructure {
         }
       }; break;
       case DiscordKeys.MENTIONS: {
-        // just check the user id
         const hasDifference = (this.mentions.length !== value.length) || value.some((raw: any) => {
           return !this.mentions.has(raw.id);
         });
@@ -609,7 +605,6 @@ export class Message extends BaseStructure {
     switch (key) {
       case DiscordKeys.REACTIONS: {
         // keyed by the emoji's id (or name for unicode ones), raw reactions have no `id` for the base compare to match by
-        // accepts the raw array from discord or our collection (from `differencesBetween()`)
         if (value === undefined) {
           return false;
         }
@@ -635,7 +630,7 @@ export class Message extends BaseStructure {
       return;
     }
 
-    // `systemContent` is worked out from the rest of the message (author, mentions, call, etc..) when read, so forget the old one
+    // `systemContent` is worked out from the rest of the message when read, so forget the old one
     if (this._content) {
       Object.defineProperty(this, '_content', {value: ''});
     }
@@ -649,11 +644,10 @@ export class Message extends BaseStructure {
     if (DiscordKeys.ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID];
     }
-    // we need this before content to format it
     if (DiscordKeys.TYPE in data) {
       (this as any)[DetritusKeys[DiscordKeys.TYPE]] = data[DiscordKeys.TYPE];
     }
-    // we need webhook id before merging the author to make sure not to cache it
+    // webhook id before the author, so a webhook author isn't cached
     if (DiscordKeys.WEBHOOK_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.WEBHOOK_ID]] = data[DiscordKeys.WEBHOOK_ID];
     }
@@ -679,13 +673,11 @@ export class Message extends BaseStructure {
       }
       (this as any)[DetritusKeys[DiscordKeys.AUTHOR]] = user;
     } else {
-      // give a dummy author
       if (!this.author) {
         const user = new User(this.client, {}, this.isClone);
         (this as any)[DetritusKeys[DiscordKeys.AUTHOR]] = user;
       }
     }
-    // we need mentions and author before content to format it
     if (DiscordKeys.MENTIONS in data) {
       const value = data[DiscordKeys.MENTIONS];
 
@@ -698,13 +690,11 @@ export class Message extends BaseStructure {
         const guildId = this.guildId!;
         for (let raw of value) {
           if (raw.user) {
-            // we just cloned the message object so we got the full member object
-            // {...memberWithUser}
+            // from a clone, the full member object
             const member = new Member(this.client, raw, this.isClone);
             this._mentions.set(member.id, member);
           } else if (raw.member) {
-            // member object exists in the mention (is from a guild message create)
-            // {member: {memberWithoutUser}, ...user}
+            // from a guild message create, the member without its user
             raw.member[DiscordKeys.GUILD_ID] = guildId;
 
             let member: Member;
@@ -722,8 +712,7 @@ export class Message extends BaseStructure {
             }
             this._mentions.set(member.id, member);
           } else {
-            // {...user}
-            // check our member cache and try to fill the member object (could've gotten the message object from rest)
+            // no member object (like from rest), so fill it from our member cache
             if (this.isClone) {
               if (guildId && this.client.members.has(guildId, raw.id)) {
                 const member = this.client.members.get(guildId, raw.id)!.clone();
@@ -734,7 +723,6 @@ export class Message extends BaseStructure {
                 this._mentions.set(user.id, user);
               }
             } else {
-              // try and get object from cache and update it
               if (guildId && this.client.members.has(guildId, raw.id)) {
                 const member = this.client.members.get(guildId, raw.id)!;
                 member.merge({user: raw});
@@ -773,7 +761,6 @@ export class Message extends BaseStructure {
       if (this.isClone) {
         application = new Application(this.client, value, this.isClone);
       } else {
-        // highly unlikely we have this in cache, but might as well check
         if (this.client.applications.has(value.id)) {
           application = this.client.applications.get(value.id)!;
           application.merge(value);
@@ -877,7 +864,7 @@ export class Message extends BaseStructure {
     if (DiscordKeys.FLAGS in data) {
       (this as any)[DetritusKeys[DiscordKeys.FLAGS]] = data[DiscordKeys.FLAGS];
       if (this.hasFlagEphemeral) {
-        // set ephemeral messages to always deleted since we cant delete them nor will we ever know
+        // ephemeral messages can't be deleted and never get a delete event
         this.deleted = true;
       }
     }
@@ -906,7 +893,7 @@ export class Message extends BaseStructure {
       } else {
         if (this.client.members.has(guildId, this.author.id)) {
           member = this.client.members.get(guildId, this.author.id)!;
-          // should we merge? this event is so common so we'll be wasting resources..
+          // not merged, this event is too common to be worth it
         } else {
           member = new Member(this.client, value);
           // the cached author, a copy would never get the user's updates
@@ -981,7 +968,7 @@ export class Message extends BaseStructure {
         for (let i = 0; i < value.length; i++) {
           const raw = value[i];
           if (raw[DiscordKeys.MESSAGE] && this.messageReference) {
-            // right now its only one snapshot per message
+            // discord only sends one snapshot per message, the referenced one
             raw[DiscordKeys.MESSAGE][DiscordKeys.ID] = this.messageReference.messageId;
             raw[DiscordKeys.MESSAGE][DiscordKeys.CHANNEL_ID] = this.messageReference.channelId;
             raw[DiscordKeys.MESSAGE][DiscordKeys.GUILD_ID] = this.messageReference.guildId;
@@ -1613,7 +1600,6 @@ export class MessagePollResults extends BaseStructure {
     switch (key) {
       case DiscordKeys.ANSWER_COUNTS: {
         // plain objects keyed by answer id, the base compare counts any raw object as different
-        // accepts the raw array from discord or our collection (from `differencesBetween()`)
         if (value === undefined) {
           return false;
         }

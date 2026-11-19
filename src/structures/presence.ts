@@ -225,11 +225,10 @@ export class Presence extends BaseStructure {
     }
 
     {
-      // merge in guild id first
       const value = data[DiscordKeys.GUILD_ID] || LOCAL_GUILD_ID;
       this.lastGuildId = value;
 
-      // _guildIds will be a string (if its a single guild) or a set (if the presence is for multiple guilds)
+      // `_guildIds` is a string for a single guild or a set for multiple
       if (typeof(this._guildIds) === 'string') {
         if (this._guildIds) {
           this._guildIds = new BaseSet<string>([this._guildIds, value]);
@@ -328,7 +327,7 @@ export class Presence extends BaseStructure {
       // itll always be in the activities array
     }
     if (DiscordKeys.GUILD_IDS in data) {
-      // we just cloned
+      // from a clone
       const value = data[DiscordKeys.GUILD_IDS];
       if (value.length) {
         if (value.length === 1) {
@@ -601,8 +600,7 @@ export class PresenceActivity extends BaseStructure {
 
   get platformDiscordUrl(): null | string {
     if (this.applicationId) {
-      // now this might not be on discord
-      // you need to check if the application exists on discord (by fetching it)
+      // the application might not exist on discord, fetch it to check
       return (
         Endpoints.Routes.URL +
         Endpoints.Routes.APPLICATION_STORE_LISTING_SKU(this.applicationId)
@@ -933,7 +931,7 @@ export class PresenceActivityAssets extends BaseStructure {
         };
       }
     } else if (this.activity.applicationId) {
-      // treat it as a normal hash, app assets live under the activity's application
+      // app assets live under the activity's application
       return addQuery(
         Endpoints.CDN.URL + Endpoints.CDN.APP_ASSET(this.activity.applicationId, hash, format),
         query,

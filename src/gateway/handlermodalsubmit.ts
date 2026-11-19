@@ -29,6 +29,15 @@ export class ModalSubmitHandler {
     return (userId) ? `${userId}.${customId}` : customId;
   }
 
+  // drops every listener without calling their `onTimeout` (like on a kill, their timers would keep the process alive)
+  clear(): void {
+    for (let [listenerId, timeout] of this.timeouts) {
+      timeout.stop();
+    }
+    this.timeouts.clear();
+    this.listeners.clear();
+  }
+
   delete(listenerId: string): boolean {
     if (this.timeouts.has(listenerId)) {
       this.timeouts.get(listenerId)!.stop();

@@ -37,8 +37,7 @@ export {
 } from 'detritus-utils/lib/constants';
 
 
-// package.json is in every published package and sits one folder up from both src/ and lib/, `require` keeps tsc
-// from pulling it into the build (it's outside rootDir)
+// package.json sits one folder up from both src/ and lib/, `require` keeps tsc from pulling it into the build (outside rootDir)
 const { version } = require('../package.json') as {version: string};
 
 export const Package = Object.freeze({
@@ -51,7 +50,6 @@ export type Snowflake = number | string;
 
 export const IS_TS_NODE = Symbol.for('ts-node.register.instance') in process;
 // every supported node version has `import()`, command files are loaded with `requireOrImport()`
-// (this used to be found by firing an `import()` that never threw, and its rejection could crash the process)
 export const IS_IMPORT_AVAILABLE = true;
 
 export const DEFAULT_MAX_MEMBERS = 250000;
@@ -831,6 +829,7 @@ export enum ClientEvents {
   READY = 'ready',
   REST_REQUEST = 'restRequest',
   REST_RESPONSE = 'restResponse',
+  REST_TOKEN_UNAUTHORIZED = 'restTokenUnauthorized',
   SHARD = 'shard',
   UNKNOWN = 'unknown',
   WARN = 'warn',

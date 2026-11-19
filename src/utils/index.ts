@@ -57,8 +57,7 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 export type UrlQuery = Record<string, any>;
 
 /**
- * Loads a command file with `require()` (its cache can be cleared, so reloading commands works)
- * and falls back to `import()` for es modules `require()` can't load (like `.mjs` on older node, or ones with top-level await)
+ * Loads with `require()` so its cache can be cleared on reload, falling back to `import()` for es modules it can't load
  */
 export async function requireOrImport(filepath: string, reload: boolean = false): Promise<any> {
   let imported: any;
@@ -78,8 +77,7 @@ export async function requireOrImport(filepath: string, reload: boolean = false)
 }
 
 async function importFile(filepath: string, reload: boolean): Promise<any> {
-  // `import()`'s cache can't be cleared like `require.cache`, a new query makes it load the file again on a reload
-  // (only this file, what it imports stays cached, and the old version stays in memory)
+  // `import()`'s cache can't be cleared, a new query reloads the file (not its imports, and the old one stays in memory)
   let url = pathToFileURL(filepath).href;
   if (reload) {
     url += `?update=${Date.now()}`;
@@ -98,8 +96,7 @@ export interface ImportedFile {
 }
 
 /**
- * Imports every command file in a directory. `require()` is synchronous, an `await` on it alone never lets the event
- * loop run, so it yields every few milliseconds or a big reload would freeze the process until it's done
+ * Imports every command file in a directory, yielding every few ms since a sync `require()` loop blocks the event loop
  */
 export async function importFilesIn(
   directory: string,
@@ -184,8 +181,7 @@ export function anyToCamelCase(object: any, skip?: Array<string>): any {
 
 // generate a waveform for discord from a mono channel Float32Array
 export function generateWaveform(samples: Float32Array, sampleRate: number = 48000): string {
-  // Calculate number of points (1 points per 100ms, limited to 256 datapoints)
-  // at least 1 for clips shorter than 100ms, an empty waveform shows nothing
+  // 1 point per 100ms up to 256, at least 1 since an empty waveform shows nothing
   const numPoints = (samples.length) ? Math.min(Math.max(Math.floor(samples.length / (sampleRate / 10)), 1), 256) : 0;
 
   const waveformPoints = new Uint8Array(numPoints);
@@ -193,7 +189,6 @@ export function generateWaveform(samples: Float32Array, sampleRate: number = 480
     const startIndex = Math.floor(i * samples.length / numPoints);
     const endIndex = Math.floor((i + 1) * samples.length / numPoints);
 
-    // Find peak amplitude in this segment
     let maxAmplitude = 0;
     for (let j = startIndex; j < endIndex; j++) {
       const amplitude = Math.abs(samples[j]);
@@ -202,7 +197,6 @@ export function generateWaveform(samples: Float32Array, sampleRate: number = 480
       }
     }
 
-    // Scale to 0-255
     waveformPoints[i] = Math.min(255, Math.floor(maxAmplitude * 255));
   }
   return Buffer.from(waveformPoints).toString('base64');
@@ -338,8 +332,6 @@ export function getFirstArgument(value: string): [string, string] {
   let result = value.slice(0, 1);
   value = value.slice(1);
 
-  // check to see if this word starts with any of the quote starts
-  // if yes, then continue onto the next word
   if (Quotes.START.includes(result)) {
     let index = value.indexOf((QuotesAll as any)[result]);
     if (index !== -1) {
@@ -348,7 +340,6 @@ export function getFirstArgument(value: string): [string, string] {
       return [result, value];
     }
   }
-  // check for the next space, if not then we consume the whole thing
   let index = value.indexOf(' ');
   if (index === -1) {
     result += value.slice(0, value.length);

@@ -558,7 +558,6 @@ export class UserExtended extends UserWithFlags {
   }
 
   get isClaimed(): boolean {
-    // isClaimed if bot or has email
     return !!this.bot || !!this.email;
   }
 
@@ -910,7 +909,7 @@ const keysUserAvatarDecorationData = new BaseSet<string>([
   static { setStructureKeys(this, '_keys', keysUserAvatarDecorationData); }
 
   asset: string = '';
-  // unix timestamp in seconds from discord, null if it doesn't expire
+  // null if it doesn't expire
   expiresAt: Date | null = null;
   skuId: string = '';
 

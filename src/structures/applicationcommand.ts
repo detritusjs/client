@@ -392,8 +392,7 @@ export class ApplicationCommandPermissions extends BaseStructure {
   applicationId: string = '';
   guildId: string = '';
   id: string = '';
-  // keyed by `${type}.${id}` (see `permissionKey()`), not just the id
-  // old guilds share one id between the @everyone role (guild id) and their first channel, so an id alone would collide
+  // keyed by `${type}.${id}` (see `permissionKey()`), old guilds share an id between @everyone and their first channel
   permissions = new BaseCollection<string, ApplicationCommandPermission>();
 
   constructor(client: ShardClient, data: BaseStructureData, isClone?: boolean) {

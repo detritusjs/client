@@ -36,7 +36,7 @@ function removeFromIndex(index: Map<string, Set<string>>, id: string, messageId:
 
 
 const defaultsMessagesCache: MessagesOptions = Object.freeze({
-  expire: 10 * 60 * 1000, // auto expire messages after 10 minutes
+  expire: 10 * 60 * 1000,
 });
 
 /**
@@ -44,7 +44,7 @@ const defaultsMessagesCache: MessagesOptions = Object.freeze({
  * @category Collections
  */
 export class Messages extends BaseClientCollection<string, Message> {
-  // channel/guild id -> ids of its cached messages, so deleting a channel or guild doesn't go through every message
+  // channel/guild id -> ids of its cached messages, so deleting a channel or guild doesn't scan every message
   readonly _channelMessageIds = new Map<string, Set<string>>();
   readonly _guildMessageIds = new Map<string, Set<string>>();
 

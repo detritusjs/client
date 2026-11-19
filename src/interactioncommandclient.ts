@@ -58,6 +58,11 @@ import { Regexes } from './utils/markup';
 // errors.ts isn't exported from the package index, keep this one reachable from here
 export { ApplicationCommandsSyncError };
 
+// discord drops an interaction that isn't responded to within 3 seconds, a deferral at or after this always fails
+const INTERACTION_RESPONSE_WINDOW = 3000;
+// commands/options already warned about an unreachable `triggerLoadingAfter`, so it's warned once instead of per run
+const warnedLateLoadingTriggers = new WeakSet<object>();
+
 export interface InteractionCommandClientOptions extends ClusterClientOptions {
   checkCommands?: boolean,
   ratelimit?: CommandRatelimitOptions,
@@ -234,15 +239,14 @@ export class InteractionCommandClient extends EventSpewer {
       if (run !== undefined) {
         options.run = run;
       }
-      // create a normal command class with the options given
       if (options._class === undefined) {
         command = new InteractionCommand(options);
       } else {
-        // check for `.prototype` to make sure it can be constructed, every function has `.constructor` but arrow functions have no `.prototype`
+        // arrow functions have no `.prototype` and can't be constructed
         if (options._class.prototype) {
           command = new options._class(options);
         } else {
-          // else it's just a function, `ts-node` outputs these
+          // a plain function, `ts-node` outputs these
           command = options._class(options);
         }
         if (!command._file) {
@@ -293,7 +297,7 @@ export class InteractionCommandClient extends EventSpewer {
     options = Object.assign({subdirectories: true}, options);
     if (!options.isAbsolute) {
       if (require.main) {
-        // require.main.path exists but typescript doesn't let us use it..
+        // `require.main.path` isn't typed
         directory = path.join(path.dirname(require.main.filename), directory);
       }
     }
@@ -381,8 +385,7 @@ export class InteractionCommandClient extends EventSpewer {
   }
 
   async resetCommands(): Promise<void> {
-    // import the new commands before dropping the old ones, importing lets the event loop run and interactions that come
-    // in meanwhile still need commands. the swap is synchronous so nothing sees it half done
+    // import before dropping the old commands, interactions coming in while importing still need them (the swap is synchronous)
     this.clearRequireCache();
     const errors: Record<string, Error> = {};
     const files: Array<ImportedFile> = [];
@@ -414,8 +417,7 @@ export class InteractionCommandClient extends EventSpewer {
     if (!this.client.ran) {
       return;
     }
-    // also go over scopes without local commands, so the commands we no longer have get deleted from them
-    // (the global scope always, guilds once we've synced them)
+    // also go over scopes without local commands so their remote ones get deleted (the global scope always, guilds once synced)
     const scopes = new Set<string>([LOCAL_GUILD_ID, ...this._syncedScopes, ...this.commandsById.keys()]);
     // one scope failing (like a guild we were removed from) shouldn't stop the others from syncing
     const errors: Record<string, Error> = {};
@@ -664,53 +666,7 @@ export class InteractionCommandClient extends EventSpewer {
     const args: ParsedArgs = {};
     const errors: ParsedErrors = {};
 
-    /*
-      We will get data like this
-      {
-        id: '',
-        name: '',
-        options: [
-          {
-            name: '',
-            options: [
-              {
-                name: '',
-                options: [
-                  {name: '', type: int, value: any},
-                ],
-                type: 1,
-              }
-            ],
-            type: 2,
-          },
-        ],
-        type: 1,
-      }
-      {
-        id: '',
-        name: '',
-        options: [
-          {
-            name: '',
-            options: [
-              {
-                name: '',
-                type: 1,
-              }
-            ],
-            type: 2,
-          },
-        ],
-        type: 1,
-      }
-      {
-        id: '',
-        name: '',
-        type: 1,
-      }
-      Non-required options wont be there so we must look through our command and fill out the defaults
-    */
-
+    // non-required options won't be there, so the defaults get filled in from our command
     let hasError = false;
     if (options) {
       for (let [name, option] of options) {
@@ -891,8 +847,7 @@ export class InteractionCommandClient extends EventSpewer {
       if (this.strictCommandCheck) {
         command = index.byId.get(data.id);
         if (!command) {
-          // ids are only known after the commands were checked (`checkCommands: false` never fills them)
-          // so match commands without a known id by name, type and scope instead of ignoring them
+          // ids are only known once the commands were checked, so commands without one match by name, type and scope
           const isScopeMatch = (guildId === LOCAL_GUILD_ID) ? !data.guildId : data.guildId === guildId;
           if (isScopeMatch) {
             command = index.byNameWithoutId.get(nameKey);
@@ -916,7 +871,7 @@ export class InteractionCommandClient extends EventSpewer {
         return null;
       }
       index = {byId: new Map(), byName: new Map(), byNameWithoutId: new Map()};
-      // first one wins, same as the `.find()` this replaces
+      // first one wins
       for (let command of localCommands) {
         const commandId = command.ids.get(guildId);
         const nameKey = `${command.type}.${command.name}`;
@@ -939,7 +894,6 @@ export class InteractionCommandClient extends EventSpewer {
   async handleApplicationCommand(event: GatewayClientEvents.InteractionCreate): Promise<void> {
     const { interaction } = event;
 
-    // assume the interaction is global for now
     const data = interaction.data as InteractionDataApplicationCommand;
 
     const command = this.findCommand(data, interaction.guildId);
@@ -1027,8 +981,7 @@ export class InteractionCommandClient extends EventSpewer {
         return;
       }
     } else {
-      // check the bot's permissions in the server
-      // should never be ignored since it's most likely the bot will rely on this permission to do whatever action
+      // the bot's permissions are never skipped, the command most likely relies on them
       if (Array.isArray(invoker.permissionsClient) && invoker.permissionsClient.length) {
         const failed = [];
 
@@ -1072,10 +1025,7 @@ export class InteractionCommandClient extends EventSpewer {
         }
       }
 
-      // if command doesn't specify it should ignore the client owner, or if the user isn't a client owner
-      // continue to permission checking
       if (!invoker.permissionsIgnoreClientOwner || !context.user.isClientOwner) {
-        // check the user's permissions
         if (Array.isArray(invoker.permissions) && invoker.permissions.length) {
           const failed = [];
 
@@ -1169,7 +1119,7 @@ export class InteractionCommandClient extends EventSpewer {
     let timeout: Timers.Timeout | null = null;
     try {
       const shouldTriggerLoading = invoker.triggerLoadingAfter !== undefined && 0 <= invoker.triggerLoadingAfter;
-      if (shouldTriggerLoading && context._responding) {
+      while (shouldTriggerLoading && context._responding) {
         await context._responding;
       }
 
@@ -1179,10 +1129,16 @@ export class InteractionCommandClient extends EventSpewer {
           data = {flags: MessageFlags.EPHEMERAL};
         }
         if (invoker.triggerLoadingAfter) {
+          if (INTERACTION_RESPONSE_WINDOW <= invoker.triggerLoadingAfter && !warnedLateLoadingTriggers.has(invoker)) {
+            warnedLateLoadingTriggers.add(invoker);
+            const error = new Error(`Command ${invoker.fullName} has triggerLoadingAfter set to ${invoker.triggerLoadingAfter}ms, discord needs a response within ${INTERACTION_RESPONSE_WINDOW}ms so the loading response will always fail`);
+            const payload: GatewayClientEvents.Warn = {error};
+            context.client.emit(ClientEvents.WARN, payload);
+          }
           timeout = new Timers.Timeout();
           Object.defineProperty(context, 'loadingTimeout', {value: timeout});
           timeout.start(invoker.triggerLoadingAfter, async () => {
-            if (context._responding) {
+            while (context._responding) {
               await context._responding;
             }
             if (context.responded) {

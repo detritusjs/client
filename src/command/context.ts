@@ -321,7 +321,32 @@ export class Context {
     return null;
   }
 
-  async editOrReply(options: EditOrReply | string = {}) {
+  async editOrReply(options: EditOrReply | string = {}): Promise<Message> {
+    // one at a time per message, an edit's re-run racing the original run would otherwise see no stored reply and post a second one
+    const messageId = this.messageId;
+    const replying = this.commandClient._replying;
+    const previous = replying.get(messageId);
+    const promise = (async () => {
+      if (previous) {
+        try {
+          await previous;
+        } catch(error) {
+          // its caller gets the error, this one still goes through
+        }
+      }
+      return this._editOrReply(options);
+    })();
+    replying.set(messageId, promise);
+    try {
+      return await promise;
+    } finally {
+      if (replying.get(messageId) === promise) {
+        replying.delete(messageId);
+      }
+    }
+  }
+
+  async _editOrReply(options: EditOrReply | string = {}): Promise<Message> {
     if (typeof(options) === 'string') {
       options = {content: options};
     }
@@ -332,20 +357,17 @@ export class Context {
 
       let shouldReplyWithNew = old.reply.deleted || !old.reply.canEdit || options.activity || options.applicationId;
       if (!shouldReplyWithNew) {
-        // you can edit from non-components-v2 to components-v2, but not the other way around
-        // must have empty embeds and content though if you do
+        // components v2 can be turned on in an edit (with empty content and embeds) but not off
         if (old.reply.hasFlagComponentsV2) {
           if (options.content || (options.embeds && options.embeds.length)) {
             shouldReplyWithNew = true;
           }
         } else {
           if (options.flags && (options.flags & MessageFlags.IS_COMPONENTS_V2)) {
-            // set content and embeds to empty
             options.content = '';
             options.embeds = [];
           } else if (options.components instanceof Components) {
             if (options.components.isV2) {
-              // set content and embeds to empty
               options.content = '';
               options.embeds = [];
             }

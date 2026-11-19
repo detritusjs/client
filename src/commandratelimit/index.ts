@@ -151,25 +151,39 @@ export class CommandRatelimiter {
     return exceeded;
   }
 
+  // stops every bucket's timer, so a killed client doesn't keep the process alive
+  clear(): void {
+    for (let item of this.cache.values()) {
+      item.timeout.stop();
+    }
+    this.cache.clear();
+  }
+
   getOrCreate(context: Context | InteractionContext, ratelimit: CommandRatelimit): CommandRatelimitItem {
     const key = ratelimit.createKey(context);
 
-    let item: CommandRatelimitItem;
-    if (this.cache.has(key)) {
-      item = this.cache.get(key) as CommandRatelimitItem;
-    } else {
+    let item = this.cache.get(key);
+    if (item && item.start + ratelimit.duration <= Date.now()) {
+      // the timer runs late under event loop lag, an expired bucket shouldn't keep rejecting until it fires
+      item.timeout.stop();
+      this.cache.delete(key);
+      item = undefined;
+    }
+    if (!item) {
       const timeout = new Timers.Timeout();
-      timeout.start(ratelimit.duration, () => {
-        this.cache.delete(key);
-      });
-
-      item = {
+      const created: CommandRatelimitItem = item = {
         key,
         replied: false,
         start: Date.now(),
         timeout,
         usages: 0,
       };
+      timeout.start(ratelimit.duration, () => {
+        // the cache is public, a bucket deleted (reset) by hand and made again shouldn't be cut short by the old one's timer
+        if (this.cache.get(key) === created) {
+          this.cache.delete(key);
+        }
+      });
       this.cache.set(key, item);
     }
     return item;

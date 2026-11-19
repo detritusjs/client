@@ -18,9 +18,9 @@ export interface ChannelsOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class Channels extends BaseClientCollection<string, Channel> {
-  // guild id -> ids of its cached channels and threads (however they got cached), so a guild delete doesn't go through every channel
+  // guild id -> ids of its cached channels and threads, so a guild delete doesn't scan every channel
   readonly _guildChannelIds = new Map<string, Set<string>>();
-  // ids of the cached dms/group dms (anything without a guild), so finding who we share a dm with doesn't go through every guild channel
+  // ids of the cached dms/group dms, so finding a shared dm doesn't scan every guild channel
   readonly _dmChannelIds = new Set<string>();
 
   insert(channel: Channel): void {

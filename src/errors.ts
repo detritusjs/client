@@ -53,8 +53,8 @@ export class GatewayHTTPError extends BaseError {
 
 
 /**
- * Thrown by `InteractionCommandClient.checkAndUploadCommands()` after every scope was gone over, with the error of each scope that failed
- * (keyed by guild id, or `LOCAL_GUILD_ID` for the global commands)
+ * Thrown by `InteractionCommandClient.checkAndUploadCommands()` once every scope was tried, with each failed scope's error
+ * keyed by guild id (`LOCAL_GUILD_ID` for the global commands)
  */
 export class ApplicationCommandsSyncError extends BaseError {
   errors: Record<string, Error>;

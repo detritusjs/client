@@ -1,6 +1,5 @@
 /**
- * Helpers for the data from `rest.fetchExperiments()`
- * discord sends experiments as rows of values and names them by a hash, these turn the rows into objects and names into hashes
+ * Helpers for `rest.fetchExperiments()`, discord sends experiments as value rows keyed by a hash of their name
  */
 
 export interface ExperimentAssignment {
@@ -13,7 +12,7 @@ export interface ExperimentAssignment {
   holdoutBucket: null | number,
   holdoutName: null | string,
   holdoutRevision: null | number,
-  // as discord sends it, `-1` when there isn't one
+  // `-1` when there isn't one
   override: number,
   population: number,
   revision: number,
@@ -22,7 +21,7 @@ export interface ExperimentAssignment {
 
 export interface GuildExperimentOverride {
   bucket: number,
-  // guild (or user) ids that are put into the bucket no matter what the rollout says
+  // guild (or user) ids put into the bucket regardless of the rollout
   ids: Array<string>,
 }
 
@@ -36,7 +35,7 @@ export interface GuildExperiment {
   overrides: Array<GuildExperimentOverride>,
   // the same as `populations`, but only applied to the guilds matching its filters
   overridesFormatted: Array<any>,
-  // the rollout's rules as discord sends them: the buckets with their ranges (out of 10000), and the filters a guild has to pass
+  // the buckets with their ranges (out of 10000) and the filters a guild has to pass
   populations: Array<any>,
   revision: number,
   triggerDebugging: boolean,
@@ -44,7 +43,7 @@ export interface GuildExperiment {
 
 
 /**
- * MurmurHash3 (32 bit) of the utf-8 text, it's what discord hashes experiment names (and `name:id` for rollouts) with
+ * MurmurHash3 (32 bit) of the utf-8 text, what discord hashes experiment names (and `name:id` for rollouts) with
  */
 export function murmurHash3(text: string, seed: number = 0): number {
   const bytes = Buffer.from(text, 'utf8');

@@ -45,6 +45,15 @@ export class ClusterProcess extends EventSpewer {
   readonly _respawnTimeout = new Timers.Timeout();
   // how many times in a row the child exited before readying
   _respawnFailures: number = 0;
+  // the current child while it's starting, settled when it readies, exits, or gets killed (so a second `run()` can wait on the same child)
+  _ready: {
+    child: ChildProcess,
+    promise: Promise<ChildProcess>,
+    resolve: (child: ChildProcess) => void,
+    reject: (error: Error) => void,
+  } | null = null;
+  // the last child that readied, only counts while it's still `process`
+  _readiedChild: ChildProcess | null = null;
   readonly clusterId: number = -1;
   readonly manager: ClusterManager;
 
@@ -69,6 +78,8 @@ export class ClusterProcess extends EventSpewer {
     });
 
     Object.defineProperties(this, {
+      _ready: {enumerable: false},
+      _readiedChild: {enumerable: false},
       _respawnTimeout: {enumerable: false},
       clusterId: {writable: false},
       manager: {enumerable: false, writable: false},
@@ -83,15 +94,20 @@ export class ClusterProcess extends EventSpewer {
     return this.manager.file;
   }
 
+  get readied(): boolean {
+    return !!this.process && this._readiedChild === this.process;
+  }
+
   async onMessage(message: ClusterIPCTypes.IPCMessage | any, child: ChildProcess | null = this.process): Promise<void> {
-    // our child has sent us something
     if (message && typeof(message) === 'object') {
+      // a killed (or replaced) child keeps talking until it exits, it can't ready, identify, or settle the current child's shards
+      const isCurrent = (child === this.process);
       try {
         switch (message.op) {
           case ClusterIPCOpCodes.CLOSE: {
             const data: ClusterIPCTypes.Close = message.data;
             // a stale socket closing late says nothing about the shard's current socket (or its queued identify)
-            if (!data.stale) {
+            if (!data.stale && isCurrent) {
               // any identify job still queued for this shard is for the socket that just closed
               this._shardsIdentifyAttempt.set(data.shardId, (this._shardsIdentifyAttempt.get(data.shardId) || 0) + 1);
               const waiting = this._shardsWaiting.get(data.shardId);
@@ -150,6 +166,10 @@ export class ClusterProcess extends EventSpewer {
             await this.manager.broadcast(message);
           }; return;
           case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
+            if (!isCurrent) {
+              // it's on its way out, don't use up an identify slot for it
+              return;
+            }
             const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
             const ratelimitKey = this.manager.getRatelimitKey(shardId);
             const bucket = this.manager.buckets.get(ratelimitKey);
@@ -203,7 +223,15 @@ export class ClusterProcess extends EventSpewer {
             }
           }; return;
           case ClusterIPCOpCodes.READY: {
+            if (!isCurrent) {
+              // would resolve the current child's `run()` (and reset its backoff) before it's actually ready
+              return;
+            }
             this._respawnFailures = 0;
+            if (child) {
+              this._readiedChild = child;
+              this._settleReady(child);
+            }
             this.emit('ready');
           }; return;
           case ClusterIPCOpCodes.RESPAWN_ALL: {
@@ -216,7 +244,7 @@ export class ClusterProcess extends EventSpewer {
                 let payload: ClusterManagerRestCachePayload | undefined = this.manager.restCache.get(data.hash);
                 if (payload) {
                   if (payload.promise) {
-                    // a forced request can't share one that started before it (and may be answering from older data), unless that one was forced too
+                    // a forced request only shares another forced one, an older one may be answering from older data
                     if (data.force && !payload.forced) {
                       payload = undefined;
                     }
@@ -271,11 +299,13 @@ export class ClusterProcess extends EventSpewer {
             const data: ClusterIPCTypes.ShardState = message.data;
             switch (data.state) {
               case SocketStates.READY: {
-                const waiting = this._shardsWaiting.get(data.shardId);
-                if (waiting) {
-                  waiting.resolve();
+                if (isCurrent) {
+                  const waiting = this._shardsWaiting.get(data.shardId);
+                  if (waiting) {
+                    waiting.resolve();
+                  }
+                  this._shardsWaiting.delete(data.shardId);
                 }
-                this._shardsWaiting.delete(data.shardId);
               }; break;
             }
             this.emit('shardState', data);
@@ -292,9 +322,12 @@ export class ClusterProcess extends EventSpewer {
     const error = new Error(`Process has closed with '${code}' code and '${signal}' signal.`);
     for (let [nonce, item] of this._evalsWaiting) {
       if (item.child === child) {
-        // these results may be sent to another cluster over ipc, which would drop the error's message/stack
+        // ipc to another cluster would drop the error's message/stack
         item.resolve([ClusterIPCTypes.serializeError(error), true]);
       }
+    }
+    if (child && this._readiedChild === child) {
+      this._readiedChild = null;
     }
 
     // a child that was killed on purpose or replaced shouldn't touch (or respawn) the current one
@@ -347,11 +380,17 @@ export class ClusterProcess extends EventSpewer {
       const error = new Error('Cannot eval without a child!');
       return [ClusterIPCTypes.serializeError(error), true];
     }
-    if (this._evalsWaiting.has(nonce)) {
-      return <Promise<[any, boolean] | null>> (<any> this._evalsWaiting.get(nonce)).promise;
-    }
     // incase the process dies
     const child = this.process;
+    const pending = this._evalsWaiting.get(nonce);
+    if (pending) {
+      if (pending.child === child) {
+        return <Promise<[any, boolean] | null>> pending.promise;
+      }
+      // it's for a child we no longer have, settle it instead of handing it to the new child's caller
+      const error = new Error('Process was replaced.');
+      pending.resolve([ClusterIPCTypes.serializeError(error), true]);
+    }
 
     let resolve!: Function;
     let reject!: Function;
@@ -408,12 +447,27 @@ export class ClusterProcess extends EventSpewer {
     }
     // detach it first so its exit doesn't respawn it
     this.process = null;
+    if (this._readiedChild === child) {
+      this._readiedChild = null;
+    }
     const error = new Error('Process was killed.');
+    // a `run()` waiting on it would otherwise wait until it exits (or forever, without a timeout)
+    this._settleReady(child, error);
     for (let [shardId, item] of this._shardsWaiting) {
       item.reject(error);
       this._shardsWaiting.delete(shardId);
     }
-    return child.kill(signal);
+    const killed = child.kill(signal);
+    // it may trap the signal (or be wedged), so SIGKILL it if it doesn't exit in time
+    this.waitForExit(child).catch(() => {});
+    // its answers are dropped from now on, don't make these wait for it to exit
+    for (let [nonce, item] of this._evalsWaiting) {
+      if (item.child === child) {
+        // ipc to another cluster would drop the error's message/stack
+        item.resolve([ClusterIPCTypes.serializeError(error), true]);
+      }
+    }
+    return killed;
   }
 
   async respawn(
@@ -444,7 +498,7 @@ export class ClusterProcess extends EventSpewer {
       child.once('exit', onExit);
       timer.start(timeout, () => {
         if (child.kill('SIGKILL')) {
-          // SIGKILL can't be trapped, but don't wait on an 'exit' that never comes forever either
+          // SIGKILL can't be trapped, but don't wait forever on an 'exit' that never comes
           timer.start(timeout, () => {
             child.removeListener('exit', onExit);
             resolve();
@@ -482,19 +536,80 @@ export class ClusterProcess extends EventSpewer {
     return this.send({op, data, request, clusterId, shard});
   }
 
+  /** @hidden */
+  _settleReady(child: ChildProcess, error?: Error): void {
+    const ready = this._ready;
+    if (ready && ready.child === child) {
+      this._ready = null;
+      if (error) {
+        ready.reject(error);
+      } else {
+        ready.resolve(child);
+      }
+    }
+  }
+
+  /**
+   * Resolves once the starting `child` readies, killing it if it hasn't within `timeout`
+   * @hidden
+   */
+  _waitForReady(child: ChildProcess, timeout?: number): Promise<ChildProcess> {
+    const ready = this._ready;
+    if (!ready || ready.child !== child) {
+      if (this.process === child && this._readiedChild === child) {
+        return Promise.resolve(child);
+      }
+      return Promise.reject(new Error('Cluster Child is no longer starting'));
+    }
+    if (!timeout) {
+      return ready.promise;
+    }
+    return new Promise((resolve, reject) => {
+      const timer = new Timers.Timeout();
+      timer.start(timeout, () => {
+        if (this.process === child && this._ready === ready) {
+          // keep it attached so its exit goes through `onExit()`, which respawns it with the backoff (when `manager.respawn` is on)
+          child.kill();
+          this.waitForExit(child);
+        }
+        reject(new Error('Cluster Child took too long to ready up'));
+      });
+      ready.promise.then((value) => {
+        timer.stop();
+        resolve(value);
+      }, (error) => {
+        timer.stop();
+        reject(error);
+      });
+    });
+  }
+
   async run(
     options: ClusterProcessRunOptions = {},
   ): Promise<ChildProcess> {
+    const wait = (options.wait || options.wait === undefined);
     if (this.process) {
-      return this.process;
+      const child = this.process;
+      // still starting (a `respawn()` racing a backoff respawn, or a second `run()`), wait on the same child like the first caller
+      if (wait && this._ready && this._ready.child === child) {
+        return this._waitForReady(child, options.timeout);
+      }
+      return child;
     }
     this._respawnTimeout.stop();
     const process = fork(this.file, [], {env: this.env, execArgv: this.execArgv});
     this.process = process;
-    let readied = false;
-    const onReadied = () => {
-      readied = true;
-    };
+
+    let resolveReady!: (child: ChildProcess) => void;
+    let rejectReady!: (error: Error) => void;
+    const promise = new Promise<ChildProcess>((resolve, reject) => {
+      resolveReady = resolve;
+      rejectReady = reject;
+    });
+    // nothing may be waiting on it (`wait: false`)
+    promise.catch(() => {});
+    this._ready = {child: process, promise, resolve: resolveReady, reject: rejectReady};
+
     const onMessage = (message: any) => this.onMessage(message, process);
     let exited = false;
     const onExit = (code: number | null, signal: string | null) => {
@@ -505,13 +620,17 @@ export class ClusterProcess extends EventSpewer {
       exited = true;
       process.removeListener('message', onMessage);
       process.removeListener('exit', onExit);
-      this.removeListener('ready', onReadied);
+      process.removeListener('error', onError);
+      const readied = (this._readiedChild === process);
+      // the child dying before it readies would otherwise leave anyone waiting on it pending forever
+      this._settleReady(process, new Error(`Cluster Child exited before readying up (code: ${code}, signal: ${signal})`));
       return this.onExit(code, signal, process, readied);
     };
     // without a listener, an 'error' (failed spawn, failed kill) would throw and take the manager down with it
     const onError = (error: Error) => {
       this.emit('warn', {error});
       if (process.pid === undefined) {
+        this._settleReady(process, error);
         // it never spawned so it may never emit 'exit', go through the exit path (and its backoff respawn) ourselves
         onExit(null, null);
       }
@@ -519,47 +638,9 @@ export class ClusterProcess extends EventSpewer {
     process.on('message', onMessage);
     process.on('exit', onExit);
     process.on('error', onError);
-    this.once('ready', onReadied);
 
-    if (options.wait || options.wait === undefined) {
-      return new Promise((resolve, reject) => {
-        const timeout = new Timers.Timeout();
-        const clear = () => {
-          timeout.stop();
-          this.removeListener('ready', onReady);
-          process.removeListener('exit', onExitBeforeReady);
-          process.removeListener('error', onErrorBeforeReady);
-        };
-        const onReady = () => {
-          clear();
-          resolve(process);
-        };
-        // the child dying before it readies would otherwise leave this promise pending forever
-        const onExitBeforeReady = (code: number | null, signal: string | null) => {
-          clear();
-          reject(new Error(`Cluster Child exited before readying up (code: ${code}, signal: ${signal})`));
-        };
-        const onErrorBeforeReady = (error: Error) => {
-          if (process.pid === undefined) {
-            clear();
-            reject(error);
-          }
-        };
-        if (options.timeout) {
-          timeout.start(options.timeout, () => {
-            clear();
-            if (this.process === process) {
-              // keep it attached so its exit goes through `onExit()`, which respawns it with the backoff (when `manager.respawn` is on)
-              process.kill();
-              this.waitForExit(process);
-            }
-            reject(new Error('Cluster Child took too long to ready up'));
-          });
-        }
-        this.once('ready', onReady);
-        process.once('exit', onExitBeforeReady);
-        process.on('error', onErrorBeforeReady);
-      });
+    if (wait) {
+      return this._waitForReady(process, options.timeout);
     }
     return process;
   }

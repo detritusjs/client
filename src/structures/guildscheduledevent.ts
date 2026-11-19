@@ -62,7 +62,7 @@ export class GuildScheduledEvent extends BaseStructure {
   entityMetadata: any;
   entityType: GuildScheduledEventEntityTypes = GuildScheduledEventEntityTypes.STAGE_INSTANCE;
   guildId: string = '';
-  // raw, the occurrences of a recurring event that were moved or canceled (kept up to date by the exception events)
+  // raw, the moved or canceled occurrences of a recurring event (kept up to date by the exception events)
   guildScheduledEventExceptions: Array<GatewayRawEvents.RawGuildScheduledEventException> = [];
   id: string = '';
   declare image?: string | null;
@@ -137,7 +137,7 @@ export class GuildScheduledEvent extends BaseStructure {
 
       let user: User;
       if (this.isClone) {
-        // a clone (like from `guild.clone()`) shouldn't merge its snapshot into the cached user
+        // a clone shouldn't merge its snapshot into the cached user
         user = new User(this.client, value, true);
       } else if (this.client.users.has(value.id)) {
         user = this.client.users.get(value.id)!;
@@ -280,7 +280,7 @@ export class GuildScheduledEventUser extends BaseStructure {
       // the member object here doesn't always include the user, it's sent separately
       const userId = (value.user) ? value.user.id : (this.user) ? this.user.id : null;
 
-      // without a user id we can't key the member, so skip it
+      // without a user id we can't key the member
       if (userId) {
         let member: Member;
         if (this.client.members.has(guildId, userId)) {

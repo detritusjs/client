@@ -60,11 +60,18 @@ export interface GatewayHandlerOptions {
   whitelistedEvents?: Array<string>,
 }
 
+// marks `loadAllMembers` chunks, so the guild is ready on the last one even if discord's member count doesn't match the cache
+export function getLoadAllMembersNonce(guildId: string): string {
+  return `all.${guildId}`;
+}
+
 export interface ChunkWaiting {
   members: BaseCollection<string, Member>,
   notFound: BaseSet<string>,
   presences: BaseCollection<string, Presence>,
   promise: {reject: Function, resolve: Function, wait: Promise<unknown>},
+  // the gateway session the request went out on, null while queued for the next one
+  sessionId?: null | string,
   waiting: number,
 }
 
@@ -75,6 +82,8 @@ export interface ChunkWaiting {
 export class GatewayHandler {
   readonly client: ShardClient;
   readonly _chunksWaiting = new BaseCollection<string, ChunkWaiting>();
+  // bumped by every READY, a READY still awaiting its fills when another one comes in doesn't emit GATEWAY_READY
+  _readyGeneration: number = 0;
   readonly _handlers = Object.freeze({
     component: new ComponentHandler(),
     modal: new ModalSubmitHandler(),
@@ -84,8 +93,7 @@ export class GatewayHandler {
   dispatchHandler: GatewayDispatchHandler;
   loadAllMembers: boolean = false;
 
-  // I've witnessed some duplicate events happening with almost a second in between
-  // Some member add/remove events might not even happen due to "State Repair"
+  // discord can send duplicate member add/remove events up to a second apart, or skip some ("State Repair")
   duplicateMemberEventsCache = new BaseCollection<string, string>({expire: 2000});
 
   constructor(
@@ -177,9 +185,6 @@ export class GatewayDispatchHandler {
     return this.handler.client;
   }
 
-  /**
-   * Ids of every user we share a dm/group dm with
-   */
   getDmRecipientIds(): Set<string> {
     const userIds = new Set<string>();
     for (let channel of this.client.channels.getDmChannels()) {
@@ -191,8 +196,7 @@ export class GatewayDispatchHandler {
   }
 
   /**
-   * Which of these users we don't share anything with anymore, so they can be removed from the users cache
-   * Goes through each guild once instead of every guild per user (leaving a guild checks all of its members)
+   * Users we no longer share anything with, found in one pass over the guilds instead of one per user
    */
   getUnsharedUserIds(userIds: Iterable<string>): Set<string> {
     const unshared = new Set<string>();
@@ -201,7 +205,6 @@ export class GatewayDispatchHandler {
       return unshared;
     }
     for (let userId of userIds) {
-      // not cached means there's nothing to remove
       if (!this.client.users.has(userId)) {
         continue;
       }
@@ -244,9 +247,6 @@ export class GatewayDispatchHandler {
     return unshared;
   }
 
-  /**
-   * The cached scheduled event an exception belongs to
-   */
   getGuildScheduledEvent(guildId: string, eventId: string): GuildScheduledEvent | null {
     const guild = this.client.guilds.get(guildId);
     if (guild && guild.guildScheduledEvents.has(eventId)) {
@@ -289,19 +289,27 @@ export class GatewayDispatchHandler {
 
   /* Dispatch Events */
   async [GatewayDispatchEvents.READY](data: GatewayRawEvents.Ready) {
+    const generation = ++this.handler._readyGeneration;
     this.client.reset(false);
 
     for (let [listenerId, listener] of this.handler._handlers.component.listeners) {
-      if (!listener.timeout) {
+      // same check `insert()` uses to arm a timer, a listener without one would never go away
+      if (!(0 < listener.timeout)) {
         this.handler._handlers.component.listeners.delete(listenerId);
       }
     }
-    // modal listeners are left alone, they always expire (15 minutes at most) and the modal can still be submitted after a re-identify
+    // modal listeners always expire (15 minutes at most) and the modal can still be submitted after a re-identify
 
+    // a request queued while we were (re)connecting goes out on this session, only the ones sent on an older one are lost
+    const sessionId = data['session_id'];
     for (let [nonce, cache] of this.handler._chunksWaiting) {
-      cache.promise.reject(new Error('Gateway re-identified before a result came.'));
+      if (cache.sessionId === null) {
+        cache.sessionId = sessionId;
+      } else if (cache.sessionId !== sessionId) {
+        this.handler._chunksWaiting.delete(nonce);
+        cache.promise.reject(new Error('Gateway re-identified before a result came.'));
+      }
     }
-    this.handler._chunksWaiting.clear();
 
     let me: UserMe;
     if (this.client.user) {
@@ -346,6 +354,7 @@ export class GatewayDispatchHandler {
           if (this.handler.shouldLoadAllMembers) {
             this.client.gateway.requestGuildMembers(guild.id, {
               limit: 0,
+              nonce: getLoadAllMembersNonce(guild.id),
               presences: true,
               query: '',
             });
@@ -428,12 +437,23 @@ export class GatewayDispatchHandler {
       this.client.emit(ClientEvents.WARN, payload);
     }
 
+    // re-identified (the newer READY emits instead) or killed while the fills above were awaited
+    if (generation !== this.handler._readyGeneration || this.client.killed) {
+      return;
+    }
     const payload: GatewayClientEvents.GatewayReady = {raw: data};
     this.client.emit(ClientEvents.GATEWAY_READY, payload);
   }
 
   [GatewayDispatchEvents.RESUMED](data: GatewayRawEvents.Resumed) {
     this.client.gateway.discordTrace = data['_trace'];
+
+    // requests queued while we were resuming went out on the resumed session
+    for (let [nonce, cache] of this.handler._chunksWaiting) {
+      if (cache.sessionId === null) {
+        cache.sessionId = this.client.gateway.sessionId;
+      }
+    }
 
     const payload: GatewayClientEvents.GatewayResumed = {raw: data};
     this.client.emit(ClientEvents.GATEWAY_RESUMED, payload);
@@ -965,6 +985,7 @@ export class GatewayDispatchHandler {
       if (this.handler.shouldLoadAllMembers) {
         this.client.gateway.requestGuildMembers(guild.id, {
           limit: 0,
+          nonce: getLoadAllMembersNonce(guild.id),
           presences: true,
           query: '',
         });
@@ -1032,11 +1053,10 @@ export class GatewayDispatchHandler {
         if (channel.isText) {
           if (this.client.typings.get(channelId)) {
             const typings = this.client.typings.get(channelId)!;
-            for (let [userId, typing] of typings) {
-              typing.timeout.stop();
-              typings.delete(userId);
+            // stop without TYPING_STOP, a typing still held shouldn't look active forever with no timer
+            for (let typing of Array.from(typings.values())) {
+              typing._stop(false);
             }
-            typings.clear();
             this.client.typings.delete(channelId);
           }
         }
@@ -1047,7 +1067,7 @@ export class GatewayDispatchHandler {
         this.handler._handlers.component.delete(message.id);
       }
 
-      // a guild that never loaded presences has none to clear (a new guild object, from the guilds cache being off, might though)
+      // only a guild that loaded presences (or an uncached one) has any to clear
       if (guild._hasPresences || !this.client.guilds.enabled) {
         this.client.presences.clearGuildId(guildId);
         guild._hasPresences = false;
@@ -1101,13 +1121,11 @@ export class GatewayDispatchHandler {
         };
         const unchanged = new BaseSet<string>();
 
-        // go through each one
         for (let raw of data['emojis']) {
           Object.assign(raw, {guild_id: guildId});
           const emojiId = raw.id!;
 
           if (guild.emojis.has(emojiId)) {
-            // updated
             const emoji = guild.emojis.get(emojiId)!;
             if (emoji.hasDifferences(raw)) {
               differences.updated.set(emojiId, {
@@ -1119,7 +1137,6 @@ export class GatewayDispatchHandler {
               unchanged.add(emojiId);
             }
           } else {
-            // created
             differences.created.set(emojiId, new Emoji(this.client, raw));
           }
         }
@@ -1198,7 +1215,7 @@ export class GatewayDispatchHandler {
       this.client.members.insert(member);
     }
 
-    // Discord can send us a duplicate `GUILD_MEMBER_ADD` event sometimes, like during a guild raid
+    // discord sometimes sends duplicate `GUILD_MEMBER_ADD` events, like during a raid
     const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_ADD);
     if (isListening || this.client.guilds.has(guildId)) {
       const key = `${guildId}.${userId}`;
@@ -1244,7 +1261,7 @@ export class GatewayDispatchHandler {
     }
     this.client.members.delete(guildId, userId);
 
-    // Discord can send us a duplicate `GUILD_MEMBER_ADD` event sometimes, just in case check _REMOVE too
+    // guard against duplicate `GUILD_MEMBER_REMOVE` events too
     const isListening = this.client.hasEventListener(ClientEvents.GUILD_MEMBER_REMOVE);
     if (isListening || this.client.guilds.has(guildId)) {
       const key = `${guildId}.${userId}`;
@@ -1409,8 +1426,7 @@ export class GatewayDispatchHandler {
     }
 
     if (data['not_found']) {
-      // user ids
-      // if the userId is not a big int, it'll be an integer..
+      // ids that fit in a number come as integers
       notFound = data['not_found'].map((userId) => String(userId));
       if (cache) {
         for (let userId of notFound) {
@@ -1419,7 +1435,8 @@ export class GatewayDispatchHandler {
       }
     }
 
-    if (guild && !guild.isReady && guild.memberCount === guild.members.length) {
+    const loadedAllMembers = nonce === getLoadAllMembersNonce(guildId) && chunkIndex + 1 === chunkCount;
+    if (guild && !guild.isReady && !guild.unavailable && (loadedAllMembers || guild.memberCount === guild.members.length)) {
       guild.isReady = true;
       const payload: GatewayClientEvents.GuildReady = {guild};
       this.client.emit(ClientEvents.GUILD_READY, payload);
@@ -1752,10 +1769,8 @@ export class GatewayDispatchHandler {
         };
         const unchanged = new BaseSet<string>();
 
-        // go through each one
         for (let raw of data['stickers']) {
           if (guild.stickers.has(raw.id)) {
-            // updated
             const sticker = guild.stickers.get(raw.id)!;
             if (sticker.hasDifferences(raw)) {
               differences.updated.set(sticker.id, {
@@ -1767,7 +1782,6 @@ export class GatewayDispatchHandler {
               unchanged.add(sticker.id);
             }
           } else {
-            // created
             differences.created.set(raw.id, new Sticker(this.client, raw));
           }
         }
@@ -2066,6 +2080,9 @@ export class GatewayDispatchHandler {
         if (this.client.interactions.has(responseInteractionId)) {
           const interaction = this.client.interactions.get(responseInteractionId)!;
           interaction.responseDeleted = true;
+          // a deleted loading message can't be filled, the next followup is a new message
+          interaction._responseRevision++;
+          interaction.responseDeferred = false;
           // through the collection so its response id index doesn't keep a stale entry
           this.client.interactions.setResponseId(interaction, messageId);
         }
@@ -2073,10 +2090,12 @@ export class GatewayDispatchHandler {
         this.handler._handlers.component.delete(responseInteractionId);
       }
     } else {
-      // most deleted messages aren't cached anymore, look the interaction up by its response id instead of going through all of them
+      // most deleted messages aren't cached, so look the interaction up by its response id
       const interaction = this.client.interactions.getByResponseId(messageId);
       if (interaction && interaction.responseId === messageId) {
         interaction.responseDeleted = true;
+        interaction._responseRevision++;
+        interaction.responseDeferred = false;
       }
     }
 
@@ -2473,8 +2492,7 @@ export class GatewayDispatchHandler {
     }
     presence = this.client.presences.insert(data);
 
-    // presences don't have the member's roles/nick/joined_at anymore, so only update members we already have
-    // creating one here would cache a member with no roles
+    // presences no longer carry roles/nick/joined_at, only update members we already have so none get cached without roles
     if (guildId && this.client.members.has(guildId, userId)) {
       member = this.client.members.get(guildId, userId)!;
       member.merge(data);
@@ -2920,8 +2938,7 @@ export class GatewayDispatchHandler {
       }
     }
 
-    // archived threads aren't part of the active thread list (THREAD_LIST_SYNC won't remove them), so stop caching them now
-    // they come back with a THREAD_UPDATE/THREAD_CREATE if they get unarchived
+    // archived threads aren't in THREAD_LIST_SYNC so stop caching them, a THREAD_UPDATE/THREAD_CREATE brings them back
     if (thread.threadMetadata && thread.threadMetadata.archived) {
       this.client.channels.delete(thread.id);
       const guild = thread.guild;
@@ -2974,7 +2991,7 @@ export class GatewayDispatchHandler {
   }
 
   [GatewayDispatchEvents.USER_UPDATE](data: GatewayRawEvents.UserUpdate) {
-    // this updates this.client.user, us
+    // always the current user
     let differences: GatewayClientEvents.Differences = null;
     let old: UserMe | null = null;
     let user: UserMe;
@@ -3121,8 +3138,7 @@ export class GatewayDispatchHandler {
 
     let serverId: string = data['guild_id'] || data['channel_id'] || '';
     if (!serverId) {
-      // leaving a dm call has neither, find the call they were in (never a guild's voice state)
-      // an empty server id would make the collection look through (and delete from) every server instead
+      // leaving a dm call has neither, find their call since an empty server id would search (and delete from) every server
       for (let [cacheKey, cache] of this.client.voiceStates.caches) {
         const cached = cache.get(data['user_id']);
         if (cached && !cached.guildId) {

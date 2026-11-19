@@ -92,7 +92,7 @@ export class MediaHandler {
             if (!this.connection.opusDecoder) {
               throw new Error('No Opus decoder provided');
             }
-            // decoders are per stream (ssrc), so packets from before discord says whose they are still decode to pcm, with a null user id
+            // decoders are per ssrc, so packets from before discord says whose they are still decode (with a null user id)
             const ssrc = (packet.rtp) ? packet.rtp.header.ssrc : null;
             if (ssrc !== null) {
               // client-socket sets this itself from 0.9.0-beta.14 on
@@ -143,7 +143,7 @@ export class MediaGatewayOpHandler {
   }
 
   [MediaOpCodes.CLIENTS_CONNECT](data: MediaRawEvents.ClientsConnect) {
-    // the current voice gateway sends this instead of CLIENT_CONNECT, it has no ssrcs so use what we already know (SPEAKING fills them in later)
+    // the current voice gateway sends this instead of CLIENT_CONNECT, without ssrcs (SPEAKING fills them in later)
     const gateway = this.connection.gateway;
     for (let userId of data['user_ids']) {
       const payload: MediaEvents.ClientConnect = {
@@ -222,8 +222,7 @@ export class MediaGatewayOpHandler {
   }
 
   [MediaOpCodes.READY](data: any) {
-    // a new voice session (resumes get RESUMED instead), users that left while we were reconnecting never get a CLIENT_DISCONNECT
-    // so free every decoder, the ones still talking get recreated on their next packet
+    // a new session (resumes get RESUMED), users who left meanwhile never get a CLIENT_DISCONNECT, so free every decoder
     this.connection.clearOpusDecoders();
   }
 

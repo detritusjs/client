@@ -319,6 +319,10 @@ export class InteractionContextBase {
     return this.interaction.responseId;
   }
 
+  get responseType() {
+    return this.interaction.responseType;
+  }
+
   get token() {
     return this.interaction.token;
   }

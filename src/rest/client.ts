@@ -67,8 +67,7 @@ import { RestResponses } from './types';
 
 
 /**
- * OR the IS_COMPONENTS_V2 flag into a payload without clobbering existing flags, returns a copy so the caller's object isn't changed
- * `toJSON`-able payloads are wrapped so the flag gets added to their serialized output
+ * ORs in the IS_COMPONENTS_V2 flag on a copy, `toJSON`-able payloads get wrapped so it lands in their serialized output
  */
 function addComponentsV2Flag(payload: any): any {
   if (typeof(payload.toJSON) === 'function') {
@@ -98,6 +97,8 @@ export class RestClient {
 
     this.raw.on(RestEvents.REQUEST, (payload: RestClientEvents.RequestPayload) => this.client.emit(ClientEvents.REST_REQUEST, payload));
     this.raw.on(RestEvents.RESPONSE, (payload: RestClientEvents.ResponsePayload) => this.client.emit(ClientEvents.REST_RESPONSE, payload));
+    // once per shard: each shard has its own rest client, so each latches its own `tokenUnauthorized`
+    this.raw.on(RestEvents.TOKEN_UNAUTHORIZED, (payload: RestClientEvents.TokenUnauthorizedPayload) => this.client.emit(ClientEvents.REST_TOKEN_UNAUTHORIZED, payload));
   }
 
   get isBot(): boolean {
@@ -706,7 +707,6 @@ export class RestClient {
     }
     if (data instanceof InteractionModal) {
       options = {data, type: InteractionCallbackTypes.MODAL};
-      // the modal is in options now
       data = undefined;
     }
 
@@ -737,9 +737,8 @@ export class RestClient {
         // the flag goes on copies, the caller's options/data aren't changed
         if (data) {
           if (!('toJSON' in data) && optionsData && !('toJSON' in optionsData)) {
-            // the raw client merges a plain `data` into a plain `options.data` (Object.assign), give it a copy to merge into
+            // give the raw client's Object.assign a copy to merge into
             options = Object.assign({}, options as RequestTypes.CreateInteractionResponse, {data: Object.assign({}, optionsData)});
-            // and carry over the caller's flags
             if ((data as any).flags === undefined) {
               data = Object.assign({}, data, {flags: optionsData.flags});
             }
@@ -1372,8 +1371,7 @@ export class RestClient {
   ) {
     const data = await this.raw.deleteWebhookTokenMessage(webhookId, webhookToken, messageId, options);
     if (messageId === '@original') {
-      // `@original` is the response of the interaction this token belongs to, its listener is either still under the
-      // interaction id or was moved to the response's message id
+      // `@original` is this token's interaction response, its listener may still be under the interaction id
       const interaction = this.client.interactions.find((x) => x.token === webhookToken);
       if (interaction) {
         this.client.gatewayHandler._handlers.component.delete(interaction.id);
@@ -1458,7 +1456,7 @@ export class RestClient {
     return new ApplicationNews(this.client, data);
   }
 
-  /* Issue with merging data with these edited objects is that the gateway event wont have differences then */
+  // merging here leaves the gateway's update event without differences
   async editChannel(
     channelId: string,
     options: RequestTypes.EditChannel = {},
@@ -1949,12 +1947,18 @@ export class RestClient {
     if (updateCache && this.client.messages.has(data.id)) {
       message = this.client.messages.get(data.id)!;
       message.merge(data);
-      // should we really merge? the message_update event wont have differences then
+      // the MESSAGE_UPDATE event won't have differences after this merge
     } else {
       message = new Message(this.client, data);
       if (updateCache) {
         this.client.messages.insert(message);
       }
+    }
+
+    // move a response's listener off the interaction id first, so the insert below replaces it instead of it timing out later
+    const responseInteractionId = getResponseInteractionId(message);
+    if (responseInteractionId) {
+      this.client.gatewayHandler._handlers.component.replaceId(responseInteractionId, message.id);
     }
 
     if (listenerData) {
@@ -2441,7 +2445,6 @@ export class RestClient {
     const data = await this.raw.fetchChannelPollAnswerVoters(channelId, messageId, answerId, options);
     const collection = new BaseCollection<string, User>();
 
-    // discord sends `{users: [...]}`
     for (let raw of data.users) {
       let user: User;
       if (this.client.users.has(raw.id)) {
@@ -2463,8 +2466,7 @@ export class RestClient {
   async fetchChannelThreadsActive(
     channelId: string,
   ): Promise<RestResponses.FetchChannelThreadsActive> {
-    // the raw client filters the guild's active threads (the channel route was removed in api v10)
-    // pass the cached guild id so it doesn't have to fetch the channel first
+    // the channel route is gone in api v10, pass the cached guild id so the raw client doesn't fetch the channel first
     const channel = this.client.channels.get(channelId);
     const data = await this.raw.fetchChannelThreadsActive(channelId, {guildId: (channel && channel.guildId) || undefined});
     // the raw client filters the guild route, which doesn't send `has_more`, so this is always false
@@ -3074,8 +3076,8 @@ export class RestClient {
     };
   }
 
-  // works for bots (needs `MANAGE_GUILD`), waits and retries (up to 5 times) while the guild's member index is still being built
-  // with `retry` false it returns right away instead, with `retryAfter` (seconds) set and no members
+  // works for bots (needs `MANAGE_GUILD`), retries up to 5 times while the guild's member index is being built
+  // `retry: false` returns right away instead, with `retryAfter` (seconds) and no members
   async searchGuildMembers(
     guildId: string,
     options: RequestTypes.SearchGuildMembers = {},

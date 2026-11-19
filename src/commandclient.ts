@@ -78,6 +78,13 @@ export interface CommandReply {
   reply: Message,
 }
 
+export interface CommandRunning {
+  // set once the message got deleted (or edited into not being a command) mid run, its reply gets reported instead of stored
+  event: CommandEvents.CommandDelete['event'] | null,
+  // the last reply already reported for it, so the same one isn't reported twice
+  replyId: string | null,
+}
+
 
 function getPrefixEnd(content: string, contentLower: string, prefix: string): number {
   if (!contentLower.startsWith(prefix)) {
@@ -102,9 +109,15 @@ function getPrefixEnd(content: string, contentLower: string, prefix: string): nu
  */
 export class CommandClient extends EventSpewer {
   readonly _clientSubscriptions: Array<EventSubscription> = [];
-  // reply id -> command message id, so a deleted message doesn't have to be looked for in every reply
-  // entries can go stale (replies expire or get replaced), they're checked against `replies` and rebuilt once they pile up
+  // reply id -> command message id, entries can go stale so they're checked against `replies` and rebuilt once they pile up
   readonly _replyIds = new Map<string, string>();
+  // command message id -> the runs still going for it (an edit can re-run a message while the original run is still going)
+  readonly _running = new Map<string, Map<Context, CommandRunning>>();
+  // command message id -> the `editOrReply()` going for it, the next one waits on it so two runs don't both post a reply
+  readonly _replying = new Map<string, Promise<unknown>>();
+  _killed: boolean = false;
+  declare _ownsRatelimiter: boolean;
+  _runPromise: Promise<ClusterClient | ShardClient> | null = null;
 
   activateOnEdits: boolean = false;
   client: ClusterClient | ShardClient;
@@ -184,6 +197,8 @@ export class CommandClient extends EventSpewer {
       mention: new BaseSet<string>(),
     });
     this.ratelimiter = options.ratelimiter || new CommandRatelimiter();
+    // one passed in may be shared with other clients, only clear ours on a kill
+    Object.defineProperty(this, '_ownsRatelimiter', {configurable: true, enumerable: false, writable: false, value: !options.ratelimiter});
     this.replies = new BaseCollection({expire: this.maxEditDuration});
 
     this.onCommandCheck = options.onCommandCheck || this.onCommandCheck;
@@ -237,6 +252,10 @@ export class CommandClient extends EventSpewer {
     Object.defineProperties(this, {
       _clientSubscriptions: {enumerable: false, writable: false},
       _replyIds: {enumerable: false, writable: false},
+      _running: {enumerable: false, writable: false},
+      _replying: {enumerable: false, writable: false},
+      _killed: {configurable: true, enumerable: false, writable: false},
+      _runPromise: {enumerable: false, writable: true},
       activateOnEdits: {configurable: true, writable: false},
       commands: {writable: false},
       maxEditDuration: {configurable: true, writable: false},
@@ -253,6 +272,10 @@ export class CommandClient extends EventSpewer {
     });
   }
 
+  get killed(): boolean {
+    return this._killed;
+  }
+
   get rest() {
     return this.client.rest;
   }
@@ -266,6 +289,10 @@ export class CommandClient extends EventSpewer {
     Object.defineProperty(this, 'maxEditDuration', {value});
     if (value) {
       this.replies.setIntervalTimeout(Math.min(value, 5000));
+    } else {
+      // nothing would expire the stored replies anymore and none get stored from now on, so drop them
+      this.replies.clear();
+      this._replyIds.clear();
     }
     this.replies.setExpire(value);
   }
@@ -294,15 +321,14 @@ export class CommandClient extends EventSpewer {
           options.run = run;
         }
       }
-      // create a normal command class with the options given
       if (options._class === undefined) {
         command = new Command(this, options);
       } else {
-        // check for `.prototype` to make sure it can be constructed, every function has `.constructor` but arrow functions have no `.prototype`
+        // arrow functions have no `.prototype` and can't be constructed
         if (options._class.prototype) {
           command = new options._class(this, options);
         } else {
-          // else it's just a function, `ts-node` outputs these
+          // a plain function, `ts-node` outputs these
           command = options._class(this, options);
         }
         if (!command._file) {
@@ -343,7 +369,7 @@ export class CommandClient extends EventSpewer {
     options = Object.assign({subdirectories: true}, options);
     if (!options.isAbsolute) {
       if (require.main) {
-        // require.main.path exists but typescript doesn't let us use it..
+        // `require.main.path` isn't typed
         directory = path.join(path.dirname(require.main.filename), directory);
       }
     }
@@ -425,8 +451,7 @@ export class CommandClient extends EventSpewer {
   }
 
   async resetCommands(): Promise<void> {
-    // import the new commands before dropping the old ones, importing lets the event loop run and messages that come in
-    // meanwhile still need commands. the swap is synchronous so nothing sees it half done
+    // import before dropping the old commands, messages coming in while importing still need them (the swap is synchronous)
     this.clearRequireCache();
     const errors: Record<string, Error> = {};
     const files: Array<ImportedFile> = [];
@@ -548,8 +573,7 @@ export class CommandClient extends EventSpewer {
       } else {
         throw new Error('Invalid Prefixes Type Received');
       }
-      // used as-is (no trimming or `prefixSpace`, so a trailing space like `"bot "` is kept)
-      // only lowercased since message content is lowercased before matching
+      // used as-is (a trailing space like `"bot "` is kept), only lowercased to match the lowercased content
       sorted = sorted.map((prefix) => prefix.toLowerCase());
       return new BaseSet(sorted.sort((x, y) => y.length - x.length));
     }
@@ -568,10 +592,19 @@ export class CommandClient extends EventSpewer {
 
   /* Kill/Run */
   kill(): void {
+    Object.defineProperty(this, '_killed', {value: true});
     this.client.kill();
     this.emit(ClientEvents.KILLED);
     this.clearSubscriptions();
     this.removeAllListeners();
+    // the stored replies' expiry interval and the ratelimit timers would keep the process alive
+    this.replies.clear();
+    this._replyIds.clear();
+    this._running.clear();
+    this._replying.clear();
+    if (this._ownsRatelimiter) {
+      this.ratelimiter.clear();
+    }
   }
 
   async run(
@@ -580,19 +613,69 @@ export class CommandClient extends EventSpewer {
     if (this.ran) {
       return this.client;
     }
-    if (options.directories) {
-      for (let directory of options.directories) {
-        await this.addMultipleIn(directory);
+    // concurrent calls share one run, a second would import the directories again and run the client twice
+    if (!this._runPromise) {
+      const promise = (async () => {
+        if (options.directories) {
+          for (let directory of options.directories) {
+            await this.addMultipleIn(directory);
+          }
+        }
+        await this.client.run(options);
+        this.addMentionPrefixes();
+        Object.defineProperty(this, 'ran', {value: true});
+        return this.client;
+      })();
+      this._runPromise = promise;
+      // once it settles `ran` guards a success, and a failed run can be retried
+      const settle = () => {
+        if (this._runPromise === promise) {
+          this._runPromise = null;
+        }
+      };
+      promise.then(settle, settle);
+    }
+    return this._runPromise;
+  }
+
+  // marks the runs still going for a message (the ones before `before`), so their later replies get reported instead of stored
+  _markRunning(
+    messageId: string,
+    event: CommandEvents.CommandDelete['event'],
+    replyId: string | null,
+    before?: Context,
+  ): void {
+    const runs = this._running.get(messageId);
+    if (runs) {
+      for (let [context, running] of runs) {
+        if (context === before) {
+          // runs after it came from a newer edit
+          break;
+        }
+        if (!running.event) {
+          running.event = event;
+          running.replyId = replyId;
+        }
       }
     }
-    await this.client.run(options);
-    this.addMentionPrefixes();
-    Object.defineProperty(this, 'ran', {value: true});
-    return this.client;
   }
 
   storeReply(messageId: string, command: Command, context: Context, reply: Message | void): void {
+    if (this._killed) {
+      return;
+    }
     if (this.maxEditDuration && reply instanceof Message) {
+      const runs = this._running.get(messageId);
+      const running = (runs) ? runs.get(context) : undefined;
+      if (running && running.event) {
+        // the message is gone (or isn't a command anymore), report the reply like a delete after replying would
+        if (running.replyId !== reply.id) {
+          running.replyId = reply.id;
+          const payload: CommandEvents.CommandDelete = {command, context, event: running.event, reply};
+          this.emit(ClientEvents.COMMAND_DELETE, payload);
+        }
+        return;
+      }
       this.replies.set(messageId, {command, context, reply});
       this._replyIds.set(reply.id, messageId);
       if (Math.max(this.replies.length * 2, 100) < this._replyIds.size) {
@@ -627,17 +710,13 @@ export class CommandClient extends EventSpewer {
     return this.handle(ClientEvents.MESSAGE_CREATE, event);
   }
 
-  /**
-   * If a MESSAGE_UPDATE changed the message's content
-   */
   isContentEdit(event: GatewayClientEvents.MessageUpdate): boolean {
     const { differences, raw } = event;
     if (differences) {
       // `differences` holds the old values, an old content of '' (like an attachment only message) is still a change
       return 'content' in differences;
     }
-    // the message wasn't cached so there's nothing to compare with, and updates send the whole message (pins, threads, etc)
-    // so only count it if it was edited just now, not if it was edited once years ago
+    // uncached, and updates send the whole message (pins, threads, etc), so only count it if it was edited just now
     if (!raw || raw.content === undefined || !raw.edited_timestamp) {
       return false;
     }
@@ -682,16 +761,28 @@ export class CommandClient extends EventSpewer {
     }
 
     const context = new Context(message, typing, this);
+    // tracked until it's done, so a delete (or an edit) mid run doesn't leave its later reply stored
+    let runs = this._running.get(message.id);
+    if (!runs) {
+      runs = new Map();
+      this._running.set(message.id, runs);
+    }
+    runs.set(context, {event: null, replyId: null});
     try {
       await this.handleContext(name, event, context);
     } finally {
-      if (name === ClientEvents.MESSAGE_UPDATE && !context.command && this.replies.has(message.id) && this.isWithinEditDuration(message)) {
-        // the edit doesn't run a command anymore, so its old reply is stale
-        // (an edit that re-runs one keeps the reply for `editOrReply()` to edit, telling listeners to delete it would race that)
-        const { command, context: oldContext, reply } = this.replies.get(message.id)!;
-        this.replies.delete(message.id);
-        const payload: CommandEvents.CommandDelete = {command, context: oldContext, event: ClientEvents.MESSAGE_UPDATE, reply};
-        this.emit(ClientEvents.COMMAND_DELETE, payload);
+      if (name === ClientEvents.MESSAGE_UPDATE && !context.command && this.isWithinEditDuration(message)) {
+        let replyId: string | null = null;
+        if (this.replies.has(message.id)) {
+          // the edit doesn't run a command anymore, so its old reply is stale (a re-run keeps it for `editOrReply()` to edit)
+          const { command, context: oldContext, reply } = this.replies.get(message.id)!;
+          this.replies.delete(message.id);
+          replyId = reply.id;
+          const payload: CommandEvents.CommandDelete = {command, context: oldContext, event: ClientEvents.MESSAGE_UPDATE, reply};
+          this.emit(ClientEvents.COMMAND_DELETE, payload);
+        }
+        // runs from before the edit that are still going would store their reply later and bring it back
+        this._markRunning(message.id, ClientEvents.MESSAGE_UPDATE, replyId, context);
       }
       const command = context.command;
       if (command && typeof(command.onFinally) === 'function') {
@@ -700,6 +791,14 @@ export class CommandClient extends EventSpewer {
         } catch(error: any) {
           const payload: CommandEvents.CommandError = {command, context, error};
           this.emit(ClientEvents.COMMAND_ERROR, payload);
+        }
+      }
+      // look it up again, `kill()` clears the map
+      const current = this._running.get(message.id);
+      if (current) {
+        current.delete(context);
+        if (!current.size) {
+          this._running.delete(message.id);
         }
       }
     }
@@ -832,8 +931,7 @@ export class CommandClient extends EventSpewer {
         return;
       }
     } else {
-      // check the bot's permissions in the server
-      // should never be ignored since it's most likely the bot will rely on this permission to do whatever action
+      // the bot's permissions are never skipped, the command most likely relies on them
       if (Array.isArray(command.permissionsClient) && command.permissionsClient.length) {
         const failed = [];
 
@@ -868,10 +966,7 @@ export class CommandClient extends EventSpewer {
         }
       }
 
-      // if command doesn't specify it should ignore the client owner, or if the user isn't a client owner
-      // continue to permission checking
       if (!command.permissionsIgnoreClientOwner || !context.user.isClientOwner) {
-        // check the user's permissions
         if (Array.isArray(command.permissions) && command.permissions.length) {
           const failed = [];
 
@@ -1085,10 +1180,15 @@ export class CommandClient extends EventSpewer {
     if (this.replies.has(messageId)) {
       const { command, context, reply } = this.replies.get(messageId)!;
       this.replies.delete(messageId);
+      // runs still going (like an edit's re-run) would store a reply for a message that's gone
+      this._markRunning(messageId, name, reply.id);
 
       const payload: CommandEvents.CommandDelete = {command, context, event: name, reply};
       this.emit(ClientEvents.COMMAND_DELETE, payload);
     } else {
+      // deleted before its run replied, the reply gets reported once the run stores it
+      this._markRunning(messageId, name, null);
+
       const commandId = this.getReplyCommandId(messageId);
       if (commandId !== null) {
         const { command, context, reply } = this.replies.get(commandId)!;
@@ -1108,9 +1208,12 @@ export class CommandClient extends EventSpewer {
       if (this.replies.has(messageId)) {
         const { command, context, reply } = this.replies.get(messageId)!;
         this.replies.delete(messageId);
+        this._markRunning(messageId, ClientEvents.MESSAGE_DELETE_BULK, reply.id);
 
         const payload: CommandEvents.CommandDelete = {command, context, event: ClientEvents.MESSAGE_DELETE_BULK, reply};
         this.emit(ClientEvents.COMMAND_DELETE, payload);
+      } else {
+        this._markRunning(messageId, ClientEvents.MESSAGE_DELETE_BULK, null);
       }
     }
     for (let messageId of messageIds) {

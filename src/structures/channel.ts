@@ -332,7 +332,6 @@ export class ChannelBase extends BaseStructure {
       const collection = new BaseCollection<string, ChannelGuildType>();
       const guild = this.guild;
       if (guild) {
-        // only go through our guild's channels, not every cached one
         for (let channelId of guild._channelIds) {
           const channel = this.client.channels.get(channelId);
           if (channel && channel.parentId === this.id) {
@@ -545,7 +544,7 @@ export class ChannelBase extends BaseStructure {
     return null;
   }
 
-  // only set on channels resolved inside of interactions, our bot's permissions in the channel (0n if we aren't in the guild)
+  // only set on channels resolved inside of interactions (0n if we aren't in the guild)
   get appPermissions(): bigint {
     if (this._appPermissions) {
       return this._appPermissions;
@@ -593,7 +592,6 @@ export class ChannelBase extends BaseStructure {
       const collection = new BaseCollection<string, ChannelGuildThread>();
       const guild = this.guild;
       if (guild) {
-        // only go through our guild's threads, not every cached channel
         for (let threadId of guild._threadIds) {
           const channel = this.client.channels.get(threadId);
           if (channel && channel.isGuildThread && channel.parentId === this.id) {
@@ -1091,7 +1089,7 @@ export class ChannelDM extends ChannelBase {
 
   iconUrlFormat(format?: null | string, query?: UrlQuery): null | string {
     if (this.recipients.size) {
-      // the client user is inserted first into the recipients, use the other user's avatar
+      // the client user comes first in the recipients, use the other user's avatar
       const userId = this.client.userId;
       const user = this.recipients.find((recipient) => recipient.id !== userId) || this.recipients.first()!;
       return user.avatarUrlFormat(format, query);
@@ -1384,10 +1382,9 @@ export class ChannelGuildBase extends ChannelBase {
     if (this.client.user && this.client.members.has(this.guildId, this.client.user.id)) {
       const me = this.client.members.get(this.guildId, this.client.user.id)!;
       if (!me.communicationDisabledUntilUnix || me.communicationDisabledUntilUnix <= Date.now()) {
-        // not timed out
         return true;
       }
-      // now check if the user has admin/owner as someone can get timed out then get admin/owner
+      // a timed out member can still be given admin/owner
       return me.canAdministrator;
     }
     return false;
@@ -1448,7 +1445,6 @@ export class ChannelGuildBase extends ChannelBase {
   }
 
   // threads can't be made inside of voice channels or other threads, and news channels have no private threads
-  // forum/media channels override this, their posts need SEND_MESSAGES instead
 
   get canUsePrivateThreads(): boolean {
     return this.isGuildText && this.can([
@@ -1519,12 +1515,12 @@ export class ChannelGuildBase extends ChannelBase {
       if (ignoreAdministrator && guild) {
         total = guild.permissionsFor(memberOrRole, this, {ignoreAdministrator, ignoreOwner: true});
       } else {
-        // compute the member's role permissions once, `permissions` goes through every role each time it's read
+        // read once, `permissions` goes through every role each time
         const permissionsBase = memberOrRole.permissions;
         if (!ignoreAdministrator && PermissionTools.checkPermissions(permissionsBase, Permissions.ADMINISTRATOR)) {
           return true;
         }
-        // passing the starting permissions skips `permissionsIn()`'s administrator shortcut (already checked above)
+        // passing the base skips `permissionsIn()`'s administrator check (done above)
         total = memberOrRole.permissionsIn(this, permissionsBase);
       }
     }
@@ -1571,12 +1567,12 @@ export class ChannelGuildBase extends ChannelBase {
       return;
     }
 
-    // this first to fill up the other stuff
+    // first since the other keys need it
     if (DiscordKeys.GUILD_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.GUILD_ID]] = data[DiscordKeys.GUILD_ID];
     }
 
-    // sent on channels inside of interactions, our bot's permissions in the channel (only if the bot is in the guild)
+    // only on interaction channels, and only if the bot is in the guild
     if (DiscordKeys.APP_PERMISSIONS in data) {
       const value = data[DiscordKeys.APP_PERMISSIONS];
       this._appPermissions = (value !== undefined && value !== null) ? BigInt(value) : undefined;
@@ -1596,7 +1592,7 @@ export class ChannelGuildBase extends ChannelBase {
     if (DiscordKeys.PARENT_ID in data) {
       (this as any)[DetritusKeys[DiscordKeys.PARENT_ID]] = data[DiscordKeys.PARENT_ID];
     }
-    // sent on channels inside of interactions, the invoking member's permissions in the channel
+    // only on interaction channels, the invoking member's permissions
     if (DiscordKeys.PERMISSIONS in data) {
       const value = data[DiscordKeys.PERMISSIONS];
       this._permissions = (value !== undefined && value !== null) ? BigInt(value) : undefined;
@@ -1661,7 +1657,7 @@ export class ChannelGuildCategory extends ChannelGuildBase {
     this.merge(data);
   }
 
-  // categories aren't text channels, but these permissions can still be set on them and sync down to their children
+  // categories aren't text channels, but these permissions sync down to their children
 
   get canManageMessages(): boolean {
     return this.can([
@@ -2059,8 +2055,7 @@ export class ChannelGuildThread extends ChannelGuildBase {
     memberOrRole?: Member | Role,
     options: {ignoreAdministrator?: boolean, ignoreOwner?: boolean} = {},
   ): boolean {
-    // threads have no overwrites of their own, they inherit the parent channel's computed permissions
-    // and use SEND_MESSAGES_IN_THREADS in place of SEND_MESSAGES
+    // threads inherit the parent's permissions, with SEND_MESSAGES_IN_THREADS in place of SEND_MESSAGES
     const parent = this.parent;
     const can = (checks: PermissionTools.PermissionChecks): boolean => {
       if (parent instanceof ChannelGuildBase) {
@@ -2087,8 +2082,7 @@ export class ChannelGuildThread extends ChannelGuildBase {
       }
     }
 
-    // sending in a locked thread (or unarchiving one) requires MANAGE_THREADS
-    // unarchiving an unlocked thread only requires SEND_MESSAGES_IN_THREADS, which was checked above
+    // sending in (or unarchiving) a locked thread requires MANAGE_THREADS
     const metadata = this.threadMetadata;
     if (metadata && PermissionTools.checkPermissions(requested, Permissions.SEND_MESSAGES_IN_THREADS)) {
       if (metadata.locked && !can(Permissions.MANAGE_THREADS)) {
@@ -2124,8 +2118,7 @@ export class ChannelGuildThread extends ChannelGuildBase {
     if (DiscordKeys.MEMBER in data) {
       const value = data[DiscordKeys.MEMBER];
       if (value) {
-        // the thread member object inside of GUILD_CREATE/THREAD_LIST_SYNC threads is missing `id` and `user_id`
-        // it is always the current user's membership of this thread
+        // GUILD_CREATE/THREAD_LIST_SYNC thread members lack `id` and `user_id`, they're always our own membership
         if (!value[DiscordKeys.ID]) {
           value[DiscordKeys.ID] = this.id;
         }
@@ -2230,7 +2223,7 @@ export class ChannelGuildForum extends ChannelGuildBase {
     this.merge(data);
   }
 
-  // forums can't be messaged directly, but these permissions apply to their posts and webhooks can be made on them
+  // forums can't be messaged directly, but these permissions apply to their posts
 
   get canManageMessages(): boolean {
     return this.can([

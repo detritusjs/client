@@ -25,7 +25,6 @@ export const IDENTIFY_READY_TIMEOUT = 30 * 1000;
 
 /**
  * Eval results go over ipc as json, BigInts would throw there so send them as strings
- * (structures go through their `toJSON()` either way)
  */
 function toIPCSafe(value: any): any {
   switch (typeof(value)) {
@@ -70,6 +69,8 @@ export class ClusterProcessChild extends EventSpewer {
 
     process.on('message', this.onMessage.bind(this));
     process.on('message', this.emit.bind(this, 'ipc'));
+    // here and not in `hookCluster()`, which runs again on every `ClusterClient.kill()` (including ours below)
+    process.once('disconnect', this._onDisconnect.bind(this));
     this.hookCluster();
 
     Object.defineProperties(this, {
@@ -83,7 +84,6 @@ export class ClusterProcessChild extends EventSpewer {
   }
 
   /**
-   * Attach our listeners to the cluster client
    * `ClusterClient.kill()` removes every listener, so it calls this again to keep a rerun coordinated with the manager
    */
   hookCluster(): void {
@@ -122,7 +122,6 @@ export class ClusterProcessChild extends EventSpewer {
         const allowedAt = this._shardsIdentifying.get(shardId);
         if (allowedAt !== undefined) {
           // the manager stops holding the identify bucket for us after this, so ask again instead of identifying on our own
-          // (like an INVALID_SESSION reconnect, which closes the old socket as stale and never readies)
           if (Date.now() - allowedAt < IDENTIFY_READY_TIMEOUT) {
             return true;
           }
@@ -132,6 +131,27 @@ export class ClusterProcessChild extends EventSpewer {
         return false;
       };
     });
+  }
+
+  /**
+   * The manager is gone (it died or closed our ipc channel), nothing we wait on from it will ever come
+   * @hidden
+   */
+  _onDisconnect(): void {
+    const error = new Error('Cluster manager disconnected');
+    for (let [key, waiting] of this._restRequestsWaiting) {
+      waiting.reject(error);
+      this._restRequestsWaiting.delete(key);
+    }
+    for (let [nonce, onResult] of this._broadcastEvalsWaiting) {
+      // same path as the manager answering with an error, it clears its own timer
+      onResult({error: ClusterIPCTypes.serializeError(error), nonce} as ClusterIPCTypes.Eval);
+      this._broadcastEvalsWaiting.delete(nonce);
+    }
+    // a shard allowed to identify can't report back, and one asking to identify never gets an answer
+    this._shardsIdentifying.clear();
+    // no manager means no identify slots and failing ipc, so drop our gateway connections (the process is left to the user)
+    this.cluster.kill(error);
   }
 
   async onMessage(message: ClusterIPCTypes.IPCMessage | any): Promise<void> {
@@ -149,7 +169,6 @@ export class ClusterProcessChild extends EventSpewer {
               waiting(data);
             }
           } else {
-            // we received a request to eval from the parent
             // the manager only needs the nonce to match our answer, don't send its code back
             const data: ClusterIPCTypes.Eval = message.data;
             if (message.shard != null && !this.cluster.shards.has(message.shard)) {
@@ -188,7 +207,7 @@ export class ClusterProcessChild extends EventSpewer {
           }
         }; return;
         case ClusterIPCOpCodes.IDENTIFY_REQUEST: {
-          // we received an ok to identify
+          // the manager's ok to identify
           const { shardId }: ClusterIPCTypes.IdentifyRequest = message.data;
           const shard = this.cluster.shards.get(shardId);
           // identify() ignores the call unless the socket is open or resuming
@@ -333,8 +352,7 @@ export class ClusterProcessChild extends EventSpewer {
   async sendRestRequest(name: string, args?: Array<any>, force: boolean = false): Promise<any> {
     const hash = (args) ? `${name}-${JSON.stringify(args)}` : name;
     const key = getRestRequestKey(hash, force);
-    // share the in-flight request instead of overwriting its waiter
-    // a forced request only shares another forced one, an older normal one may be answered from the manager's cache
+    // share the in-flight request instead of overwriting its waiter, a forced one only shares another forced one
     const shared = this._restRequestsWaiting.get(getRestRequestKey(hash, true)) || this._restRequestsWaiting.get(key);
     if (shared) {
       return shared.promise;

@@ -21,8 +21,7 @@ export interface PresencesOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class Presences extends BaseClientCollection<string, Presence> {
-  // guild id -> ids of the users with a cached presence in it, so clearing a guild doesn't go through every presence
-  // can have extra ids (a presence's guild removed without `deleteGuildId()`), `clearGuildId()` checks the presence itself
+  // guild id -> user ids with a cached presence in it, can have stale ids so `clearGuildId()` checks the presence itself
   readonly _guildUserIds = new Map<string, Set<string>>();
 
   constructor(client: ShardClient, options: PresencesOptions | boolean = {}) {
@@ -47,8 +46,7 @@ export class Presences extends BaseClientCollection<string, Presence> {
             this.delete(presence.user.id);
             presence.merge(value);
           } else {
-            // offline is for the user everywhere, keep the presence for its other guilds but with the new status
-            // `merge()` adds the guild back, so take it out again after
+            // offline is user-wide, keep it for its other guilds (`merge()` re-adds this one, so drop it again)
             presence.merge(value);
             presence._deleteGuildId(guildId);
           }
@@ -136,7 +134,7 @@ export class Presences extends BaseClientCollection<string, Presence> {
   }
 
   /**
-   * Removes every cached presence's guild, deleting the presences left without one
+   * Removes the guild from every cached presence, deleting the presences left without one
    */
   clearGuildId(guildId: string): void {
     const userIds = this._guildUserIds.get(guildId);

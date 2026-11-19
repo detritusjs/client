@@ -81,7 +81,6 @@ export class Member extends UserMixin {
   _collectibles: null | UserCollectibles = null;
   _displayNameStyles: null | UserDisplayNameStyles = null;
   // only declared, the constructor adds these (see `memberHiddenProperties`)
-  // `_hoistedRoleId` is only set when discord sends `hoisted_role` (user accounts) or from a clone, otherwise it's worked out from the roles when read
   declare _hoistedRoleId?: null | string;
   declare _roles?: Array<string>;
   _permissions?: bigint = 0n;
@@ -282,8 +281,7 @@ export class Member extends UserMixin {
 
   /**
    * The highest role that's displayed separately in the member list
-   * worked out from the guild's current roles when read (discord only sends `hoisted_role` to user accounts)
-   * so it doesn't go stale when roles get moved or edited, and merging stays cheap
+   * worked out from the guild's roles when read so it can't go stale (discord only sends `hoisted_role` to user accounts)
    */
   get hoistedRoleId(): null | string {
     if (this._hoistedRoleId !== undefined) {
@@ -363,7 +361,7 @@ export class Member extends UserMixin {
     if (this.isOwner) {
       return PERMISSIONS_ALL;
     }
-    // the raw bitfield from the member's roles, administrator doesn't expand it (`can()`/`permissionsIn()` handle that)
+    // the raw bitfield, administrator doesn't expand it (`can()`/`permissionsIn()` handle that)
     // reads the guild's roles directly, the `roles` getter would build a new collection on every call
     let total = Permissions.NONE;
     const guild = this.guild;
@@ -473,7 +471,7 @@ export class Member extends UserMixin {
     return PermissionTools.checkPermissions(total, permissions);
   }
 
-  /* just checks who has the higher role, doesn't check permissions */
+  /* only compares role positions, doesn't check permissions */
   canEdit(member: Member): boolean {
     if (this.isOwner) {
       return true;

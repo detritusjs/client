@@ -18,6 +18,20 @@ export interface TypingOptions extends BaseClientCollectionOptions {
  * @category Collections
  */
 export class TypingCollection extends BaseClientCollectionCache<string, Typing> {
+  clear(): void {
+    const typings: Array<Typing> = [];
+    for (let [channelId, cache] of this.caches) {
+      for (let [userId, typing] of cache) {
+        typings.push(typing);
+      }
+    }
+    super.clear();
+    // no TYPING_STOP comes for these, their timers would fire for typings that are gone
+    for (let typing of typings) {
+      typing._stop(false);
+    }
+  }
+
   insert(typing: Typing): void {
     if (this.enabled) {
       const cache = this.insertCache(typing.channelId);

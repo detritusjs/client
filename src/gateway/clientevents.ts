@@ -61,6 +61,10 @@ export namespace GatewayClientEvents {
 
   }
 
+  export interface RestTokenUnauthorized extends RestClientEvents.TokenUnauthorizedPayload {
+
+  }
+
   export interface Unknown extends GatewayRawEvents.GatewayPacket {
 
   }

@@ -18,17 +18,14 @@ export interface ApplicationCommandPermissionsOptions extends BaseClientCollecti
 /**
  * Application Command Permissions Collection
  *
- * A guild's command permission overwrites (Server Settings > Integrations), keyed by guild id, then by command id
- * (or the application id for the app-wide overwrites)
+ * A guild's command permission overwrites, keyed by guild id, then by command id (or the application id for app-wide ones)
  *
  * - Nothing fills it on its own, call `fill(guildId)` when a guild first needs them
  * - `APPLICATION_COMMAND_PERMISSIONS_UPDATE` only updates guilds that were already filled
  * - A new session (`READY`) clears it, leaving a guild (`GUILD_DELETE`) removes that guild
- * - `fill()` rejects for a guild that installed the bot without the `applications.commands` scope, and keeps rejecting
- *   until the guild reinstalls it, so back off instead of retrying on every command
+ * - `fill()` keeps rejecting for a guild that installed the bot without `applications.commands`, so back off instead of retrying
  *
- * Discord only enforces these for slash commands used through the guild install. Prefix commands and user install
- * commands used in a guild aren't checked by Discord, use `isAllowed()` for those
+ * Discord only enforces these for guild install slash commands, use `isAllowed()` for prefix and user install commands
  * @category Collections
  */
 export class ApplicationCommandPermissionsCache extends BaseClientCollectionCache<string, ApplicationCommandPermissions> {
@@ -52,7 +49,7 @@ export class ApplicationCommandPermissionsCache extends BaseClientCollectionCach
 
   /**
    * Fetches a guild's command permissions, unless they're already cached (or `force`)
-   * Callers asking for the same guild at the same time share one request, a failed request caches nothing
+   * Concurrent callers share one request, a failed request caches nothing
    */
   fill(guildId: string, force: boolean = false): Promise<void> {
     if (!this.enabled || (this.has(guildId) && !force) || !this.client.applicationId) {
@@ -62,8 +59,7 @@ export class ApplicationCommandPermissionsCache extends BaseClientCollectionCach
     if (!promise) {
       promise = (async () => {
         try {
-          // fetch before clearing, so `isAllowed` keeps the old permissions while we wait
-          // and a failed fetch doesn't leave an empty (allow everything) cache that `has()` says is filled
+          // fetch before clearing, so waiting or failing never leaves an empty (allow everything) cache
           const permissions = await this.client.rest.fetchApplicationGuildCommandsPermissions(this.client.applicationId, guildId);
           const collection = this.insertCache(guildId);
           collection.clear();
@@ -81,9 +77,8 @@ export class ApplicationCommandPermissionsCache extends BaseClientCollectionCach
 
   /**
    * Whether the guild's command permissions let this member use a command in this channel
-   * `commandIds` are the command's ids (a global command and its guild version can both have overwrites)
-   * A command with its own overwrites ignores the app-wide ones (the entry keyed by the application's id), like Discord
-   * Nothing cached for the guild (not filled, or no overwrites) counts as allowed
+   * `commandIds` since a global command and its guild version can both have overwrites
+   * A command's own overwrites replace the app-wide ones like Discord, and nothing cached counts as allowed
    */
   isAllowed(guildId: string, commandIds: string | Array<string>, channel: Channel, member: Member): boolean {
     const permissions = this.get(guildId);

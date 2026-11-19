@@ -302,8 +302,7 @@ export class Role extends BaseStructure {
     }
 
     {
-      // always merge in tags since it might not appear
-      // we sometimes get `{}`
+      // always merge tags, discord leaves them out or sends `{}` when there are none
       const value = data[DiscordKeys.TAGS];
 
       let tags: RoleTags | null = null;
@@ -420,7 +419,7 @@ export class RoleTags extends BaseStructure {
     (this as any)[DetritusKeys[DiscordKeys.SUBSCRIPTION_LISTING_ID]] = data[DiscordKeys.SUBSCRIPTION_LISTING_ID];
   }
 
-  // the flags are true when their key is there at all (sent as `null`), the generic compare would see `true` vs `null` as a change
+  // the generic compare would see the flags' `true` vs discord's `null` as a change
   differences(data?: BaseStructureData): null | object {
     if (!data) {
       return null;

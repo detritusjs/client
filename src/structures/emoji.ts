@@ -232,8 +232,7 @@ export class Emoji extends BaseStructure {
     }
 
     (this as any)[DetritusKeys[DiscordKeys.ANIMATED]] = !!data[DiscordKeys.ANIMATED];
-    // since presences can have emojis now, we want to reuse the emoji object
-    // this can cause someone switching from an emoji with an id to one without (which will make the id stay, this fixes it)
+    // presence emojis are reused, so clear the id when switching to an emoji without one
     (this as any)[DetritusKeys[DiscordKeys.ID]] = data[DiscordKeys.ID] || null;
 
     if (DiscordKeys.GUILD_ID in data) {

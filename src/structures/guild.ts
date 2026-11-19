@@ -456,12 +456,12 @@ export class BaseGuild extends BaseStructure {
     return this.client.rest.fetchGuildSoundboardSounds(this.id);
   }
 
-  // asks the gateway for the guild's sounds, the cache gets filled when the `soundboardSounds` event comes back
+  // the cache fills when the `soundboardSounds` gateway event comes back
   requestSoundboardSounds() {
     return this.client.gateway.requestSoundboardSounds(this.id);
   }
 
-  // asks the gateway for voice channel statuses and start times, the channels get updated when the `channelInfo` event comes back
+  // voice channel statuses and start times, the channels update when the `channelInfo` gateway event comes back
   requestChannelInfo(fields?: Array<string>) {
     return this.client.gateway.requestChannelInfo(this.id, fields);
   }
@@ -794,7 +794,7 @@ const keysSkipDifferenceGuild = new BaseSet<string>([
   DiscordKeys.STICKERS,
 ]);
 
-// large (or computed from the client's whole cache) and never changed by a GUILD_UPDATE, so `clone()` doesn't copy them
+// large and never changed by a GUILD_UPDATE, so `clone()` skips them
 const keysCloneSkipGuild = new BaseSet<string>([
   DiscordKeys.CHANNELS,
   DiscordKeys.MEMBERS,
@@ -812,13 +812,12 @@ export class Guild extends GuildPartial {
   static { setStructureKeys(this, '_keysSkipDifference', keysSkipDifferenceGuild); }
   readonly _channelIds = new BaseSet<string>();
   readonly _threadIds = new BaseSet<string>();
-  // if any of our presences could have this guild, clearing them means going through every cached presence
+  // clearing a guild's presences goes through every cached presence, so track if it has any
   _hasPresences: boolean = false;
 
   afkChannelId: null | string = null;
   afkTimeout: number = 0;
   // undocumented, only in GUILD_CREATE: command counts by command type, `{[type]: count}`
-  // counts commands, it says nothing about command permissions
   applicationCommandCounts: null | Record<number, number> = null;
   declare applicationId?: null | string;
   // only sent when fetched with `withCounts`
@@ -1293,8 +1292,7 @@ export class Guild extends GuildPartial {
 
   /**
    * Copies everything except the channels, members, presences, threads and voice states
-   * serializing those took hundreds of milliseconds on big guilds, for every GUILD_UPDATE with a listener
-   * the copy keeps the channel/thread ids (its `channels`/`threads` read the client's cache like any guild) and shares the live `members` collection
+   * serializing those is slow on big guilds, the copy keeps the channel/thread ids and shares the live `members` collection
    */
   clone(): this {
     const keys: Array<string> = [];
@@ -1341,7 +1339,7 @@ export class Guild extends GuildPartial {
       return;
     }
 
-    // merge roles first for members
+    // roles first, members need them
     if (DiscordKeys.ROLES in data) {
       const value = data[DiscordKeys.ROLES];
       if (this.client.roles.enabled) {
@@ -1507,7 +1505,7 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.MEMBERS in data) {
       // merge members before presences
       const value = data[DiscordKeys.MEMBERS];
-      // reuse the members we already have (like on a resync) so anything holding onto them stays up to date
+      // reuse existing members (like on a resync) so references to them stay up to date
       const members: Array<Member> = [];
       for (let raw of value) {
         raw[DiscordKeys.GUILD_ID] = this.id;
@@ -1536,7 +1534,6 @@ export class Guild extends GuildPartial {
           }
           members.push(member);
         } else if (this.client.presences.enabled || this.client.users.enabled) {
-          // if this isn't a clone, merge user into our cache then
           if (!this.isClone) {
             let user: User;
             if (this.client.users.has(raw.user.id)) {
@@ -1590,9 +1587,7 @@ export class Guild extends GuildPartial {
     if (DiscordKeys.PRESENCES in data) {
       const value = data[DiscordKeys.PRESENCES];
       if (!this.isClone) {
-        // drop the presences when cloning the guild..
-
-        // only a guild that loaded presences before (a resync) has old ones to clear, not every guild coming in at startup
+        // only a guild that loaded presences before (a resync) has old ones to clear
         if (this._hasPresences) {
           this.client.presences.clearGuildId(this.id);
           this._hasPresences = false;
@@ -1727,8 +1722,6 @@ export class Guild extends GuildPartial {
       (this as any)[DetritusKeys[DiscordKeys.VERIFICATION_ROLE_ID]] = data[DiscordKeys.VERIFICATION_ROLE_ID];
     }
     if (DiscordKeys.VOICE_STATES in data) {
-      // drop the voice states when cloning the guild.. (unexpected behavior, maybe stop guilds from being cloned?)
-
       const value = data[DiscordKeys.VOICE_STATES];
       if (this.client.voiceStates.enabled && !this.isClone) {
         const cache = this.client.voiceStates.insertCache(this.id);

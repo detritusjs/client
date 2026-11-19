@@ -43,7 +43,11 @@ export function createComponentListenerOrNone(
   id = options.listenerId || id;
 
   if (options.components instanceof Components) {
-    id = options.components.id || id;
+    // an id we registered it under before (the message it was first sent with) isn't one the caller picked
+    const components = options.components;
+    if (components.id && components.id !== components._registeredId) {
+      id = components.id;
+    }
     if (!options.components.components.length) {
       return [id || '', null, false];
     }
@@ -70,7 +74,7 @@ export function createComponentListenerOrNone(
         return null;
       }).filter((x) => x) as Array<ComponentActionRow | ComponentContainer | ComponentSection>;
       if (components.length) {
-        // todo: this only gets executed with action rows, containers, and sections, fix this for other v2 objects
+        // todo: only handles action rows, containers and sections, not the other v2 components
         const componentsObject = new Components({components, id});
         if (components.some((row) => row.hasRun)) {
           return [id || '', componentsObject, componentsObject.isV2];

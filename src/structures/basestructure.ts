@@ -8,8 +8,7 @@ import { DetritusKeys } from '../constants';
 import { toCamelCase } from '../utils/casing';
 
 
-// every merge/difference converts each key, so remember the conversions
-// capped since `differences()` can be handed objects with arbitrary keys
+// cache key conversions, capped since `differences()` can be handed arbitrary keys
 const convertedKeys = new Map<string, string>();
 const CONVERTED_KEYS_LIMIT = 4096;
 
@@ -41,13 +40,12 @@ export function setStructureKeys(structure: Function, name: StructureKeysName, k
 }
 
 export function setStructureUncloneable(structure: Function): void {
-  // on the prototype so every instance doesn't carry its own `_uncloneable` slot (class fields are own properties)
+  // on the prototype so instances don't each carry an own `_uncloneable` slot
   Object.defineProperty(structure.prototype, '_uncloneable', {configurable: true, value: true});
 }
 
 /**
- * Compares a cached collection with what discord sent (usually an array of objects with an `id`, or another collection from `differencesBetween()`)
- * entries we can't match up by id (like embeds, keyed by their index) still count as different
+ * Compares a cached collection with what discord sent (an array, or a collection from `differencesBetween()`)
  */
 function isCollectionDifferent(old: BaseCollection<any, any>, value: any): boolean {
   if (value instanceof BaseCollection) {
@@ -67,8 +65,7 @@ function isCollectionDifferent(old: BaseCollection<any, any>, value: any): boole
   if (!Array.isArray(value) || old.size !== value.length) {
     return true;
   }
-  // collections like components, embeds, and embed fields are keyed by their index (a number), ids are always strings
-  // their items can still have an `id` (components have a number one), so go by the position
+  // components, embeds, and embed fields are keyed by index (ids are always strings), so match those by position
   let isKeyedByIndex = false;
   for (let key of old.keys()) {
     isKeyedByIndex = (typeof(key) === 'number');
@@ -94,7 +91,7 @@ function isCollectionDifferent(old: BaseCollection<any, any>, value: any): boole
 
 /**
  * Copy of a structure that `merge()` won't change, for the old values `difference()` hands back
- * copies its own properties (and the structures in them) instead of calling `clone()`, some constructors take a parent structure instead of the client
+ * avoids `clone()` since some constructors take a parent structure instead of the client
  */
 function snapshotStructure(structure: BaseStructure, copies: Map<BaseStructure, BaseStructure>): BaseStructure {
   let copy = copies.get(structure);
@@ -115,8 +112,7 @@ function snapshotStructure(structure: BaseStructure, copies: Map<BaseStructure, 
 }
 
 /**
- * The old value `difference()` hands back
- * a collection's items get merged into in place (like overwrites and presence activities), so copy those too
+ * The old value `difference()` hands back, collection items are merged into in place so copy those too
  */
 function snapshotValue(old: any): any {
   if (old instanceof BaseCollection) {
@@ -152,7 +148,6 @@ function isItemDifferent(old: any, item: any): boolean {
     // some raw object we don't know how to compare
     return true;
   }
-  // primitives (ids, numbers like colors)
   return old !== item;
 }
 
@@ -166,7 +161,6 @@ function isSameBigInt(old: bigint, value: any): boolean {
   try {
     return old === BigInt(value);
   } catch(error) {
-    // not something BigInt() can parse, so it can't be the same value
     return false;
   }
 }
@@ -203,13 +197,12 @@ export class Structure {
       const old = (this as any)[camelKey];
       if (old !== undefined && old !== value) {
         if (old instanceof BaseStructure && value) {
-          // `differencesBetween()` when comparing two structures (from `differencesBetween()`), `differences()` for raw data
           const differences = (value instanceof BaseStructure) ? old.differencesBetween(value) : old.differences(value);
           if (differences) {
             return [true, differences];
           }
         } else if (this.hasDifference(key, value)) {
-          // everything else goes through `hasDifference()` so a structure's overrides of it count here too
+          // through `hasDifference()` so subclass overrides of it count here too
           return [true, snapshotValue(old)];
         }
       }
@@ -262,22 +255,14 @@ export class Structure {
       const camelKey = convertKey(key);
       const old = (this as any)[camelKey];
 
-      // BigInts
-      // -> Discord sends us a string version of this (like permissions)
-      // -> Parse it as BigInt before comparing
-      // Arrays
-      // -> We either receive [string|int] or [{id: string}] or other arrays from discord
-      // -> We either parse them as BaseSet or BaseCollection with the ID as the key (sometimes the key is the array number like embeds)
       if (old !== undefined && old !== value) {
         if (typeof(old) === 'bigint') {
-          // assume we got a BigInt in a string
-          // checked before the truthy compare since `0n` is falsy but its string form `"0"` isn't
+          // discord sends these as strings (like permissions), checked first since `0n` is falsy but `"0"` isn't
           return !isSameBigInt(old, value);
         } else if (!!old !== !!value) {
-          // this makes sure we dont compare null to BaseStructure, null to Date, etc..
+          // so the checks below never compare null to a structure, date, etc
           return true;
         } else if (old instanceof BaseStructure) {
-          // assume it's either an object or a BaseStructure
           if (value instanceof BaseStructure) {
             return old.hasDifferencesBetween(value);
           } else {
@@ -286,45 +271,36 @@ export class Structure {
         } else if (old instanceof BaseCollection) {
           return isCollectionDifferent(old, value);
         } else if (old instanceof BaseSet) {
-          // assume we got an array of [string] or [int]
           if (old.size !== value.length) {
             return true;
           } else {
             return !value.every((item: any) => old.has(item));
           }
         } else if (old instanceof Date) {
-          // assume we either got a Date, Int, or Date String
           if (value instanceof Date) {
-            // we got a Date object, usually from Structure.differencesBetween(Structure)
             return old.getTime() !== value.getTime();
           } else if (typeof(value) === 'number') {
-            // we got a number, unsure of from where but might as well check
             return old.getTime() !== value;
           }
           return old.getTime() !== (new Date(value)).getTime();
         } else if (Array.isArray(old)) {
           return isArrayDifferent(old, value);
         } else if (typeof(old) === 'object') {
-          // assume we got an object too
-          // this would be a rare compare, like role.tags
+          // rare, like `role.tags`
           if (typeof(value) === 'object') {
-            // compare keys length to each other
             const oldKeys = Object.keys(old);
             const newKeys = Object.keys(value);
             if (newKeys.length !== oldKeys.length) {
               return true;
             }
-            // see if both objects have the same keys
             if (!newKeys.every((key: string) => oldKeys.includes(key))) {
               return true;
             }
-            // compare each value inside of the object
             return !newKeys.every((key: string) => old[key] === value[key]);
           } else {
             return true;
           }
         } else {
-          // good old compare
           return old !== value;
         }
       }
@@ -401,7 +377,7 @@ export class Structure {
   }
 
   /**
-   * `toJSON()` for only some of the keys, only these keys' values are read
+   * `toJSON()` for only these keys
    * @ignore
    */
   _toJSONKeys(keys?: Iterable<string>): BaseStructureData {

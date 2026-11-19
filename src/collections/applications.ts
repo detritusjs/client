@@ -15,7 +15,6 @@ export interface ApplicationsOptions extends BaseClientCollectionOptions {};
 export class Applications extends BaseClientCollection<string, Application> {
   lastRefresh = 0;
   refreshTime = 4 * (60 * 60) * 1000;
-  // 4 hours minimum in between application fetches
 
   get shouldRefresh(): boolean {
     return !this.length || this.refreshTime <= Date.now() - this.lastRefresh;
